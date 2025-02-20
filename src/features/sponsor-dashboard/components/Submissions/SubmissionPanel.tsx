@@ -153,7 +153,7 @@ export const SubmissionPanel = ({
                       className="mr-4 text-slate-600"
                       onClick={() => {
                         window.open(
-                          `https://solscan.io/tx/${selectedSubmission?.paymentDetails?.txId}?cluster=${process.env.NEXT_PUBLIC_PAYMENT_CLUSTER}`,
+                          `https://nearblocks.io/txns/${selectedSubmission?.paymentDetails?.txId}`,
                           '_blank',
                         );
                       }}

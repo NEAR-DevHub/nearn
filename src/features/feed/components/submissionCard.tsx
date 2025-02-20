@@ -24,7 +24,7 @@ export function SubmissionCard({ sub, type, commentCount }: SubCardProps) {
   const username = sub?.username;
 
   const isProject = sub?.listingType === 'project';
-
+  const isSponsorship = sub?.listingType === 'sponsorship';
   const listingLink = `${getURL()}listing/${sub?.listingSlug}`;
 
   const submissionLink = sub?.link
@@ -53,6 +53,10 @@ export function SubmissionCard({ sub, type, commentCount }: SubCardProps) {
       winningText = 'got selected for a project';
       submissionText = 'applied to a project';
       break;
+    case 'sponsorship':
+      winningText = 'got selected for a sponsorship';
+      submissionText = 'applied to a sponsorship';
+      break;
   }
 
   const content = {
@@ -76,7 +80,7 @@ export function SubmissionCard({ sub, type, commentCount }: SubCardProps) {
           {sub?.listingTitle}
         </Link>
       </div>
-      {!sub?.id && !isProject ? (
+      {!sub?.id && !isProject && !isSponsorship ? (
         <Tooltip content="This submission will be accessible once winners for the listing have been announced.">
           <FeedCardLink href={link} style="opacity-50 pointer-events-none">
             {isProject ? 'View Listing' : 'View Submission'}

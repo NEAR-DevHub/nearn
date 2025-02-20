@@ -29,6 +29,11 @@ export const CreateListingModal = ({
     router.push('/dashboard/new?type=project');
   };
 
+  const handleCreateSponsorship = () => {
+    posthog.capture('create new sponsorship_sponsor');
+    router.push('/dashboard/new?type=sponsorship');
+  };
+
   const isMD = useMediaQuery('(min-width: 768px)');
 
   if (!isMD) return null;
@@ -115,8 +120,49 @@ export const CreateListingModal = ({
               </Button>
             </div>
           </div>
+
+          <div className="relative flex-1 border-l border-slate-200">
+            <div className="relative mb-6 flex items-center justify-center bg-green-50 px-32 py-12">
+              <ExternalImage
+                className="h-auto w-full"
+                alt="Project Illustration"
+                src={'/dashboard/bounty_illustration.svg'}
+              />
+              <div className="absolute right-4 top-4 flex items-center rounded-full bg-white px-3 py-1 text-blue-500">
+                <ProjectIcon
+                  styles={{
+                    width: '1rem',
+                    height: '1rem',
+                    marginRight: '0.25rem',
+                    color: 'red',
+                    fill: '#3B82F6',
+                  }}
+                />
+                <p className="text-sm font-bold">Project</p>
+              </div>
+            </div>
+
+            <div className="p-8">
+              <h3 className="mb-4 text-lg font-semibold">Sponsorship</h3>
+              <p className="mb-4 text-slate-500">
+                Sponsor open source projects or developers. Support the ecosystem while building
+                relationships with the leading developers and projects.
+              </p>
+              <Button
+                className="w-full py-6"
+                onClick={handleCreateSponsorship}
+                size="lg"
+              >
+                Create a Sponsorship
+              </Button>
+            </div>
+          </div>
         </div>
+
+        
       </DialogContent>
     </Dialog>
   );
 };
+
+

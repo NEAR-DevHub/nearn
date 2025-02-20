@@ -56,6 +56,23 @@ export function ListingHeader({
   const isProject = type === 'project';
   const isHackathon = type === 'hackathon';
 
+  const showSubmissions = type === 'sponsorship' || (!isProject && isWinnersAnnounced);
+
+  const typeToTooltip = {
+    project:
+      'A Project is a short-term gig where sponsors solicit applications from multiple people, and select the best one to work on the Project.',
+    bounty:
+      'Bounties are open for anyone to participate in and submit their work (as long as they meet the eligibility requirements mentioned below). The best submissions win!',
+    sponsorship:
+      'Sponsorships are open for anyone to participate in and submit their work (as long as they meet the eligibility requirements mentioned below). Best submissions get funding!',
+  } as const;
+
+  const typeToName = {
+    project: 'Project',
+    bounty: 'Bounty',
+    sponsorship: 'Sponsorship',
+  } as const;
+
   const { data: submissionNumber, isLoading: isSubmissionNumberLoading } =
     useQuery(submissionCountQuery(listing.id!));
 
@@ -157,11 +174,7 @@ export function ListingHeader({
         ) : (
           <div className="flex">
             <Tooltip
-              content={
-                isProject
-                  ? 'A Project is a short-term gig where sponsors solicit applications from multiple people, and select the best one to work on the Project.'
-                  : 'Bounties are open for anyone to participate in and submit their work (as long as they meet the eligibility requirements mentioned below). The best submissions win!'
-              }
+              content={typeToTooltip[type!] ?? typeToTooltip['bounty']}
               contentProps={{ className: 'max-w-80' }}
             >
               <div className="flex items-center gap-1">
@@ -171,7 +184,7 @@ export function ListingHeader({
                   src={getListingIcon(type!)}
                 />
                 <p className="text-xs font-medium text-gray-400 md:text-sm">
-                  {isProject ? 'Project' : 'Bounty'}
+                  {typeToName[type!] ?? typeToName['bounty']}
                 </p>
               </div>
             </Tooltip>
@@ -247,7 +260,7 @@ export function ListingHeader({
               isActive={!router.asPath.split('/')[4]?.includes('submission')}
             />
 
-            {!isProject && isWinnersAnnounced && (
+            {showSubmissions && (
               <ListingTabLink
                 onClick={() => posthog.capture('submissions tab_listing')}
                 href={`/listing/${slug}/submission`}

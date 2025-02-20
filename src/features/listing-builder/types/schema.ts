@@ -265,6 +265,7 @@ export const createListingRefinements = async (
   ctx: z.RefinementCtx,
   hackathon?: Hackathon,
 ) => {
+  console.log(data);
   if (data.compensationType === 'fixed') {
     if (!data.rewardAmount) {
       ctx.addIssue({
@@ -349,6 +350,14 @@ export const createListingRefinements = async (
     }
   }
 
+  if (data.type === 'sponsorship' && data.compensationType !== 'variable') {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Sponsorship must be variable compensation',
+      path: ['compensationType'],
+    });
+  }
+
   if (data.type === 'hackathon' && data.deadline) {
     if (
       !hackathon?.deadline ||
@@ -390,7 +399,7 @@ export const backendListingRefinements = async (
       path: ['slug'],
     });
   }
-  if (data.type !== 'project' && data.compensationType !== 'fixed') {
+  if (data.type !== 'project' && data.type !== 'sponsorship' && data.compensationType !== 'fixed') {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       message:

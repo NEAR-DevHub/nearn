@@ -697,6 +697,7 @@ enum BountyType {
   bounty
   project
   hackathon
+  sponsorship
 }
 
 enum CommentRefType {

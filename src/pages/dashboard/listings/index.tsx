@@ -184,6 +184,7 @@ export default function SponsorListings() {
       all: 'all',
       bounties: 'bounty',
       projects: 'project',
+      sponsorships: 'sponsorship',
       grants: 'grant',
       hackathons: 'hackathon',
     };
@@ -284,6 +285,7 @@ export default function SponsorListings() {
               <TabsTrigger value="all">All</TabsTrigger>
               <TabsTrigger value="bounties">Bounties</TabsTrigger>
               <TabsTrigger value="projects">Projects</TabsTrigger>
+              <TabsTrigger value="sponsorships">Sponsorships</TabsTrigger>
               {hasGrants && <TabsTrigger value="grants">Grants</TabsTrigger>}
               {hasHackathons && (
                 <TabsTrigger value="hackathons">Hackathons</TabsTrigger>

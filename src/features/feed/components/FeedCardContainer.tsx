@@ -76,6 +76,7 @@ export const FeedCardContainer = ({
   const [recentCommenters, setRecentCommenters] = useState(
     initialRecentCommenters,
   );
+  console.log(isCommentOpen);
 
   const handleCommentSuccess = () => {
     setRecentCommenters((prevCommenters) => [
