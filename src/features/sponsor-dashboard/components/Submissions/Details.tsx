@@ -1,4 +1,4 @@
-import { useAtomValue } from 'jotai';
+import { Atom, Atom, useAtomValue } from 'jotai';
 import React from 'react';
 
 import { getURLSanitized } from '@/utils/getURLSanitized';
@@ -9,14 +9,16 @@ import { selectedSubmissionAtom } from '../../atoms';
 import { InfoBox } from '../InfoBox';
 import { Notes } from './Notes';
 import { cn } from '@/utils/cn';
+import { SubmissionWithUser } from '@/interface/submission';
 
 interface Props {
   bounty: Listing | undefined;
   modalView?: boolean;
+  atom?: Atom<SubmissionWithUser | undefined>;
 }
 
-export const Details = ({ bounty,  modalView }: Props) => {
-  const selectedSubmission = useAtomValue(selectedSubmissionAtom);
+export const Details = ({ bounty,  modalView, atom}: Props) => {
+  const selectedSubmission = useAtomValue(atom ?? selectedSubmissionAtom);
   const isProject = bounty?.type === 'project';
 
   return (

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { ArrowUpRight, Heart, MessageCircle } from 'lucide-react';
+import { Heart, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 import React, { type Dispatch, type SetStateAction, useState } from 'react';
 import { toast } from 'sonner';
@@ -11,14 +11,11 @@ import { type User } from '@/interface/user';
 import { ogImageQuery } from '@/queries/og';
 import { useUser } from '@/store/user';
 import { cn } from '@/utils/cn';
-import { getURLSanitized } from '@/utils/getURLSanitized';
 
 import { EarnAvatar } from '@/features/talent/components/EarnAvatar';
 
-import { Listing, type Rewards } from '../../types';
+import {  type Rewards } from '../../types';
 import { Badge } from './Badge';
-import { SubmissionDetails } from './SubmissionDetails';
-import { SubmissionWithUser } from '@/interface/submission';
 
 interface Props {
   winner: boolean;
@@ -31,8 +28,7 @@ interface Props {
   id: string;
   setUpdate: Dispatch<SetStateAction<boolean>>;
   link: string;
-  submission: SubmissionWithUser;
-  bounty: Listing;
+  onClick: () => void;
 }
 
 export const SubmissionCard = ({
@@ -42,13 +38,11 @@ export const SubmissionCard = ({
   talent,
   likes,
   setUpdate,
+  onClick,
   link,
-  submission,
-  bounty,
 }: Props) => {
   const { user } = useUser();
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isDetailsOpen, setIsDetailsOpen] = useState<boolean>(false);
   const { data: ogData } = useQuery(ogImageQuery(link));
 
   const handleLike = async (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -79,7 +73,7 @@ export const SubmissionCard = ({
     <>
       <div 
         className="relative w-full cursor-pointer overflow-hidden rounded-md bg-white md:w-60"
-        onClick={() => setIsDetailsOpen(true)}
+        onClick={onClick}
       >
         <div className="mb-2 flex w-full justify-between gap-2">
           <Link href={`/t/${talent?.username}`} onClick={(e) => e.stopPropagation()}>
@@ -153,13 +147,6 @@ export const SubmissionCard = ({
           </Link>
         </div>
       </div>
-
-      <SubmissionDetails
-        open={isDetailsOpen}
-        setOpen={setIsDetailsOpen}
-        submission={submission}
-        bounty={bounty}
-      />
     </>
   );
 };

@@ -1,4 +1,4 @@
-import React, { type Dispatch, type SetStateAction } from 'react';
+import React, { useState, type Dispatch, type SetStateAction } from 'react';
 
 import { ExternalImage } from '@/components/ui/cloudinary-image';
 import type { SubmissionWithUser } from '@/interface/submission';
@@ -6,6 +6,8 @@ import { dayjs } from '@/utils/dayjs';
 
 import { type Listing } from '../../types';
 import { SubmissionCard } from './SubmissionCard';
+import { SubmissionDetails } from './SubmissionDetails';
+import submission from '@/pages/listing/[slug]/submission';
 
 interface Props {
   bounty: Listing;
@@ -19,8 +21,18 @@ export const SubmissionList = ({
   endTime,
   setUpdate,
 }: Props) => {
+  const [isDetailsOpen, setIsDetailsOpen] = useState<boolean>(false);
+  const [selectedSubmission, setSelectedSubmission] = useState<SubmissionWithUser | null>(null);
   const isSponsorship = bounty.type === 'sponsorship';
-  return (
+  return (<>
+    {isDetailsOpen && selectedSubmission && (
+      <SubmissionDetails
+      open={isDetailsOpen}
+      onClose={() => setIsDetailsOpen(false)}
+      submission={selectedSubmission}
+      bounty={bounty}
+    />
+    )}
     <div className="mt-10 flex min-h-screen w-full flex-col items-center md:items-start">
       {isSponsorship || dayjs(endTime).valueOf() < Date.now() ? (
         <div className="mx-auto flex w-full max-w-7xl flex-col items-start gap-2">
@@ -41,8 +53,10 @@ export const SubmissionList = ({
                   link={submission.link ?? ''}
                   setUpdate={setUpdate}
                   winnerPosition={submission.winnerPosition}
-                  bounty={bounty}
-                  submission={submission}
+                  onClick={() => {
+                    setSelectedSubmission(submission);
+                    setIsDetailsOpen(true);
+                  }}
                 />
               );
             })}
@@ -59,5 +73,6 @@ export const SubmissionList = ({
         </div>
       )}
     </div>
+    </>
   );
 };
