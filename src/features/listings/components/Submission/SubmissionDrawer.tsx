@@ -1,10 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
-import { X } from 'lucide-react';
+import { Check, ChevronDown, X } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { usePostHog } from 'posthog-js/react';
 import { type JSX, useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Control,  useForm, UseFormReturn, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import { type z } from 'zod';
 
@@ -35,6 +35,21 @@ import { userSubmissionQuery } from '../../queries/user-submission-status';
 import { type Listing } from '../../types';
 import { submissionSchema } from '../../utils/submissionFormSchema';
 import { SubmissionTerms } from './SubmissionTerms';
+import { tokenList } from '@/constants/tokenList';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
+  Command,
+  CommandInput,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+} from '@/components/ui/command';
+import { ClassValue } from 'clsx';
 
 interface Props {
   id: string | undefined;
@@ -76,7 +91,7 @@ export const SubmissionDrawer = ({
   const [termsAccepted, setTermsAccepted] = useState(false);
 
   const { user, refetchUser } = useUser();
-  const form = useForm<FormData>({
+  const form: UseFormReturn<FormData> = useForm<FormData>({
     resolver: zodResolver(
       submissionSchema(listing, minRewardAsk || 0, maxRewardAsk || 0, user),
     ),
@@ -88,8 +103,14 @@ export const SubmissionDrawer = ({
               answer: '',
             }))
           : [],
+        token: token === 'Any' ? tokenList[0]?.tokenSymbol : undefined,
     },
   });
+  const formToken = useWatch({
+    control: form.control,
+    name: 'token',
+  });
+
   const posthog = usePostHog();
   const router = useRouter();
   const { query } = router;
@@ -100,6 +121,7 @@ export const SubmissionDrawer = ({
       tweet: '',
       otherInfo: '',
       ask: null,
+      token: token === 'Any' ? tokenList[0]?.tokenSymbol : undefined,
       eligibilityAnswers: Array.isArray(listing.eligibility)
         ? listing.eligibility.map((q) => ({
             question: q.question,
@@ -120,7 +142,7 @@ export const SubmissionDrawer = ({
             params: { id },
           });
 
-          const { link, tweet, otherInfo, eligibilityAnswers, ask } =
+          const { link, tweet, otherInfo, eligibilityAnswers, ask, token } =
             response.data;
 
           form.reset({
@@ -129,6 +151,7 @@ export const SubmissionDrawer = ({
             otherInfo,
             ask,
             eligibilityAnswers,
+            token
           });
         } catch (error) {
           console.error('Failed to fetch submission data', error);
@@ -156,6 +179,7 @@ export const SubmissionDrawer = ({
         ask: data.ask || null,
         eligibilityAnswers: data.eligibilityAnswers || [],
         publicKey: data.publicKey,
+        token: token === 'Any' ? data.token : undefined,
       });
 
       const hideEasterEggFromSponsorIds = [
@@ -223,8 +247,8 @@ export const SubmissionDrawer = ({
         <>
           Note:
           <p>
-            1. In the “Link to your Submission” field, submit your hackathon
-            project’s most useful link (could be a loom video, GitHub link,
+            1. In the "Link to your Submission" field, submit your hackathon
+            project's most useful link (could be a loom video, GitHub link,
             website, etc)
           </p>
           <p>
@@ -399,6 +423,10 @@ export const SubmissionDrawer = ({
                         />
                       );
                     })}
+                    {token === 'Any' &&
+                      <TokenSelect control={form.control} />
+                    }
+
                     {compensationType !== 'fixed' && (
                       <FormFieldWrapper
                         control={form.control}
@@ -406,7 +434,7 @@ export const SubmissionDrawer = ({
                         label="What's the compensation you require to complete this fully?"
                         isRequired
                         isTokenInput
-                        token={token}
+                        token={token === 'Any' ? formToken ?? tokenList[0]?.tokenSymbol : token}
                       />
                     )}
                     <FormFieldWrapper
@@ -542,3 +570,163 @@ export const SubmissionDrawer = ({
     </SideDrawer>
   );
 };
+
+interface TokenSelectProps {
+  control: Control<FormData>;
+}
+
+export function TokenSelect({control}: TokenSelectProps) {
+  return (
+    <FormField
+      name="token"
+      control={control}
+      render={({ field }) => (
+        <FormItem className="gap-2">
+          <FormLabel>Payment</FormLabel>
+          <Popover>
+            <PopoverTrigger asChild>
+              <FormControl>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  className={cn(
+                    'w-full justify-between',
+                    !field.value && 'text-muted-foreground',
+                  )}
+                >
+                  {field.value ? (
+                    <TokenLabel
+                      control={control}
+                      showIcon
+                      showSymbol
+                      classNames={{
+                        symbol: 'text-slate-900',
+                        postfix: 'text-slate-900',
+                      }}
+                    />
+                  ) : (
+                    'Select Token'
+                  )}
+                  <ChevronDown className="opacity-50" />
+                </Button>
+              </FormControl>
+            </PopoverTrigger>
+            <PopoverContent className="w-[33rem] p-0">
+              <Command>
+                <CommandInput placeholder="Search token..." className="h-9" />
+                <CommandList>
+                  <CommandEmpty>No Token found.</CommandEmpty>
+                  <CommandGroup>
+                    {tokenList.filter(token => token.tokenSymbol !== 'Any').map((token) => (
+                      <CommandItem
+                        value={token.tokenName}
+                        key={token.tokenSymbol}
+                        onSelect={() => {
+                          field.onChange(token.tokenSymbol);
+                        }}
+                      >
+                        <TokenLabel control={control} token={token} showIcon showName />
+                        <Check
+                          className={cn(
+                            'ml-auto',
+                            token.tokenSymbol === field.value
+                              ? 'opacity-100'
+                              : 'opacity-0',
+                          )}
+                        />
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+interface TokenLabelProps {
+  symbol?: string;
+  className?: ClassValue;
+  showIcon?: boolean;
+  showSymbol?: boolean;
+  showName?: boolean;
+  postfix?: string;
+  amount?: number | null;
+  token?: (typeof tokenList)[0];
+  classNames?: {
+    icon?: ClassValue;
+    symbol?: ClassValue;
+    amount?: ClassValue;
+    postfix?: ClassValue;
+    name?: ClassValue;
+  };
+  control: Control<FormData>;
+  formatter?: (amount: number) => string;
+}
+
+
+const defaultFormatter = (amount: number) =>
+  new Intl.NumberFormat('en-US', {
+    currency: 'USD',
+    maximumFractionDigits: 2,
+  }).format(amount);
+
+export function TokenLabel({
+  symbol,
+  className,
+  showIcon = true,
+  showSymbol = false,
+  showName = false,
+  postfix,
+  amount,
+  classNames,
+  token: preToken,
+  formatter = defaultFormatter,
+  control,
+}: TokenLabelProps) {
+  const formToken = useWatch({
+    control: control,
+    name: 'token',
+  });
+
+  const searchSymbol = symbol || formToken;
+  const token =
+    preToken || tokenList.find((token) => token.tokenSymbol === searchSymbol);
+
+  if (!token) return null;
+  return (
+    <span className={cn('flex w-max items-center', className)}>
+      {showIcon && (
+        <img
+          src={token.icon}
+          alt={token.tokenSymbol}
+          className={cn('mr-1 block h-4 w-4', classNames?.icon)}
+        />
+      )}
+      {typeof amount === 'number' && !isNaN(amount) && (
+        <span className={cn('ml-2 text-sm', classNames?.amount)}>
+          {formatter(amount)}
+        </span>
+      )}
+      {showName && (
+        <span className={cn('ml-2 text-sm', classNames?.symbol)}>
+          {token.tokenName}
+        </span>
+      )}
+      {showSymbol && (
+        <span className={cn('ml-2 text-sm', classNames?.symbol)}>
+          {token.tokenSymbol}
+        </span>
+      )}
+      {postfix && (
+        <span className={cn('ml-1 text-sm', classNames?.postfix)}>
+          {postfix}
+        </span>
+      )}
+    </span>
+  );
+}

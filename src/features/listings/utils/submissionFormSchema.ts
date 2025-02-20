@@ -7,6 +7,7 @@ import { validateNearAddress } from '@/utils/validateNearAddress';
 
 import { walletFieldListings } from '../constants';
 import { type Listing } from '../types';
+import { tokenList } from '@/constants/tokenList';
 
 const submissionSchema = (
   listing: Listing,
@@ -31,6 +32,9 @@ const submissionSchema = (
         .array(z.object({ question: z.string(), answer: z.string() }))
         .optional(),
       publicKey: z.string().optional(),
+      token: z.string().refine((token) => token === "Any" || tokenList.find((t) => t.tokenSymbol === token), {
+        message: 'Invalid token provided',
+      }).optional(),
     })
     .superRefine((data, ctx) => {
       if (
@@ -90,6 +94,16 @@ const submissionSchema = (
             code: 'custom',
             path: ['ask'],
             message: `Compensation cannot exceed ${maxRewardAsk}`,
+          });
+        }
+      }
+
+      if (listing.token === "Any") {
+        if (!data.token) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['token'],
+            message: 'Token is required for listing with "Any" token',
           });
         }
       }

@@ -52,6 +52,7 @@ export const SubmissionList = ({
                   winner={!!bounty?.isWinnersAnnounced && !!submission.isWinner}
                   link={submission.link ?? ''}
                   setUpdate={setUpdate}
+                  status={isSponsorship ? submission.label : undefined}
                   winnerPosition={submission.winnerPosition}
                   onClick={() => {
                     setSelectedSubmission(submission);

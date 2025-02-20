@@ -16,6 +16,8 @@ import { EarnAvatar } from '@/features/talent/components/EarnAvatar';
 
 import {  type Rewards } from '../../types';
 import { Badge } from './Badge';
+import { colorMap } from '@/features/sponsor-dashboard/utils/statusColorMap';
+import submission from '@/pages/listing/[slug]/submission';
 
 interface Props {
   winner: boolean;
@@ -26,6 +28,7 @@ interface Props {
     date: number;
   }[];
   id: string;
+  status?: string;
   setUpdate: Dispatch<SetStateAction<boolean>>;
   link: string;
   onClick: () => void;
@@ -40,6 +43,7 @@ export const SubmissionCard = ({
   setUpdate,
   onClick,
   link,
+  status
 }: Props) => {
   const { user } = useUser();
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -88,7 +92,20 @@ export const SubmissionCard = ({
               </p>
             </div>
           </Link>
-          {winner && (
+          {status && (
+            <div className="flex-grow pr-1">
+              <span
+              className={cn(
+                'inline-flex whitespace-nowrap rounded-full px-3 py-1 text-center text-[10px] capitalize',
+                colorMap[status as keyof typeof colorMap].bg,
+                colorMap[status as keyof typeof colorMap].color,
+              )}
+            >
+              {status}
+            </span>
+            </div>
+          )}
+          {winner && !status && (
             <div className="flex-grow pr-1">
               <div className="ml-auto w-fit">
                 <Badge position={winnerPosition} />

@@ -21,6 +21,8 @@ export const Details = ({ bounty,  modalView, atom}: Props) => {
   const selectedSubmission = useAtomValue(atom ?? selectedSubmissionAtom);
   const isProject = bounty?.type === 'project';
 
+  const token = bounty?.token == "Any" ? selectedSubmission?.token : bounty?.token;
+
   return (
     <div
       className={cn(
@@ -52,7 +54,7 @@ export const Details = ({ bounty,  modalView, atom}: Props) => {
         {bounty?.compensationType !== 'fixed' && (
           <InfoBox
             label="Ask"
-            content={`${selectedSubmission?.ask?.toLocaleString('en-us')} ${bounty?.token}`}
+            content={`${selectedSubmission?.ask?.toLocaleString('en-us')} ${token}`}
           />
         )}
 

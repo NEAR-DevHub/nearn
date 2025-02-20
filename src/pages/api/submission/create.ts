@@ -60,6 +60,7 @@ async function createSubmission(
       otherInfo: validatedData.otherInfo || '',
       eligibilityAnswers: validatedData.eligibilityAnswers || [],
       ask: validatedData.ask || null,
+      token: validatedData.token || null,
     },
     include: {
       listing: {
@@ -79,6 +80,7 @@ async function submission(req: NextApiRequestWithUser, res: NextApiResponse) {
     eligibilityAnswers,
     ask,
     publicKey,
+    token,
   } = req.body;
 
   logger.debug(`Request body: ${safeStringify(req.body)}`);
@@ -93,7 +95,7 @@ async function submission(req: NextApiRequestWithUser, res: NextApiResponse) {
     const result = await createSubmission(
       userId as string,
       listingId,
-      { link, tweet, otherInfo, eligibilityAnswers, ask, publicKey },
+      { link, tweet, otherInfo, eligibilityAnswers, ask, publicKey, token },
       listing,
     );
 
