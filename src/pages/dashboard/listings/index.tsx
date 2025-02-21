@@ -319,6 +319,15 @@ export default function SponsorListings() {
                 }
               />
             </TabsContent>
+            <TabsContent value="sponsorships" className="px-0">
+              <MemoizedListingTable
+                listings={paginatedListings}
+                currentSort={currentSort}
+                onSort={(column, direction) =>
+                  setCurrentSort({ column, direction })
+                }
+              />
+            </TabsContent>
             {hasGrants && (
               <TabsContent value="grants" className="px-0">
                 <MemoizedListingTable

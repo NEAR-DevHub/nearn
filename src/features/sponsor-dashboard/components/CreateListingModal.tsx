@@ -143,7 +143,9 @@ export const CreateListingModal = ({
             </div>
 
             <div className="p-8">
-              <h3 className="mb-4 text-lg font-semibold">Sponsorship</h3>
+              <h3 className="mb-4 text-lg font-semibold">
+                Support Contributors
+              </h3>
               <p className="mb-4 text-slate-500">
                 Fund and reward contributions by sponsoring individuals. Share a
                 link to receive expenses or payment requests.
