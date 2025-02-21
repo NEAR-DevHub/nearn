@@ -145,8 +145,9 @@ export const CreateListingModal = ({
             <div className="p-8">
               <h3 className="mb-4 text-lg font-semibold">Sponsorship</h3>
               <p className="mb-4 text-slate-500">
-                Sponsor open source projects or developers. Support the ecosystem while building
-                relationships with the leading developers and projects.
+                Sponsor open source projects or developers. Support the
+                ecosystem while building relationships with the leading
+                developers and projects.
               </p>
               <Button
                 className="w-full py-6"
@@ -158,11 +159,7 @@ export const CreateListingModal = ({
             </div>
           </div>
         </div>
-
-        
       </DialogContent>
     </Dialog>
   );
 };
-
-

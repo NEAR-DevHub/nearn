@@ -399,7 +399,11 @@ export const backendListingRefinements = async (
       path: ['slug'],
     });
   }
-  if (data.type !== 'project' && data.type !== 'sponsorship' && data.compensationType !== 'fixed') {
+  if (
+    data.type !== 'project' &&
+    data.type !== 'sponsorship' &&
+    data.compensationType !== 'fixed'
+  ) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       message:

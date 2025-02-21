@@ -1,16 +1,30 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
+import { type ClassValue } from 'clsx';
 import { Check, ChevronDown, X } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { usePostHog } from 'posthog-js/react';
 import { type JSX, useEffect, useState } from 'react';
-import { Control,  useForm, UseFormReturn, useWatch } from 'react-hook-form';
+import {
+  type Control,
+  useForm,
+  type UseFormReturn,
+  useWatch,
+} from 'react-hook-form';
 import { toast } from 'sonner';
 import { type z } from 'zod';
 
 import { RichEditor } from '@/components/shared/RichEditor';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
 import {
   Form,
   FormControl,
@@ -22,9 +36,15 @@ import {
 } from '@/components/ui/form';
 import { FormFieldWrapper } from '@/components/ui/form-field-wrapper';
 import { Input } from '@/components/ui/input';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { SideDrawer, SideDrawerContent } from '@/components/ui/side-drawer';
 import { WalletConnectField } from '@/components/ui/wallet-connect-field';
 import { CHAIN_NAME } from '@/constants/project';
+import { tokenList } from '@/constants/tokenList';
 import { api } from '@/lib/api';
 import { useUser } from '@/store/user';
 import { cn } from '@/utils/cn';
@@ -35,21 +55,6 @@ import { userSubmissionQuery } from '../../queries/user-submission-status';
 import { type Listing } from '../../types';
 import { submissionSchema } from '../../utils/submissionFormSchema';
 import { SubmissionTerms } from './SubmissionTerms';
-import { tokenList } from '@/constants/tokenList';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import {
-  Command,
-  CommandInput,
-  CommandList,
-  CommandEmpty,
-  CommandGroup,
-  CommandItem,
-} from '@/components/ui/command';
-import { ClassValue } from 'clsx';
 
 interface Props {
   id: string | undefined;
@@ -103,7 +108,7 @@ export const SubmissionDrawer = ({
               answer: '',
             }))
           : [],
-        token: token === 'Any' ? tokenList[0]?.tokenSymbol : undefined,
+      token: token === 'Any' ? tokenList[0]?.tokenSymbol : undefined,
     },
   });
   const formToken = useWatch({
@@ -151,7 +156,7 @@ export const SubmissionDrawer = ({
             otherInfo,
             ask,
             eligibilityAnswers,
-            token
+            token,
           });
         } catch (error) {
           console.error('Failed to fetch submission data', error);
@@ -247,9 +252,9 @@ export const SubmissionDrawer = ({
         <>
           Note:
           <p>
-            1. In the "Link to your Submission" field, submit your hackathon
-            project's most useful link (could be a loom video, GitHub link,
-            website, etc)
+            1. In the &quot;Link to your Submission&quot; field, submit your
+            hackathon project&apos;s most useful link (could be a loom video,
+            GitHub link, website, etc)
           </p>
           <p>
             2. To be eligible for different challenges, you need to submit to
@@ -423,9 +428,7 @@ export const SubmissionDrawer = ({
                         />
                       );
                     })}
-                    {token === 'Any' &&
-                      <TokenSelect control={form.control} />
-                    }
+                    {token === 'Any' && <TokenSelect control={form.control} />}
 
                     {compensationType !== 'fixed' && (
                       <FormFieldWrapper
@@ -434,7 +437,11 @@ export const SubmissionDrawer = ({
                         label="What's the compensation you require to complete this fully?"
                         isRequired
                         isTokenInput
-                        token={token === 'Any' ? formToken ?? tokenList[0]?.tokenSymbol : token}
+                        token={
+                          token === 'Any'
+                            ? (formToken ?? tokenList[0]?.tokenSymbol)
+                            : token
+                        }
                       />
                     )}
                     <FormFieldWrapper
@@ -575,7 +582,7 @@ interface TokenSelectProps {
   control: Control<FormData>;
 }
 
-export function TokenSelect({control}: TokenSelectProps) {
+export function TokenSelect({ control }: TokenSelectProps) {
   return (
     <FormField
       name="token"
@@ -617,25 +624,32 @@ export function TokenSelect({control}: TokenSelectProps) {
                 <CommandList>
                   <CommandEmpty>No Token found.</CommandEmpty>
                   <CommandGroup>
-                    {tokenList.filter(token => token.tokenSymbol !== 'Any').map((token) => (
-                      <CommandItem
-                        value={token.tokenName}
-                        key={token.tokenSymbol}
-                        onSelect={() => {
-                          field.onChange(token.tokenSymbol);
-                        }}
-                      >
-                        <TokenLabel control={control} token={token} showIcon showName />
-                        <Check
-                          className={cn(
-                            'ml-auto',
-                            token.tokenSymbol === field.value
-                              ? 'opacity-100'
-                              : 'opacity-0',
-                          )}
-                        />
-                      </CommandItem>
-                    ))}
+                    {tokenList
+                      .filter((token) => token.tokenSymbol !== 'Any')
+                      .map((token) => (
+                        <CommandItem
+                          value={token.tokenName}
+                          key={token.tokenSymbol}
+                          onSelect={() => {
+                            field.onChange(token.tokenSymbol);
+                          }}
+                        >
+                          <TokenLabel
+                            control={control}
+                            token={token}
+                            showIcon
+                            showName
+                          />
+                          <Check
+                            className={cn(
+                              'ml-auto',
+                              token.tokenSymbol === field.value
+                                ? 'opacity-100'
+                                : 'opacity-0',
+                            )}
+                          />
+                        </CommandItem>
+                      ))}
                   </CommandGroup>
                 </CommandList>
               </Command>
@@ -667,7 +681,6 @@ interface TokenLabelProps {
   control: Control<FormData>;
   formatter?: (amount: number) => string;
 }
-
 
 const defaultFormatter = (amount: number) =>
   new Intl.NumberFormat('en-US', {
