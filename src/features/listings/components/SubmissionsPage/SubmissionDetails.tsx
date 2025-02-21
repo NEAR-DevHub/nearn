@@ -1,30 +1,29 @@
-import { ExternalLink } from 'lucide-react';
+import { atom, useAtom } from 'jotai';
+import { ArrowRight, ExternalLink, X } from 'lucide-react';
 import Link from 'next/link';
-import { ArrowRight, X } from 'lucide-react';
+import { useEffect } from 'react';
 import { MdOutlineAccountBalanceWallet, MdOutlineMail } from 'react-icons/md';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
+import { SideDrawer, SideDrawerContent } from '@/components/ui/side-drawer';
 import { Tooltip } from '@/components/ui/tooltip';
 import { useClipboard } from '@/hooks/use-clipboard';
-import { SideDrawer, SideDrawerContent } from '@/components/ui/side-drawer';
-
 import type { SubmissionWithUser } from '@/interface/submission';
-import type { Listing } from '@/features/listings/types';
-import { EarnAvatar } from '@/features/talent/components/EarnAvatar';
+import { cn } from '@/utils/cn';
+import { formatNumberWithSuffix } from '@/utils/formatNumberWithSuffix';
 import { truncatePublicKey } from '@/utils/truncatePublicKey';
 import { truncateString } from '@/utils/truncateString';
-import { formatNumberWithSuffix } from '@/utils/formatNumberWithSuffix';
+
+import type { Listing } from '@/features/listings/types';
 import {
   Telegram,
   Twitter,
   Website,
 } from '@/features/social/components/SocialIcons';
 import { Details } from '@/features/sponsor-dashboard/components/Submissions/Details';
-import { atom, useAtom } from 'jotai';
-import { cn } from '@/utils/cn';
 import { colorMap } from '@/features/sponsor-dashboard/utils/statusColorMap';
-import { useEffect } from 'react';
+import { EarnAvatar } from '@/features/talent/components/EarnAvatar';
 
 export const selectedSubmissionAtom = atom<SubmissionWithUser | undefined>(
   undefined,
@@ -43,15 +42,13 @@ export const SubmissionDetails = ({
   submission,
   bounty,
 }: SubmissionDetailsProps) => {
-  const { onCopy: onCopyEmail } = useClipboard(
-    submission?.user?.email || '',
-  );
+  const { onCopy: onCopyEmail } = useClipboard(submission?.user?.email || '');
 
   const { onCopy: onCopyPublicKey } = useClipboard(
     submission?.user?.publicKey || '',
   );
 
-  const [_, setSelectedSubmission] = useAtom(selectedSubmissionAtom);
+  const [, setSelectedSubmission] = useAtom(selectedSubmissionAtom);
 
   useEffect(() => {
     console.log('setting submission', submission);
@@ -77,10 +74,11 @@ export const SubmissionDetails = ({
   };
 
   const Content = () => (
-    <div className="flex sm:w-full h-full flex-col justify-between">
+    <div className="flex h-full flex-col justify-between sm:w-full">
       <div className="h-full overflow-y-auto rounded-lg border border-slate-200 px-2 shadow-[0px_1px_3px_rgba(0,0,0,0.08),_0px_1px_2px_rgba(0,0,0,0.06)] md:px-4 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-track]:w-1.5 [&::-webkit-scrollbar]:w-1">
+        <h1 className="mt-4 pl-8 text-xl">Submission Details</h1>
         <div className="rounded-t-xl border-b border-slate-200 bg-white py-1">
-          <div className="flex w-full items-center justify-between px-2 pt-3 md:px-4">
+          <div className="flex w-full items-center justify-between px-2 pt-3 md:px-8">
             <div className="flex w-full items-center gap-2">
               <EarnAvatar
                 className="h-10 w-10"
@@ -190,7 +188,11 @@ export const SubmissionDetails = ({
           </div>
         </div>
         <div className="flex w-full border-t border-slate-200">
-          <Details bounty={bounty} modalView={true} atom={selectedSubmissionAtom}/>
+          <Details
+            bounty={bounty}
+            modalView={true}
+            atom={selectedSubmissionAtom}
+          />
         </div>
       </div>
       <Button
@@ -205,7 +207,7 @@ export const SubmissionDetails = ({
 
   return (
     <SideDrawer open={open} onClose={onClose}>
-      <SideDrawerContent className='w-full'>
+      <SideDrawerContent className="w-full">
         <X
           className="absolute right-4 top-10 z-10 h-4 w-4 text-slate-400 sm:right-8 sm:top-8"
           onClick={onClose}

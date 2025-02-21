@@ -99,7 +99,9 @@ export function RewardsSheet() {
         <SheetHeader className="shrink-0 space-y-6 p-6 pb-0">
           <SheetTitle>Add Rewards</SheetTitle>
           <TokenSelect />
-          {(type === 'project' || type === 'sponsorship') && <PaymentType />}
+          {(type === 'project' || type === 'sponsorship') && (
+            <PaymentType isDisabled={type === 'sponsorship'} />
+          )}
         </SheetHeader>
 
         <div
@@ -134,7 +136,7 @@ const Type = memo(() => {
     return <></>;
   } else if (type !== 'project') {
     return <Podiums />;
-  }  else {
+  } else {
     switch (compensationType) {
       case 'fixed':
         return <Fixed />;

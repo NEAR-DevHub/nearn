@@ -12,12 +12,11 @@ import { ogImageQuery } from '@/queries/og';
 import { useUser } from '@/store/user';
 import { cn } from '@/utils/cn';
 
+import { colorMap } from '@/features/sponsor-dashboard/utils/statusColorMap';
 import { EarnAvatar } from '@/features/talent/components/EarnAvatar';
 
-import {  type Rewards } from '../../types';
+import { type Rewards } from '../../types';
 import { Badge } from './Badge';
-import { colorMap } from '@/features/sponsor-dashboard/utils/statusColorMap';
-import submission from '@/pages/listing/[slug]/submission';
 
 interface Props {
   winner: boolean;
@@ -43,7 +42,7 @@ export const SubmissionCard = ({
   setUpdate,
   onClick,
   link,
-  status
+  status,
 }: Props) => {
   const { user } = useUser();
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -75,12 +74,15 @@ export const SubmissionCard = ({
 
   return (
     <>
-      <div 
+      <div
         className="relative w-full cursor-pointer overflow-hidden rounded-md bg-white md:w-60"
         onClick={onClick}
       >
         <div className="mb-2 flex w-full justify-between gap-2">
-          <Link href={`/t/${talent?.username}`} onClick={(e) => e.stopPropagation()}>
+          <Link
+            href={`/t/${talent?.username}`}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex gap-2">
               <EarnAvatar
                 className="h-6 w-6"
@@ -95,14 +97,14 @@ export const SubmissionCard = ({
           {status && (
             <div className="flex-grow pr-1">
               <span
-              className={cn(
-                'inline-flex whitespace-nowrap rounded-full px-3 py-1 text-center text-[10px] capitalize',
-                colorMap[status as keyof typeof colorMap].bg,
-                colorMap[status as keyof typeof colorMap].color,
-              )}
-            >
-              {status}
-            </span>
+                className={cn(
+                  'inline-flex whitespace-nowrap rounded-full px-3 py-1 text-center text-[10px] capitalize',
+                  colorMap[status as keyof typeof colorMap].bg,
+                  colorMap[status as keyof typeof colorMap].color,
+                )}
+              >
+                {status}
+              </span>
             </div>
           )}
           {winner && !status && (
@@ -150,7 +152,10 @@ export const SubmissionCard = ({
             />
             {likes?.length}
           </Button>
-          <Link href={`/feed/submission/${id}`} onClick={(e) => e.stopPropagation()}>
+          <Link
+            href={`/feed/submission/${id}`}
+            onClick={(e) => e.stopPropagation()}
+          >
             <MessageCircle
               size={'1.23rem'}
               fill={'#CBD5E1'}

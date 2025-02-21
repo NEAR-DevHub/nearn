@@ -59,7 +59,7 @@ export const SubmissionPanel = ({
       : true;
 
   const isProject = bounty?.type === 'project';
-
+  const isSponsorship = bounty?.type === 'sponsorship';
   const [selectedSubmission] = useAtom(selectedSubmissionAtom);
 
   const { onCopy: onCopyEmail } = useClipboard(
@@ -116,7 +116,7 @@ export const SubmissionPanel = ({
                 {selectedSubmission?.isWinner &&
                   selectedSubmission?.winnerPosition &&
                   !selectedSubmission?.isPaid &&
-                  (bounty?.isWinnersAnnounced ? (
+                  (bounty?.isWinnersAnnounced || isSponsorship ? (
                     <PayoutButton bounty={bounty} />
                   ) : (
                     <Tooltip
@@ -175,7 +175,7 @@ export const SubmissionPanel = ({
                       submissions={submissions}
                       isHackathonPage={isHackathonPage}
                     />
-                    {!isProject && (
+                    {!isProject && !isSponsorship && (
                       <Tooltip
                         content={
                           <>
@@ -209,7 +209,7 @@ export const SubmissionPanel = ({
                 )}
               </div>
             </div>
-            {!!remainings && !isProject && (
+            {!!remainings && !isProject && !isSponsorship && (
               <div className="ml-auto flex w-fit px-4 py-1 text-xs">
                 {!!(remainings.bonus > 0 || remainings.podiums > 0) ? (
                   <p className="flex items-center rounded-md bg-red-100 px-5 py-1 text-[#f55151]">

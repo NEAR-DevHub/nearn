@@ -45,6 +45,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
     if (error) {
       return res.status(error.status).json({ error: error.message });
     }
+    const isSponsorship = listing.type === 'sponsorship';
 
     if (listing.isWinnersAnnounced) {
       return res.status(400).json({
@@ -52,12 +53,20 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       });
     }
 
+    let position = winnerPosition;
+    if (isSponsorship) {
+      const maxPosition = await prisma.submission.count({
+        where: { listingId: currentSubmission.listingId, isWinner: true },
+      });
+      position = maxPosition + 1;
+    }
+
     logger.debug(`Updating submission with ID: ${id}`);
     const result = await prisma.submission.update({
       where: { id },
       data: {
         isWinner,
-        winnerPosition: winnerPosition ? winnerPosition : null,
+        winnerPosition: position ? position : null,
       },
       include: { listing: true },
     });
@@ -77,16 +86,15 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       if (listing.compensationType !== 'fixed') {
         logger.debug('Fetching token USD value for variable compensation');
         const tokenUSDValue = await fetchTokenUSDValue(
-          listing.token!,
+          listing.token! === 'Any' ? currentSubmission.token! : listing.token!,
           listing.publishedAt!,
         );
         const usdValue = tokenUSDValue * ask;
-
         await prisma.bounties.update({
           where: { id: bountyId },
           data: {
             ...totalWinnersUpdate,
-            rewards: { 1: ask },
+            rewards: { position: ask },
             rewardAmount: ask,
             usdValue,
           },

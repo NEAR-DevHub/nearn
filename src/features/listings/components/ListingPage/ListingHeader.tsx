@@ -56,7 +56,8 @@ export function ListingHeader({
   const isProject = type === 'project';
   const isHackathon = type === 'hackathon';
 
-  const showSubmissions = type === 'sponsorship' || (!isProject && isWinnersAnnounced);
+  const showSubmissions =
+    type === 'sponsorship' || (!isProject && isWinnersAnnounced);
 
   const typeToTooltip = {
     project:
@@ -174,7 +175,10 @@ export function ListingHeader({
         ) : (
           <div className="flex">
             <Tooltip
-              content={typeToTooltip[type!] ?? typeToTooltip['bounty']}
+              content={
+                typeToTooltip[type! as keyof typeof typeToTooltip] ??
+                typeToTooltip['bounty']
+              }
               contentProps={{ className: 'max-w-80' }}
             >
               <div className="flex items-center gap-1">
@@ -184,7 +188,8 @@ export function ListingHeader({
                   src={getListingIcon(type!)}
                 />
                 <p className="text-xs font-medium text-gray-400 md:text-sm">
-                  {typeToName[type!] ?? typeToName['bounty']}
+                  {typeToName[type! as keyof typeof typeToName] ??
+                    typeToName['bounty']}
                 </p>
               </div>
             </Tooltip>

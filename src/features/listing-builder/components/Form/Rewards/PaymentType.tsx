@@ -34,7 +34,11 @@ const descriptionByType = (type: CompensationType) => {
   }
 };
 
-export function PaymentType(isDisabled: boolean) {
+interface PaymentTypeProps {
+  isDisabled?: boolean;
+}
+
+export function PaymentType({ isDisabled = false }: PaymentTypeProps) {
   const form = useListingForm();
   return (
     <FormField

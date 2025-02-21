@@ -67,6 +67,8 @@ export async function POST(
       );
     }
 
+    const isSponsorship = listing?.type === 'sponsorship';
+
     const totalRewards = [
       ...cleanRewards(listing?.rewards as Rewards, true),
       ...Array(listing?.maxBonusSpots ?? 0).map(() => BONUS_REWARD_POSITION),
@@ -86,18 +88,20 @@ export async function POST(
       ? listing?.deadline
       : dayjs().subtract(2, 'minute').toISOString();
 
-    logger.debug('Updating bounty details with winner announcement');
-    const result = await prisma.bounties.update({
-      where: { id },
-      data: {
-        isWinnersAnnounced: true,
-        deadline,
-        winnersAnnouncedAt: new Date().toISOString(),
-      },
-      include: {
-        sponsor: true,
-      },
-    });
+    if (!isSponsorship) {
+      logger.debug('Updating bounty details with winner announcement');
+      await prisma.bounties.update({
+        where: { id },
+        data: {
+          isWinnersAnnounced: true,
+          deadline,
+          winnersAnnouncedAt: new Date().toISOString(),
+        },
+        include: {
+          sponsor: true,
+        },
+      });
+    }
 
     const rewards: Rewards = (listing?.rewards || {}) as Rewards;
     const winners = await prisma.submission.findMany({
@@ -149,7 +153,7 @@ export async function POST(
       (async () => {
         try {
           await earncognitoClient.post(`/discord/winners-announced`, {
-            listingId: result.id,
+            listingId: listing?.id,
           });
         } catch (err) {
           logger.error('Discord Listing Update Message Error', err);
@@ -249,7 +253,7 @@ export async function POST(
 
         try {
           await earncognitoClient.post(`/airtable/sync-announced-listings`, {
-            listingId: result.id,
+            listingId: listing?.id,
           });
         } catch (err) {
           logger.error('Airatable Listing Sync Message Error', err);
