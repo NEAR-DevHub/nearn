@@ -119,14 +119,17 @@ export async function POST(
     const promises = [];
     let currentIndex = 0;
 
-    while (currentIndex < winners?.length && listing.token !== 'Any') {
+    while (currentIndex < winners?.length) {
       const winnerPosition = Number(winners[currentIndex]?.winnerPosition);
       let amount: number = 0;
       if (winnerPosition && !isNaN(winnerPosition)) {
         amount = Math.ceil(rewards[winnerPosition as keyof Rewards] ?? 0);
       }
 
-      const rewardInUSD = (listing.usdValue! / listing.rewardAmount!) * amount;
+      const rewardInUSD =
+        listing.token === 'Any'
+          ? winners[currentIndex]?.rewardInUSD
+          : (listing.usdValue! / listing.rewardAmount!) * amount;
 
       promises.push(
         prisma.submission.update({

@@ -156,7 +156,7 @@ export const SubmissionActionButton = ({
     )
       return 'submit';
     if (isSubmitted && !pastDeadline) {
-      if (isSponsorship || submission?.label !== 'Unreviewed') return 'freeze';
+      if (isSponsorship && submission?.label !== 'Unreviewed') return 'freeze';
       return 'edit';
     }
     if (isSubmitted && pastDeadline) return 'submitted';

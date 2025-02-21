@@ -11,7 +11,7 @@ export const ANY_TOKEN: Token = {
   tokenName: 'Any',
   tokenSymbol: 'Any',
   mintAddress: 'any',
-  icon: 'https://s2.coinmarketcap.com/static/img/coins/64x64/3408.png',
+  icon: '/assets/anyTokens.svg',
   decimals: 6,
   coingeckoSymbol: 'usd-coin',
 };

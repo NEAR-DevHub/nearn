@@ -8,6 +8,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { BountyIcon } from '@/svg/bounty-icon';
 import { ProjectIcon } from '@/svg/project-icon';
+import { SponsorshipIcon } from '@/svg/sponsorship-icon';
 
 export const CreateListingModal = ({
   isOpen = false,
@@ -123,31 +124,29 @@ export const CreateListingModal = ({
 
           <div className="relative flex-1 border-l border-slate-200">
             <div className="relative mb-6 flex items-center justify-center bg-green-50 px-32 py-12">
-              <ExternalImage
+              <img
                 className="h-auto w-full"
-                alt="Project Illustration"
-                src={'/dashboard/bounty_illustration.svg'}
+                alt="Sponsorship Illustration"
+                src={'/assets/sponsorship-back.png'}
               />
-              <div className="absolute right-4 top-4 flex items-center rounded-full bg-white px-3 py-1 text-blue-500">
-                <ProjectIcon
+              <div className="absolute right-4 top-4 flex items-center rounded-full bg-white px-3 py-1 text-green-600">
+                <SponsorshipIcon
                   styles={{
                     width: '1rem',
                     height: '1rem',
                     marginRight: '0.25rem',
-                    color: 'red',
-                    fill: '#3B82F6',
                   }}
+                  className="fill-green-600"
                 />
-                <p className="text-sm font-bold">Project</p>
+                <p className="text-sm font-bold">Sponsorship</p>
               </div>
             </div>
 
             <div className="p-8">
               <h3 className="mb-4 text-lg font-semibold">Sponsorship</h3>
               <p className="mb-4 text-slate-500">
-                Sponsor open source projects or developers. Support the
-                ecosystem while building relationships with the leading
-                developers and projects.
+                Fund and reward contributions by sponsoring individuals. Share a
+                link to receive expenses or payment requests.
               </p>
               <Button
                 className="w-full py-6"

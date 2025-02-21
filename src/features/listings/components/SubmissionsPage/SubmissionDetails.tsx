@@ -74,11 +74,11 @@ export const SubmissionDetails = ({
   };
 
   const Content = () => (
-    <div className="flex h-full flex-col justify-between sm:w-full">
+    <div className="flex h-full min-w-[500px] flex-col justify-between sm:w-full">
       <div className="h-full overflow-y-auto rounded-lg border border-slate-200 px-2 shadow-[0px_1px_3px_rgba(0,0,0,0.08),_0px_1px_2px_rgba(0,0,0,0.06)] md:px-4 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-track]:w-1.5 [&::-webkit-scrollbar]:w-1">
-        <h1 className="mt-4 pl-8 text-xl">Submission Details</h1>
+        <h1 className="mt-3 text-xl">Submission Details</h1>
         <div className="rounded-t-xl border-b border-slate-200 bg-white py-1">
-          <div className="flex w-full items-center justify-between px-2 pt-3 md:px-8">
+          <div className="flex w-full items-center justify-between pt-3">
             <div className="flex w-full items-center gap-2">
               <EarnAvatar
                 className="h-10 w-10"
@@ -128,7 +128,7 @@ export const SubmissionDetails = ({
               )}
           </div>
 
-          <div className="flex flex-col gap-3 px-2 py-[1rem] md:flex-row md:items-center md:gap-5 md:px-8">
+          <div className="flex flex-col gap-3 py-[1rem] md:flex-row md:items-center md:gap-5">
             {submission?.user?.email && (
               <Tooltip
                 content={'Click to copy'}

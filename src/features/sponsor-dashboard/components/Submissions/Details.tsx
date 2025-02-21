@@ -31,10 +31,15 @@ export const Details = ({ bounty, modalView, atom }: Props) => {
     <div
       className={cn(
         'flex h-[32.6rem] w-full',
-        modalView ? 'mx-auto max-w-3xl px-4' : 'border-r border-slate-200',
+        modalView ? 'mx-auto max-w-3xl' : 'border-r border-slate-200',
       )}
     >
-      <div className="scrollbar-thumb-rounded-full flex w-full flex-1 flex-col overflow-y-auto p-4 scrollbar-thin scrollbar-track-slate-100 scrollbar-thumb-slate-300">
+      <div
+        className={cn(
+          'scrollbar-thumb-rounded-full flex w-full flex-1 flex-col overflow-y-auto scrollbar-thin scrollbar-track-slate-100 scrollbar-thumb-slate-300',
+          modalView ? 'mt-3' : 'p-4',
+        )}
+      >
         {bounty?.compensationType !== 'fixed' && (
           <div className="mb-4">
             <p className="mt-1 text-xs font-semibold uppercase text-slate-400">

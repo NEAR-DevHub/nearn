@@ -9,7 +9,7 @@ export const getListingIcon = (type: string) => {
     case 'grant':
       return '/assets/grant-icon.svg';
     case 'sponsorship':
-      return '/assets/grant-icon.svg';
+      return '/assets/sponsorship-icon.svg';
     default:
       return '/assets/bounty-icon.svg';
   }

@@ -246,6 +246,10 @@ export const SubmissionDrawer = ({
       headerText = 'Bounty Submission';
       subheadingText = "We can't wait to see what you've created!";
       break;
+    case 'sponsorship':
+      headerText = 'Sponsorship Submission';
+      subheadingText = "We can't wait to see what you've created!";
+      break;
     case 'hackathon':
       headerText = `${CHAIN_NAME} Radar Track Submission`;
       subheadingText = (

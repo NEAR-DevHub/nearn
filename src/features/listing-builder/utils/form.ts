@@ -94,6 +94,7 @@ export const getListingDefaults = ({
     defaults['eligibility'] = [{ type: 'text', question: '', order: 1 }];
   } else if (type === 'sponsorship') {
     defaults['compensationType'] = 'variable';
+    defaults['token'] = 'Any';
   }
 
   defaults['isFndnPaying'] = false;
