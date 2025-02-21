@@ -7,6 +7,7 @@ import { fetchTokenUSDValue } from '@/utils/fetchTokenUSDValue';
 import { type NextApiRequestWithSponsor } from '@/features/auth/types';
 import { checkListingSponsorAuth } from '@/features/auth/utils/checkListingSponsorAuth';
 import { withSponsorAuth } from '@/features/auth/utils/withSponsorAuth';
+import { type Rewards } from '@/features/listings/types';
 
 async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
   const userId = req.userId;
@@ -82,7 +83,6 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       logger.debug(`Updating bounty total winners for listing ID: ${bountyId}`);
 
       const listing = result.listing;
-
       if (listing.compensationType !== 'fixed') {
         logger.debug('Fetching token USD value for variable compensation');
         const tokenUSDValue = await fetchTokenUSDValue(
@@ -90,13 +90,16 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
           listing.publishedAt!,
         );
         const usdValue = tokenUSDValue * ask;
+        const oldRewards = isSponsorship
+          ? (listing.rewards as Rewards) || {}
+          : {};
         await prisma.bounties.update({
           where: { id: bountyId },
           data: {
             ...totalWinnersUpdate,
-            rewards: { position: ask },
+            rewards: { ...(oldRewards as Rewards), [position]: ask },
             rewardAmount: ask,
-            usdValue,
+            usdValue: { increment: usdValue },
           },
         });
       } else {

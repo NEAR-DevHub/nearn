@@ -27,7 +27,7 @@ interface Props {
     date: number;
   }[];
   id: string;
-  status?: string;
+  status?: keyof typeof colorMap;
   setUpdate: Dispatch<SetStateAction<boolean>>;
   link: string;
   onClick: () => void;

@@ -52,6 +52,10 @@ async function updateSubmission(
     throw new Error('Submission not found');
   }
 
+  if (existingSubmission.label === 'Spam') {
+    throw new Error('User submissions has been flagged as spam');
+  }
+
   const formattedData = {
     link: validatedData.link || '',
     tweet: validatedData.tweet || '',

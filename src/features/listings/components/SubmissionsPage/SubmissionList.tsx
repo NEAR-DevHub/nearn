@@ -24,6 +24,12 @@ export const SubmissionList = ({
   const [selectedSubmission, setSelectedSubmission] =
     useState<SubmissionWithUser | null>(null);
   const isSponsorship = bounty.type === 'sponsorship';
+  const sponsorshipSubmissionStatus = (submission: SubmissionWithUser) => {
+    if (submission.isPaid) return 'Paid';
+    if (submission.status !== 'Pending') return submission.status;
+    return submission.label;
+  };
+
   return (
     <>
       {isDetailsOpen && selectedSubmission && (
@@ -55,7 +61,11 @@ export const SubmissionList = ({
                     }
                     link={submission.link ?? ''}
                     setUpdate={setUpdate}
-                    status={isSponsorship ? submission.label : undefined}
+                    status={
+                      isSponsorship
+                        ? sponsorshipSubmissionStatus(submission)
+                        : undefined
+                    }
                     winnerPosition={submission.winnerPosition}
                     onClick={() => {
                       setSelectedSubmission(submission);

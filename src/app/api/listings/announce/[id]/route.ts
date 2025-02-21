@@ -119,7 +119,7 @@ export async function POST(
     const promises = [];
     let currentIndex = 0;
 
-    while (currentIndex < winners?.length) {
+    while (currentIndex < winners?.length && listing.token !== 'Any') {
       const winnerPosition = Number(winners[currentIndex]?.winnerPosition);
       let amount: number = 0;
       if (winnerPosition && !isNaN(winnerPosition)) {
@@ -197,19 +197,23 @@ export async function POST(
 
           let comment: string = 'Winners have been announced. ';
           const random = Math.floor(Math.random() * (2 - 1 + 1)) + 1;
-          switch (random) {
-            case 1:
-              comment =
-                sortedWinners.length === 1
-                  ? `Congratulations! ${extractedTags} has been announced as the winner!`
-                  : `Congratulations! ${extractedTags} have been announced as the winners!`;
-              break;
-            case 2:
-              if (listing.type === 'bounty')
-                comment = `Applaud ${extractedTags} for winning this Bounty`;
-              if (listing.type === 'project')
-                comment = `Applaud ${extractedTags} for winning this Project`;
-              break;
+          if (listing.type === 'sponsorship') {
+            comment = `Congratulations! @${sortedWinners[sortedWinners.length - 1]?.user?.username} submission has been approved!`;
+          } else {
+            switch (random) {
+              case 1:
+                comment =
+                  sortedWinners.length === 1
+                    ? `Congratulations! ${extractedTags} has been announced as the winner!`
+                    : `Congratulations! ${extractedTags} have been announced as the winners!`;
+                break;
+              case 2:
+                if (listing.type === 'bounty')
+                  comment = `Applaud ${extractedTags} for winning this Bounty`;
+                if (listing.type === 'project')
+                  comment = `Applaud ${extractedTags} for winning this Project`;
+                break;
+            }
           }
 
           logger.debug('Creating winner announcement comment');
@@ -226,12 +230,14 @@ export async function POST(
           logger.error('Failed to create winner announcement comment', err);
         }
 
-        logger.debug('Sending winner announcement email notifications');
-        sendEmailNotification({
-          type: 'announceWinners',
-          id,
-          triggeredBy: userId,
-        });
+        if (listing.type !== 'sponsorship') {
+          logger.debug('Sending winner announcement email notifications');
+          sendEmailNotification({
+            type: 'announceWinners',
+            id,
+            triggeredBy: userId,
+          });
+        }
 
         if (
           listing?.sponsor?.st &&

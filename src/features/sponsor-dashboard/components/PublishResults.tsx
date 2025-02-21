@@ -193,6 +193,7 @@ export function PublishResults({
           )}
 
           {!isWinnersAnnounced &&
+            !isSponsorship &&
             rewards &&
             totalWinners === rewards &&
             !isDeadlinePassed && (
