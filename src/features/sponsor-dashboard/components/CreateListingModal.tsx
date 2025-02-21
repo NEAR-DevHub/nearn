@@ -127,7 +127,7 @@ export const CreateListingModal = ({
               <img
                 className="h-auto w-full"
                 alt="Sponsorship Illustration"
-                src={'/assets/sponsorship-back.png'}
+                src={'/assets/sponsorship-back.svg'}
               />
               <div className="absolute right-4 top-4 flex items-center rounded-full bg-white px-3 py-1 text-green-600">
                 <SponsorshipIcon
