@@ -76,7 +76,6 @@ export const FeedCardContainer = ({
   const [recentCommenters, setRecentCommenters] = useState(
     initialRecentCommenters,
   );
-  console.log(isCommentOpen);
 
   const handleCommentSuccess = () => {
     setRecentCommenters((prevCommenters) => [
@@ -115,6 +114,7 @@ export const FeedCardContainer = ({
 
   const router = useRouter();
   const posthog = usePostHog();
+  console.log(id);
 
   return (
     <div

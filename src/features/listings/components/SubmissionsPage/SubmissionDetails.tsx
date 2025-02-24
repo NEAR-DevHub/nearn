@@ -51,7 +51,6 @@ export const SubmissionDetails = ({
   const [, setSelectedSubmission] = useAtom(selectedSubmissionAtom);
 
   useEffect(() => {
-    console.log('setting submission', submission);
     setSelectedSubmission(submission);
   }, [submission]);
 

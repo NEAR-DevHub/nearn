@@ -79,7 +79,6 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
         logger.debug(
           `Beginning External Payment Verification for submission ID: ${paymentLink.submissionId} with TxId: ${paymentLink.txId}`,
         );
-        console.log('paymentLink', paymentLink);
 
         if (paymentLink.isVerified) {
           validationResults.push({
@@ -117,8 +116,6 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
           logger.error('Winner Position has no reward');
           throw new Error('Winner Position has no reward');
         }
-
-        console.log('winnerReward', winnerReward);
 
         const validationResult = await validatePayment({
           txId: paymentLink.txId,

@@ -265,7 +265,6 @@ export const createListingRefinements = async (
   ctx: z.RefinementCtx,
   hackathon?: Hackathon,
 ) => {
-  console.log(data);
   if (data.compensationType === 'fixed') {
     if (!data.rewardAmount) {
       ctx.addIssue({

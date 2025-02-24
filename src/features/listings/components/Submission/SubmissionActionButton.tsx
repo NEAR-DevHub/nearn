@@ -136,7 +136,6 @@ export const SubmissionActionButton = ({
   let buttonBG;
   let isBtnDisabled;
   let btnLoadingText;
-  console.log(submission);
 
   function getButtonState() {
     if (isSubmitted && submission?.label === 'Spam') return 'spam';
@@ -166,7 +165,6 @@ export const SubmissionActionButton = ({
     if (isSubmitted && pastDeadline) return 'submitted';
     return 'submit';
   }
-  console.log(buttonState);
 
   switch (buttonState) {
     case 'spam':
