@@ -6,7 +6,10 @@ import { dayjs } from '@/utils/dayjs';
 
 import { type Listing } from '../../types';
 import { SubmissionCard } from './SubmissionCard';
-import { SubmissionDetails } from './SubmissionDetails';
+import {
+  sponsorshipSubmissionStatus,
+  SubmissionDetails,
+} from './SubmissionDetails';
 
 interface Props {
   bounty: Listing;
@@ -24,11 +27,6 @@ export const SubmissionList = ({
   const [selectedSubmission, setSelectedSubmission] =
     useState<SubmissionWithUser | null>(null);
   const isSponsorship = bounty.type === 'sponsorship';
-  const sponsorshipSubmissionStatus = (submission: SubmissionWithUser) => {
-    if (submission.isPaid) return 'Paid';
-    if (submission.status !== 'Pending') return submission.status;
-    return submission.label;
-  };
 
   return (
     <>

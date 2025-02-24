@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import React from 'react';
+import { Button } from 'react-day-picker';
 
 import { OgImageViewer } from '@/components/shared/ogImageViewer';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
@@ -8,16 +9,21 @@ import { getURL } from '@/utils/validUrl';
 
 import { type FeedDataProps } from '../types';
 import { FeedCardContainer } from './FeedCardContainer';
-import { FeedCardLink } from './FeedCardLink';
 import { WinnerFeedImage } from './WinnerFeedImage';
 
 interface SubCardProps {
   sub: FeedDataProps;
   type: 'profile' | 'activity';
   commentCount?: number;
+  openDetails: (subId: string | null) => void;
 }
 
-export function SubmissionCard({ sub, type, commentCount }: SubCardProps) {
+export function SubmissionCard({
+  sub,
+  type,
+  commentCount,
+  openDetails,
+}: SubCardProps) {
   const firstName = sub?.firstName;
   const lastName = sub?.lastName;
   const photo = sub?.photo;
@@ -81,16 +87,24 @@ export function SubmissionCard({ sub, type, commentCount }: SubCardProps) {
         </Link>
       </div>
       {!sub?.id && !isProject && !isSponsorship ? (
-        <Tooltip content="This submission will be accessible once winners for the listing have been announced.">
-          <FeedCardLink href={link} style="opacity-50 pointer-events-none">
+        <Tooltip
+          disabled={true}
+          content="This submission will be accessible once winners for the listing have been announced."
+        >
+          <Button className="pointer-events-none opacity-50">
             {isProject ? 'View Listing' : 'View Submission'}
-          </FeedCardLink>
+          </Button>
         </Tooltip>
-      ) : (
-        <FeedCardLink href={link} style="opacity-100 pointer-events-auto">
+      ) : openDetails ? (
+        <Button
+          onClick={() => {
+            openDetails(sub.id);
+          }}
+          className="pointer-events-auto opacity-100"
+        >
           {isProject ? 'View Listing' : 'View Submission'}
-        </FeedCardLink>
-      )}
+        </Button>
+      ) : null}
     </>
   );
 
