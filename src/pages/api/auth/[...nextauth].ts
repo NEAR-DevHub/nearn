@@ -38,7 +38,6 @@ export const authOptions: NextAuthOptions = {
           const randomIndex = Math.floor(Math.random() * digits.length);
           verificationCode += digits.charAt(randomIndex);
         }
-        console.log('verificationCode', verificationCode);
         return verificationCode;
       },
       server: {

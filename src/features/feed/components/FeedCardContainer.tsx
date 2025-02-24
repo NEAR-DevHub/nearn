@@ -110,7 +110,6 @@ export const FeedCardContainer = ({
 
   const router = useRouter();
   const posthog = usePostHog();
-  console.log(id);
 
   return (
     <div
