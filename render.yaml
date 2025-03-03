@@ -198,7 +198,7 @@ services:
         sync: false
       - key: EMAIL_SECRET
         fromService:
-          name: nearn-email
+          name: nearn-email-staging
           type: pserv
           envVarKey: AUTH_SECRET
       - key: EMAIL_BACKEND
@@ -234,7 +234,7 @@ services:
     envVars:
       - key: REDIS_URL
         fromService:
-          name: nearn-redis-for-emails
+          name: nearn-redis-for-emails-staging
           type: keyvalue
           property: connectionString
       - key: AUTH_SECRET
@@ -255,22 +255,22 @@ services:
         value: 'https://nearn.io'
       - key: RESEND_API_KEY
         fromService:
-          name: nearn-app
+          name: nearn-app-staging
           type: web
           envVarKey: RESEND_API_KEY
       - key: UNSUB_SECRET
         fromService:
-          name: nearn-app
+          name: nearn-app-staging
           type: web
           envVarKey: UNSUB_SECRET
       - key: DATABASE_URL
         fromService:
-          name: nearn-app
+          name: nearn-app-staging
           type: web
           envVarKey: DATABASE_URL
       - key: CEO_EMAIL
         fromService:
-          name: nearn-app
+          name: nearn-app-staging
           type: web
           envVarKey: CEO_EMAIL
     autoDeploy: true
