@@ -237,7 +237,7 @@ export const SubmissionTable = ({
                     setSort={onSort}
                     className={cn(thClassName)}
                   >
-                    Ask
+                    {bounty.compensationType === 'fixed' ? 'Reward' : 'Ask'}
                   </SortableTH>
                   <SortableTH
                     column="status"
@@ -262,6 +262,14 @@ export const SubmissionTable = ({
                     const tokenObject = tokenList.filter(
                       (e) => e?.tokenSymbol === token,
                     )[0];
+                    let ask = submission.ask;
+                    if (
+                      bounty.compensationType === 'fixed' &&
+                      submission.winnerPosition &&
+                      submission.isWinner
+                    ) {
+                      ask = bounty.rewards?.[submission.winnerPosition] ?? 0;
+                    }
 
                     return (
                       <TableRow key={submission.id}>
@@ -301,7 +309,7 @@ export const SubmissionTable = ({
                             />
                             <span className="ml-1 text-sm">
                               {isUsdBased && '$'}
-                              {submission?.ask?.toLocaleString('en-us')}
+                              {ask ? ask.toLocaleString('en-us') : '0'}
                               <span className="text-slate-400">
                                 {isUsdBased && ' to be paid in'}
                               </span>
@@ -338,44 +346,46 @@ export const SubmissionTable = ({
                             setUpdate={setUpdate}
                           />
                         </TableCell>
-                        <TableCell className="py-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="ph-no-capture text-[13px] font-medium text-brand-purple hover:bg-brand-purple hover:text-white"
-                            onClick={() => {
-                              setSelectedSubmission(submission);
-                              setIsDetailsOpen(true);
-                            }}
-                          >
-                            <Eye className="h-4 w-4" />
-                            Submission
-                          </Button>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                className="hover:bg-slate-100"
-                                size="icon"
-                                variant="ghost"
-                              >
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent
-                              align="end"
-                              className="max-w-60"
+                        <TableCell className="px-0 py-2">
+                          <div className="flex items-center justify-between">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="ph-no-capture text-[13px] font-medium text-brand-purple hover:bg-brand-purple hover:text-white"
+                              onClick={() => {
+                                setSelectedSubmission(submission);
+                                setIsDetailsOpen(true);
+                              }}
                             >
-                              <DropdownMenuItem
-                                className="cursor-pointer text-sm font-medium text-slate-500"
-                                onClick={() => {
-                                  handleCopySubmissionLink(submissionLink);
-                                }}
+                              <Eye className="h-4 w-4" />
+                              Submission
+                            </Button>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  className="hover:bg-slate-100"
+                                  size="icon"
+                                  variant="ghost"
+                                >
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent
+                                align="end"
+                                className="max-w-60"
                               >
-                                <Copy className="mr-1 h-4 w-4" />
-                                Copy Link
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                                <DropdownMenuItem
+                                  className="cursor-pointer text-sm font-medium text-slate-500"
+                                  onClick={() => {
+                                    handleCopySubmissionLink(submissionLink);
+                                  }}
+                                >
+                                  <Copy className="mr-1 h-4 w-4" />
+                                  Copy Link
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
                         </TableCell>
                       </TableRow>
                     );
