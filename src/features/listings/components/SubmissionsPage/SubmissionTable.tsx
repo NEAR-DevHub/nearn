@@ -288,7 +288,7 @@ export const SubmissionTable = ({
                   {filteredSubmissions.map((submission) => {
                     const submissionStatus =
                       sponsorshipSubmissionStatus(submission);
-                    const submissionLink = `${getURL()}/listing/${bounty.slug}/submission/${submission.id}`;
+                    const submissionLink = `${getURL()}listing/${bounty.slug}/submission/${submission.id}`;
                     const token = isUsdBased ? submission.token : bounty.token;
                     const tokenObject = tokenList.filter(
                       (e) => e?.tokenSymbol === token,
