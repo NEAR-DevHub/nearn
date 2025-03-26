@@ -36,6 +36,7 @@ export default async function handler(
             name: true,
             logo: true,
             entityName: true,
+            slug: true,
             isVerified: true,
             isCaution: true,
           },

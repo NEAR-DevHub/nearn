@@ -133,7 +133,7 @@ function Content({
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
                 <Link
-                  href={`/listing/${bounty?.slug}/submission`}
+                  href={`/${bounty.sponsor?.slug}/${bounty.sequentialId}/submission`}
                   className="flex items-center"
                 >
                   <ChevronLeft className="mr-1 h-6 w-6" />
@@ -181,7 +181,9 @@ function Content({
                 <div className="hidden gap-4 md:flex">
                   <LikeAndComment
                     id={submission?.id}
-                    slug={bounty.slug || ''}
+                    sponsorSlug={bounty.sponsor?.slug || ''}
+                    bountySequentialId={bounty.sequentialId || 0}
+                    submissionSequentialId={submission.sequentialId || 0}
                     likes={submission.like}
                     setUpdate={resetSubmission}
                     ref={commentsRef}
@@ -311,7 +313,9 @@ function Content({
           <div>
             <LikeAndComment
               id={submission?.id}
-              slug={bounty.slug || ''}
+              sponsorSlug={bounty.sponsor?.slug || ''}
+              bountySequentialId={bounty.sequentialId || 0}
+              submissionSequentialId={submission.sequentialId || 0}
               likes={submission.like}
               setUpdate={resetSubmission}
               ref={commentsRef}
