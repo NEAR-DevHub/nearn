@@ -6,7 +6,7 @@
     <strong>An open source platform connecting crypto founders with elite talent to create bounties, and accelerate project completion</strong>
   </p>
   
-  ![Project Status: Active](https://www.repostatus.org/badges/latest/active.svg)
+  [![Project Status: Active](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
   [![GitHub issues](https://img.shields.io/github/issues-raw/NEAR-DevHub/nearn)](https://github.com/NEAR-DevHub/nearn/issues)
   [![GitHub pull requests](https://img.shields.io/github/issues-pr/NEAR-DevHub/nearn)](https://github.com/NEAR-DevHub/nearn/pulls?q=is%3Aopen+is%3Apr)
 </div>
