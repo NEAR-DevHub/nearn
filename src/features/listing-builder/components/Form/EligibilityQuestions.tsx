@@ -4,14 +4,12 @@ import {
   type DragEndEvent,
   DragOverlay,
   type DragStartEvent,
-  KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
 import {
   SortableContext,
-  sortableKeyboardCoordinates,
   useSortable,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
@@ -20,6 +18,7 @@ import { useAtomValue } from 'jotai';
 import {
   Baseline,
   CheckSquare,
+  GripVertical,
   Info,
   LetterText,
   Link2,
@@ -116,11 +115,8 @@ export function EligibilityQuestions() {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 5, // Start dragging after moving 5px to avoid accidental drags
+        distance: 5,
       },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
     }),
   );
 
@@ -230,118 +226,125 @@ export function EligibilityQuestions() {
                             >
                               Question {index + 1}
                             </FormLabel>
-                            <div className="relative flex items-center rounded-md border ring-primary has-[:focus]:ring-1">
-                              <FormField
-                                control={form.control}
-                                name={`eligibility.${index}.type`}
-                                render={({ field }) => (
-                                  <FormItem className="w-fit">
-                                    <Select
-                                      value={field.value}
-                                      defaultValue="text"
-                                      onValueChange={(value) => {
-                                        field.onChange(value);
-                                        if (form.getValues().id)
-                                          form.saveDraft();
-                                      }}
-                                    >
-                                      <FormControl>
-                                        <SelectTrigger className="w-fit gap-1 rounded-none border-0 focus:ring-0">
-                                          <SelectValue className="w-fit">
-                                            {(() => {
-                                              const selectedType =
-                                                questionTypes.find(
-                                                  (type) =>
-                                                    type.value === field.value,
-                                                );
-                                              if (!selectedType) return 'Type';
-                                              const Icon = selectedType.icon;
-                                              return (
-                                                <Icon className="h-4 w-4 text-slate-500" />
-                                              );
-                                            })()}
-                                          </SelectValue>
-                                        </SelectTrigger>
-                                      </FormControl>
-                                      <SelectContent>
-                                        {questionTypes.map((type) => (
-                                          <SelectItem
-                                            key={type.value}
-                                            value={type.value}
-                                          >
-                                            <div className="flex items-center gap-2 text-slate-500">
-                                              <type.icon className="h-4 w-4" />
-                                              {type.label}
-                                            </div>
-                                          </SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
-                                  </FormItem>
-                                )}
-                              />
-
-                              <FormField
-                                control={form.control}
-                                name={`eligibility.${index}.question`}
-                                render={({ field }) => (
-                                  <FormItem className="flex-1 border-l">
-                                    <FormControl>
-                                      {form.getValues()?.eligibility?.[index]
-                                        ?.type === 'checkbox' ? (
-                                        <RichEditor
-                                          {...field}
-                                          id={`eligibilityAnswers.${index}.answer`}
-                                          value={field.value || ''}
-                                          error={false}
-                                          placeholder={
-                                            'Enter text for checkbox...'
-                                          }
-                                          className="border-none"
-                                        />
-                                      ) : (
-                                        <Input
-                                          {...field}
-                                          placeholder="Enter your question"
-                                          className="border-none focus-visible:ring-0"
-                                          value={field.value || ''}
-                                          onChange={(e) => {
-                                            field.onChange(e);
+                            <div className="relative flex rounded-md border ring-primary has-[:focus]:ring-1">
+                              <div className="flex items-center justify-center border-r bg-slate-50">
+                                <GripVertical className="h-4 w-4 text-muted-foreground" />
+                              </div>
+                              <div className="flex w-full cursor-text items-center">
+                                <FormField
+                                  control={form.control}
+                                  name={`eligibility.${index}.type`}
+                                  render={({ field }) => (
+                                    <FormItem className="w-fit">
+                                      <Select
+                                        value={field.value}
+                                        defaultValue="text"
+                                        onValueChange={(value) => {
+                                          field.onChange(value);
+                                          if (form.getValues().id)
                                             form.saveDraft();
-                                          }}
-                                          onBlur={() => null}
-                                        />
-                                      )}
-                                    </FormControl>
-                                  </FormItem>
-                                )}
-                              />
+                                        }}
+                                      >
+                                        <FormControl>
+                                          <SelectTrigger className="w-fit gap-1 rounded-none border-0 focus:ring-0">
+                                            <SelectValue className="w-fit">
+                                              {(() => {
+                                                const selectedType =
+                                                  questionTypes.find(
+                                                    (type) =>
+                                                      type.value ===
+                                                      field.value,
+                                                  );
+                                                if (!selectedType)
+                                                  return 'Type';
+                                                const Icon = selectedType.icon;
+                                                return (
+                                                  <Icon className="h-4 w-4 text-slate-500" />
+                                                );
+                                              })()}
+                                            </SelectValue>
+                                          </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                          {questionTypes.map((type) => (
+                                            <SelectItem
+                                              key={type.value}
+                                              value={type.value}
+                                            >
+                                              <div className="flex items-center gap-2 text-slate-500">
+                                                <type.icon className="h-4 w-4" />
+                                                {type.label}
+                                              </div>
+                                            </SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+                                    </FormItem>
+                                  )}
+                                />
 
-                              <FormField
-                                control={form.control}
-                                name={`eligibility.${index}.order`}
-                                render={({ field }) => (
-                                  <input
-                                    type="hidden"
-                                    {...field}
-                                    value={index + 1}
-                                  />
-                                )}
-                              />
+                                <FormField
+                                  control={form.control}
+                                  name={`eligibility.${index}.question`}
+                                  render={({ field }) => (
+                                    <FormItem className="flex-1 border-l">
+                                      <FormControl>
+                                        {form.getValues()?.eligibility?.[index]
+                                          ?.type === 'checkbox' ? (
+                                          <RichEditor
+                                            {...field}
+                                            id={`eligibilityAnswers.${index}.answer`}
+                                            value={field.value || ''}
+                                            error={false}
+                                            placeholder={
+                                              'Enter text for checkbox...'
+                                            }
+                                            className="border-none"
+                                          />
+                                        ) : (
+                                          <Input
+                                            {...field}
+                                            placeholder="Enter your question"
+                                            className="border-none focus-visible:ring-0"
+                                            value={field.value || ''}
+                                            onChange={(e) => {
+                                              field.onChange(e);
+                                              form.saveDraft();
+                                            }}
+                                            onBlur={() => null}
+                                          />
+                                        )}
+                                      </FormControl>
+                                    </FormItem>
+                                  )}
+                                />
 
-                              {(fields.length !== 1 ||
-                                (type !== 'project' &&
-                                  type !== 'sponsorship')) && (
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  className="absolute right-0 hidden h-full text-muted-foreground group-hover:flex hover:text-destructive"
-                                  onClick={() => handleRemoveQuestion(index)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              )}
+                                <FormField
+                                  control={form.control}
+                                  name={`eligibility.${index}.order`}
+                                  render={({ field }) => (
+                                    <input
+                                      type="hidden"
+                                      {...field}
+                                      value={index + 1}
+                                    />
+                                  )}
+                                />
+
+                                {(fields.length !== 1 ||
+                                  (type !== 'project' &&
+                                    type !== 'sponsorship')) && (
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="absolute right-0 hidden h-full text-muted-foreground group-hover:flex hover:text-destructive"
+                                    onClick={() => handleRemoveQuestion(index)}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                )}
+                              </div>
                             </div>
                             <FormMessage />
                           </FormItem>
@@ -372,118 +375,125 @@ export function EligibilityQuestions() {
                             >
                               Question {index + 1}
                             </FormLabel>
-                            <div className="relative flex items-center rounded-md border ring-primary has-[:focus]:ring-1">
-                              <FormField
-                                control={form.control}
-                                name={`eligibility.${index}.type`}
-                                render={({ field }) => (
-                                  <FormItem className="w-fit">
-                                    <Select
-                                      value={field.value}
-                                      defaultValue="text"
-                                      onValueChange={(value) => {
-                                        field.onChange(value);
-                                        if (form.getValues().id)
-                                          form.saveDraft();
-                                      }}
-                                    >
-                                      <FormControl>
-                                        <SelectTrigger className="w-fit gap-1 rounded-none border-0 focus:ring-0">
-                                          <SelectValue className="w-fit">
-                                            {(() => {
-                                              const selectedType =
-                                                questionTypes.find(
-                                                  (type) =>
-                                                    type.value === field.value,
-                                                );
-                                              if (!selectedType) return 'Type';
-                                              const Icon = selectedType.icon;
-                                              return (
-                                                <Icon className="h-4 w-4 text-slate-500" />
-                                              );
-                                            })()}
-                                          </SelectValue>
-                                        </SelectTrigger>
-                                      </FormControl>
-                                      <SelectContent>
-                                        {questionTypes.map((type) => (
-                                          <SelectItem
-                                            key={type.value}
-                                            value={type.value}
-                                          >
-                                            <div className="flex items-center gap-2 text-slate-500">
-                                              <type.icon className="h-4 w-4" />
-                                              {type.label}
-                                            </div>
-                                          </SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
-                                  </FormItem>
-                                )}
-                              />
-
-                              <FormField
-                                control={form.control}
-                                name={`eligibility.${index}.question`}
-                                render={({ field }) => (
-                                  <FormItem className="flex-1 border-l">
-                                    <FormControl>
-                                      {form.getValues()?.eligibility?.[index]
-                                        ?.type === 'checkbox' ? (
-                                        <RichEditor
-                                          {...field}
-                                          id={`eligibilityAnswers.${index}.answer`}
-                                          value={field.value || ''}
-                                          error={false}
-                                          placeholder={
-                                            'Enter text for checkbox...'
-                                          }
-                                          className="border-none"
-                                        />
-                                      ) : (
-                                        <Input
-                                          {...field}
-                                          placeholder="Enter your question"
-                                          className="border-none focus-visible:ring-0"
-                                          value={field.value || ''}
-                                          onChange={(e) => {
-                                            field.onChange(e);
+                            <div className="relative flex rounded-md border ring-primary has-[:focus]:ring-1">
+                              <div className="flex items-center justify-center border-r bg-slate-50">
+                                <GripVertical className="h-4 w-4 text-muted-foreground" />
+                              </div>
+                              <div className="flex w-full items-center">
+                                <FormField
+                                  control={form.control}
+                                  name={`eligibility.${index}.type`}
+                                  render={({ field }) => (
+                                    <FormItem className="w-fit">
+                                      <Select
+                                        value={field.value}
+                                        defaultValue="text"
+                                        onValueChange={(value) => {
+                                          field.onChange(value);
+                                          if (form.getValues().id)
                                             form.saveDraft();
-                                          }}
-                                          onBlur={() => null}
-                                        />
-                                      )}
-                                    </FormControl>
-                                  </FormItem>
-                                )}
-                              />
+                                        }}
+                                      >
+                                        <FormControl>
+                                          <SelectTrigger className="w-fit gap-1 rounded-none border-0 focus:ring-0">
+                                            <SelectValue className="w-fit">
+                                              {(() => {
+                                                const selectedType =
+                                                  questionTypes.find(
+                                                    (type) =>
+                                                      type.value ===
+                                                      field.value,
+                                                  );
+                                                if (!selectedType)
+                                                  return 'Type';
+                                                const Icon = selectedType.icon;
+                                                return (
+                                                  <Icon className="h-4 w-4 text-slate-500" />
+                                                );
+                                              })()}
+                                            </SelectValue>
+                                          </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                          {questionTypes.map((type) => (
+                                            <SelectItem
+                                              key={type.value}
+                                              value={type.value}
+                                            >
+                                              <div className="flex items-center gap-2 text-slate-500">
+                                                <type.icon className="h-4 w-4" />
+                                                {type.label}
+                                              </div>
+                                            </SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+                                    </FormItem>
+                                  )}
+                                />
 
-                              <FormField
-                                control={form.control}
-                                name={`eligibility.${index}.order`}
-                                render={({ field }) => (
-                                  <input
-                                    type="hidden"
-                                    {...field}
-                                    value={index + 1}
-                                  />
-                                )}
-                              />
+                                <FormField
+                                  control={form.control}
+                                  name={`eligibility.${index}.question`}
+                                  render={({ field }) => (
+                                    <FormItem className="flex-1 border-l">
+                                      <FormControl>
+                                        {form.getValues()?.eligibility?.[index]
+                                          ?.type === 'checkbox' ? (
+                                          <RichEditor
+                                            {...field}
+                                            id={`eligibilityAnswers.${index}.answer`}
+                                            value={field.value || ''}
+                                            error={false}
+                                            placeholder={
+                                              'Enter text for checkbox...'
+                                            }
+                                            className="border-none"
+                                          />
+                                        ) : (
+                                          <Input
+                                            {...field}
+                                            placeholder="Enter your question"
+                                            className="border-none focus-visible:ring-0"
+                                            value={field.value || ''}
+                                            onChange={(e) => {
+                                              field.onChange(e);
+                                              form.saveDraft();
+                                            }}
+                                            onBlur={() => null}
+                                          />
+                                        )}
+                                      </FormControl>
+                                    </FormItem>
+                                  )}
+                                />
 
-                              {(fields.length !== 1 ||
-                                (type !== 'project' &&
-                                  type !== 'sponsorship')) && (
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  className="absolute right-0 hidden h-full text-muted-foreground group-hover:flex hover:text-destructive"
-                                  onClick={() => handleRemoveQuestion(index)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              )}
+                                <FormField
+                                  control={form.control}
+                                  name={`eligibility.${index}.order`}
+                                  render={({ field }) => (
+                                    <input
+                                      type="hidden"
+                                      {...field}
+                                      value={index + 1}
+                                    />
+                                  )}
+                                />
+
+                                {(fields.length !== 1 ||
+                                  (type !== 'project' &&
+                                    type !== 'sponsorship')) && (
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="absolute right-0 hidden h-full text-muted-foreground group-hover:flex hover:text-destructive"
+                                    onClick={() => handleRemoveQuestion(index)}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                )}
+                              </div>
                             </div>
                             <FormMessage />
                           </FormItem>
