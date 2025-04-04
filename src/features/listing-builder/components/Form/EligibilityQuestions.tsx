@@ -2,6 +2,8 @@ import { useAtomValue } from 'jotai';
 import {
   Baseline,
   CheckSquare,
+  ChevronDown,
+  ChevronUp,
   Info,
   LetterText,
   Link2,
@@ -50,10 +52,18 @@ export function EligibilityQuestions() {
   });
   const hackathon = useAtomValue(hackathonAtom);
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, move } = useFieldArray({
     control: form.control,
     name: 'eligibility',
   });
+
+  const handleMoveQuestion = (index: number, direction: 'up' | 'down') => {
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    if (newIndex >= 0 && newIndex < fields.length) {
+      move(index, newIndex);
+      form.saveDraft();
+    }
+  };
 
   const handleAddQuestion = (focus = true) => {
     append(
@@ -112,21 +122,46 @@ export function EligibilityQuestions() {
           </div>
           <div className="space-y-4">
             {fields.map((field, index) => (
-              <FormField
-                key={field.id}
-                control={form.control}
-                name={`eligibility.${index}.question`}
-                render={() => (
-                  <div key={field.id} className="group">
+              <div key={field.id} className="group">
+                <FormField
+                  control={form.control}
+                  name={`eligibility.${index}.question`}
+                  render={() => (
                     <FormItem className="gap-2">
-                      <FormLabel
-                        isRequired={
-                          (type === 'project' || type === 'sponsorship') &&
-                          index === 0
-                        }
-                      >
-                        Question {index + 1}
-                      </FormLabel>
+                      <div className="flex items-center gap-2">
+                        <FormLabel
+                          isRequired={
+                            (type === 'project' || type === 'sponsorship') &&
+                            index === 0
+                          }
+                        >
+                          Question {index + 1}
+                        </FormLabel>
+                        <div className="flex gap-1">
+                          {index > 0 && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 text-slate-300 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-slate-100 hover:text-slate-600"
+                              onClick={() => handleMoveQuestion(index, 'up')}
+                            >
+                              <ChevronUp className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {index < fields.length - 1 && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 text-slate-300 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-slate-100 hover:text-slate-600"
+                              onClick={() => handleMoveQuestion(index, 'down')}
+                            >
+                              <ChevronDown className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
                       <div className="relative flex items-center rounded-md border ring-primary has-[:focus]:ring-1">
                         <FormField
                           control={form.control}
@@ -232,33 +267,32 @@ export function EligibilityQuestions() {
                       </div>
                       <FormMessage />
                     </FormItem>
-                  </div>
-                )}
-              />
-            ))}
-
-            {type !== 'bounty' || fields.length < 2 ? (
-              <div className="flex justify-between">
-                <FormMessage />
-                <Button
-                  type="button"
-                  variant={fields.length === 0 ? 'outline' : 'link'}
-                  size="sm"
-                  className={cn(
-                    fields.length > 0 && 'ml-auto flex w-fit px-0',
-                    fields.length === 0 && 'mt-2 w-full text-slate-500',
                   )}
-                  onClick={() => handleAddQuestion()}
-                >
-                  <Plus /> Add Question
-                </Button>
+                />
               </div>
-            ) : (
-              <FormDescription>
-                Max two custom questions allow for bounties
-              </FormDescription>
-            )}
+            ))}
           </div>
+          {type !== 'bounty' || fields.length < 2 ? (
+            <div className="flex justify-between">
+              <FormMessage />
+              <Button
+                type="button"
+                variant={fields.length === 0 ? 'outline' : 'link'}
+                size="sm"
+                className={cn(
+                  fields.length > 0 && 'ml-auto flex w-fit px-0',
+                  fields.length === 0 && 'mt-2 w-full text-slate-500',
+                )}
+                onClick={() => handleAddQuestion()}
+              >
+                <Plus /> Add Question
+              </Button>
+            </div>
+          ) : (
+            <FormDescription>
+              Max two custom questions allow for bounties
+            </FormDescription>
+          )}
         </FormItem>
       )}
     />
