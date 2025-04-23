@@ -147,7 +147,7 @@ export const EditSubmissionStatusModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>[GOD MODE] Edit Submission Status</DialogTitle>
         </DialogHeader>

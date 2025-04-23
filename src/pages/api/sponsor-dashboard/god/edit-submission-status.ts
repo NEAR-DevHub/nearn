@@ -75,7 +75,10 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
 
     const result = await prisma.submission.update({
       where: { id },
-      data: updateData,
+      data: {
+        ...updateData,
+        updatedAt: new Date(),
+      },
       include: { listing: true },
     });
 
@@ -101,6 +104,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
               rewards: remainingRewards,
               usdValue: { decrement: currentSubmission.rewardInUSD },
               totalWinnersSelected: { decrement: 1 },
+              updatedAt: new Date(),
             },
           });
         }
@@ -132,6 +136,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
             },
             rewardAmount: currentSubmission.ask,
             usdValue: { increment: usdValue },
+            updatedAt: new Date(),
           },
         });
 
@@ -139,6 +144,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
           where: { id },
           data: {
             winnerPosition: maxPosition,
+            updatedAt: new Date(),
           },
         });
       }
