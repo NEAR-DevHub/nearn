@@ -1,11 +1,13 @@
 import { type SubmissionLabels } from '@prisma/client';
 import debounce from 'lodash.debounce';
-import { ChevronDown, Search } from 'lucide-react';
+import { ChevronDown, Pencil, Search } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 import React, {
   type Dispatch,
   type SetStateAction,
   useEffect,
   useRef,
+  useState,
 } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -28,6 +30,7 @@ import { EarnAvatar } from '@/features/talent/components/EarnAvatar';
 
 import { labelMenuOptions } from '../../constants';
 import { colorMap } from '../../utils/statusColorMap';
+import { EditSubmissionStatusModal } from './Modals/EditSubmissionStatusModal';
 
 interface Props {
   listing?: Listing;
@@ -46,6 +49,7 @@ interface Props {
   selectedSubmission: SubmissionWithUser | undefined;
   setSelectedSubmission: (submission: SubmissionWithUser) => void;
   isAllToggled?: boolean;
+  refetchSubmissions: () => void;
 }
 
 export const SubmissionList = ({
@@ -61,8 +65,15 @@ export const SubmissionList = ({
   selectedSubmission,
   setSelectedSubmission,
   isAllToggled,
+  refetchSubmissions,
 }: Props) => {
   const debouncedSetSearchText = useRef(debounce(setSearchText, 300)).current;
+  const { data: session } = useSession();
+  const isGodUser = session?.user?.role === 'GOD';
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [submissionToEdit, setSubmissionToEdit] = useState<
+    SubmissionWithUser | undefined
+  >(undefined);
 
   useEffect(() => {
     return () => {
@@ -75,6 +86,16 @@ export const SubmissionList = ({
   if (filterLabel) {
     ({ bg, color } = colorMap[filterLabel]);
   }
+
+  const handleEditSubmission = (
+    e: React.MouseEvent,
+    submission: SubmissionWithUser,
+  ) => {
+    e.stopPropagation();
+    setSubmissionToEdit(submission);
+    setIsEditModalOpen(true);
+    refetchSubmissions();
+  };
 
   const getSubmissionLabel = (submission: SubmissionWithUser) => {
     if (submission?.isWinner && submission?.winnerPosition) {
@@ -95,9 +116,8 @@ export const SubmissionList = ({
 
   const getSubmissionColors = (submission: SubmissionWithUser) => {
     if (submission.listing?.type === 'sponsorship') {
-      return colorMap[
-        sponsorshipSubmissionStatus(submission) as keyof typeof colorMap
-      ];
+      const status = sponsorshipSubmissionStatus(submission);
+      return colorMap[status as keyof typeof colorMap];
     }
 
     if (submission?.isWinner) {
@@ -291,18 +311,37 @@ export const SubmissionList = ({
               </div>
             </div>
 
-            <span
-              className={cn(
-                'inline-flex whitespace-nowrap rounded-full px-3 py-1 text-center text-[10px] capitalize',
-                bg,
-                color,
+            <div className="flex items-center">
+              <span
+                className={cn(
+                  'inline-flex whitespace-nowrap rounded-full px-3 py-1 text-center text-[10px] capitalize',
+                  bg,
+                  color,
+                )}
+              >
+                {getSubmissionLabel(submission)}
+              </span>
+              {isGodUser && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="ml-1 h-6 w-6 p-1 text-slate-500"
+                  onClick={(e) => handleEditSubmission(e, submission)}
+                >
+                  <Pencil className="h-3 w-3" />
+                </Button>
               )}
-            >
-              {getSubmissionLabel(submission)}
-            </span>
+            </div>
           </div>
         );
       })}
+
+      <EditSubmissionStatusModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        submission={submissionToEdit}
+        onSuccess={() => refetchSubmissions()}
+      />
     </div>
   );
 };
