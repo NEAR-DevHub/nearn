@@ -5,8 +5,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['var(--font-sans)'],
-        mono: ['var(--font-mono)'],
+        sans: ['var(--font-sans)', 'Mona Sans', 'sans-serif'],
+        fkgrotesk: ['var(--font-fk-grotesk)', 'FK Grotesk', 'sans-serif'],
       },
       fontSize: {
         xxs: ['0.625rem', { lineHeight: '0.875rem' }],
