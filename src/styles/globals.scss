@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -96,7 +95,7 @@
 
 .wallet-adapter-button.wallet-adapter-button-trigger {
   width: 100% !important;
-  background-color: #6366f1;
+  background-color: #00ec97;
   font-size: 1rem !important;
   color: white !important;
   // border: 1px solid !important;
@@ -107,11 +106,11 @@
 
 .wallet-adapter-button.wallet-adapter-button-trigger:hover,
 .wallet-adapter-button.wallet-adapter-button-trigger:active {
-  background-color: #6366f1;
+  background-color: #00ec97;
 }
 
 .wallet-adapter-button.wallet-adapter-button-trigger:not([disabled]):hover {
-  background-color: #6366f1;
+  background-color: #00ec97;
 }
 
 .wallet-adapter-button-end-icon,
@@ -260,7 +259,7 @@
 
   a,
   a * {
-    color: #6366F1 !important;
+    color: #000000 !important;
   }
 }
 
@@ -324,7 +323,7 @@ pre {
 
 .earn-loader div {
   position: absolute;
-  border: 4px solid #6366f1;
+  border: 4px solid #00ec97;
   opacity: 1;
   border-radius: 50%;
   animation: earn-loader 1s cubic-bezier(0, 0.2, 0.8, 1) infinite;
