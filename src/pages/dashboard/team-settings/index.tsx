@@ -171,7 +171,7 @@ const Index = () => {
         <div className="flex items-center gap-3">
           {isAdminLoggedIn && (
             <Button
-              className="ph-no-captur h-9 bg-indigo-100 text-brand-green hover:bg-indigo-100/90"
+              className="ph-no-captur h-9"
               onClick={() => {
                 posthog.capture('invite member_sponsor');
                 onOpen();
@@ -206,7 +206,7 @@ const Index = () => {
           <TabsTrigger value="invites" className="relative">
             Pending Invites
             {totalInvites > 0 && (
-              <span className="ml-2 rounded-full bg-indigo-100 px-2 py-0.5 text-xs text-brand-green">
+              <span className="ml-2 rounded-full bg-brand-green/10 px-2 py-0.5 text-xs text-black">
                 {totalInvites}
               </span>
             )}
@@ -269,7 +269,7 @@ const Index = () => {
                                 'inline-flex rounded px-2 py-1 text-xs font-semibold',
                                 member?.role === 'ADMIN'
                                   ? 'bg-emerald-100 text-teal-600'
-                                  : 'bg-purple-100 text-brand-green',
+                                  : 'bg-yellow-200 text-yellow-600',
                               )}
                             >
                               {member?.role}
