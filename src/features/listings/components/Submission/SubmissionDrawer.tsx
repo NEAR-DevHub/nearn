@@ -69,6 +69,7 @@ interface Props {
   isTemplate?: boolean;
   showEasterEgg: () => void;
   onSurveyOpen: () => void;
+  isGodMode?: boolean;
 }
 
 type FormData = z.infer<ReturnType<typeof submissionSchema>>;
@@ -81,6 +82,7 @@ export const SubmissionDrawer = ({
   isTemplate = false,
   showEasterEgg,
   onSurveyOpen,
+  isGodMode = false,
 }: Props) => {
   const {
     id,
@@ -100,6 +102,9 @@ export const SubmissionDrawer = ({
   const [isTOSModalOpen, setIsTOSModalOpen] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [editFetched, setEditFetched] = useState(false);
+  const [submissionId, setSubmissionId] = useState<string | undefined>(
+    undefined,
+  );
 
   const { user, refetchUser } = useUser();
   const form: UseFormReturn<FormData> = useForm<FormData>({
@@ -155,6 +160,7 @@ export const SubmissionDrawer = ({
           });
 
           const {
+            id: submissionId,
             link,
             tweet,
             otherInfo,
@@ -169,13 +175,14 @@ export const SubmissionDrawer = ({
             tweet,
             otherInfo,
             ask,
-            otherTokenDetails,
+            otherTokenDetails: otherTokenDetails || undefined,
             eligibilityAnswers: eligibilityAnswers.map((answer: any) => ({
               question: answer.question,
               answer: answer.answer ?? '',
             })),
             token,
           });
+          setSubmissionId(submissionId);
           setEditFetched(true);
         } catch (error) {
           console.error('Failed to fetch submission data', error);
@@ -205,6 +212,8 @@ export const SubmissionDrawer = ({
         eligibilityAnswers: data.eligibilityAnswers || [],
         publicKey: data.publicKey,
         token: token === 'Any' ? data.token : undefined,
+        submissionId: editMode ? submissionId : undefined,
+        isGodMode: isGodMode,
       });
 
       const hideEasterEggFromSponsorIds = [
@@ -404,7 +413,7 @@ export const SubmissionDrawer = ({
                       ) {
                         return (
                           <WalletConnectField
-                            key={e.order}
+                            key={`${index}-${e.order}`}
                             control={form.control}
                             name={`eligibilityAnswers.${index}.answer`}
                             label={e.question}
@@ -416,7 +425,7 @@ export const SubmissionDrawer = ({
                       if (e.type === 'checkbox') {
                         return (
                           <FormField
-                            key={e.order}
+                            key={`${index}-${e.order}`}
                             control={form.control}
                             name={`eligibilityAnswers.${index}.answer`}
                             render={({ field }) => (
@@ -448,7 +457,7 @@ export const SubmissionDrawer = ({
 
                       return (
                         <FormField
-                          key={e.order}
+                          key={`${index}-${e.order}`}
                           control={form.control}
                           name={`eligibilityAnswers.${index}.answer`}
                           render={({ field }) => (

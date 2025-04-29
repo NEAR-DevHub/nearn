@@ -11,9 +11,10 @@ import { validateSubmissionRequest } from '@/features/listings/utils/validateSub
 
 async function updateSubmission(
   userId: string,
-  listingId: string,
+  submissionId: string,
   data: any,
   listing: any,
+  isGodMode: boolean,
 ) {
   const user = await prisma.user.findUnique({
     where: {
@@ -44,25 +45,32 @@ async function updateSubmission(
     });
   }
 
-  const existingSubmission = await prisma.submission.findFirst({
-    where: { userId, listingId },
-    orderBy: {
-      createdAt: 'desc',
-    },
+  const existingSubmission = await prisma.submission.findUnique({
+    where: { id: submissionId },
   });
+  console.log('existingSubmission', existingSubmission);
+  console.log('submissionId', submissionId);
 
+  const isGod = user?.role === 'GOD' && isGodMode;
   if (!existingSubmission) {
     throw new Error('Submission not found');
   }
 
-  if (existingSubmission.label === 'Spam') {
+  const isAllowedToUpdate = existingSubmission.userId === userId || isGod;
+
+  if (!isAllowedToUpdate) {
+    throw new Error('User does not have permission to update this submission');
+  }
+
+  if (existingSubmission.label === 'Spam' && !isGod) {
     throw new Error('User submissions has been flagged as spam');
   }
 
   if (
     listing.type === 'sponsorship' &&
     (existingSubmission.status !== 'Pending' ||
-      existingSubmission.label !== 'New')
+      existingSubmission.label !== 'New') &&
+    !isGod
   ) {
     throw new Error('Submission status is not available to edit');
   }
@@ -76,6 +84,7 @@ async function updateSubmission(
     token: validatedData.token || null,
     otherTokenDetails: validatedData.otherTokenDetails || null,
   };
+  console.log('formattedData', formattedData);
 
   return prisma.submission.update({
     where: { id: existingSubmission.id },
@@ -85,7 +94,7 @@ async function updateSubmission(
 
 async function submission(req: NextApiRequestWithUser, res: NextApiResponse) {
   const { userId } = req;
-  const { listingId, ...submissionData } = req.body;
+  const { listingId, submissionId, isGodMode, ...submissionData } = req.body;
 
   logger.debug(`Request body: ${safeStringify(req.body)}`);
   logger.debug(`User: ${safeStringify(userId)}`);
@@ -105,9 +114,10 @@ async function submission(req: NextApiRequestWithUser, res: NextApiResponse) {
 
     const result = await updateSubmission(
       userId as string,
-      listingId,
+      submissionId,
       submissionData,
       listing,
+      isGodMode,
     );
 
     return res.status(200).json(result);
