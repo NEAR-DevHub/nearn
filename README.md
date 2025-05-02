@@ -49,6 +49,9 @@
       - [Setup MYSQL DB with render](https://docs.render.com/deploy-mysql)
       
     - Generate prisma migrations & client.
+      - **FIRST!** Update the `schema.prisma` file with the correct env variable; local db = `LOCAL_DATABASE_URL` OR remote db = `DATABASE_URL`.
+      - **THEN** setup and init.
+      
       ```bash
       npx prisma migrate dev --name init && npx prisma generate
       ```
