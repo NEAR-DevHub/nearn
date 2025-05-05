@@ -1,3 +1,4 @@
+import { type User } from '@prisma/client';
 import type { NextApiResponse } from 'next';
 
 import logger from '@/lib/logger';
@@ -10,17 +11,12 @@ import { submissionSchema } from '@/features/listings/utils/submissionFormSchema
 import { validateSubmissionRequest } from '@/features/listings/utils/validateSubmissionRequest';
 
 async function updateSubmission(
-  userId: string,
+  user: User,
   submissionId: string,
   data: any,
   listing: any,
   isGodMode: boolean,
 ) {
-  const user = await prisma.user.findUnique({
-    where: {
-      id: userId,
-    },
-  });
   const validationResult = submissionSchema(
     listing,
     listing.minRewardAsk || 0,
@@ -37,7 +33,7 @@ async function updateSubmission(
   if (validatedData.publicKey) {
     await prisma.user.update({
       where: {
-        id: userId,
+        id: user.id,
       },
       data: {
         publicKey: validatedData.publicKey,
@@ -48,15 +44,13 @@ async function updateSubmission(
   const existingSubmission = await prisma.submission.findUnique({
     where: { id: submissionId },
   });
-  console.log('existingSubmission', existingSubmission);
-  console.log('submissionId', submissionId);
 
   const isGod = user?.role === 'GOD' && isGodMode;
   if (!existingSubmission) {
     throw new Error('Submission not found');
   }
 
-  const isAllowedToUpdate = existingSubmission.userId === userId || isGod;
+  const isAllowedToUpdate = existingSubmission.userId === user.id || isGod;
 
   if (!isAllowedToUpdate) {
     throw new Error('User does not have permission to update this submission');
@@ -107,13 +101,27 @@ async function submission(req: NextApiRequestWithUser, res: NextApiResponse) {
   }
 
   try {
+    const user = await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+
     const { listing } = await validateSubmissionRequest(
       userId as string,
       listingId,
+      user?.role === 'GOD' && isGodMode,
     );
 
+    if (!user) {
+      return res.status(400).json({
+        error: 'User not found',
+        message: 'User not found',
+      });
+    }
+
     const result = await updateSubmission(
-      userId as string,
+      user,
       submissionId,
       submissionData,
       listing,

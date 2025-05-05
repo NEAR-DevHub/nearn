@@ -47,6 +47,7 @@ import { SideDrawer, SideDrawerContent } from '@/components/ui/side-drawer';
 import { WalletConnectField } from '@/components/ui/wallet-connect-field';
 import { CHAIN_NAME } from '@/constants/project';
 import { tokenList } from '@/constants/tokenList';
+import { type SubmissionWithUser } from '@/interface/submission';
 import { api } from '@/lib/api';
 import { useUser } from '@/store/user';
 import { cn } from '@/utils/cn';
@@ -61,11 +62,11 @@ import { submissionSchema } from '../../utils/submissionFormSchema';
 import { SubmissionTerms } from './SubmissionTerms';
 
 interface Props {
-  id: string | undefined;
   isOpen: boolean;
   onClose: () => void;
   editMode: boolean;
   listing: Listing;
+  submission: SubmissionWithUser | undefined;
   isTemplate?: boolean;
   showEasterEgg: () => void;
   onSurveyOpen: () => void;
@@ -79,6 +80,7 @@ export const SubmissionDrawer = ({
   onClose,
   editMode,
   listing,
+  submission,
   isTemplate = false,
   showEasterEgg,
   onSurveyOpen,
@@ -153,10 +155,10 @@ export const SubmissionDrawer = ({
 
   useEffect(() => {
     const fetchData = async () => {
-      if (editMode && id) {
+      if (editMode && submission?.id) {
         try {
           const response = await api.get('/api/submission/get/', {
-            params: { id },
+            params: { id: submission.id },
           });
 
           const {
@@ -318,6 +320,7 @@ export const SubmissionDrawer = ({
                 <div className="mb-4 border-b border-slate-100 bg-white py-3">
                   <div className="flex items-center justify-between">
                     <p className="text-lg font-medium text-slate-700">
+                      {isGodMode ? '[GOD MODE] ' : ''}
                       {headerText}
                     </p>
                     <X

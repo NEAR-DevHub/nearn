@@ -33,7 +33,7 @@ import type { SubmissionWithUser } from '@/interface/submission';
 
 const formSchema = z
   .object({
-    status: z.enum(['Pending', 'Approved', 'Rejected']),
+    status: z.enum(['Pending', 'Approved', 'Rejected', 'Deleted']),
     label: z.enum(['New', 'Reviewed', 'Shortlisted', 'Spam'] as const),
     isPaid: z.boolean().default(false),
     paymentLink: z.string().optional(),
@@ -253,23 +253,32 @@ export const EditSubmissionStatusModal = ({
               />
             )}
 
-            <div className="flex justify-between gap-2">
+            <div className="flex flex-col gap-2">
+              {onEditFullSubmission && submission && (
+                <Button
+                  variant="outline"
+                  type="button"
+                  onClick={() => onEditFullSubmission(submission)}
+                >
+                  <Edit className="mr-2 h-4 w-4" />
+                  Edit Submission
+                </Button>
+              )}
               <div className="flex w-full gap-2">
-                {onEditFullSubmission && submission && (
-                  <Button
-                    variant="outline"
-                    type="button"
-                    onClick={() => onEditFullSubmission(submission)}
-                  >
-                    <Edit className="mr-2 h-4 w-4" />
-                    Edit Submission
-                  </Button>
-                )}
-                <Button variant="outline" onClick={onClose} type="button">
+                <Button
+                  variant="outline"
+                  onClick={onClose}
+                  type="button"
+                  className="w-full"
+                >
                   <XCircle className="mr-2 h-4 w-4" />
                   Cancel
                 </Button>
-                <Button type="submit" disabled={form.formState.isSubmitting}>
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={form.formState.isSubmitting}
+                >
                   <CheckCircle className="mr-2 h-4 w-4" />
                   {form.formState.isSubmitting ? 'Saving...' : 'Save Changes'}
                 </Button>

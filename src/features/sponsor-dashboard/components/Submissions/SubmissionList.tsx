@@ -401,7 +401,7 @@ export const SubmissionList = ({
       />
       {listing && submissionDrawerId && isGodUser && (
         <SubmissionDrawer
-          id={submissionDrawerId}
+          submission={interactedSubmission}
           isOpen={isSubmissionDrawerOpen}
           onClose={() => {
             setSubmissionDrawerId(undefined);

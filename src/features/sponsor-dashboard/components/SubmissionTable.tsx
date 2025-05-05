@@ -418,9 +418,9 @@ export const SubmissionTable = ({
                               Copy Payment Link
                             </DropdownMenuItem>
                           )}
-                        {isGodUser && (
+                        {isGodUser && submission.listing.isActive && (
                           <>
-                            {submission.isArchived && (
+                            {!submission.isArchived && (
                               <DropdownMenuItem
                                 className="cursor-pointer text-sm font-medium text-slate-500"
                                 onClick={() => {
@@ -483,9 +483,9 @@ export const SubmissionTable = ({
         submission={interactedSubmission}
         onSuccess={refetchSubmissions}
       />
-      {interactedSubmission?.listing && isGodUser && (
+      {interactedSubmission?.listing && isGodUser && isSubmissionDrawerOpen && (
         <SubmissionDrawer
-          id={interactedSubmission.id}
+          submission={interactedSubmission}
           isOpen={isSubmissionDrawerOpen}
           onClose={() => {
             onSubmissionDrawerClose();
