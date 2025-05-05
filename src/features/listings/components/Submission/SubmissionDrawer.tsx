@@ -56,6 +56,7 @@ import { InfoBox } from '@/features/sponsor-dashboard/components/InfoBox';
 
 import { walletFieldListings } from '../../constants';
 import { submissionCountQuery } from '../../queries/submission-count';
+import { listingSubmissionsQuery } from '../../queries/submissions';
 import { userSubmissionQuery } from '../../queries/user-submission-status';
 import { type Listing } from '../../types';
 import { submissionSchema } from '../../utils/submissionFormSchema';
@@ -104,9 +105,6 @@ export const SubmissionDrawer = ({
   const [isTOSModalOpen, setIsTOSModalOpen] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [editFetched, setEditFetched] = useState(false);
-  const [submissionId, setSubmissionId] = useState<string | undefined>(
-    undefined,
-  );
 
   const { user, refetchUser } = useUser();
   const form: UseFormReturn<FormData> = useForm<FormData>({
@@ -162,7 +160,6 @@ export const SubmissionDrawer = ({
           });
 
           const {
-            id: submissionId,
             link,
             tweet,
             otherInfo,
@@ -187,7 +184,6 @@ export const SubmissionDrawer = ({
             })),
             token,
           });
-          setSubmissionId(submissionId);
           setEditFetched(true);
         } catch (error) {
           console.error('Failed to fetch submission data', error);
@@ -217,7 +213,7 @@ export const SubmissionDrawer = ({
         eligibilityAnswers: data.eligibilityAnswers || [],
         publicKey: data.publicKey,
         token: token === 'Any' ? data.token : undefined,
-        submissionId: editMode ? submissionId : undefined,
+        submissionId: editMode ? submission?.id : undefined,
         isGodMode: isGodMode,
       });
 
@@ -244,6 +240,12 @@ export const SubmissionDrawer = ({
       if (!editMode) {
         await queryClient.invalidateQueries({
           queryKey: submissionCountQuery(id!).queryKey,
+        });
+      }
+
+      if (editMode) {
+        await queryClient.invalidateQueries({
+          queryKey: listingSubmissionsQuery({ slug: listing.slug! }).queryKey,
         });
       }
 
