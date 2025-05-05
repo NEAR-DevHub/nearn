@@ -42,7 +42,6 @@ const submissionSchema = (
         .nullable(),
     })
     .superRefine((data, ctx) => {
-      console.log('data', data);
       if (
         !walletFieldListings.includes(listing.id!) &&
         user &&

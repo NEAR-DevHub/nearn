@@ -78,7 +78,6 @@ async function updateSubmission(
     token: validatedData.token || null,
     otherTokenDetails: validatedData.otherTokenDetails || null,
   };
-  console.log('formattedData', formattedData);
 
   return prisma.submission.update({
     where: { id: existingSubmission.id },
