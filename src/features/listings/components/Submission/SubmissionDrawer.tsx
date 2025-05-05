@@ -175,7 +175,10 @@ export const SubmissionDrawer = ({
             tweet,
             otherInfo,
             ask,
-            otherTokenDetails: otherTokenDetails || undefined,
+            otherTokenDetails:
+              otherTokenDetails && token === 'Other'
+                ? otherTokenDetails
+                : undefined,
             eligibilityAnswers: eligibilityAnswers.map((answer: any) => ({
               question: answer.question,
               answer: answer.answer ?? '',
@@ -207,7 +210,7 @@ export const SubmissionDrawer = ({
         link: data.link || '',
         tweet: data.tweet || '',
         otherInfo: data.otherInfo || '',
-        otherTokenDetails: data.otherTokenDetails || '',
+        otherTokenDetails: data.otherTokenDetails || undefined,
         ask: data.ask || null,
         eligibilityAnswers: data.eligibilityAnswers || [],
         publicKey: data.publicKey,
@@ -627,7 +630,7 @@ export const SubmissionDrawer = ({
                   <div className="mb-4 flex items-start space-x-3">
                     <Checkbox
                       id="terms"
-                      className="mt-1 data-[state=checked]:border-brand-purple data-[state=checked]:bg-brand-purple"
+                      className="mt-1 data-[state=checked]:border-brand-green data-[state=checked]:bg-brand-green"
                       checked={termsAccepted}
                       onCheckedChange={(checked) =>
                         setTermsAccepted(checked as boolean)
