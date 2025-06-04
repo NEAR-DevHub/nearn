@@ -2,6 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 import { Loader } from 'lucide-react';
 import Image from 'next/image';
 
+import { KYB_LINK, KYC_LINK, KYC_SPONSOR_WHITELIST } from '@/constants/kyc';
+import { useUser } from '@/store/user';
 import { cn } from '@/utils/cn';
 
 import {
@@ -15,6 +17,7 @@ interface KycComponentProps {
   address: string | undefined;
   imageOnly?: boolean;
   xs?: boolean;
+  listingSponsorId?: string;
 }
 
 function styleKycStatus(kycData?: KycResponse) {
@@ -23,6 +26,7 @@ function styleKycStatus(kycData?: KycResponse) {
       className: 'text-gray-500',
       text: 'KYC / KYB Status loading...',
       image: <Loader className="h-3 w-3 animate-spin" />,
+      showAction: false,
     };
   switch (kycData.kyc_status) {
     case 'APPROVED':
@@ -30,6 +34,7 @@ function styleKycStatus(kycData?: KycResponse) {
         className: 'text-green-600',
         text: 'KYC / KYB Verified',
         image: <VerifiedBadge className={cn('fill-green-600')} />,
+        showAction: false,
       };
     case 'PENDING':
       return {
@@ -44,6 +49,7 @@ function styleKycStatus(kycData?: KycResponse) {
             className={'h-3 w-3 fill-yellow-500'}
           />
         ),
+        showAction: false,
       };
     case 'NOT_SUBMITTED':
       return {
@@ -58,6 +64,7 @@ function styleKycStatus(kycData?: KycResponse) {
             className={'h-3 w-3 fill-red-500'}
           />
         ),
+        showAction: true,
       };
     case 'REJECTED':
       return {
@@ -72,6 +79,7 @@ function styleKycStatus(kycData?: KycResponse) {
             className={'h-3 w-3 fill-red-500'}
           />
         ),
+        showAction: true,
       };
     case 'EXPIRED':
       return {
@@ -86,6 +94,7 @@ function styleKycStatus(kycData?: KycResponse) {
             className={'h-3 w-3 fill-gray-500'}
           />
         ),
+        showAction: true,
       };
     default:
       return {
@@ -100,6 +109,7 @@ function styleKycStatus(kycData?: KycResponse) {
             className={'h-3 w-3 fill-gray-500'}
           />
         ),
+        showAction: true,
       };
   }
 }
@@ -108,19 +118,57 @@ export function KycComponent({
   address,
   imageOnly = false,
   xs = false,
+  listingSponsorId,
 }: KycComponentProps) {
+  const { user } = useUser();
+
   const { data: kycData } = useQuery({
     enabled: !!address,
     ...checkKycQuery(address!),
   });
 
-  const { className, text, image } = styleKycStatus(kycData);
-  return (
-    <div className={cn('flex items-center gap-2', className)}>
+  const sponsorIdToCheck = listingSponsorId || user?.currentSponsorId;
+
+  if (!sponsorIdToCheck || !KYC_SPONSOR_WHITELIST.includes(sponsorIdToCheck)) {
+    return null;
+  }
+
+  const { className, text, image, showAction } = styleKycStatus(kycData);
+
+  const content = imageOnly ? (
+    showAction ? (
+      <a href={KYC_LINK} target="_blank" rel="noopener noreferrer">
+        {image}
+      </a>
+    ) : (
+      image
+    )
+  ) : (
+    <>
       {image}
-      {!imageOnly && (
-        <p className={cn('text-sm font-medium', xs && 'text-xs')}>{text}</p>
-      )}
-    </div>
+      <p className={cn('text-sm font-medium', xs && 'text-xs')}>
+        {text}
+        {showAction && (
+          <span className="ml-1 underline">
+            <a href={KYC_LINK} target="_blank" rel="noopener noreferrer">
+              KYC
+            </a>{' '}
+            |
+            <a
+              href={KYB_LINK}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ml-1"
+            >
+              KYB
+            </a>
+          </span>
+        )}
+      </p>
+    </>
+  );
+
+  return (
+    <div className={cn('flex items-center gap-2', className)}>{content}</div>
   );
 }
