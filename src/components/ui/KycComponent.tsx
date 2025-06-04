@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { Loader } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 
 import { KYB_LINK, KYC_LINK, KYC_SPONSOR_WHITELIST } from '@/constants/kyc';
-import { useUser } from '@/store/user';
 import { cn } from '@/utils/cn';
 
 import {
@@ -20,13 +20,36 @@ interface KycComponentProps {
   listingSponsorId?: string;
 }
 
+function KycKybLink() {
+  return (
+    <>
+      <Link
+        href={KYC_LINK}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="italic hover:underline"
+      >
+        KYC
+      </Link>{' '}
+      /{' '}
+      <Link
+        href={KYB_LINK}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="italic hover:underline"
+      >
+        KYB
+      </Link>
+    </>
+  );
+}
+
 function styleKycStatus(kycData?: KycResponse) {
   if (!kycData)
     return {
       className: 'text-gray-500',
       text: 'KYC / KYB Status loading...',
       image: <Loader className="h-3 w-3 animate-spin" />,
-      showAction: false,
     };
   switch (kycData.kyc_status) {
     case 'APPROVED':
@@ -34,7 +57,6 @@ function styleKycStatus(kycData?: KycResponse) {
         className: 'text-green-600',
         text: 'KYC / KYB Verified',
         image: <VerifiedBadge className={cn('fill-green-600')} />,
-        showAction: false,
       };
     case 'PENDING':
       return {
@@ -49,12 +71,15 @@ function styleKycStatus(kycData?: KycResponse) {
             className={'h-3 w-3 fill-yellow-500'}
           />
         ),
-        showAction: false,
       };
     case 'NOT_SUBMITTED':
       return {
         className: 'text-red-500',
-        text: 'KYC / KYB Not Verified',
+        text: (
+          <>
+            <KycKybLink /> Not Verified
+          </>
+        ),
         image: (
           <Image
             src="/assets/kyc-failed.svg"
@@ -64,12 +89,15 @@ function styleKycStatus(kycData?: KycResponse) {
             className={'h-3 w-3 fill-red-500'}
           />
         ),
-        showAction: true,
       };
     case 'REJECTED':
       return {
         className: 'text-red-500',
-        text: 'KYC / KYB Verification Rejected',
+        text: (
+          <>
+            <KycKybLink /> Verification Rejected
+          </>
+        ),
         image: (
           <Image
             src="/assets/kyc-failed.svg"
@@ -79,12 +107,15 @@ function styleKycStatus(kycData?: KycResponse) {
             className={'h-3 w-3 fill-red-500'}
           />
         ),
-        showAction: true,
       };
     case 'EXPIRED':
       return {
         className: 'text-gray-500',
-        text: 'KYC / KYB Verification Expired',
+        text: (
+          <>
+            <KycKybLink /> Verification Expired
+          </>
+        ),
         image: (
           <Image
             src="/assets/kyc-failed.svg"
@@ -94,12 +125,15 @@ function styleKycStatus(kycData?: KycResponse) {
             className={'h-3 w-3 fill-gray-500'}
           />
         ),
-        showAction: true,
       };
     default:
       return {
         className: 'text-gray-500',
-        text: 'Unknown KYC / KYB status',
+        text: (
+          <>
+            Unknown <KycKybLink /> status
+          </>
+        ),
         image: (
           <Image
             src="/assets/kyc-failed.svg"
@@ -109,7 +143,6 @@ function styleKycStatus(kycData?: KycResponse) {
             className={'h-3 w-3 fill-gray-500'}
           />
         ),
-        showAction: true,
       };
   }
 }
@@ -120,51 +153,26 @@ export function KycComponent({
   xs = false,
   listingSponsorId,
 }: KycComponentProps) {
-  const { user } = useUser();
+  const isKycEnabled =
+    !!listingSponsorId && KYC_SPONSOR_WHITELIST.includes(listingSponsorId);
 
   const { data: kycData } = useQuery({
-    enabled: !!address,
+    enabled: !!address && isKycEnabled,
     ...checkKycQuery(address!),
   });
 
-  const sponsorIdToCheck = listingSponsorId || user?.currentSponsorId;
-
-  if (!sponsorIdToCheck || !KYC_SPONSOR_WHITELIST.includes(sponsorIdToCheck)) {
+  if (!isKycEnabled) {
     return null;
   }
 
-  const { className, text, image, showAction } = styleKycStatus(kycData);
+  const { className, text, image } = styleKycStatus(kycData);
 
   const content = imageOnly ? (
-    showAction ? (
-      <a href={KYC_LINK} target="_blank" rel="noopener noreferrer">
-        {image}
-      </a>
-    ) : (
-      image
-    )
+    image
   ) : (
     <>
       {image}
-      <p className={cn('text-sm font-medium', xs && 'text-xs')}>
-        {text}
-        {showAction && (
-          <span className="ml-1 underline">
-            <a href={KYC_LINK} target="_blank" rel="noopener noreferrer">
-              KYC
-            </a>{' '}
-            |
-            <a
-              href={KYB_LINK}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="ml-1"
-            >
-              KYB
-            </a>
-          </span>
-        )}
-      </p>
+      <p className={cn('text-sm font-medium', xs && 'text-xs')}>{text}</p>
     </>
   );
 

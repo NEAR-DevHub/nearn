@@ -329,7 +329,7 @@ export const SubmissionList = ({
                     address={submission?.user?.publicKey}
                     imageOnly
                     xs
-                    listingSponsorId={bounty?.sponsorId}
+                    listingSponsorId={submission?.listing?.sponsorId}
                   />
                 </div>
                 <p className="overflow-hidden text-ellipsis whitespace-nowrap text-xs font-medium text-slate-500">
