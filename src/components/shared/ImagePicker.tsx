@@ -88,7 +88,7 @@ export const ImagePicker = ({
       // Check if dimensions exceed optimal and show crop modal
       const exceedsOptimal = await checkImageDimensions(file);
 
-      if (exceedsOptimal) {
+      if (exceedsOptimal && variant === 'banner') {
         const reader = new FileReader();
         reader.onloadend = () => {
           const previewUrl = reader.result as string;
