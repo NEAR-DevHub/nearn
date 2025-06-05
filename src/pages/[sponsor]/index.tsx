@@ -54,7 +54,7 @@ const MarketingBanner = ({
 
   return (
     <Image
-      width={888}
+      width={848}
       height={220}
       className="h-full min-h-[100px] w-full md:rounded-t-2xl"
       alt="Sponsor banner"
@@ -131,7 +131,7 @@ Check out all of ${title}'s latest earning opportunities on a single page.
       }
     >
       <div className="flex flex-col items-center justify-center">
-        <div className="w-full max-w-[888px]">
+        <div className="w-full max-w-[880px]">
           <div className="mx-auto max-w-6xl md:pt-8">
             <div className="relative mb-[72px] md:mb-[88px]">
               <MarketingBanner banner={banner} isLoading={isListingsLoading} />
@@ -151,10 +151,10 @@ Check out all of ${title}'s latest earning opportunities on a single page.
 
                 <div className="flex flex-col justify-start gap-1 pt-7 md:gap-2 md:pt-12">
                   {isListingsLoading ? (
-                    <Skeleton className="h-4 w-48" />
+                    <Skeleton className="h-4 max-w-48" />
                   ) : (
                     <div className="flex items-center gap-2">
-                      <p className="w-64 truncate text-2xl font-semibold md:w-full md:text-3xl">
+                      <p className="max-w-56 truncate text-2xl font-semibold md:max-w-full md:text-3xl">
                         {title}
                       </p>
                       {!!isVerified && <VerifiedBadge className="h-4 w-4" />}
@@ -208,7 +208,7 @@ Check out all of ${title}'s latest earning opportunities on a single page.
           </div>
         </div>
 
-        <div className="w-full max-w-[888px] bg-white">
+        <div className="w-full max-w-[880px] bg-white">
           <div className="mx-auto mt-6 px-4 pb-20 md:mt-8 md:px-6">
             {/* Only show tabs if there are bounties, otherwise show empty state */}
             {!isListingsLoading &&

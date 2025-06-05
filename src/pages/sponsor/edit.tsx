@@ -331,17 +331,9 @@ export default function UpdateSponsor() {
               </div>
 
               <div className="mb-3 mt-6 w-full">
-                <FormLabel>
-                  Entity Banner
-                  <span className="ml-2 text-sm text-slate-500">
-                    (Cover photo - similar to Twitter)
-                  </span>
-                </FormLabel>
-                <p className="mb-2 text-sm text-slate-600">
-                  Upload a banner image that will appear as a cover photo at the
-                  top of your profile page.
-                </p>
+                <FormLabel>Entity Cover</FormLabel>
                 <ImagePicker
+                  variant="banner"
                   defaultValue={
                     bannerPreview ? { url: bannerPreview } : undefined
                   }
