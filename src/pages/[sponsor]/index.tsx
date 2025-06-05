@@ -49,14 +49,14 @@ const MarketingBanner = ({
   );
 
   if (isLoading) {
-    return <Skeleton className="h-48 w-full rounded-md md:h-64" />;
+    return <Skeleton className="h-32 w-full md:h-64 md:rounded-md" />;
   }
 
   return (
     <Image
       width={888}
       height={220}
-      className="h-full w-full rounded-t-2xl"
+      className="h-full min-h-[100px] w-full md:rounded-t-2xl"
       alt="Sponsor banner"
       src={banner ?? `${ASSET_URL}/bg/profile-cover/${bgImages[randomIndex]}`}
     />
@@ -132,29 +132,31 @@ Check out all of ${title}'s latest earning opportunities on a single page.
     >
       <div className="flex flex-col items-center justify-center">
         <div className="w-full max-w-[888px]">
-          <div className="mx-auto max-w-6xl pt-8">
-            <div className="relative mb-[88px]">
+          <div className="mx-auto max-w-6xl md:pt-8">
+            <div className="relative mb-[72px] md:mb-[88px]">
               <MarketingBanner banner={banner} isLoading={isListingsLoading} />
 
-              <div className="absolute bottom-0 left-6 flex translate-y-3/4 gap-6">
+              <div className="absolute bottom-0 left-4 flex translate-y-[85%] gap-3 md:left-6 md:translate-y-3/4 md:gap-6">
                 {isListingsLoading ? (
-                  <Skeleton className="h-28 w-28 rounded-full border-4 border-white bg-white" />
+                  <Skeleton className="h-20 w-20 rounded-full border-4 border-white bg-white md:h-28 md:w-28" />
                 ) : (
                   <div className="relative rounded-lg border-2 border-white shadow-lg">
                     <LocalImage
-                      className="h-28 w-28 rounded-lg object-cover"
+                      className="h-20 w-20 rounded-lg object-cover md:h-28 md:w-28"
                       alt="Category icon"
                       src={logo!}
                     />
                   </div>
                 )}
 
-                <div className="flex flex-col justify-start gap-2 pt-12">
+                <div className="flex flex-col justify-start gap-1 pt-7 md:gap-2 md:pt-12">
                   {isListingsLoading ? (
                     <Skeleton className="h-4 w-48" />
                   ) : (
                     <div className="flex items-center gap-2">
-                      <p className="text-3xl font-semibold">{title}</p>
+                      <p className="w-64 truncate text-2xl font-semibold md:w-full md:text-3xl">
+                        {title}
+                      </p>
                       {!!isVerified && <VerifiedBadge className="h-4 w-4" />}
                     </div>
                   )}
@@ -167,8 +169,8 @@ Check out all of ${title}'s latest earning opportunities on a single page.
               </div>
             </div>
           </div>
-          <div className="flex px-6">
-            <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 rounded-[10] py-8 md:flex-row">
+          <div className="flex px-4 md:px-6">
+            <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 rounded-[10] py-3 md:flex-row md:gap-8 md:py-8">
               <div className="w-full md:w-[80%]">
                 {isListingsLoading ? (
                   <div className="mt-2 space-y-2">
@@ -207,7 +209,7 @@ Check out all of ${title}'s latest earning opportunities on a single page.
         </div>
 
         <div className="w-full max-w-[888px] bg-white">
-          <div className="mx-auto px-6 pb-20">
+          <div className="mx-auto mt-6 px-4 pb-20 md:mt-8 md:px-6">
             {/* Only show tabs if there are bounties, otherwise show empty state */}
             {!isListingsLoading &&
             !isSponsorshipsLoading &&
