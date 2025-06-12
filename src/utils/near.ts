@@ -6,19 +6,24 @@ import { type KeyPairString } from 'near-api-js/lib/utils';
 
 import { type Token } from '@/constants/tokenList';
 
-const nearAccount = process.env.NEAR_ACCOUNT || 'nearn-io.near';
-const nearAccountPrivateKey = process.env.NEAR_ACCOUNT_PRIVATE_KEY || '';
+export const NEAR_ACCOUNT =
+  process.env.NEXT_PUBLIC_NEAR_ACCOUNT || 'nearn-io.near';
+export const NEAR_ACCOUNT_PRIVATE_KEY =
+  process.env.NEAR_ACCOUNT_PRIVATE_KEY || '';
+export const NEAR_SOCIAL_ACCOUNT = 'social.near';
 
 const keyStore = new nearApi.keyStores.InMemoryKeyStore();
-keyStore.setKey(
-  'mainnet',
-  nearAccount,
-  nearApi.KeyPair.fromString(nearAccountPrivateKey as KeyPairString),
-);
+if (NEAR_ACCOUNT_PRIVATE_KEY !== '') {
+  keyStore.setKey(
+    'mainnet',
+    NEAR_ACCOUNT,
+    nearApi.KeyPair.fromString(NEAR_ACCOUNT_PRIVATE_KEY as KeyPairString),
+  );
+}
 
 const jsonProviders = [
   new nearApi.providers.JsonRpcProvider(
-    { url: 'https://archival-rpc.mainnet.near.org' }, // RPC URL
+    { url: 'https://free.rpc.fastnear.com' }, // RPC URL
     {
       retries: 3, // Number of retries before giving up on a request
       backoff: 2, // Backoff factor for the retry delay
@@ -106,7 +111,7 @@ export async function createSputnikProposal(
     },
   };
 
-  const account = await near.account(nearAccount);
+  const account = await near.account(NEAR_ACCOUNT);
 
   const daoPolicy: { proposal_bond: string | undefined } =
     await account.viewFunction({
@@ -151,4 +156,63 @@ export async function getProposalId(result: FinalExecutionOutcome) {
     .SuccessValue;
   const proposalId = Buffer.from(base64!, 'base64').toString('utf-8');
   return proposalId;
+}
+
+type DaoPolicy = {
+  roles: {
+    kind: { Everyone: unknown | undefined; Group: string[] | undefined };
+    permissions: string[];
+  }[];
+};
+
+export async function isNearnIoRequestor(dao: string) {
+  const account = await near.account(NEAR_ACCOUNT);
+
+  try {
+    const daoPolicy: DaoPolicy = await account.viewFunction({
+      contractId: dao,
+      methodName: 'get_policy',
+    });
+    for (const role of daoPolicy.roles) {
+      if (
+        role.permissions.includes('*:AddProposal') ||
+        role.permissions.includes('transfer:AddProposal')
+      ) {
+        const isGroupMember =
+          role.kind.Group && role.kind.Group.includes(NEAR_ACCOUNT);
+        return !!role.kind.Everyone || isGroupMember;
+      }
+    }
+  } catch (error) {}
+
+  return false;
+}
+
+export async function extractDaoFromTreasury(treasury: string) {
+  const extractDaoIDSafely = (code: string) => {
+    const directMatch = code.match(
+      /const treasuryDaoID\s*=\s*["'`]([^"'`]+)["'`]/,
+    );
+    if (directMatch) return directMatch[1];
+
+    return treasury.slice(0, -5) + '.sputnik-dao.near';
+  };
+
+  const account = await near.account(NEAR_SOCIAL_ACCOUNT);
+
+  const data = await account.viewFunction({
+    contractId: NEAR_SOCIAL_ACCOUNT,
+    methodName: 'get',
+    args: {
+      keys: [`${treasury}/widget/config.data`],
+    },
+  });
+
+  const config = data[treasury]?.widget['config.data'];
+
+  if (!config) {
+    return null;
+  }
+
+  return extractDaoIDSafely(config);
 }

@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { Info, Loader2 } from 'lucide-react';
+import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 import { useEffect, useMemo, useState } from 'react';
@@ -22,11 +23,13 @@ import {
 import { FormFieldWrapper } from '@/components/ui/form-field-wrapper';
 import { Input } from '@/components/ui/input';
 import { MultiSelect } from '@/components/ui/multi-select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip } from '@/components/ui/tooltip';
 import { CHAIN_NAME, PROJECT_NAME } from '@/constants/project';
 import { Default } from '@/layouts/Default';
 import { Meta } from '@/layouts/Meta';
 import { useUser } from '@/store/user';
+import { cn } from '@/utils/cn';
 import { uploadAndReplaceImage } from '@/utils/image';
 
 import { SocialInputAll } from '@/features/social/components/SocialInput';
@@ -34,13 +37,17 @@ import { extractSocialUsername } from '@/features/social/utils/extractUsername';
 import { useSlugValidation } from '@/features/sponsor/hooks/useSlugValidation';
 import { useSponsorNameValidation } from '@/features/sponsor/hooks/useSponsorNameValidation';
 import {
+  integrationsFormSchema,
+  type IntegrationsFormValues,
+} from '@/features/sponsor/utils/integrationsFormSchema';
+import {
   type SponsorBase,
   sponsorBaseSchema,
 } from '@/features/sponsor/utils/sponsorFormSchema';
 import { sponsorQuery } from '@/features/sponsor-dashboard/queries/sponsor';
 import { IndustryList } from '@/features/talent/constants';
 
-export default function UpdateSponsor() {
+function EditSponsor() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const { user, refetchUser } = useUser();
@@ -233,6 +240,305 @@ export default function UpdateSponsor() {
   }
 
   return (
+    <div className="flex w-full flex-col">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} style={{ width: '100%' }}>
+          <div className="flex w-full justify-between gap-4">
+            <FormFieldWrapper
+              control={form.control}
+              name="name"
+              label="Entity Name"
+              isRequired
+              onChange={(e) => {
+                setSponsorName(e.target.value);
+              }}
+            >
+              <Input placeholder="Stark Industries" value={sponsorName} />
+            </FormFieldWrapper>
+
+            <FormFieldWrapper
+              control={form.control}
+              name="slug"
+              label="Entity Username"
+              isRequired
+              onChange={(e) => {
+                const value = e.target.value.toLowerCase().replace(/\s+/g, '-');
+                form.setValue('slug', value);
+                setSlug(value);
+              }}
+            >
+              <Input placeholder="starkindustries" value={slug} />
+            </FormFieldWrapper>
+          </div>
+
+          <p className="mb-5 mt-5 text-lg font-semibold text-slate-600">
+            SOCIALS
+          </p>
+
+          <SocialInputAll
+            control={form.control}
+            required={['website']}
+            exclude={['linkedin']}
+          />
+
+          <div className="flex w-full">
+            <FormFieldWrapper
+              control={form.control}
+              name="entityName"
+              label={
+                <>
+                  Legal Name
+                  <Tooltip
+                    content="Please mention the official entity name of your project. If you are a DAO, simply mention the name of the DAO. If you neither have an entity nor are a DAO, mention your full name."
+                    contentProps={{ className: 'text-xs' }}
+                  >
+                    <Info className="ml-1 mt-1 hidden h-3 w-3 text-slate-500 md:block" />
+                  </Tooltip>
+                </>
+              }
+              isRequired
+            >
+              <Input placeholder="Legal Name" />
+            </FormFieldWrapper>
+          </div>
+
+          <div className="mb-3 mt-6 w-full">
+            <FormLabel isRequired>Entity Logo</FormLabel>
+            <FormDescription>
+              Please upload a logo for your entity.
+            </FormDescription>
+            <FormMessage />
+            <ImagePicker
+              defaultValue={logoPreview ? { url: logoPreview } : undefined}
+              onChange={(file, previewUrl) => {
+                setSelectedLogo(file);
+                setLogoPreview(previewUrl);
+                form.setValue('logo', previewUrl);
+              }}
+              onReset={() => {
+                setSelectedLogo(null);
+                setLogoPreview(null);
+                form.setValue('logo', '');
+              }}
+            />
+          </div>
+
+          <div className="mb-3 mt-6 w-full">
+            <FormLabel>Entity Cover</FormLabel>
+            <FormDescription>
+              You can upload a cover image for your sponsor profile to improve
+              the visibility of your profile.
+            </FormDescription>
+            <ImagePicker
+              variant="banner"
+              defaultValue={bannerPreview ? { url: bannerPreview } : undefined}
+              onChange={(file, previewUrl) => {
+                setSelectedBanner(file);
+                setBannerPreview(previewUrl);
+                form.setValue('banner', previewUrl);
+              }}
+              onReset={() => {
+                setSelectedBanner(null);
+                setBannerPreview(null);
+                form.setValue('banner', '');
+              }}
+            />
+          </div>
+
+          <div className="mt-6 flex w-full justify-between">
+            <FormField
+              control={form.control}
+              name="industry"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>Industry</FormLabel>
+                  <FormControl>
+                    <MultiSelect
+                      options={IndustryList.map((elm) => ({
+                        label: elm,
+                        value: elm,
+                      }))}
+                      value={field.value
+                        ?.split(', ')
+                        .map((value) => ({
+                          label: value,
+                          value: value,
+                        }))
+                        .filter(Boolean)}
+                      onChange={(selected: any) => {
+                        const values =
+                          selected?.map((item: any) => item.value) || [];
+                        field.onChange(values.join(', '));
+                      }}
+                      className="mt-2"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          <div className="my-6">
+            <FormFieldWrapper
+              control={form.control}
+              name="bio"
+              label="Entity Short Bio"
+              isRequired
+            >
+              <Input maxLength={180} placeholder="What does your Entity do?" />
+            </FormFieldWrapper>
+            <div className="text-right text-xs text-slate-400">
+              {180 - (form.watch('bio')?.length || 0)} characters left
+            </div>
+          </div>
+          <div className="mt-8">
+            <Button
+              className="w-full"
+              disabled={isSubmitDisabled}
+              size="lg"
+              type="submit"
+              variant="default"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                'Update Profile'
+              )}
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </div>
+  );
+}
+
+function Integrations() {
+  const { data: session, status } = useSession();
+  const { user, refetchUser } = useUser();
+
+  const form = useForm<IntegrationsFormValues>({
+    resolver: zodResolver(integrationsFormSchema),
+    mode: 'onBlur',
+    defaultValues: {
+      nearTreasuryFrontend: '',
+    },
+  });
+
+  const { data: sponsorData, refetch } = useQuery(
+    sponsorQuery(user?.currentSponsorId),
+  );
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (sponsorData) {
+      form.reset({
+        nearTreasuryFrontend: sponsorData.nearTreasury?.frontend || null,
+      });
+    }
+  }, [sponsorData, form.reset]);
+
+  const onSubmit = async (data: IntegrationsFormValues) => {
+    try {
+      setIsLoading(true);
+      await axios.post('/api/sponsors/editIntegration', {
+        nearTreasuryFrontend:
+          data.nearTreasuryFrontend === '' ? null : data.nearTreasuryFrontend,
+      });
+      await refetchUser();
+      await refetch();
+      toast.success('Integrations updated successfully!');
+    } catch (error) {
+      console.error('Error updating integrations:', error);
+      toast.error('Failed to update integrations. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (!session && status === 'loading') {
+    return <></>;
+  }
+
+  return (
+    <div className="flex w-full flex-col">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} style={{ width: '100%' }}>
+          <div className="space-y-5">
+            <div className="flex items-start gap-2">
+              <Image
+                src="/assets/NEARTreasuryLogo.svg"
+                alt="NEAR Treasury"
+                width={40}
+                height={40}
+              />
+              <div className="flex flex-col">
+                <h3 className="text-lg text-gray-700">NEAR Treasury</h3>
+                <p className="text-sm text-gray-600">
+                  Connect your NEAR Treasury account to enable automatic request
+                  creation from proposals.
+                  <span className="mt-1 block">
+                    You need to have a member added in NEAR Treasury
+                    (near-io.nearn) with permission to create requests. Once
+                    that’s set up, you can add your Sputnik DAO wallet below to
+                    connect.{' '}
+                    <a
+                      href="https://docs.near.org/docs/treasury/overview"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline"
+                    >
+                      Learn more
+                    </a>
+                  </span>
+                </p>
+              </div>
+            </div>
+
+            <FormFieldWrapper
+              control={form.control}
+              name="nearTreasuryFrontend"
+              isRequired
+              label="NEAR Treasury URL"
+            >
+              <Input
+                placeholder="your-treasury.near.page"
+                onChange={(e) => {
+                  const value = e.target.value || null;
+                  form.setValue('nearTreasuryFrontend', value);
+                }}
+              />
+            </FormFieldWrapper>
+          </div>
+
+          <div className="mt-8">
+            <Button
+              className="w-full"
+              disabled={isLoading}
+              size="lg"
+              type="submit"
+              variant="default"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Connecting...
+                </>
+              ) : (
+                'Connect'
+              )}
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </div>
+  );
+}
+
+export default function EditPage() {
+  return (
     <Default
       meta={
         <Meta
@@ -241,194 +547,39 @@ export default function UpdateSponsor() {
         />
       }
     >
-      <div className="mx-auto flex flex-col gap-2 pb-24 pt-12">
+      <div className="mx-auto flex w-full max-w-[53rem] flex-col gap-8 pb-24 pt-12">
         <div className="flex flex-col gap-2">
-          <p className="mb-8 text-3xl font-semibold tracking-tight text-gray-900">
+          <p className="text-3xl font-semibold tracking-tight text-gray-900">
             Edit Sponsor Profile
           </p>
         </div>
-        <div className="flex w-[42rem] flex-col">
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              style={{ width: '100%' }}
+        <Tabs defaultValue="edit" className="w-full">
+          <TabsList
+            className={cn(
+              'relative mb-8 w-full justify-start',
+              'before:absolute before:bottom-[-2px] before:left-0 before:right-0 before:h-[2px] before:w-full before:bg-slate-200',
+            )}
+          >
+            <TabsTrigger
+              value="edit"
+              className="data-[state=active]:bg-transparent data-[state=active]:text-slate-500 after:data-[state=active]:bg-brand-green-50"
             >
-              <div className="flex w-full justify-between gap-4">
-                <FormFieldWrapper
-                  control={form.control}
-                  name="name"
-                  label="Entity Name"
-                  isRequired
-                  onChange={(e) => {
-                    setSponsorName(e.target.value);
-                  }}
-                >
-                  <Input placeholder="Stark Industries" value={sponsorName} />
-                </FormFieldWrapper>
-
-                <FormFieldWrapper
-                  control={form.control}
-                  name="slug"
-                  label="Entity Username"
-                  isRequired
-                  onChange={(e) => {
-                    const value = e.target.value
-                      .toLowerCase()
-                      .replace(/\s+/g, '-');
-                    form.setValue('slug', value);
-                    setSlug(value);
-                  }}
-                >
-                  <Input placeholder="starkindustries" value={slug} />
-                </FormFieldWrapper>
-              </div>
-
-              <p className="mb-5 mt-5 text-lg font-semibold text-slate-600">
-                SOCIALS
-              </p>
-
-              <SocialInputAll
-                control={form.control}
-                required={['website']}
-                exclude={['linkedin']}
-              />
-
-              <div className="flex w-full">
-                <FormFieldWrapper
-                  control={form.control}
-                  name="entityName"
-                  label={
-                    <>
-                      Legal Name
-                      <Tooltip
-                        content="Please mention the official entity name of your project. If you are a DAO, simply mention the name of the DAO. If you neither have an entity nor are a DAO, mention your full name."
-                        contentProps={{ className: 'text-xs' }}
-                      >
-                        <Info className="ml-1 mt-1 hidden h-3 w-3 text-slate-500 md:block" />
-                      </Tooltip>
-                    </>
-                  }
-                  isRequired
-                >
-                  <Input placeholder="Legal Name" />
-                </FormFieldWrapper>
-              </div>
-
-              <div className="mb-3 mt-6 w-full">
-                <FormLabel isRequired>Entity Logo</FormLabel>
-                <FormDescription>
-                  Please upload a logo for your entity.
-                </FormDescription>
-                <FormMessage />
-                <ImagePicker
-                  defaultValue={logoPreview ? { url: logoPreview } : undefined}
-                  onChange={(file, previewUrl) => {
-                    setSelectedLogo(file);
-                    setLogoPreview(previewUrl);
-                    form.setValue('logo', previewUrl);
-                  }}
-                  onReset={() => {
-                    setSelectedLogo(null);
-                    setLogoPreview(null);
-                    form.setValue('logo', '');
-                  }}
-                />
-              </div>
-
-              <div className="mb-3 mt-6 w-full">
-                <FormLabel>Entity Cover</FormLabel>
-                <FormDescription>
-                  You can upload a cover image for your sponsor profile to
-                  improve the visibility of your profile.
-                </FormDescription>
-                <ImagePicker
-                  variant="banner"
-                  defaultValue={
-                    bannerPreview ? { url: bannerPreview } : undefined
-                  }
-                  onChange={(file, previewUrl) => {
-                    setSelectedBanner(file);
-                    setBannerPreview(previewUrl);
-                    form.setValue('banner', previewUrl);
-                  }}
-                  onReset={() => {
-                    setSelectedBanner(null);
-                    setBannerPreview(null);
-                    form.setValue('banner', '');
-                  }}
-                />
-              </div>
-
-              <div className="mt-6 flex w-full justify-between">
-                <FormField
-                  control={form.control}
-                  name="industry"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel isRequired>Industry</FormLabel>
-                      <FormControl>
-                        <MultiSelect
-                          options={IndustryList.map((elm) => ({
-                            label: elm,
-                            value: elm,
-                          }))}
-                          value={field.value
-                            ?.split(', ')
-                            .map((value) => ({
-                              label: value,
-                              value: value,
-                            }))
-                            .filter(Boolean)}
-                          onChange={(selected: any) => {
-                            const values =
-                              selected?.map((item: any) => item.value) || [];
-                            field.onChange(values.join(', '));
-                          }}
-                          className="mt-2"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div className="my-6">
-                <FormFieldWrapper
-                  control={form.control}
-                  name="bio"
-                  label="Entity Short Bio"
-                  isRequired
-                >
-                  <Input
-                    maxLength={180}
-                    placeholder="What does your Entity do?"
-                  />
-                </FormFieldWrapper>
-                <div className="text-right text-xs text-slate-400">
-                  {180 - (form.watch('bio')?.length || 0)} characters left
-                </div>
-              </div>
-              <div className="mt-8">
-                <Button
-                  className="w-full"
-                  disabled={isSubmitDisabled}
-                  size="lg"
-                  type="submit"
-                  variant="default"
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Updating...
-                    </>
-                  ) : (
-                    'Update Profile'
-                  )}
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </div>
+              Sponsor Information
+            </TabsTrigger>
+            <TabsTrigger
+              value="integrations"
+              className="data-[state=active]:bg-transparent data-[state=active]:text-slate-500 after:data-[state=active]:bg-brand-green-50"
+            >
+              Integrations
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="edit">
+            <EditSponsor />
+          </TabsContent>
+          <TabsContent value="integrations">
+            <Integrations />
+          </TabsContent>
+        </Tabs>
       </div>
     </Default>
   );
