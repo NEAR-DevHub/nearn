@@ -139,7 +139,7 @@ export const PaymentButton = ({
           className="flex h-full w-full items-start justify-start rounded-sm pb-3 pl-2 pr-4 pt-[10px]"
         >
           <Image
-            src="/assets/NEARTreasuryLogoMini.svg"
+            src="/assets/NEARTreasuryLogo.svg"
             alt="Near Treasury Logo"
             width={24}
             height={24}
@@ -404,6 +404,19 @@ export const SubmissionPanel = ({
                   treasury={treasury}
                   submissionId={selectedSubmission?.id ?? ''}
                   submissionIsPaid={selectedSubmission?.isPaid ?? false}
+                  updateSubmission={() => {
+                    setSelectedSubmission((prev) =>
+                      prev && prev.id === selectedSubmission?.id
+                        ? {
+                            ...prev,
+                            isPaid: true,
+                            paymentDetails: {
+                              link: prev.paymentDetails?.link,
+                            },
+                          }
+                        : prev,
+                    );
+                  }}
                 />
               </div>
 

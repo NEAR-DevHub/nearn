@@ -16,12 +16,14 @@ interface TreasuryStatusProps {
     | undefined;
   submissionIsPaid: boolean;
   submissionId: string;
+  updateSubmission: () => void;
 }
 
 export default function TreasuryStatus({
   treasury,
   submissionIsPaid,
   submissionId,
+  updateSubmission,
 }: TreasuryStatusProps) {
   const { data: proposalStatus, isLoading: isLoadingProposalStatus } = useQuery(
     treasuryProposalStatusQuery(treasury?.dao, treasury?.proposalId ?? 0),
@@ -31,6 +33,7 @@ export default function TreasuryStatus({
   useEffect(() => {
     if (proposalStatus === 'Approved' && !submissionIsPaid) {
       syncTreasuryStatus({ id: submissionId });
+      updateSubmission();
     }
   }, [proposalStatus, submissionIsPaid, syncTreasuryStatus]);
 
