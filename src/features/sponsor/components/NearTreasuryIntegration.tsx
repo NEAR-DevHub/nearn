@@ -8,6 +8,14 @@ import { useForm, type UseFormReturn } from 'react-hook-form';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Form } from '@/components/ui/form';
 import { type SponsorType } from '@/interface/sponsor';
 
@@ -108,6 +116,8 @@ export default function NearTreasuryIntegration({
   refetch,
 }: Props) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [disconnectModalOpen, setDisconnectModalOpen] =
+    useState<boolean>(false);
   const form = useForm<NearTreasuryFormValues>({
     resolver: zodResolver(nearTreasuryFormSchema),
     mode: 'onBlur',
@@ -149,49 +159,91 @@ export default function NearTreasuryIntegration({
   return showForm ? (
     <NearTreasuryForm form={form} onSubmit={onSubmit} isLoading={isLoading} />
   ) : (
-    <div className="flex items-center justify-between">
-      <div className="flex items-start gap-3">
-        <Image
-          src="/assets/NEARTreasuryLogo.svg"
-          alt="NEAR Treasury"
-          className="my-auto"
-          width={40}
-          height={40}
-        />
-        <div className="flex flex-col gap-1">
-          <h3 className="text-lg text-gray-700">NEAR Treasury</h3>
-          <p className="text-sm text-gray-600">
-            Connected with{' '}
-            <Link
-              href={`https://${sponsorData.nearTreasury?.frontend}`}
-              className="underline"
-              target="_blank"
-            >
-              {sponsorData.nearTreasury?.dao}
-            </Link>
-            .
-          </p>
+    <>
+      <div className="flex items-center justify-between">
+        <div className="flex items-start gap-3">
+          <Image
+            src="/assets/NEARTreasuryLogo.svg"
+            alt="NEAR Treasury"
+            className="my-auto"
+            width={40}
+            height={40}
+          />
+          <div className="flex flex-col gap-1">
+            <h3 className="text-lg text-gray-700">NEAR Treasury</h3>
+            <p className="text-sm text-gray-600">
+              Connected with{' '}
+              <Link
+                href={`https://${sponsorData.nearTreasury?.frontend}`}
+                className="underline"
+                target="_blank"
+              >
+                {sponsorData.nearTreasury?.dao}
+              </Link>
+              .
+            </p>
+          </div>
         </div>
+        <Button
+          variant="outline"
+          className="text-gray-600"
+          onClick={() => {
+            setDisconnectModalOpen(true);
+          }}
+        >
+          Disconnect
+        </Button>
       </div>
-      <Button
-        variant="outline"
-        className="text-gray-600"
-        onClick={() => {
-          onSubmit({
-            nearTreasuryFrontend: '',
-            nearTreasuryDao: null,
-          });
+      <Dialog
+        open={disconnectModalOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDisconnectModalOpen(false);
+          }
         }}
       >
-        {isLoading ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Disconnecting...
-          </>
-        ) : (
-          'Disconnect'
-        )}
-      </Button>
-    </div>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Disconnect NEAR Treasury</DialogTitle>
+            <DialogDescription>
+              After disconnecting, you won’t be able to quickly create payment
+              requests without taking additional steps.
+              <br />
+              However, you can reconnect NEAR Treasury at any time.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex w-full justify-between">
+            <Button
+              variant="ghost"
+              className="w-full text-muted-foreground"
+              onClick={() => {
+                setDisconnectModalOpen(false);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="w-full"
+              onClick={() => {
+                onSubmit({
+                  nearTreasuryFrontend: '',
+                  nearTreasuryDao: null,
+                });
+                setDisconnectModalOpen(false);
+              }}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Disconnecting...
+                </>
+              ) : (
+                'Disconnect'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
