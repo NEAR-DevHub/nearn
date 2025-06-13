@@ -6,8 +6,10 @@ import {
   Copy,
   DollarSign,
   ExternalLink,
+  Link2,
   Pencil,
 } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import React, { type Dispatch, type SetStateAction, useState } from 'react';
 import { MdOutlineAccountBalanceWallet, MdOutlineMail } from 'react-icons/md';
@@ -15,6 +17,11 @@ import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { KycComponent } from '@/components/ui/KycComponent';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { Tooltip } from '@/components/ui/tooltip';
 import { useClipboard } from '@/hooks/use-clipboard';
 import type { SubmissionWithUser } from '@/interface/submission';
@@ -113,6 +120,10 @@ export const SubmissionPanel = ({
     }
   };
 
+  const onTreasuryPayment = () => {
+    console.log('onTreasuryPayment');
+  };
+
   const [isUpdatePaymentDateModalOpen, setIsUpdatePaymentDateModalOpen] =
     useState(false);
 
@@ -165,13 +176,54 @@ export const SubmissionPanel = ({
                     selectedSubmission?.winnerPosition &&
                     !selectedSubmission?.isPaid &&
                     (bounty?.isWinnersAnnounced || isSponsorship) && (
-                      <Button
-                        className="ph-no-capture min-w-[120px] disabled:cursor-not-allowed"
-                        onClick={() => onVerifyPayment()}
-                      >
-                        <DollarSign className="mr-2 h-4 w-4" />
-                        Verify Transaction
-                      </Button>
+                      <Popover>
+                        <PopoverTrigger>
+                          <Button className="ph-no-capture min-w-[120px] disabled:cursor-not-allowed">
+                            <DollarSign className="mr-2 h-4 w-4" />
+                            Complete Reward Payment
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent
+                          side="bottom"
+                          align="end"
+                          className="flex w-full max-w-md flex-col gap-2 p-2"
+                        >
+                          <Button
+                            onClick={() => onVerifyPayment()}
+                            variant="ghost"
+                            className="flex h-full w-full items-start rounded-sm px-4 py-3"
+                          >
+                            <Link2 className="mr-3 h-4 w-4" />
+                            <div className="flex flex-col text-left">
+                              <p>Add Payment Link</p>
+                              <p className="text-wrap text-xs text-muted-foreground">
+                                Pay the contributor using your preferred method,
+                                then paste the transaction link here.
+                              </p>
+                            </div>
+                          </Button>
+                          <Button
+                            onClick={() => onTreasuryPayment()}
+                            variant="ghost"
+                            className="flex h-full w-full items-start justify-start rounded-sm pb-3 pl-2 pr-4 pt-[10px]"
+                          >
+                            <Image
+                              src="/assets/NEARTreasuryLogoMini.svg"
+                              alt="Near Treasury Logo"
+                              width={24}
+                              height={24}
+                              className="mr-3"
+                            />
+                            <div className="flex flex-col text-left">
+                              <p>Pay with NEAR Treasury</p>
+                              <p className="text-wrap text-xs text-muted-foreground">
+                                Create a payment request through NEAR Treasury
+                                and approve it on-chain.
+                              </p>
+                            </div>
+                          </Button>
+                        </PopoverContent>
+                      </Popover>
                     )}
                   {selectedSubmission?.status === 'Pending' &&
                     !selectedSubmission?.isPaid && (
