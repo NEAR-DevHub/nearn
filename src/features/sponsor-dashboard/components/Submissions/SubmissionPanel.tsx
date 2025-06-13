@@ -42,6 +42,7 @@ import { EarnAvatar } from '@/features/talent/components/EarnAvatar';
 
 import { selectedSubmissionAtom } from '../../atoms';
 import { Details } from './Details';
+import NearTreasuryPaymentModal from './Modals/NearTreasuryPaymentModal';
 import { UpdatePaymentDateModal } from './Modals/UpdatePaymentDateModal';
 import { SelectLabel } from './SelectLabel';
 import { SelectWinner } from './SelectWinner';
@@ -94,6 +95,9 @@ export const SubmissionPanel = ({
     getSubmissionUrl(selectedSubmission, bounty),
   );
 
+  const [isNearTreasuryPaymentModalOpen, setIsNearTreasuryPaymentModalOpen] =
+    useState(false);
+
   const handleCopySubmissionLink = () => {
     if (selectedSubmission?.id) {
       onCopySubmissionLink();
@@ -119,11 +123,6 @@ export const SubmissionPanel = ({
       });
     }
   };
-
-  const onTreasuryPayment = () => {
-    console.log('onTreasuryPayment');
-  };
-
   const [isUpdatePaymentDateModalOpen, setIsUpdatePaymentDateModalOpen] =
     useState(false);
 
@@ -203,7 +202,9 @@ export const SubmissionPanel = ({
                             </div>
                           </Button>
                           <Button
-                            onClick={() => onTreasuryPayment()}
+                            onClick={() =>
+                              setIsNearTreasuryPaymentModalOpen(true)
+                            }
                             variant="ghost"
                             className="flex h-full w-full items-start justify-start rounded-sm pb-3 pl-2 pr-4 pt-[10px]"
                           >
@@ -456,6 +457,20 @@ export const SubmissionPanel = ({
           );
         }}
       />
+      {selectedSubmission && (
+        <NearTreasuryPaymentModal
+          isOpen={isNearTreasuryPaymentModalOpen}
+          onClose={() => setIsNearTreasuryPaymentModalOpen(false)}
+          submission={selectedSubmission}
+          onSuccess={(treasuryLink: string) => {
+            setSelectedSubmission((prev) =>
+              prev && prev.id === selectedSubmission?.id
+                ? { ...prev, paymentDetails: { link: treasuryLink } }
+                : prev,
+            );
+          }}
+        />
+      )}
     </>
   );
 };
