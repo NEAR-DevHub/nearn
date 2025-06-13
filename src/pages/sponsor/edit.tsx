@@ -2,7 +2,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { Info, Loader2 } from 'lucide-react';
-import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 import { useEffect, useMemo, useState } from 'react';
@@ -34,12 +33,9 @@ import { uploadAndReplaceImage } from '@/utils/image';
 
 import { SocialInputAll } from '@/features/social/components/SocialInput';
 import { extractSocialUsername } from '@/features/social/utils/extractUsername';
+import NearTreasuryIntegration from '@/features/sponsor/components/NearTreasuryIntegration';
 import { useSlugValidation } from '@/features/sponsor/hooks/useSlugValidation';
 import { useSponsorNameValidation } from '@/features/sponsor/hooks/useSponsorNameValidation';
-import {
-  integrationsFormSchema,
-  type IntegrationsFormValues,
-} from '@/features/sponsor/utils/integrationsFormSchema';
 import {
   type SponsorBase,
   sponsorBaseSchema,
@@ -419,120 +415,21 @@ function Integrations() {
   const { data: session, status } = useSession();
   const { user, refetchUser } = useUser();
 
-  const form = useForm<IntegrationsFormValues>({
-    resolver: zodResolver(integrationsFormSchema),
-    mode: 'onBlur',
-    defaultValues: {
-      nearTreasuryFrontend: '',
-    },
-  });
-
   const { data: sponsorData, refetch } = useQuery(
     sponsorQuery(user?.currentSponsorId),
   );
-  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  useEffect(() => {
-    if (sponsorData) {
-      form.reset({
-        nearTreasuryFrontend: sponsorData.nearTreasury?.frontend || null,
-      });
-    }
-  }, [sponsorData, form.reset]);
-
-  const onSubmit = async (data: IntegrationsFormValues) => {
-    try {
-      setIsLoading(true);
-      await axios.post('/api/sponsors/editIntegration', {
-        nearTreasuryFrontend:
-          data.nearTreasuryFrontend === '' ? null : data.nearTreasuryFrontend,
-      });
-      await refetchUser();
-      await refetch();
-      toast.success('Integrations updated successfully!');
-    } catch (error) {
-      console.error('Error updating integrations:', error);
-      toast.error('Failed to update integrations. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  if (!session && status === 'loading') {
+  if ((!session && status === 'loading') || !sponsorData) {
     return <></>;
   }
 
   return (
     <div className="flex w-full flex-col">
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} style={{ width: '100%' }}>
-          <div className="space-y-5">
-            <div className="flex items-start gap-2">
-              <Image
-                src="/assets/NEARTreasuryLogo.svg"
-                alt="NEAR Treasury"
-                width={40}
-                height={40}
-              />
-              <div className="flex flex-col">
-                <h3 className="text-lg text-gray-700">NEAR Treasury</h3>
-                <p className="text-sm text-gray-600">
-                  Connect your NEAR Treasury account to enable automatic request
-                  creation from proposals.
-                  <span className="mt-1 block">
-                    You need to have a member added in NEAR Treasury
-                    (near-io.nearn) with permission to create requests. Once
-                    that’s set up, you can add your Sputnik DAO wallet below to
-                    connect.{' '}
-                    <a
-                      href="https://docs.near.org/docs/treasury/overview"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="underline"
-                    >
-                      Learn more
-                    </a>
-                  </span>
-                </p>
-              </div>
-            </div>
-
-            <FormFieldWrapper
-              control={form.control}
-              name="nearTreasuryFrontend"
-              isRequired
-              label="NEAR Treasury URL"
-            >
-              <Input
-                placeholder="your-treasury.near.page"
-                onChange={(e) => {
-                  const value = e.target.value || null;
-                  form.setValue('nearTreasuryFrontend', value);
-                }}
-              />
-            </FormFieldWrapper>
-          </div>
-
-          <div className="mt-8">
-            <Button
-              className="w-full"
-              disabled={isLoading}
-              size="lg"
-              type="submit"
-              variant="default"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Connecting...
-                </>
-              ) : (
-                'Connect'
-              )}
-            </Button>
-          </div>
-        </form>
-      </Form>
+      <NearTreasuryIntegration
+        sponsorData={sponsorData}
+        refetchUser={refetchUser}
+        refetch={refetch}
+      />
     </div>
   );
 }

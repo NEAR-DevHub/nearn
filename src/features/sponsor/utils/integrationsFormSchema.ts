@@ -6,7 +6,7 @@ import {
   NEAR_ACCOUNT,
 } from '@/utils/near';
 
-export const integrationsFormSchema = z
+export const nearTreasuryFormSchema = z
   .object({
     nearTreasuryFrontend: z
       .string()
@@ -43,4 +43,4 @@ export const integrationsFormSchema = z
     }
   });
 
-export type IntegrationsFormValues = z.infer<typeof integrationsFormSchema>;
+export type NearTreasuryFormValues = z.infer<typeof nearTreasuryFormSchema>;

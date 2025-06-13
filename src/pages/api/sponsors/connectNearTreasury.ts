@@ -6,7 +6,7 @@ import { safeStringify } from '@/utils/safeStringify';
 
 import { type NextApiRequestWithSponsor } from '@/features/auth/types';
 import { withSponsorAuth } from '@/features/auth/utils/withSponsorAuth';
-import { integrationsFormSchema } from '@/features/sponsor/utils/integrationsFormSchema';
+import { nearTreasuryFormSchema } from '@/features/sponsor/utils/integrationsFormSchema';
 
 async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
   const userId = req.userId;
@@ -23,7 +23,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
 
     logger.debug(`Request body: ${safeStringify(req.body)}`);
 
-    const validationResult = await integrationsFormSchema.safeParseAsync(
+    const validationResult = await nearTreasuryFormSchema.safeParseAsync(
       req.body,
     );
 
