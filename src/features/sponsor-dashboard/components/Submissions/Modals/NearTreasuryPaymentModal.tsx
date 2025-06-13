@@ -22,17 +22,18 @@ import {
 import { Input } from '@/components/ui/input';
 import { HELP_URL } from '@/constants/project';
 import { useClipboard } from '@/hooks/use-clipboard';
-import { type SubmissionWithUser } from '@/interface/submission';
 import { useUser } from '@/store/user';
+import { getURLSanitized } from '@/utils/getURLSanitized';
 
+import { useCreateTreasuryProposal } from '@/features/sponsor-dashboard/mutations/useCreateTreasuryProposal';
 import { isNearnIoRequestorQuery } from '@/features/sponsor-dashboard/queries/isNearnIoRequestor';
 import { sponsorQuery } from '@/features/sponsor-dashboard/queries/sponsor';
 
 interface NearTreasuryPaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  submission: SubmissionWithUser;
-  onSuccess: (treasuryLink: string) => void;
+  submissionId: string;
+  onSuccess: (treasuryLink: string, proposalId: number, dao: string) => void;
 }
 
 type ModalState = 'not_requestor' | 'loading' | 'success' | 'error';
@@ -40,6 +41,7 @@ type ModalState = 'not_requestor' | 'loading' | 'success' | 'error';
 export default function NearTreasuryPaymentModal({
   isOpen,
   onClose,
+  submissionId,
   onSuccess,
 }: NearTreasuryPaymentModalProps) {
   const { user } = useUser();
@@ -51,16 +53,24 @@ export default function NearTreasuryPaymentModal({
   const [treasuryLink, setTreasuryLink] = useState<string>('');
 
   const { onCopy: onCopyTreasuryLink, hasCopied: hasCopiedTreasuryLink } =
-    useClipboard(treasuryLink);
+    useClipboard(getURLSanitized(treasuryLink));
 
-  const createProposal = async () => {
+  const createTreasuryProposal = useCreateTreasuryProposal();
+
+  const handleCreateProposal = async () => {
     try {
       setModalState('loading');
+      const response = await createTreasuryProposal.mutateAsync({
+        id: submissionId,
+      });
 
-      const mockTreasuryLink =
-        'https://near.social/treasury-testing.near/widget/app?page=payments&id=261';
-      setTreasuryLink(mockTreasuryLink);
-      onSuccess(mockTreasuryLink);
+      setTreasuryLink(response.url);
+      onSuccess(
+        response.url,
+        response.proposalId,
+        sponsorData?.nearTreasury?.dao || '',
+      );
+      setModalState('success');
     } catch (error) {
       setModalState('error');
     }
@@ -71,7 +81,7 @@ export default function NearTreasuryPaymentModal({
     if (!isRequestor) {
       setModalState('not_requestor');
     } else {
-      createProposal();
+      handleCreateProposal();
     }
   }, [sponsorData, isRequestor, isOpen]);
 
@@ -142,7 +152,7 @@ export default function NearTreasuryPaymentModal({
                   <Input
                     className="w-full overflow-hidden text-ellipsis whitespace-nowrap border-slate-100 pr-10 text-slate-500 focus-visible:ring-[#CFD2D7] focus-visible:ring-offset-0"
                     readOnly
-                    value={`${treasuryLink}`}
+                    value={getURLSanitized(treasuryLink)}
                   />
 
                   <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -157,7 +167,7 @@ export default function NearTreasuryPaymentModal({
                   </div>
                 </div>
                 <Link
-                  href={treasuryLink}
+                  href={getURLSanitized(treasuryLink)}
                   target="_blank"
                   className="w-full"
                   rel="noopener noreferrer"
@@ -198,7 +208,7 @@ export default function NearTreasuryPaymentModal({
               </p>
             </div>
             <div className="mx-auto mt-8 flex flex-col items-center gap-6">
-              <Button onClick={() => createProposal()}>
+              <Button onClick={() => handleCreateProposal()}>
                 <RefreshCcw className="mr-1 h-4 w-4" /> Try Again
               </Button>
               <Link href={HELP_URL} target="_blank" rel="noopener noreferrer">

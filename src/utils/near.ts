@@ -96,8 +96,9 @@ export async function createSputnikProposal(
   description: string,
   token: Token,
   receiver: string,
-  amount: string,
+  amount: number,
 ) {
+  const amountFormatted = formatTokenAmount(amount.toString(), token.decimals);
   const args = {
     proposal: {
       description,
@@ -105,7 +106,7 @@ export async function createSputnikProposal(
         Transfer: {
           token_id: token.tokenSymbol === 'NEAR' ? '' : token.mintAddress,
           receiver_id: receiver,
-          amount: amount,
+          amount: amountFormatted,
         },
       },
     },
@@ -129,7 +130,10 @@ export async function createSputnikProposal(
     },
   ];
 
-  if (!(await getStorageBalance(token.mintAddress, receiver))) {
+  if (
+    token.tokenSymbol !== 'NEAR' &&
+    !(await getStorageBalance(token.mintAddress, receiver))
+  ) {
     const depositInYocto = BigInt(125) * BigInt(10) ** BigInt(21);
 
     calls.push({
@@ -215,4 +219,16 @@ export async function extractDaoFromTreasury(treasury: string) {
   }
 
   return extractDaoIDSafely(config);
+}
+
+export async function getProposalStatus(dao: string, proposalId: number) {
+  const account = await near.account(NEAR_ACCOUNT);
+
+  const proposal = await account.viewFunction({
+    contractId: dao,
+    methodName: 'get_proposal',
+    args: { id: Number(proposalId) },
+  });
+
+  return proposal.status;
 }

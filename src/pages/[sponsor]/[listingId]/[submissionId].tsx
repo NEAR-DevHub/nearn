@@ -26,6 +26,7 @@ import { authOptions } from '@/pages/api/auth/[...nextauth]';
 import { getBountyUrl, getSubmissionUrl } from '@/utils/bounty-urls';
 import { cn } from '@/utils/cn';
 import { formatNumberWithSuffix } from '@/utils/formatNumberWithSuffix';
+import { getURLSanitized } from '@/utils/getURLSanitized';
 import { truncatePublicKey } from '@/utils/truncatePublicKey';
 import { truncateString } from '@/utils/truncateString';
 import { getURL } from '@/utils/validUrl';
@@ -221,7 +222,9 @@ function Content({
                         className="text-slate-600"
                         onClick={() => {
                           window.open(
-                            submission?.paymentDetails?.link,
+                            getURLSanitized(
+                              submission?.paymentDetails?.link ?? '',
+                            ),
                             '_blank',
                           );
                         }}
