@@ -13,17 +13,31 @@ export const nearTreasuryFormSchema = z
     nearTreasuryFrontend: z
       .string()
       .nullable()
-      .refine((value) => !value || value.endsWith('near.page'), {
-        message: 'NEAR Treasury Frontend must end with "near.page"',
-      })
+      .refine(
+        (value) =>
+          !value ||
+          value.endsWith('.near.page') ||
+          value.startsWith('https://near.social/') ||
+          value.startsWith('near.social/'),
+        {
+          message:
+            'NEAR Treasury Frontend must end with "near.page" or start with "https://near.social/"',
+        },
+      )
       .transform((value) => value?.replace('https://', '') ?? null),
   })
-  .transform(async (data) => ({
-    nearTreasuryFrontend: data.nearTreasuryFrontend,
-    nearTreasuryDao: data.nearTreasuryFrontend
-      ? await extractDaoFromTreasury(data.nearTreasuryFrontend.slice(0, -5))
-      : null,
-  }))
+  .transform(async (data) => {
+    const isNearSocial = data.nearTreasuryFrontend?.startsWith('near.social/');
+    const accountId = isNearSocial
+      ? data.nearTreasuryFrontend?.slice(12).split('/')[0]
+      : data.nearTreasuryFrontend?.split('.near.page')[0];
+    return {
+      nearTreasuryFrontend: data.nearTreasuryFrontend,
+      nearTreasuryDao: data.nearTreasuryFrontend
+        ? await extractDaoFromTreasury(accountId!)
+        : null,
+    };
+  })
   .superRefine(async (data, ctx) => {
     if (!!data.nearTreasuryFrontend && !data.nearTreasuryDao) {
       ctx.addIssue({
