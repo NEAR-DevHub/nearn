@@ -137,7 +137,7 @@ export default function NearTreasuryIntegration({
   const onSubmit = async (data: NearTreasuryFormValues) => {
     try {
       setIsLoading(true);
-      await axios.post('/api/sponsors/connectNearTreasury', {
+      await axios.post('/api/sponsors/connect-near-treasury', {
         nearTreasuryFrontend:
           data.nearTreasuryFrontend === '' ? null : data.nearTreasuryFrontend,
       });

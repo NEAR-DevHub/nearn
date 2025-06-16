@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { z } from 'zod';
 
 import {
@@ -5,6 +6,7 @@ import {
   isNearnIoRequestor,
   NEAR_ACCOUNT,
 } from '@/utils/near';
+import { getURL } from '@/utils/validUrl';
 
 export const nearTreasuryFormSchema = z
   .object({
@@ -29,6 +31,21 @@ export const nearTreasuryFormSchema = z
         message: `Could not extract DAO from Near Treasury. Did you provide the correct URL?`,
         path: ['nearTreasuryFrontend'],
       });
+    }
+
+    if (!!data.nearTreasuryFrontend && data.nearTreasuryDao) {
+      const {
+        data: { available },
+      } = await axios.get<{ available: boolean }>(
+        `${getURL()}/api/sponsors/check-near-treasury?dao=${data.nearTreasuryDao}`,
+      );
+      if (!available) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Sputnik DAO is already connected to another sponsor and not available`,
+          path: ['nearTreasuryFrontend'],
+        });
+      }
     }
 
     if (!!data.nearTreasuryFrontend && data.nearTreasuryDao) {
