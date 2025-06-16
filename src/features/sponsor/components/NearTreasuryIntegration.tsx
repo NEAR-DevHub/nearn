@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Trash } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -20,6 +21,7 @@ import { Form } from '@/components/ui/form';
 import { type SponsorType } from '@/interface/sponsor';
 
 import { SocialInput } from '@/features/social/components/SocialInput';
+import { isNearnIoRequestorQuery } from '@/features/sponsor-dashboard/queries/isNearnIoRequestor';
 
 import {
   nearTreasuryFormSchema,
@@ -126,6 +128,10 @@ export default function NearTreasuryIntegration({
     },
   });
 
+  const { data: isRequestor, isLoading: isRequestorLoading } = useQuery(
+    isNearnIoRequestorQuery(sponsorData?.nearTreasury?.dao),
+  );
+
   useEffect(() => {
     if (sponsorData) {
       form.reset({
@@ -180,7 +186,6 @@ export default function NearTreasuryIntegration({
               >
                 {sponsorData.nearTreasury?.dao}
               </Link>
-              .
             </p>
           </div>
         </div>
@@ -191,9 +196,16 @@ export default function NearTreasuryIntegration({
             setDisconnectModalOpen(true);
           }}
         >
-          Disconnect
+          <Trash className="mr-1 h-4 w-4" />
+          Remove Connection
         </Button>
       </div>
+      {!isRequestor && !isRequestorLoading && (
+        <p className="ml-[52px] mt-1 max-w-[60%] text-sm text-red-500">
+          The member nearn-io.near has been removed from the DAO, and access to
+          treasury actions is no longer available
+        </p>
+      )}
       <Dialog
         open={disconnectModalOpen}
         onOpenChange={(open) => {
