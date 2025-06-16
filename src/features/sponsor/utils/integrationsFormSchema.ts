@@ -18,19 +18,25 @@ export const nearTreasuryFormSchema = z
           !value ||
           value.endsWith('.near.page') ||
           value.startsWith('https://near.social/') ||
-          value.startsWith('near.social/'),
+          value.startsWith('near.social/') ||
+          value.startsWith('https://dev.near.org/') ||
+          value.startsWith('dev.near.org/'),
         {
           message:
-            'NEAR Treasury Frontend must end with "near.page" or start with "https://near.social/"',
+            'Please provide a valid NEAR Treasury Link. (near.page, near.social, dev.near.org)',
         },
       )
       .transform((value) => value?.replace('https://', '') ?? null),
   })
   .transform(async (data) => {
-    const isNearSocial = data.nearTreasuryFrontend?.startsWith('near.social/');
-    const accountId = isNearSocial
-      ? data.nearTreasuryFrontend?.slice(12).split('/')[0]
-      : data.nearTreasuryFrontend?.split('.near.page')[0];
+    let accountId;
+    if (data.nearTreasuryFrontend?.startsWith('near.social/')) {
+      accountId = data.nearTreasuryFrontend?.slice(12).split('/')[0];
+    } else if (data.nearTreasuryFrontend?.startsWith('dev.near.org/')) {
+      accountId = data.nearTreasuryFrontend?.slice(13).split('/')[0];
+    } else {
+      accountId = data.nearTreasuryFrontend?.split('.page')[0];
+    }
     return {
       nearTreasuryFrontend: data.nearTreasuryFrontend,
       nearTreasuryDao: data.nearTreasuryFrontend
