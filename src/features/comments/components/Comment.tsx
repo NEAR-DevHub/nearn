@@ -95,10 +95,8 @@ export const Comment = ({
   const [showOptions, setShowOptions] = useState(false);
   const cancelRef = useRef<HTMLButtonElement>(null);
 
-  const [isLiked, setIsLiked] = useState<boolean>(
-    !!comment.like?.find((e: { id: string }) => e.id === user?.id),
-  );
   const [totalLikes, setTotalLikes] = useState<number>(comment.likeCount || 0);
+  const isLiked = comment.like?.some((like) => like.id === user?.id);
 
   useEffect(() => {
     const reply = localStorage.getItem(`comment-${refId}-${comment.id}`);
@@ -159,24 +157,20 @@ export const Comment = ({
   const handleLike = async () => {
     if (!user || commentLikeMutation.isPending) return;
 
-    const prevIsLiked = isLiked;
     const prevTotalLikes = totalLikes;
     const newIsLiked = !isLiked;
     const newTotalLikes = newIsLiked
       ? totalLikes + 1
       : Math.max(totalLikes - 1, 0);
 
-    setIsLiked(newIsLiked);
     setTotalLikes(newTotalLikes);
 
     try {
       const result = await commentLikeMutation.mutateAsync({
         commentId: comment.id,
       });
-      setIsLiked(!!result.like?.find((e: { id: string }) => e.id === user?.id));
       setTotalLikes(result.likeCount);
     } catch (error) {
-      setIsLiked(prevIsLiked);
       setTotalLikes(prevTotalLikes);
     }
   };

@@ -1,3 +1,5 @@
+import { type InputJsonValue } from '@prisma/client/runtime/library';
+
 import { prisma } from '@/prisma';
 
 interface LikeEntry {
@@ -105,7 +107,7 @@ export async function updateLike(
         id: itemId,
       },
       data: {
-        like: newLikes,
+        like: newLikes as unknown as InputJsonValue,
         likeCount,
       },
     });
@@ -115,7 +117,7 @@ export async function updateLike(
         id: itemId,
       },
       data: {
-        like: newLikes,
+        like: newLikes as unknown as InputJsonValue,
         likeCount,
       },
     });
@@ -125,7 +127,7 @@ export async function updateLike(
         id: itemId,
       },
       data: {
-        like: newLikes,
+        like: newLikes as unknown as InputJsonValue,
         likeCount,
       },
     });
@@ -135,7 +137,7 @@ export async function updateLike(
         id: itemId,
       },
       data: {
-        like: newLikes,
+        like: newLikes as unknown as InputJsonValue,
         likeCount,
       },
     });
