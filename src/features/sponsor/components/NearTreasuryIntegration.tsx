@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { Loader2, TriangleAlert } from 'lucide-react';
+import { Copy, Loader2, TriangleAlert } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -17,7 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Form } from '@/components/ui/form';
+import { Form, FormDescription, FormLabel } from '@/components/ui/form';
 import { type SponsorType } from '@/interface/sponsor';
 import { getURLSanitized } from '@/utils/getURLSanitized';
 
@@ -77,19 +77,33 @@ function NearTreasuryForm({
             </div>
           </div>
 
-          <SocialInput
-            required
-            name="nearTreasuryFrontend"
-            formDescription="Before proceeding, please ensure you've
-              added nearn-io.near to your member list on NEAR Treasury with
-              Create Proposal permission only. This must be approved before you
-              can link it here."
-            socialName="website"
-            placeholder="your-treasury.near.page"
-            formLabel="NEAR Treasury URL"
-            control={form.control}
-            withIcon={false}
-          />
+          <div className="flex flex-col gap-2">
+            <div>
+              <FormLabel>NEAR Treasury URL</FormLabel>
+              <FormDescription>
+                Please ensure you&apos;ve added{' '}
+                <span
+                  className="inline-flex cursor-pointer items-center gap-1 rounded py-0.5 font-bold hover:bg-gray-100"
+                  onClick={() => {
+                    navigator.clipboard.writeText('nearn-io.near');
+                    toast.success('Copied to clipboard!');
+                  }}
+                >
+                  nearn-io.near <Copy className="h-4 w-4" />
+                </span>{' '}
+                to your member list on NEAR Treasury with Requestor role to your
+                DAO. This must be approved before you can link it here.
+              </FormDescription>
+            </div>
+            <SocialInput
+              required
+              name="nearTreasuryFrontend"
+              socialName="website"
+              placeholder="your-treasury.near.page"
+              control={form.control}
+              withIcon={false}
+            />
+          </div>
         </div>
 
         <div className="mt-8">
@@ -212,8 +226,8 @@ export default function NearTreasuryIntegration({
         <div className="mt-4 flex items-center gap-3 bg-red-50 p-3 text-red-500">
           <TriangleAlert className="h-full w-5" />
           <p className="h-full w-full text-sm">
-            The member nearn-io.near was removed from your Treasury, so NEARN
-            can no longer submit payment proposals. To fix this, go to{' '}
+            NEARN no longer has permission to submit proposals to your DAO
+            Treasury. To fix this, go to your{' '}
             <Link
               href={`${getURLSanitized(sponsorData.nearTreasury?.frontend + '/?page=settings&tab=members') ?? 'https://neartreasury.com'}`}
               className="underline underline-offset-[3px]"
@@ -221,8 +235,17 @@ export default function NearTreasuryIntegration({
             >
               NEAR Treasury
             </Link>{' '}
-            and add nearn-io.near back as a member with the
-            &quot;Requestor&quot; permission.
+            members settings and ensure{' '}
+            <span
+              className="inline-flex cursor-pointer items-center gap-1 rounded py-0.5 font-bold hover:bg-red-100"
+              onClick={() => {
+                navigator.clipboard.writeText('nearn-io.near');
+                toast.success('Copied to clipboard!');
+              }}
+            >
+              nearn-io.near <Copy className="h-4 w-4" />
+            </span>{' '}
+            has the &quot;Requester&quot; role.
           </p>
         </div>
       )}
@@ -230,9 +253,9 @@ export default function NearTreasuryIntegration({
         <div className="mt-4 flex items-center gap-3 bg-red-50 p-3 text-red-500">
           <TriangleAlert className="h-full w-5" />
           <p className="h-full w-full text-sm">
-            The configured DAO policy is not compatible with NEARN. The proposal
-            bond is larger than 1 NEAR and cannot be used. Please update the DAO
-            policy to a lower value to keep using NEAR Treasury integration.
+            The DAO policy is not compatible with NEARN: the proposal deposit
+            exceeds 1 NEAR. To continue using NEARN Treasury integration, lower
+            the required deposit in your DAO policy settings.
           </p>
         </div>
       )}
