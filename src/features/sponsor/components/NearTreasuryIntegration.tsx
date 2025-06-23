@@ -51,7 +51,7 @@ function NearTreasuryForm({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <div className="space-y-5">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
             <Image
               src="/assets/NEARTreasuryLogo.svg"
               alt="NEAR Treasury"
@@ -59,7 +59,7 @@ function NearTreasuryForm({
               height={40}
             />
             <div className="flex flex-col">
-              <h3 className="text-lg text-gray-700">
+              <h3 className="text-lg font-semibold text-gray-700">
                 Connect to NEAR Treasury
               </h3>
               <p className="font-sans text-sm text-gray-600">
@@ -190,7 +190,7 @@ export default function NearTreasuryIntegration({
   ) : (
     <>
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           <Image
             src="/assets/NEARTreasuryLogo.svg"
             alt="NEAR Treasury"
@@ -199,7 +199,9 @@ export default function NearTreasuryIntegration({
             height={40}
           />
           <div className="flex flex-col gap-1">
-            <h3 className="text-lg text-gray-700">NEAR Treasury</h3>
+            <h3 className="text-lg font-semibold text-gray-700">
+              NEAR Treasury
+            </h3>
             <p className="text-sm text-gray-600">
               Connected with{' '}
               <Link
