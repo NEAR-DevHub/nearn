@@ -228,16 +228,7 @@ export default function NearTreasuryIntegration({
         <div className="mt-4 flex items-center gap-3 bg-red-50 p-3 text-red-500">
           <TriangleAlert className="h-full w-5" />
           <p className="h-full w-full text-sm">
-            NEARN no longer has permission to submit proposals to your DAO
-            Treasury. To fix this, go to your{' '}
-            <Link
-              href={`${getURLSanitized(sponsorData.nearTreasury?.frontend + '/?page=settings&tab=members') ?? 'https://neartreasury.com'}`}
-              className="underline underline-offset-[3px]"
-              target="_blank"
-            >
-              NEAR Treasury
-            </Link>{' '}
-            members settings and ensure{' '}
+            The member{' '}
             <span
               className="inline-flex cursor-pointer items-center gap-1 rounded py-0.5 font-bold hover:bg-red-100"
               onClick={() => {
@@ -247,7 +238,16 @@ export default function NearTreasuryIntegration({
             >
               nearn-io.near <Copy className="h-4 w-4" />
             </span>{' '}
-            has the &quot;Requester&quot; role.
+            was removed from your Treasury, so NEARN can no longer submit
+            payment proposals. To fix this, go to{' '}
+            <Link
+              href={`${getURLSanitized(sponsorData.nearTreasury?.frontend + '/?page=settings&tab=members') ?? 'https://neartreasury.com'}`}
+              className="underline underline-offset-[3px]"
+              target="_blank"
+            >
+              NEAR Treasury
+            </Link>{' '}
+            and add the member back with the &quot;Requestor&quot; permission.
           </p>
         </div>
       )}
