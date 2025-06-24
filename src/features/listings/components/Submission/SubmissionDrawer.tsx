@@ -53,6 +53,7 @@ import { api } from '@/lib/api';
 import { useUser } from '@/store/user';
 import { cn } from '@/utils/cn';
 
+import { AuthWrapper } from '@/features/auth/components/AuthWrapper';
 import { InfoBox } from '@/features/sponsor-dashboard/components/InfoBox';
 
 import { walletFieldListings } from '../../constants';
@@ -123,6 +124,10 @@ export const SubmissionDrawer = ({
       token: token === 'Any' ? tokenList[0]?.tokenSymbol : undefined,
     },
   });
+  const formPublicKey = useWatch({
+    control: form.control,
+    name: 'publicKey',
+  });
 
   const tokenSelected = useWatch({
     control: form.control,
@@ -174,7 +179,7 @@ export const SubmissionDrawer = ({
             link,
             tweet,
             otherInfo,
-            ask,
+            ask: ask || null,
             otherTokenDetails:
               otherTokenDetails && token === 'Other'
                 ? otherTokenDetails
@@ -623,17 +628,17 @@ export const SubmissionDrawer = ({
                                   {...(!!user?.publicKey ? {} : field)}
                                   value={user?.publicKey || field.value}
                                 />
-                                <KycComponent
-                                  address={user?.publicKey || field.value}
-                                  listingSponsorId={listing.sponsorId}
-                                />
                               </div>
                             </FormControl>
-                            <FormMessage />
                           </FormItem>
                         )}
                       />
                     )}
+                    <KycComponent
+                      address={formPublicKey ?? user?.publicKey ?? ''}
+                      listingSponsorId={listing.sponsorId}
+                      variant="extended"
+                    />
                   </div>
                 </div>
               </div>
@@ -674,26 +679,33 @@ export const SubmissionDrawer = ({
                   </div>
                 )}
 
-                <Button
-                  className="ph-no-capture h-12 w-full"
-                  disabled={
-                    isTemplate ||
-                    (!listing.isPublished && !!query['preview']) ||
-                    (isHackathon && !editMode && !termsAccepted)
+                <AuthWrapper
+                  showCompleteProfileModal
+                  completeProfileModalBodyText={
+                    'Please complete your profile before submitting to a listing.'
                   }
-                  type="submit"
                 >
-                  {isLoading ? (
-                    <>
-                      <span className="loading loading-spinner"></span>
-                      Submitting...
-                    </>
-                  ) : isProject ? (
-                    'Apply'
-                  ) : (
-                    'Submit'
-                  )}
-                </Button>
+                  <Button
+                    className="ph-no-capture h-12 w-full"
+                    disabled={
+                      isTemplate ||
+                      (!listing.isPublished && !!query['preview']) ||
+                      (isHackathon && !editMode && !termsAccepted)
+                    }
+                    type="submit"
+                  >
+                    {isLoading ? (
+                      <>
+                        <span className="loading loading-spinner"></span>
+                        Submitting...
+                      </>
+                    ) : isProject ? (
+                      'Apply'
+                    ) : (
+                      'Submit'
+                    )}
+                  </Button>
+                </AuthWrapper>
                 <p className="mt-2 text-center text-xs text-slate-400 sm:text-sm">
                   By submitting/applying to this listing, you agree to our{' '}
                   <button
