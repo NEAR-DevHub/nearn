@@ -179,7 +179,7 @@ export const SubmissionDrawer = ({
             link,
             tweet,
             otherInfo,
-            ask,
+            ask: ask || null,
             otherTokenDetails:
               otherTokenDetails && token === 'Other'
                 ? otherTokenDetails
