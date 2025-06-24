@@ -247,6 +247,9 @@ export async function extractDaoFromTreasury(treasury: string) {
     );
     if (directMatch) return directMatch[1];
 
+    const match = code.match(/treasuryDaoID:\s*["'`]([^"'`]+)["'`]/);
+    if (match) return match[1];
+
     return treasury.slice(0, -5) + '.sputnik-dao.near';
   };
 
