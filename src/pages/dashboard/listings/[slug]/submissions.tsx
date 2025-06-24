@@ -412,10 +412,19 @@ export default function BountySubmissions({ slug }: Props) {
 
   useEffect(() => {
     if (searchParams?.has('submissionId')) {
-      setPageSelections((prev) => ({
-        ...prev,
-        [currentPage]: searchParams.get('submissionId') || '',
-      }));
+      const submissionId = searchParams.get('submissionId');
+      const submissionIndex = filteredSubmissions.findIndex(
+        (sub) => sub.id === submissionId,
+      );
+
+      if (submissionIndex !== -1) {
+        const submissionPage = Math.floor(submissionIndex / submissionsPerPage);
+        setCurrentPage(submissionPage + 1);
+        setPageSelections((prev) => ({
+          ...prev,
+          [submissionPage + 1]: submissionId || '',
+        }));
+      }
     }
   }, [searchParams]);
 
