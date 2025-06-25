@@ -143,8 +143,6 @@ export async function POST(
           data: {
             rewardInUSD,
             status: 'Approved',
-            approveDate: new Date(),
-            approvedBy: userId,
             label:
               winners[currentIndex]?.label === 'New'
                 ? 'Reviewed'
