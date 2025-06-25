@@ -13,6 +13,7 @@ import {
 import Image from 'next/image';
 import Link from 'next/link';
 import React, { type Dispatch, type SetStateAction, useState } from 'react';
+import { FaSpinner } from 'react-icons/fa';
 import { MdOutlineAccountBalanceWallet, MdOutlineMail } from 'react-icons/md';
 import { toast } from 'sonner';
 
@@ -166,13 +167,19 @@ const DoneBy = ({
   doneBy: string;
   doneByType: 'approved' | 'paid';
 }) => {
-  const { data: user } = useQuery(getUserQuery({ userId: doneBy }));
+  const { data: user, isLoading: isLoadingUser } = useQuery(
+    getUserQuery({ userId: doneBy }),
+  );
 
   return (
     <div className="flex items-center">
-      <p className="text-sm text-slate-400">
+      <p className="flex items-center gap-1 text-sm text-slate-400">
         {doneByType === 'approved' ? 'Approved by' : 'Paid by'}:{' '}
-        {user?.name || doneBy}
+        {isLoadingUser ? (
+          <FaSpinner className="animate-spin" />
+        ) : (
+          user?.name || doneBy
+        )}
       </p>
     </div>
   );
