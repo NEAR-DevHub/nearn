@@ -19,6 +19,7 @@ interface SubmissionWithUser {
   winnerPosition?: keyof Rewards;
   isPaid: boolean;
   paymentDate?: string;
+  approveDate?: string;
   paymentDetails?: {
     txId?: string;
     link?: string;
@@ -41,6 +42,8 @@ interface SubmissionWithUser {
   notes?: string;
   totalEarnings?: number;
   token?: string;
+  approvedBy?: string;
+  paidBy?: string;
 }
 
 export type { SubmissionWithUser };

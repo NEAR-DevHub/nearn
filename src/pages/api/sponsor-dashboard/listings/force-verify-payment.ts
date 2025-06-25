@@ -107,6 +107,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
           isPaid: true,
           paymentDetails: { link: validationResult.link },
           paymentDate: new Date(),
+          paidBy: req.userId,
         },
       });
     }

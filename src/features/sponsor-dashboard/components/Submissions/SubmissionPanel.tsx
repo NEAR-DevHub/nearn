@@ -45,9 +45,10 @@ import TreasuryStatus from '@/features/treasury/components/TreasuryStatus';
 
 import { treasuryProposalStatusQuery } from '../../../treasury/queries/treasuryProposalStatus';
 import { selectedSubmissionAtom } from '../../atoms';
+import { getUserQuery } from '../../queries/user';
 import { Details } from './Details';
 import NearTreasuryPaymentModal from './Modals/NearTreasuryPaymentModal';
-import { UpdatePaymentDateModal } from './Modals/UpdatePaymentDateModal';
+import { UpdateDateModal } from './Modals/UpdateDateModal';
 import { SelectLabel } from './SelectLabel';
 import { SelectWinner } from './SelectWinner';
 
@@ -158,6 +159,25 @@ export const PaymentButton = ({
   );
 };
 
+const DoneBy = ({
+  doneBy,
+  doneByType,
+}: {
+  doneBy: string;
+  doneByType: 'approved' | 'paid';
+}) => {
+  const { data: user } = useQuery(getUserQuery({ userId: doneBy }));
+
+  return (
+    <div className="flex items-center">
+      <p className="text-sm text-slate-400">
+        {doneByType === 'approved' ? 'Approved by' : 'Paid by'}:{' '}
+        {user?.name || doneBy}
+      </p>
+    </div>
+  );
+};
+
 export const SubmissionPanel = ({
   bounty,
   submissions,
@@ -220,11 +240,19 @@ export const SubmissionPanel = ({
       });
     }
   };
-  const [isUpdatePaymentDateModalOpen, setIsUpdatePaymentDateModalOpen] =
-    useState(false);
+  const [isUpdateDateModalOpen, setIsUpdateDateModalOpen] = useState(false);
+  const [dateModalType, setDateModalType] = useState<'payment' | 'approved'>(
+    'payment',
+  );
 
   const handleUpdatePaymentDate = () => {
-    setIsUpdatePaymentDateModalOpen(true);
+    setDateModalType('payment');
+    setIsUpdateDateModalOpen(true);
+  };
+
+  const handleUpdateApprovedDate = () => {
+    setDateModalType('approved');
+    setIsUpdateDateModalOpen(true);
   };
 
   const treasury = selectedSubmission?.paymentDetails?.treasury;
@@ -493,15 +521,56 @@ export const SubmissionPanel = ({
                     Earned
                   </p>
                 )}
+                {selectedSubmission?.status === 'Approved' &&
+                  selectedSubmission?.approveDate && (
+                    <div className="flex items-center">
+                      <Tooltip
+                        content={
+                          <DoneBy
+                            doneBy={selectedSubmission?.approvedBy || ''}
+                            doneByType="approved"
+                          />
+                        }
+                        contentProps={{ side: 'top' }}
+                        disabled={!selectedSubmission?.approvedBy}
+                      >
+                        <p className="text-sm text-slate-400">
+                          Approved on:{' '}
+                          {dayjs(selectedSubmission.approveDate).format(
+                            'MMM D, YYYY',
+                          )}
+                        </p>
+                      </Tooltip>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="p-0 text-xs text-slate-500"
+                        onClick={handleUpdateApprovedDate}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
                 {selectedSubmission?.isPaid &&
                   selectedSubmission?.paymentDate && (
                     <div className="flex items-center">
-                      <p className="text-sm text-slate-400">
-                        Paid on:{' '}
-                        {dayjs(selectedSubmission.paymentDate).format(
-                          'MMM D, YYYY',
-                        )}
-                      </p>
+                      <Tooltip
+                        content={
+                          <DoneBy
+                            doneBy={selectedSubmission?.paidBy || ''}
+                            doneByType="paid"
+                          />
+                        }
+                        contentProps={{ side: 'top' }}
+                        disabled={!selectedSubmission?.paidBy}
+                      >
+                        <p className="text-sm text-slate-400">
+                          Paid on:{' '}
+                          {dayjs(selectedSubmission.paymentDate).format(
+                            'MMM D, YYYY',
+                          )}
+                        </p>
+                      </Tooltip>
                       <Button
                         variant="ghost"
                         size="icon"
@@ -527,20 +596,30 @@ export const SubmissionPanel = ({
           </div>
         )}
       </div>
-      <UpdatePaymentDateModal
-        isOpen={isUpdatePaymentDateModalOpen}
-        onClose={() => setIsUpdatePaymentDateModalOpen(false)}
+      <UpdateDateModal
+        isOpen={isUpdateDateModalOpen}
+        onClose={() => setIsUpdateDateModalOpen(false)}
         submissionId={selectedSubmission?.id || ''}
         listingId={bounty?.id || ''}
-        currentPaymentDate={selectedSubmission?.paymentDate}
-        onSuccess={(date) => {
+        dateType={dateModalType}
+        currentDate={
+          dateModalType === 'payment'
+            ? selectedSubmission?.paymentDate
+            : selectedSubmission?.approveDate
+        }
+        onSuccess={(date: string) => {
+          const update =
+            dateModalType === 'payment'
+              ? { paymentDate: date }
+              : { approveDate: date };
           setSelectedSubmission((prev) =>
             prev && prev.id === selectedSubmission?.id
-              ? { ...prev, paymentDate: date }
+              ? { ...prev, ...update }
               : prev,
           );
         }}
       />
+
       {selectedSubmission && (
         <NearTreasuryPaymentModal
           isOpen={isNearTreasuryPaymentModalOpen}
