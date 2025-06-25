@@ -22,6 +22,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Tooltip } from '@/components/ui/tooltip';
 import { useDisclosure } from '@/hooks/use-disclosure';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import type { Comment as IComment } from '@/interface/comments';
@@ -160,6 +161,7 @@ export const Comment = ({
   };
 
   const date = formatFromNow(dayjs(comment?.createdAt).fromNow());
+  const fullDate = dayjs(comment?.createdAt).format('MMM D, YYYY h:mm A');
 
   const handleLike = async () => {
     if (!user || commentLikeMutation.isPending) return;
@@ -259,9 +261,11 @@ export const Comment = ({
                 Sponsor
               </p>
             )}
-            <p className="pb-0.5 text-xs font-medium text-slate-400 md:text-sm">
-              {date}
-            </p>
+            <Tooltip content={fullDate}>
+              <p className="pb-0.5 text-xs font-medium text-slate-400 md:text-sm">
+                {date}
+              </p>
+            </Tooltip>
           </div>
           <p className="mt-0 max-w-[15rem] overflow-clip pb-2 text-sm text-slate-500 sm:max-w-[20rem] md:max-w-[17rem] md:text-base lg:max-w-[29rem] xl:max-w-[46rem]">
             <CommentParser
