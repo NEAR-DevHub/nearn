@@ -58,6 +58,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
           link: paymentLink,
         };
         updateData.paymentDate = new Date();
+        updateData.paidBy = userId;
       }
     }
 
@@ -70,7 +71,17 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       updateData.isPaid = false;
       updateData.paymentDetails = Prisma.JsonNull;
       updateData.paymentDate = null;
+      updateData.paidBy = null;
+      updateData.approvedBy = null;
       updateData.winnerPosition = null;
+    }
+
+    const isApproving =
+      status === 'Approved' && currentSubmission.status !== 'Approved';
+
+    if (isApproving) {
+      updateData.approveDate = new Date();
+      updateData.approvedBy = userId;
     }
 
     const result = await prisma.submission.update({

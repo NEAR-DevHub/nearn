@@ -241,7 +241,7 @@ export default function NearTreasuryIntegration({
             was removed from your Treasury, so NEARN can no longer submit
             payment proposals. To fix this, go to{' '}
             <Link
-              href={`${getURLSanitized(sponsorData.nearTreasury?.frontend + '/?page=settings&tab=members') ?? 'https://neartreasury.com'}`}
+              href={`${getURLSanitized(sponsorData.nearTreasury?.frontend + '/?page=settings&tab=members&member=nearn-io.near&permissions=requestor') ?? 'https://neartreasury.com'}`}
               className="underline underline-offset-[3px]"
               target="_blank"
             >

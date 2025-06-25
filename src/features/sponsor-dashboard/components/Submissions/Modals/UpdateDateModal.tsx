@@ -12,24 +12,28 @@ import {
 import { Input } from '@/components/ui/input';
 import { api } from '@/lib/api';
 
-interface UpdatePaymentDateModalProps {
+type DateType = 'payment' | 'approved';
+
+interface UpdateDateModalProps {
   isOpen: boolean;
   onClose: () => void;
   submissionId: string;
   listingId: string;
-  currentPaymentDate?: string;
+  dateType: DateType;
+  currentDate?: string;
   onSuccess?: (date: string) => void;
 }
 
-export const UpdatePaymentDateModal = ({
+export const UpdateDateModal = ({
   isOpen,
   onClose,
   submissionId,
   listingId,
-  currentPaymentDate,
+  dateType,
+  currentDate,
   onSuccess,
-}: UpdatePaymentDateModalProps) => {
-  const [newDate, setNewDate] = useState(currentPaymentDate || '');
+}: UpdateDateModalProps) => {
+  const [newDate, setNewDate] = useState(currentDate || '');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleUpdate = async () => {
@@ -39,33 +43,46 @@ export const UpdatePaymentDateModal = ({
     }
 
     if (dayjs(newDate).isAfter(dayjs())) {
-      toast.error('You cannot update the payment date to a future date');
+      toast.error('You cannot update the date to a future date');
       return;
     }
 
     try {
       setIsLoading(true);
-      await api.post('/api/sponsor-dashboard/listings/update-payment-date', {
+      await api.post('/api/sponsor-dashboard/listings/update-date', {
         submissionId,
         listingId,
-        paymentDate: newDate,
+        dateType,
+        date: newDate,
       });
-      toast.success('Payment date updated successfully');
+      toast.success(
+        `${dateType === 'payment' ? 'Payment' : 'Approved'} date updated successfully`,
+      );
       onSuccess?.(newDate);
       onClose();
     } catch (error) {
-      toast.error('Failed to update payment date');
+      toast.error(`Failed to update ${dateType} date`);
       console.error(error);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const getTitle = () => {
+    return dateType === 'payment'
+      ? 'Update Payment Date'
+      : 'Update Approved Date';
+  };
+
+  const getButtonText = () => {
+    return isLoading ? 'Updating...' : 'Update';
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
-          <DialogTitle>Update Payment Date</DialogTitle>
+          <DialogTitle>{getTitle()}</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col gap-4">
           <Input
@@ -79,7 +96,7 @@ export const UpdatePaymentDateModal = ({
               Cancel
             </Button>
             <Button onClick={handleUpdate} disabled={isLoading}>
-              {isLoading ? 'Updating...' : 'Update'}
+              {getButtonText()}
             </Button>
           </div>
         </div>

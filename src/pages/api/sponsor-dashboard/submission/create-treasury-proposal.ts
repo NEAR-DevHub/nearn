@@ -158,6 +158,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       where: { id },
       data: {
         paymentDate: new Date(),
+        paidBy: req.userId,
         paymentDetails: {
           treasury: {
             link: treasuryLink,

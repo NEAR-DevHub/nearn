@@ -181,6 +181,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
             link: validationResult.link,
           },
           paymentDate: validationResult.transactionDate,
+          paidBy: req.userId,
         },
       });
     }

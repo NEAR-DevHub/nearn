@@ -68,6 +68,8 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       data: {
         isWinner,
         winnerPosition: position ? position : null,
+        approveDate: position ? new Date() : null,
+        approvedBy: position ? userId : null,
       },
       include: { listing: true },
     });
