@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { ExternalLink, Info, Loader } from 'lucide-react';
+import { ExternalLink, Info, Loader, TriangleAlert } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -15,6 +15,8 @@ import { VerifiedBadge } from '../shared/VerifiedBadge';
 import { Button } from './button';
 import { Popover, PopoverContent, PopoverTrigger } from './popover';
 import { Tooltip } from './tooltip';
+
+const FIREHOSE_ID = '68ef6576-d931-4405-82c4-6a8574ee0b3f';
 
 interface KycComponentProps {
   address: string | undefined;
@@ -138,6 +140,23 @@ export function KycComponent({
   const { className, text, image, shouldShowLink } = styleKycStatus(kycData);
 
   if (variant === 'extended') {
+    if (listingSponsorId === FIREHOSE_ID) {
+      return (
+        <div className="pl-2 text-[0.85rem] text-red-700">
+          <div className="flex items-center gap-2 font-bold">
+            <TriangleAlert className="h-4 w-4" />
+            Important Note:
+          </div>
+          <p className="ml-6">
+            If your submission is selected for a prize, you&apos;ll need to
+            complete identity verification (KYC/KYB) before any award can be
+            issued. Our team will contact winning participants via email with
+            instructions after winners are announced.
+          </p>
+        </div>
+      );
+    }
+
     const tooltipText =
       kycData?.kyc_status === 'APPROVED'
         ? "Your identity has been successfully verified. This helps keep your account secure, builds trust with others, and ensures you're fully compliant with legal requirements"
