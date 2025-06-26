@@ -162,7 +162,7 @@ export const PaymentButton = ({
   );
 };
 
-const DoneBy = ({
+export const DoneBy = ({
   doneBy,
   doneByType,
 }: {
