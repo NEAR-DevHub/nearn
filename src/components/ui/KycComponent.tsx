@@ -17,6 +17,12 @@ import { Popover, PopoverContent, PopoverTrigger } from './popover';
 import { Tooltip } from './tooltip';
 
 const FIREHOSE_ID = '68ef6576-d931-4405-82c4-6a8574ee0b3f';
+const INFRA_COMMITTEE_ID = 'c3b689b9-2551-4dda-8e8c-68037c25477c';
+
+const CUSTOM_KYC_TEXT = {
+  [FIREHOSE_ID]: `If your submission is selected for a prize, you'll need to complete identity verification (KYC/KYB) before any award can be issued. Our team will contact winning participants via email with instructions after winners are announced.`,
+  [INFRA_COMMITTEE_ID]: `If your submission is approved, you'll need to complete identity verification (KYC/KYB) before any award can be issued. Our team will contact approved recipients s via email with instructions`,
+};
 
 interface KycComponentProps {
   address: string | undefined;
@@ -140,7 +146,10 @@ export function KycComponent({
   const { className, text, image, shouldShowLink } = styleKycStatus(kycData);
 
   if (variant === 'extended') {
-    if (listingSponsorId === FIREHOSE_ID) {
+    if (
+      listingSponsorId &&
+      CUSTOM_KYC_TEXT[listingSponsorId as keyof typeof CUSTOM_KYC_TEXT]
+    ) {
       return (
         <div className="pl-2 text-[0.85rem] text-red-700">
           <div className="flex items-center gap-2 font-bold">
@@ -148,10 +157,7 @@ export function KycComponent({
             Important Note:
           </div>
           <p className="ml-6">
-            If your submission is selected for a prize, you&apos;ll need to
-            complete identity verification (KYC/KYB) before any award can be
-            issued. Our team will contact winning participants via email with
-            instructions after winners are announced.
+            {CUSTOM_KYC_TEXT[listingSponsorId as keyof typeof CUSTOM_KYC_TEXT]}
           </p>
         </div>
       );

@@ -13,6 +13,7 @@ import {
 import Image from 'next/image';
 import Link from 'next/link';
 import React, { type Dispatch, type SetStateAction, useState } from 'react';
+import { FaSpinner } from 'react-icons/fa';
 import { MdOutlineAccountBalanceWallet, MdOutlineMail } from 'react-icons/md';
 import { toast } from 'sonner';
 
@@ -29,13 +30,15 @@ import type { SubmissionWithUser } from '@/interface/submission';
 import { getSubmissionUrl } from '@/utils/bounty-urls';
 import { cn } from '@/utils/cn';
 import { dayjs } from '@/utils/dayjs';
-import { formatNumberWithSuffix } from '@/utils/formatNumberWithSuffix';
 import { getURLSanitized } from '@/utils/getURLSanitized';
 import { truncatePublicKey } from '@/utils/truncatePublicKey';
 import { truncateString } from '@/utils/truncateString';
 
 import type { Listing } from '@/features/listings/types';
 import {
+  Discord,
+  GitHub,
+  Linkedin,
   Telegram,
   Twitter,
   Website,
@@ -159,20 +162,26 @@ export const PaymentButton = ({
   );
 };
 
-const DoneBy = ({
+export const DoneBy = ({
   doneBy,
   doneByType,
 }: {
   doneBy: string;
   doneByType: 'approved' | 'paid';
 }) => {
-  const { data: user } = useQuery(getUserQuery({ userId: doneBy }));
+  const { data: user, isLoading: isLoadingUser } = useQuery(
+    getUserQuery({ userId: doneBy }),
+  );
 
   return (
     <div className="flex items-center">
-      <p className="text-sm text-slate-400">
+      <p className="flex items-center gap-1 text-sm text-slate-400">
         {doneByType === 'approved' ? 'Approved by' : 'Paid by'}:{' '}
-        {user?.name || doneBy}
+        {isLoadingUser ? (
+          <FaSpinner className="animate-spin" />
+        ) : (
+          user?.name || doneBy
+        )}
       </p>
     </div>
   );
@@ -260,6 +269,63 @@ export const SubmissionPanel = ({
   const { data: proposalStatus, isLoading: isLoadingProposalStatus } = useQuery(
     treasuryProposalStatusQuery(treasury?.dao, treasury?.proposalId ?? 0),
   );
+
+  const socials = [
+    {
+      icon: (
+        <Telegram
+          className="h-[0.9rem] w-[0.9rem] text-slate-600"
+          link={selectedSubmission?.user?.telegram || ''}
+        />
+      ),
+      isVisible: !!selectedSubmission?.user?.telegram,
+    },
+    {
+      icon: (
+        <Twitter
+          className="h-[0.9rem] w-[0.9rem] text-slate-600"
+          link={selectedSubmission?.user?.twitter || ''}
+        />
+      ),
+      isVisible: !!selectedSubmission?.user?.twitter,
+    },
+    {
+      icon: (
+        <Discord
+          className="h-[0.9rem] w-[0.9rem] text-slate-600"
+          link={selectedSubmission?.user?.discord || ''}
+        />
+      ),
+      isVisible: !!selectedSubmission?.user?.discord,
+    },
+    {
+      icon: (
+        <Linkedin
+          className="h-[0.9rem] w-[0.9rem] text-slate-600"
+          link={selectedSubmission?.user?.linkedin || ''}
+        />
+      ),
+      isVisible: !!selectedSubmission?.user?.linkedin,
+    },
+    {
+      icon: (
+        <GitHub
+          className="h-[0.9rem] w-[0.9rem] text-slate-600"
+          link={selectedSubmission?.user?.github || ''}
+        />
+      ),
+      isVisible: !!selectedSubmission?.user?.github,
+    },
+    {
+      icon: (
+        <Website
+          className="h-[0.9rem] w-[0.9rem] text-slate-600"
+          link={selectedSubmission?.user?.website || ''}
+        />
+      ),
+      isVisible: !!selectedSubmission?.user?.website,
+    },
+  ];
 
   return (
     <>
@@ -499,28 +565,10 @@ export const SubmissionPanel = ({
                   </>
                 )}
                 <div className="flex gap-2">
-                  <Telegram
-                    className="h-[0.9rem] w-[0.9rem] text-slate-600"
-                    link={selectedSubmission?.user?.telegram || ''}
-                  />
-                  <Twitter
-                    className="h-[0.9rem] w-[0.9rem] text-slate-600"
-                    link={selectedSubmission?.user?.twitter || ''}
-                  />
-                  <Website
-                    className="h-[0.9rem] w-[0.9rem] text-slate-600"
-                    link={selectedSubmission?.user?.website || ''}
-                  />
+                  {socials
+                    .filter((social) => social.isVisible)
+                    .map((social) => social.icon)}
                 </div>
-                {isProject && (
-                  <p className="whitespace-nowrap text-sm text-slate-400">
-                    $
-                    {formatNumberWithSuffix(
-                      selectedSubmission?.totalEarnings || 0,
-                    )}{' '}
-                    Earned
-                  </p>
-                )}
                 {selectedSubmission?.status === 'Approved' &&
                   selectedSubmission?.approveDate && (
                     <div className="flex items-center">

@@ -53,6 +53,7 @@ import { colorMap } from '../utils/statusColorMap';
 import { ListingTh } from './ListingTable';
 import { DeleteRestoreSubmissionModal } from './Submissions/Modals/DeleteRestoreSubmissionModal';
 import { EditSubmissionStatusModal } from './Submissions/Modals/EditSubmissionStatusModal';
+import { DoneBy } from './Submissions/SubmissionPanel';
 
 interface SubmissionTableProps {
   submissions: SubmissionWithListingUser[];
@@ -188,14 +189,8 @@ export const SubmissionTable = ({
               >
                 Submission Date
               </SortableTH>
-              <SortableTH
-                column="paymentDate"
-                currentSort={currentSort}
-                setSort={onSort}
-                className={cn(thClassName)}
-              >
-                Payment Date
-              </SortableTH>
+              <ListingTh className="text-nowrap">Approved Date</ListingTh>
+              <ListingTh className="text-nowrap">Payment Date</ListingTh>
               <ListingTh className="pl-6">Actions</ListingTh>
               <TableHead className="pl-0" />
             </TableRow>
@@ -205,9 +200,14 @@ export const SubmissionTable = ({
               const submissionDate = dayjs(submission?.createdAt).format(
                 "DD MMM'YY h:mm A",
               );
-              const paymentDate = submission?.paymentDate
-                ? dayjs(submission?.paymentDate).format("DD MMM'YY")
-                : '';
+              const paymentDate =
+                submission?.paymentDate && submission?.isPaid
+                  ? dayjs(submission?.paymentDate).format("DD MMM'YY")
+                  : '';
+              const approveDate =
+                submission?.approveDate && submission.status === 'Approved'
+                  ? dayjs(submission?.approveDate).format("DD MMM'YY")
+                  : '';
               const listingStatus = sponsorshipSubmissionStatus(submission);
               const isUsdBased = submission?.listing?.token === 'Any';
               const submissionLink = getSubmissionUrl(
@@ -337,10 +337,35 @@ export const SubmissionTable = ({
                       {submissionDate}
                     </p>
                   </TableCell>
+                  <TableCell className="items-center py-2">
+                    <Tooltip
+                      disabled={!submission?.approvedBy}
+                      content={
+                        <DoneBy
+                          doneBy={submission?.approvedBy!}
+                          doneByType="approved"
+                        />
+                      }
+                    >
+                      <p className="whitespace-nowrap text-sm font-medium text-slate-500">
+                        {approveDate}
+                      </p>
+                    </Tooltip>
+                  </TableCell>
                   <TableCell>
-                    <p className="whitespace-nowrap text-sm font-medium text-slate-500">
-                      {paymentDate}
-                    </p>
+                    <Tooltip
+                      disabled={!submission?.paidBy}
+                      content={
+                        <DoneBy
+                          doneBy={submission?.paidBy!}
+                          doneByType="paid"
+                        />
+                      }
+                    >
+                      <p className="whitespace-nowrap text-sm font-medium text-slate-500">
+                        {paymentDate}
+                      </p>
+                    </Tooltip>
                   </TableCell>
                   <TableCell>
                     <Button
