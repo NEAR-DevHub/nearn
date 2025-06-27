@@ -60,7 +60,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tooltip } from '@/components/ui/tooltip';
 import { cn } from '@/utils/cn';
 
-import { hackathonAtom } from '../../atoms';
+import { hackathonAtom, isEditingAtom } from '../../atoms';
 import { useListingForm } from '../../hooks';
 
 // Define the interface for eligibility question based on the schema
@@ -417,6 +417,7 @@ export function EligibilityQuestions() {
       },
     }),
   );
+  const isEditing = useAtomValue(isEditingAtom);
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string);
@@ -461,18 +462,24 @@ export function EligibilityQuestions() {
   };
 
   useEffect(() => {
-    if (type === 'project' || type === 'sponsorship') {
-      if (fields.length === 0) {
-        handleAddQuestion(false);
-      }
-    } else {
-      if (type === 'hackathon' && hackathon?.eligibility) {
-        form.setValue('eligibility', hackathon?.eligibility as any);
+    if (!isEditing) {
+      if (type === 'project' || type === 'sponsorship') {
+        if (fields.length === 0) {
+          handleAddQuestion(false);
+        }
       } else {
-        form.setValue('eligibility', []);
+        if (type === 'hackathon' && hackathon?.eligibility) {
+          form.setValue('eligibility', hackathon?.eligibility as any);
+        } else {
+          if (fields.length > 0) {
+            form.setValue('eligibility', fields.slice(0, 2));
+          } else {
+            form.setValue('eligibility', []);
+          }
+        }
       }
     }
-  }, [type, hackathon]);
+  }, [type, hackathon, isEditing]);
 
   return (
     <FormField
