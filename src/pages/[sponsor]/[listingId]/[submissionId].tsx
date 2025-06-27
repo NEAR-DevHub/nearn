@@ -315,6 +315,7 @@ function Content({
                       <KycComponent
                         address={submission.user.publicKey}
                         variant="xs"
+                        hideCustom
                         listingSponsorId={bounty.sponsorId}
                       />
                     </div>

@@ -29,6 +29,7 @@ interface KycComponentProps {
   imageOnly?: boolean;
   variant?: 'default' | 'xs' | 'extended';
   listingSponsorId?: string;
+  hideCustom?: boolean;
 }
 
 function styleKycStatus(kycData?: KycResponse) {
@@ -130,6 +131,7 @@ export function KycComponent({
   imageOnly = false,
   variant = 'default',
   listingSponsorId,
+  hideCustom = false,
 }: KycComponentProps) {
   const isKycEnabled =
     !!listingSponsorId && KYC_SPONSOR_WHITELIST.includes(listingSponsorId);
@@ -144,12 +146,16 @@ export function KycComponent({
   }
 
   const { className, text, image, shouldShowLink } = styleKycStatus(kycData);
+  const isCustom =
+    listingSponsorId &&
+    !!CUSTOM_KYC_TEXT[listingSponsorId as keyof typeof CUSTOM_KYC_TEXT];
+
+  if (isCustom && hideCustom) {
+    return null;
+  }
 
   if (variant === 'extended') {
-    if (
-      listingSponsorId &&
-      CUSTOM_KYC_TEXT[listingSponsorId as keyof typeof CUSTOM_KYC_TEXT]
-    ) {
+    if (isCustom) {
       return (
         <div className="pl-2 text-[0.85rem] text-red-700">
           <div className="flex items-center gap-2 font-bold">
