@@ -78,6 +78,7 @@ export default async function handler(
               id: true,
               title: true,
               rewards: true,
+              sequentialId: true,
               type: true,
               slug: true,
               isWinnersAnnounced: true,
@@ -142,6 +143,7 @@ export default async function handler(
             listingType: sub.listing.type,
             listingSlug: sub.listing.slug,
             isWinnersAnnounced: sub.listing.isWinnersAnnounced,
+            bountySequentialId: sub.listing.sequentialId,
             token: sub.listing.token,
             //@ts-expect-error prisma ts error, this exists based on above include
             sponsorName: sub.listing.sponsor.name,
