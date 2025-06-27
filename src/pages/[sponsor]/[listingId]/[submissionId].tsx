@@ -142,25 +142,30 @@ function Content({
   }
 
   const status = sponsorshipSubmissionStatus(submission);
+  const showBack =
+    (bounty.isWinnersAnnounced && bounty.type === 'bounty') ||
+    bounty.type === 'sponsorship';
 
   return (
     <>
       <div className="flex h-full w-full flex-col justify-between">
-        <Breadcrumb className="mt-4 text-slate-400 md:mt-5">
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink asChild>
-                <Link
-                  href={`${getBountyUrl(bounty)}/submission`}
-                  className="flex items-center"
-                >
-                  <ChevronLeft className="mr-1 h-6 w-6" />
-                  All Submissions
-                </Link>
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+        {showBack && (
+          <Breadcrumb className="mt-4 text-slate-400 md:mt-5">
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <Link
+                    href={`${getBountyUrl(bounty)}/submission`}
+                    className="flex items-center"
+                  >
+                    <ChevronLeft className="mr-1 h-6 w-6" />
+                    All Submissions
+                  </Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        )}
 
         <div className="mt-4 h-full rounded-lg md:mt-4 md:px-2">
           <div className="rounded-t-xl border-b border-slate-200 bg-white">
