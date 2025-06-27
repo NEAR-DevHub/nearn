@@ -32,14 +32,10 @@ const TooltipContent = React.forwardRef<
 TooltipContent.displayName = TooltipPrimitive.Content.displayName;
 
 const Tooltip = React.forwardRef<HTMLButtonElement, TooltipProps>(
-  ({
-    children,
-    content,
-    contentProps,
-    triggerClassName,
-    disabled,
-    ...props
-  }) => {
+  (
+    { children, content, contentProps, triggerClassName, disabled, ...props },
+    ref,
+  ) => {
     const [open, setOpen] = React.useState(false);
 
     if (disabled) {
@@ -51,6 +47,7 @@ const Tooltip = React.forwardRef<HTMLButtonElement, TooltipProps>(
         <TooltipPrimitive.Root open={open} {...props}>
           <TooltipPrimitive.Trigger asChild>
             <button
+              ref={ref}
               type="button"
               className={cn('cursor-pointer', triggerClassName)}
               onClick={() => setOpen(!open)}
