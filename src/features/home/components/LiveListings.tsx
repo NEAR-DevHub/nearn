@@ -37,7 +37,12 @@ export const LiveListings = ({
       {children}
       <div className="mt-1 flex w-full flex-col">
         {listings?.map((listing) => {
-          return <ListingCardMini bounty={listing} key={listing?.id} />;
+          return (
+            <ListingCardMini
+              bounty={listing}
+              key={listing?.id ?? `listing-${listing?.sequentialId}`}
+            />
+          );
         })}
       </div>
     </div>

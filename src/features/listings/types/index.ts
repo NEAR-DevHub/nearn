@@ -50,6 +50,7 @@ export interface Listing {
     Comments?: number;
   };
   isFndnPaying?: boolean;
+  usdValue?: number;
 }
 
 export interface ListingHackathon {

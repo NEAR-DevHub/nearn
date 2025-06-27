@@ -1,17 +1,19 @@
 import { type Prisma } from '@prisma/client';
-import { type NextApiRequest, type NextApiResponse } from 'next';
+import { type NextApiResponse } from 'next';
 import { z } from 'zod';
 
 import logger from '@/lib/logger';
 import { prisma } from '@/prisma';
 import { safeStringify } from '@/utils/safeStringify';
 
+import { type NextApiRequestWithPotentialSponsor } from '@/features/auth/types';
+import { withPotentialSponsorAuth } from '@/features/auth/utils/withPotentialSponsorAuth';
 import { type FeedPostType, FeedPostTypeSchema } from '@/features/feed/types';
 
 const UUIDSchema = z.string().uuid();
 
-export default async function handler(
-  req: NextApiRequest,
+async function handler(
+  req: NextApiRequestWithPotentialSponsor,
   res: NextApiResponse,
 ): Promise<void> {
   logger.debug(`Request query: ${safeStringify(req.query)}`);
@@ -78,6 +80,7 @@ export default async function handler(
               id: true,
               title: true,
               rewards: true,
+              sequentialId: true,
               type: true,
               slug: true,
               isWinnersAnnounced: true,
@@ -86,6 +89,7 @@ export default async function handler(
                 select: {
                   name: true,
                   logo: true,
+                  slug: true,
                 },
               },
               winnersAnnouncedAt: true,
@@ -114,10 +118,13 @@ export default async function handler(
             },
             include: submissionInclude,
           });
+          const isAuthorizedToSee =
+            req.authorized && submission?.userId === req.userId;
           feedPost = [submission, ...similarSubmissions].map((sub) => ({
             id:
               sub.listing.isWinnersAnnounced ||
-              sub.listing.type === 'sponsorship'
+              sub.listing.type === 'sponsorship' ||
+              isAuthorizedToSee
                 ? sub.id
                 : null,
             createdAt:
@@ -142,7 +149,11 @@ export default async function handler(
             listingType: sub.listing.type,
             listingSlug: sub.listing.slug,
             isWinnersAnnounced: sub.listing.isWinnersAnnounced,
+            sequentialId: sub.sequentialId,
+            bountySequentialId: sub.listing.sequentialId,
             token: sub.listing.token,
+            //@ts-expect-error prisma ts error, this exists based on above include
+            sponsorSlug: sub.listing.sponsor.slug,
             //@ts-expect-error prisma ts error, this exists based on above include
             sponsorName: sub.listing.sponsor.name,
             //@ts-expect-error prisma ts error, this exists based on above include
@@ -310,3 +321,5 @@ const hasWinnerPosition = (
 ): obj is { winnerPosition: number | null } => {
   return 'winnerPosition' in obj;
 };
+
+export default withPotentialSponsorAuth(handler);

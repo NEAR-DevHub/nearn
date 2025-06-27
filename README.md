@@ -22,48 +22,57 @@
 ### Getting Started
 
 1. Clone the repository into a public Github repository (or fork it):
+
     ```bash
     git clone https://github.com/NEAR-DevHub/nearn.git
     ```
 
 2. Navigate to the project directory:
+
     ```bash
     cd nearn
     ```
 
-3. Install the dependencies: 
+3. Install the dependencies:
+
     ```bash
     pnpm i
     ```
 
 4. Set up your `.env` file.
-  - Start by copying the `.env.example` file to a new file named `.env`. This file will store your local environment settings.
-  - Use `openssl rand -base64 32` to generate a key and add it under `NEXTAUTH_SECRET` in the .env file.
-  - Database setup
-    - Set the `DATABASE_URL` environment variable with your MySQL connection string. Services like railway.app or Render can help you host a database if you don't run one locally.
+
+- Start by copying the `.env.example` file to a new file named `.env`. This file will store your local environment settings.
+- Use `openssl rand -base64 32` to generate a key and add it under `NEXTAUTH_SECRET` in the .env file.
+- Database setup
+  - Set the `DATABASE_URL` environment variable with your MySQL connection string. Services like railway.app or Render can help you host a database if you don't run one locally. You can run `docker compose up -d` and use the default connection string for local development.
+
       ```
       DATABASE_URL='mysql://<user>:<pass>@<db-host>:<db-port>/<database>?sslaccept=strict'
       ```
-      
-    - Generate prisma migrations & client.
+
+  - Generate prisma migrations & client.
+
       ```bash
       npx prisma migrate dev --name init && npx prisma generate
       ```
 
-  - You have to set up resend to run the app:
-    - [Resend](https://resend.com): To obtain your `RESEND_API_KEY`, visit the Resend dashboard. This credential is essential for setting up Email Auth.
+- You have to set up resend to run the app:
+  - [Resend](https://resend.com): To obtain your `RESEND_API_KEY`, visit the Resend dashboard. This credential is essential for setting up Email Auth.
 
   NOTE: If you are facing any issues with setup, please create an issue and we will try to help you out.
 
 5. Run the development server
+
     ```bash
     pnpm dev
     ```
 
 ## Contributing
+
 We welcome contributions from everyone! Whether it's submitting an issue, a pull request, or suggesting new ideas, your input is highly valued. Check out our [contributing guide](CONTRIBUTING.md) for guidelines on how to proceed.
 
 ### Contributors
+
 <a href="https://github.com/NEAR-DevHub/nearn/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=NEAR-DevHub/nearn" />
 </a>

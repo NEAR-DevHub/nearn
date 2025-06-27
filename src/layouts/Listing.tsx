@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react';
 import { ErrorSection } from '@/components/shared/ErrorSection';
 import { PROJECT_NAME } from '@/constants/project';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import { type SubmissionWithUser } from '@/interface/submission';
 import { type User } from '@/interface/user';
 import { Default } from '@/layouts/Default';
 import { cn } from '@/utils/cn';
@@ -26,6 +27,7 @@ import { bountySnackbarAtom } from '@/features/navbar/components/BountySnackbar'
 
 interface ListingPageProps {
   bounty: Listing | null;
+  submissions: SubmissionWithUser[];
   children: React.ReactNode;
   maxW?: '7xl' | '6xl' | '5xl' | '4xl' | '3xl' | '2xl' | 'xl' | 'lg' | 'md';
   isTemplate?: boolean;
@@ -34,6 +36,7 @@ interface ListingPageProps {
 
 export function ListingPageLayout({
   bounty: initialBounty,
+  submissions,
   children,
   maxW = '7xl',
   isTemplate = false,
@@ -163,6 +166,7 @@ export function ListingPageLayout({
                 isTemplate={isTemplate}
                 commentCount={commentCount}
                 listing={initialBounty}
+                submissions={submissions}
               />
               <div
                 className={cn(
@@ -249,6 +253,7 @@ export function ListingPageLayout({
                 isTemplate={isTemplate}
                 commentCount={commentCount}
                 listing={initialBounty}
+                submissions={submissions}
               />
 
               <div className="flex h-full w-full flex-grow flex-col gap-8 border-slate-100 pb-10">

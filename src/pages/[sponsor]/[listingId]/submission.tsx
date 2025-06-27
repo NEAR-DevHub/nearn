@@ -45,7 +45,7 @@ const SubmissionPage = ({
   };
 
   return (
-    <ListingPageLayout bounty={bounty}>
+    <ListingPageLayout bounty={bounty} submissions={submission}>
       {bounty && submission && (
         <SubmissionTable
           bounty={bounty}

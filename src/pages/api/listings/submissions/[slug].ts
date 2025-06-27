@@ -58,12 +58,19 @@ async function handler(
       });
     }
 
+    let limitations = {};
     if (result.isWinnersAnnounced === false && result.type !== 'sponsorship') {
-      logger.info('Winners have not been announced yet');
-      return res.status(200).json({
-        bounty: result,
-        submission: [],
-      });
+      if (req.authorized) {
+        limitations = {
+          userId: req.userId,
+        };
+      } else {
+        logger.info('Winners have not been announced yet');
+        return res.status(200).json({
+          bounty: result,
+          submission: [],
+        });
+      }
     }
 
     logger.debug(`Fetching submissions for bounty ID: ${result.id}`);
@@ -72,6 +79,7 @@ async function handler(
         listingId: result.id,
         ...(isWinner ? { isWinner } : {}),
         ...validation,
+        ...limitations,
       },
       include: {
         user: {

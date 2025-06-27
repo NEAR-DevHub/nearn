@@ -315,6 +315,7 @@ function Content({
                       <KycComponent
                         address={submission.user.publicKey}
                         variant="xs"
+                        hideCustom
                         listingSponsorId={bounty.sponsorId}
                       />
                     </div>
@@ -404,7 +405,7 @@ function SubmissionPage({
   return (
     <>
       <div>
-        <ListingPageLayout bounty={bounty}>
+        <ListingPageLayout bounty={bounty} submissions={[submission]}>
           <Content bounty={bounty} submission={submission} />
         </ListingPageLayout>
       </div>
