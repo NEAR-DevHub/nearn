@@ -1,17 +1,19 @@
 // activity feed
 import { type Prisma } from '@prisma/client';
-import { type NextApiRequest, type NextApiResponse } from 'next';
+import { type NextApiResponse } from 'next';
 
 import logger from '@/lib/logger';
 import { prisma } from '@/prisma';
 import { dayjs } from '@/utils/dayjs';
 import { safeStringify } from '@/utils/safeStringify';
 
+import { type NextApiRequestWithPotentialSponsor } from '@/features/auth/types';
+import { withPotentialSponsorAuth } from '@/features/auth/utils/withPotentialSponsorAuth';
 import { type FeedPostType } from '@/features/feed/types';
 import { type Listing } from '@/features/listings/types';
 
-export default async function handler(
-  req: NextApiRequest,
+async function handler(
+  req: NextApiRequestWithPotentialSponsor,
   res: NextApiResponse,
 ): Promise<void> {
   logger.debug(`Request query: ${safeStringify(req.query)}`);
@@ -320,8 +322,9 @@ export default async function handler(
       ...submissions.map((sub) => {
         const isDataPublic =
           sub.listing.isWinnersAnnounced || sub.listing.type === 'sponsorship';
+        const isAuthorizedToSee = req.authorized && sub.userId === req.userId;
         return {
-          id: isDataPublic ? sub.id : null,
+          id: isDataPublic || isAuthorizedToSee ? sub.id : null,
           sponsorSlug: (sub?.listing as unknown as Listing)?.sponsor?.slug,
           bountySequentialId: sub.listing.sequentialId,
           sequentialId: sub.sequentialId,
@@ -418,3 +421,5 @@ export default async function handler(
     res.status(500).json({ error: `Unable to fetch data: ${error.message}` });
   }
 }
+
+export default withPotentialSponsorAuth(handler);

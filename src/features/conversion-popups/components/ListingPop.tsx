@@ -40,7 +40,10 @@ const VariantInfo = (
   listing: Listing | null,
   submissionCount: number,
 ): Record<number, VariantInfo> => {
-  const reward = listing?.rewardAmount || listing?.maxRewardAsk;
+  const reward =
+    listing?.usdValue?.toFixed(0) ||
+    listing?.rewardAmount ||
+    listing?.maxRewardAsk;
   const rewardLabel = reward ? '$' + reward.toLocaleString('en-us') : '';
   const type = listing?.type;
   const verb = listing?.type === 'bounty' ? 'submissions' : 'applications';

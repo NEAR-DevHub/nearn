@@ -1,3 +1,4 @@
+import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { usePostHog } from 'posthog-js/react';
@@ -7,7 +8,6 @@ import { toast } from 'sonner';
 
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Tooltip } from '@/components/ui/tooltip';
 import { api } from '@/lib/api';
 import { useUser } from '@/store/user';
 import { cn } from '@/utils/cn';
@@ -87,44 +87,55 @@ export const SubscribeListing = ({ id, isTemplate = false }: Props) => {
             'Please complete your profile before subscribing to a listing.'
           }
         >
-          <Tooltip
-            content={
-              isSubscribed
-                ? 'Unsubscribe.'
-                : 'Subscribe. By subscribing, this listing will appear on your home dashboard for quick access.'
-            }
-          >
-            <Button
-              className={cn(
-                'ph-no-capture gap-2 border-slate-300 font-medium text-slate-500',
-                'w-auto p-0 px-3',
-              )}
-              variant="outline"
-              disabled={isTemplate}
-              onClick={() => {
-                posthog.capture(
-                  isSubscribed ? 'unnotify me_listing' : 'notify me_listing',
-                );
-                handleToggleSubscribe();
-              }}
-              aria-label="Notify"
-            >
-              {isSubscribeLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : isSubscribed ? (
-                <TbBellRinging />
-              ) : (
-                <TbBell />
-              )}
-              <span className="hidden">
-                {isSubscribeLoading
-                  ? 'Subscribing'
-                  : isSubscribed
-                    ? 'Subscribed'
-                    : 'Subscribe'}
-              </span>
-            </Button>
-          </Tooltip>
+          <TooltipPrimitive.Provider delayDuration={0}>
+            <TooltipPrimitive.Root>
+              <TooltipPrimitive.Trigger asChild>
+                <Button
+                  className={cn(
+                    'ph-no-capture gap-2 border-slate-300 font-medium text-slate-500',
+                    'w-auto p-0 px-3',
+                  )}
+                  variant="outline"
+                  disabled={isTemplate}
+                  onClick={() => {
+                    posthog.capture(
+                      isSubscribed
+                        ? 'unnotify me_listing'
+                        : 'notify me_listing',
+                    );
+                    handleToggleSubscribe();
+                  }}
+                  aria-label="Notify"
+                >
+                  {isSubscribeLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : isSubscribed ? (
+                    <TbBellRinging />
+                  ) : (
+                    <TbBell />
+                  )}
+                  <span className="hidden">
+                    {isSubscribeLoading
+                      ? 'Subscribing'
+                      : isSubscribed
+                        ? 'Subscribed'
+                        : 'Subscribe'}
+                  </span>
+                </Button>
+              </TooltipPrimitive.Trigger>
+              <TooltipPrimitive.Portal>
+                <TooltipPrimitive.Content
+                  sideOffset={4}
+                  className="z-50 max-w-sm overflow-hidden rounded-md border bg-gray-50 px-3 py-1.5 text-xs text-slate-700 animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2"
+                >
+                  {isSubscribed
+                    ? 'Unsubscribe.'
+                    : 'Subscribe. By subscribing, this listing will appear on your home dashboard for quick access.'}
+                  <TooltipPrimitive.Arrow className="fill-gray-50" />
+                </TooltipPrimitive.Content>
+              </TooltipPrimitive.Portal>
+            </TooltipPrimitive.Root>
+          </TooltipPrimitive.Provider>
         </AuthWrapper>
       </div>
     </div>

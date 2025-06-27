@@ -404,7 +404,7 @@ function SubmissionPage({
   return (
     <>
       <div>
-        <ListingPageLayout bounty={bounty}>
+        <ListingPageLayout bounty={bounty} submissions={[submission]}>
           <Content bounty={bounty} submission={submission} />
         </ListingPageLayout>
       </div>

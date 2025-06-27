@@ -1,6 +1,7 @@
 import type { GetServerSideProps } from 'next';
 import { getServerSession } from 'next-auth';
 
+import { type SubmissionWithUser } from '@/interface/submission';
 import { ListingPageLayout } from '@/layouts/Listing';
 import { api } from '@/lib/api';
 import { authOptions } from '@/pages/api/auth/[...nextauth]';
@@ -13,11 +14,12 @@ import { type Listing } from '@/features/listings/types';
 
 interface BountyDetailsProps {
   bounty: Listing | null;
+  submissions: SubmissionWithUser[];
 }
 
-function BountyDetails({ bounty: bounty }: BountyDetailsProps) {
+function BountyDetails({ bounty: bounty, submissions }: BountyDetailsProps) {
   return (
-    <ListingPageLayout bounty={bounty}>
+    <ListingPageLayout bounty={bounty} submissions={submissions}>
       <ListingPop listing={bounty} />
       {bounty?.isWinnersAnnounced && (
         <div className="mt-6 hidden w-full md:block">
@@ -36,6 +38,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   const session = await getServerSession(context.req, context.res, authOptions);
 
   let bountyData;
+  let submissions;
   try {
     const bountyDetails = await api.get(
       `${getURL()}api/listings/details/by-sponsor-and-id/${sponsor}/${listingId}`,
@@ -47,6 +50,16 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       },
     );
     bountyData = bountyDetails.data;
+    const submissionsData = await api.get(
+      `${getURL()}api/listings/submissions/${bountyData.slug}`,
+      {
+        headers: {
+          Authorization: `Bearer ${session?.token}`,
+          cookie: context.req.headers.cookie,
+        },
+      },
+    );
+    submissions = submissionsData.data.submission;
   } catch (e) {
     console.error(e);
     bountyData = null;
@@ -61,6 +74,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   return {
     props: {
       bounty: bountyData,
+      submissions,
     },
   };
 };

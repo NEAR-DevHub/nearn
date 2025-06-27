@@ -13,6 +13,8 @@ import { LocalImage } from '@/components/ui/local-image';
 import { Tooltip } from '@/components/ui/tooltip';
 import { ASSET_URL } from '@/constants/ASSET_URL';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import { type SubmissionWithUser } from '@/interface/submission';
+import { useUser } from '@/store/user';
 import { PulseIcon } from '@/svg/pulse-icon';
 import { getBountyUrl } from '@/utils/bounty-urls';
 import { cn } from '@/utils/cn';
@@ -34,10 +36,12 @@ export function ListingHeader({
   listing,
   isTemplate = false,
   commentCount,
+  submissions,
 }: {
   listing: Listing;
   isTemplate?: boolean;
   commentCount?: number;
+  submissions: SubmissionWithUser[];
 }) {
   const {
     type,
@@ -53,6 +57,7 @@ export function ListingHeader({
     Hackathon,
     isPrivate,
   } = listing;
+  const { user } = useUser();
   const router = useRouter();
   const posthog = usePostHog();
   const isMD = useMediaQuery('(min-width: 768px)');
@@ -64,6 +69,11 @@ export function ListingHeader({
   const showSubmissions =
     !isTemplate &&
     (type === 'sponsorship' || (!isProject && isWinnersAnnounced));
+
+  const userSubmission = submissions.find(
+    (submission) => submission.userId === user?.id,
+  );
+  const showYourSubmission = type !== 'sponsorship' && userSubmission;
 
   const typeToTooltip = {
     project:
@@ -329,6 +339,13 @@ export function ListingHeader({
                 subText={
                   isSubmissionNumberLoading ? '...' : submissionNumber + ''
                 }
+              />
+            )}
+            {showYourSubmission && (
+              <ListingTabLink
+                href={`${getBountyUrl(listing)}/${userSubmission?.sequentialId}`}
+                text="Your Submission"
+                isActive={isSubmissionActive}
               />
             )}
           </div>

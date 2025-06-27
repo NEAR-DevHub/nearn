@@ -14,7 +14,7 @@ interface BountyDetailsProps {
 
 function BountyDetails({ bounty: bounty }: BountyDetailsProps) {
   return (
-    <ListingPageLayout isTemplate bounty={bounty}>
+    <ListingPageLayout isTemplate bounty={bounty} submissions={[]}>
       {bounty?.isWinnersAnnounced && (
         <div className="mt-6 hidden w-full md:block">
           <ListingWinners bounty={bounty} />
