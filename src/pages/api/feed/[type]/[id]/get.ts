@@ -87,6 +87,7 @@ export default async function handler(
                 select: {
                   name: true,
                   logo: true,
+                  slug: true,
                 },
               },
               winnersAnnouncedAt: true,
@@ -143,8 +144,11 @@ export default async function handler(
             listingType: sub.listing.type,
             listingSlug: sub.listing.slug,
             isWinnersAnnounced: sub.listing.isWinnersAnnounced,
+            sequentialId: sub.sequentialId,
             bountySequentialId: sub.listing.sequentialId,
             token: sub.listing.token,
+            //@ts-expect-error prisma ts error, this exists based on above include
+            sponsorSlug: sub.listing.sponsor.slug,
             //@ts-expect-error prisma ts error, this exists based on above include
             sponsorName: sub.listing.sponsor.name,
             //@ts-expect-error prisma ts error, this exists based on above include
