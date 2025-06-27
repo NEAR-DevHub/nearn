@@ -1,7 +1,6 @@
 import { memo, useMemo, useState } from 'react';
 import { useWatch } from 'react-hook-form';
 
-import { Button } from '@/components/ui/button';
 import {
   FormField,
   FormItem,
@@ -71,13 +70,9 @@ export function RewardsSheet() {
                 </FormLabel>
                 <div className="flex w-full items-center rounded-md border border-slate-200 bg-slate-50 py-0.5 pl-3">
                   <RewardsLabel />
-                  <Button
-                    variant="link"
-                    size="sm"
-                    className="ml-auto group-hover:underline"
-                  >
+                  <div className="ml-auto inline-flex h-8 items-center justify-center rounded-md px-3 text-xs text-primary group-hover:underline">
                     Edit
-                  </Button>
+                  </div>
                 </div>
                 {hasRewardsErrors ? (
                   <p className={'text-[0.8rem] font-medium text-destructive'}>
