@@ -124,6 +124,8 @@ export const SubmissionDrawer = ({
       token: token === 'Any' ? tokenList[0]?.tokenSymbol : undefined,
     },
   });
+  console.log(form.formState.errors);
+  console.log(form.getValues());
   const formPublicKey = useWatch({
     control: form.control,
     name: 'publicKey',
@@ -184,9 +186,9 @@ export const SubmissionDrawer = ({
               otherTokenDetails && token === 'Other'
                 ? otherTokenDetails
                 : undefined,
-            eligibilityAnswers: eligibilityAnswers.map((answer: any) => ({
-              question: answer.question,
-              answer: answer.answer ?? '',
+            eligibilityAnswers: listing.eligibility?.map((e) => ({
+              question: e.question,
+              answer: eligibilityAnswers[e.question] ?? '',
             })),
             token,
           });
