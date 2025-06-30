@@ -9,6 +9,7 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 import { ImagePicker } from '@/components/shared/ImagePicker';
+import { MinimalTiptapEditor } from '@/components/tiptap';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -72,6 +73,7 @@ function EditSponsor() {
       telegram: '',
       discord: '',
       entityName: '',
+      about: '',
     },
   });
 
@@ -124,7 +126,9 @@ function EditSponsor() {
     slug,
   ]);
 
-  const { data: sponsorData } = useQuery(sponsorQuery(user?.currentSponsorId));
+  const { data: sponsorData, isFetched } = useQuery(
+    sponsorQuery(user?.currentSponsorId),
+  );
 
   useEffect(() => {
     if (sponsorData) {
@@ -142,6 +146,7 @@ function EditSponsor() {
         github,
         telegram,
         discord,
+        about,
       } = sponsorData;
       setSponsorName(name);
       setSlug(slug);
@@ -155,6 +160,7 @@ function EditSponsor() {
         banner,
         industry,
         website: url,
+        about: about || '',
         linkedinCompany: linkedin
           ? extractSocialUsername('linkedinCompany', linkedin) || ''
           : '',
@@ -267,17 +273,7 @@ function EditSponsor() {
             </FormFieldWrapper>
           </div>
 
-          <p className="mb-5 mt-5 text-lg font-semibold text-slate-600">
-            SOCIALS
-          </p>
-
-          <SocialInputAll
-            control={form.control}
-            required={['website']}
-            exclude={['linkedin']}
-          />
-
-          <div className="flex w-full">
+          <div className="mt-6 flex w-full">
             <FormFieldWrapper
               control={form.control}
               name="entityName"
@@ -296,6 +292,17 @@ function EditSponsor() {
             >
               <Input placeholder="Legal Name" />
             </FormFieldWrapper>
+          </div>
+
+          <div className="my-6">
+            <FormLabel>Socials</FormLabel>
+            <div className="mt-2">
+              <SocialInputAll
+                control={form.control}
+                required={['website']}
+                exclude={['linkedin']}
+              />
+            </div>
           </div>
 
           <div className="mb-3 mt-6 w-full">
@@ -374,7 +381,7 @@ function EditSponsor() {
               )}
             />
           </div>
-          <div className="my-6">
+          <div className="mt-6">
             <FormFieldWrapper
               control={form.control}
               name="bio"
@@ -386,6 +393,48 @@ function EditSponsor() {
             <div className="text-right text-xs text-slate-400">
               {180 - (form.watch('bio')?.length || 0)} characters left
             </div>
+          </div>
+          <div className="my-6">
+            <FormField
+              name="about"
+              control={form.control}
+              render={({ field }) => {
+                return (
+                  <FormItem className="gap-2">
+                    <div>
+                      <FormLabel>About Us</FormLabel>
+                      <FormDescription>
+                        You can provide a more detailed description of your
+                        company and add links to other websites or any important
+                        information that might be helpful for talents.
+                      </FormDescription>
+                    </div>
+                    <div className="flex rounded-md border ring-primary has-[:focus]:ring-1">
+                      <FormControl>
+                        <MinimalTiptapEditor
+                          {...field}
+                          key={`${field.name}-${isFetched ? sponsorData?.id : ''}`}
+                          value={field.value || ''}
+                          immediatelyRender={false}
+                          className="min-h-[30vh] w-full border-0 text-sm"
+                          editorContentClassName="p-4 px-2 h-full"
+                          output="html"
+                          placeholder="Type your about us here..."
+                          editable={true}
+                          editorClassName="focus:outline-none"
+                          imageSetting={{
+                            folderName: 'sponsor-about',
+                            type: 'about',
+                          }}
+                          toolbarClassName="sticky rounded-t-md top-[60px] bg-white z-10"
+                        />
+                      </FormControl>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
+            />
           </div>
           <div className="mt-8">
             <Button
