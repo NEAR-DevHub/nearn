@@ -15,6 +15,7 @@ import { Default } from '@/layouts/Default';
 import { prisma } from '@/prisma';
 import { getURL } from '@/utils/validUrl';
 
+import { DescriptionUI } from '@/features/listings/components/ListingPage/DescriptionUI';
 import { ListingTabs } from '@/features/listings/components/ListingTabs';
 import {
   Discord,
@@ -32,6 +33,7 @@ interface Props {
   description: string;
   sponsor: SponsorType;
   industry: string[];
+  about?: string;
 }
 
 // Marketing Banner Component
@@ -63,6 +65,7 @@ const SponsorListingsPage = ({
   title,
   description,
   industry,
+  about,
 }: Props) => {
   const { data: listings, isLoading: isListingsLoading } = useQuery(
     sponsorListingsQuery({ sponsor: slug }),
@@ -170,7 +173,7 @@ Check out all of ${title}'s latest earning opportunities on a single page.
           </div>
           <div className="flex px-4 md:px-6">
             <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 rounded-[10] py-3 md:flex-row md:gap-8 md:py-8">
-              <div className="w-full md:w-[80%]">
+              <div className="w-full">
                 {isListingsLoading ? (
                   <div className="mt-2 space-y-2">
                     <Skeleton className="h-3 w-[600px]" />
@@ -202,6 +205,12 @@ Check out all of ${title}'s latest earning opportunities on a single page.
                       return <Icon link={link} className="h-4 w-4" key={i} />;
                     })}
                 </div>
+                {about && (
+                  <div className="mt-8 flex flex-col text-slate-500">
+                    <h2 className="font-medium text-slate-600">About Us</h2>
+                    <DescriptionUI description={about} showMoreHeight={130} />
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -293,6 +302,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       title: sponsorInfo?.name,
       description: sponsorInfo?.bio || '',
       industry: sponsorInfo.industry.split(',') || [],
+      about: sponsorInfo?.about || '',
     },
   };
 };
