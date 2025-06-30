@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { Info, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 import { useEffect, useMemo, useState } from 'react';
@@ -24,7 +24,6 @@ import { FormFieldWrapper } from '@/components/ui/form-field-wrapper';
 import { Input } from '@/components/ui/input';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Tooltip } from '@/components/ui/tooltip';
 import { CHAIN_NAME, PROJECT_NAME } from '@/constants/project';
 import { Default } from '@/layouts/Default';
 import { Meta } from '@/layouts/Meta';
@@ -277,32 +276,12 @@ function EditSponsor() {
             <FormFieldWrapper
               control={form.control}
               name="entityName"
-              label={
-                <>
-                  Legal Name
-                  <Tooltip
-                    content="Please mention the official entity name of your project. If you are a DAO, simply mention the name of the DAO. If you neither have an entity nor are a DAO, mention your full name."
-                    contentProps={{ className: 'text-xs' }}
-                  >
-                    <Info className="ml-1 mt-1 hidden h-3 w-3 text-slate-500 md:block" />
-                  </Tooltip>
-                </>
-              }
+              description="Please mention the official entity name of your project. If you are a DAO, simply mention the name of the DAO. If you neither have an entity nor are a DAO, mention your full name."
+              label="Legal Name"
               isRequired
             >
               <Input placeholder="Legal Name" />
             </FormFieldWrapper>
-          </div>
-
-          <div className="my-6">
-            <FormLabel>Socials</FormLabel>
-            <div className="mt-2">
-              <SocialInputAll
-                control={form.control}
-                required={['website']}
-                exclude={['linkedin']}
-              />
-            </div>
           </div>
 
           <div className="mb-3 mt-6 w-full">
@@ -435,6 +414,16 @@ function EditSponsor() {
                 );
               }}
             />
+          </div>
+          <div className="my-6">
+            <FormLabel>Socials</FormLabel>
+            <div className="mt-2">
+              <SocialInputAll
+                control={form.control}
+                required={['website']}
+                exclude={['linkedin']}
+              />
+            </div>
           </div>
           <div className="mt-8">
             <Button
