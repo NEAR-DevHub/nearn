@@ -184,10 +184,15 @@ export const SubmissionDrawer = ({
               otherTokenDetails && token === 'Other'
                 ? otherTokenDetails
                 : undefined,
-            eligibilityAnswers: listing.eligibility?.map((e) => ({
-              question: e.question,
-              answer: eligibilityAnswers[e.question] ?? '',
-            })),
+            eligibilityAnswers: listing.eligibility?.map((e) => {
+              const answer = eligibilityAnswers.find(
+                (a: { question: string }) => a.question === e.question,
+              )?.answer;
+              return {
+                question: e.question,
+                answer: answer ?? '',
+              };
+            }),
             token,
           });
           setEditFetched(true);
