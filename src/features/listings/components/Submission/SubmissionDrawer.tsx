@@ -124,8 +124,6 @@ export const SubmissionDrawer = ({
       token: token === 'Any' ? tokenList[0]?.tokenSymbol : undefined,
     },
   });
-  console.log(form.formState.errors);
-  console.log(form.getValues());
   const formPublicKey = useWatch({
     control: form.control,
     name: 'publicKey',
