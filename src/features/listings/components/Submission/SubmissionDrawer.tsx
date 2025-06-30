@@ -184,9 +184,9 @@ export const SubmissionDrawer = ({
               otherTokenDetails && token === 'Other'
                 ? otherTokenDetails
                 : undefined,
-            eligibilityAnswers: eligibilityAnswers.map((answer: any) => ({
-              question: answer.question,
-              answer: answer.answer ?? '',
+            eligibilityAnswers: listing.eligibility?.map((e) => ({
+              question: e.question,
+              answer: eligibilityAnswers[e.question] ?? '',
             })),
             token,
           });
