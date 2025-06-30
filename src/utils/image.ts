@@ -21,7 +21,8 @@ export type EARN_IMAGE_FOLDER =
   | 'earn-pfp'
   | 'nearn-sponsor'
   | 'listing-description'
-  | 'listing-eligibility-answer';
+  | 'listing-eligibility-answer'
+  | 'sponsor-about';
 
 export async function uploadToCld(
   file: File,

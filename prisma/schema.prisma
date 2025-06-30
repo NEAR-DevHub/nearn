@@ -338,6 +338,9 @@ model Sponsors {
   isCaution         Boolean             @default(false)
   st                Boolean             @default(false)
   nearTreasury      Json?
+  listingCounter    Int                 @default(0)
+  submissionCounter Int                 @default(0)
+  about             String?             @db.LongText
   Hackathon         Hackathon?
   UserSponsors      UserSponsors[]
   Bounties          Bounties[]
@@ -345,8 +348,6 @@ model Sponsors {
   Grants            Grants[]
   User              User[]
   UserInvites       UserInvites[]
-  listingCounter    Int                 @default(0)
-  submissionCounter Int                 @default(0)
 
   @@index([id, slug])
   @@index([isVerified, st])
