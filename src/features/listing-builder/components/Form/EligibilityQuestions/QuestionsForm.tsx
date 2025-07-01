@@ -26,7 +26,7 @@ import {
   Settings,
   Trash2,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   type FieldArrayWithId,
   useFieldArray,
@@ -58,10 +58,11 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Tooltip } from '@/components/ui/tooltip';
+import hackathon from '@/pages/api/hackathon';
 import { cn } from '@/utils/cn';
 
-import { hackathonAtom, isEditingAtom } from '../../atoms';
-import { useListingForm } from '../../hooks';
+import { hackathonsAtom, isEditingAtom } from '../../../atoms';
+import { useListingForm } from '../../../hooks';
 
 // Define the interface for eligibility question based on the schema
 interface EligibilityQuestion {
@@ -396,14 +397,21 @@ function EligibilityQuestion({
   );
 }
 
-export function EligibilityQuestions() {
+export function EligibilityQuestionsForm() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const form = useListingForm();
   const type = useWatch({
     control: form.control,
     name: 'type',
   });
-  const hackathon = useAtomValue(hackathonAtom);
+  const hackathonId = useWatch({
+    name: 'hackathonId',
+    control: form.control,
+  });
+  const hackathons = useAtomValue(hackathonsAtom);
+  const currentHackathon = useMemo(() => {
+    return hackathons?.find((h) => h.id === hackathonId);
+  }, [hackathonId, hackathons]);
 
   const { fields, append, remove, move } = useFieldArray({
     control: form.control,
@@ -468,8 +476,8 @@ export function EligibilityQuestions() {
           handleAddQuestion(false);
         }
       } else {
-        if (type === 'hackathon' && hackathon?.eligibility) {
-          form.setValue('eligibility', hackathon?.eligibility as any);
+        if (type === 'hackathon' && currentHackathon?.eligibility) {
+          form.setValue('eligibility', currentHackathon?.eligibility as any);
         } else {
           if (fields.length > 0) {
             form.setValue('eligibility', fields.slice(0, 2));

@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type Hackathon } from '@prisma/client';
 import { useQueryClient } from '@tanstack/react-query';
-import { useAtom, useAtomValue } from 'jotai';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import debounce from 'lodash.debounce';
 import { useCallback, useEffect, useRef } from 'react';
 import { useForm, useFormContext, type UseFormReturn } from 'react-hook-form';
@@ -10,17 +10,19 @@ import { z } from 'zod';
 import { dayjs } from '@/utils/dayjs';
 
 import {
+  descriptionKeyAtom,
   draftQueueAtom,
-  hackathonAtom,
+  hackathonsAtom,
   hideAutoSaveAtom,
   isDraftSavingAtom,
   isEditingAtom,
   isGodAtom,
   isSTAtom,
   saveDraftMutationAtom,
+  skillsKeyAtom,
   submitListingMutationAtom,
 } from '../atoms';
-import { type ListingFormData } from '../types';
+import { type ListingFormData, type ValidationFields } from '../types';
 import {
   createListingFormSchema,
   createListingRefinements,
@@ -33,11 +35,12 @@ interface UseListingFormReturn extends UseFormReturn<ListingFormData> {
   resetForm: () => void;
   validateRewards: () => Promise<boolean>;
   validateBasics: () => Promise<boolean>;
+  validateEligibilityQuestions: () => Promise<boolean>;
 }
 
 export const useListingForm = (
   defaultValues?: ListingFormData,
-  hackathon?: Hackathon,
+  hackathons?: Hackathon[],
 ): UseListingFormReturn => {
   let formMethods: UseFormReturn<ListingFormData> | null = null;
   let isNewFormInitialized = false;
@@ -53,14 +56,17 @@ export const useListingForm = (
   const isEditing = useAtomValue(isEditingAtom);
   const isST = useAtomValue(isSTAtom);
 
-  const hackathonAtomed = useAtomValue(hackathonAtom);
-  hackathon = hackathon || hackathonAtomed;
+  const setDescriptionKey = useSetAtom(descriptionKeyAtom);
+  const setSkillsKey = useSetAtom(skillsKeyAtom);
+
+  const hackathonsAtomed = useAtomValue(hackathonsAtom);
+  hackathons = hackathons || hackathonsAtomed;
   const formSchema = createListingFormSchema({
     isGod,
     isEditing,
     isST,
     pastListing: defaultValues as any,
-    hackathon: hackathon,
+    hackathons: hackathons,
   });
   if (!formMethods || !Object.keys(formMethods).length) {
     //eslint-disable-next-line
@@ -148,7 +154,7 @@ export const useListingForm = (
   const onChange = useCallback(() => {
     setHideAutoSave(true);
     if (!isEditing) debouncedSaveRef.current?.();
-  }, []);
+  }, [isEditing]);
 
   const submitListing = useCallback(async () => {
     const formData = refineReadyListing(getValues());
@@ -164,16 +170,27 @@ export const useListingForm = (
       isGod,
       isEditing,
       isST,
-      hackathon,
+      hackathons,
       type: getValues().type,
+      hackathonId: undefined,
     });
     reset({
       ...getValues(),
       ...defaultValues,
+      id: getValues().id,
+      slug: getValues().slug,
+      eligibility: [],
+      skills: [],
+    });
+    setDescriptionKey((s) => {
+      if (typeof s === 'number') return s + 1;
+      else return 1;
+    });
+    setSkillsKey((s) => {
+      if (typeof s === 'number') return s + 1;
+      else return 1;
     });
   }, [reset]);
-
-  type ValidationFields = Partial<Record<keyof ListingFormData, true>>;
 
   const validateFields = useCallback(
     async (fields: ValidationFields) => {
@@ -198,7 +215,7 @@ export const useListingForm = (
       const partialSchema = innerSchema
         .pick(fields)
         .superRefine((data, ctx) => {
-          createListingRefinements(data as any, ctx, hackathon);
+          createListingRefinements(data as any, ctx, hackathons, fields);
         });
 
       try {
@@ -208,7 +225,6 @@ export const useListingForm = (
         await partialSchema.parseAsync(values);
         return true;
       } catch (error) {
-        console.log('validation error', error);
         if (error instanceof z.ZodError) {
           error.errors.forEach((err) => {
             const fieldName = err.path.join('.') as keyof ListingFormData;
@@ -223,6 +239,13 @@ export const useListingForm = (
     },
     [formMethods, formSchema, isGod, isEditing, isST],
   );
+
+  const validateEligibilityQuestions = () =>
+    validateFields({
+      type: true,
+      compensationType: true,
+      eligibility: true,
+    });
 
   const validateRewards = () =>
     validateFields({
@@ -269,5 +292,6 @@ export const useListingForm = (
     resetForm,
     validateRewards,
     validateBasics,
+    validateEligibilityQuestions,
   };
 };

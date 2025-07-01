@@ -14,8 +14,10 @@ const isSTAtom = atom<boolean>(false);
 const isEditingAtom = atom<boolean>(false);
 const listingStatusAtom = atom<ListingStatus | undefined>(undefined);
 const isDraftSavingAtom = atom(false);
-const hackathonAtom = atom<Hackathon | undefined>(undefined);
+const hackathonsAtom = atom<Hackathon[] | undefined>(undefined);
 const hideAutoSaveAtom = atom<boolean>(true);
+const descriptionKeyAtom = atom<string | number>(1);
+const skillsKeyAtom = atom<string | number>(1);
 
 interface SaveQueueState {
   isProcessing: boolean;
@@ -58,8 +60,9 @@ const submitListingMutationAtom = atomWithMutation((get) => ({
 
 export {
   confirmModalAtom,
+  descriptionKeyAtom,
   draftQueueAtom,
-  hackathonAtom,
+  hackathonsAtom,
   hideAutoSaveAtom,
   isDraftSavingAtom,
   isEditingAtom,
@@ -68,6 +71,7 @@ export {
   listingStatusAtom,
   previewAtom,
   saveDraftMutationAtom,
+  skillsKeyAtom,
   store,
   submitListingMutationAtom,
 };

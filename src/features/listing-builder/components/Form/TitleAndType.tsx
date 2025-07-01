@@ -28,7 +28,7 @@ import { PROJECT_NAME } from '@/constants/project';
 
 import { getListingIcon } from '@/features/listings/utils/getListingIcon';
 
-import { hackathonAtom, isEditingAtom } from '../../atoms';
+import { hackathonsAtom, isEditingAtom } from '../../atoms';
 import { useListingForm } from '../../hooks';
 import { slugCheckQuery } from '../../queries/slug-check';
 import { calculateTotalRewardsForPodium } from '../../utils/rewards';
@@ -168,8 +168,15 @@ export function TitleAndType() {
 function Type() {
   const form = useListingForm();
   const isEditing = useAtomValue(isEditingAtom);
-  const hackathon = useAtomValue(hackathonAtom);
+  const hackathons = useAtomValue(hackathonsAtom);
   const [prevCompType, setPrevCompType] = useState<CompensationType>('fixed');
+  const hackathonId = useWatch({
+    name: 'hackathonId',
+    control: form.control,
+  });
+  const currentHackathon = useMemo(() => {
+    return hackathons?.find((h) => h.id === hackathonId);
+  }, [hackathonId, hackathons]);
   return (
     <FormField
       name="type"
@@ -184,8 +191,8 @@ function Type() {
                 onValueChange={(e) => {
                   field.onChange(e);
                   if (e === 'hackathon') {
-                    if (hackathon) {
-                      form.setValue('hackathonId', hackathon.id);
+                    if (currentHackathon) {
+                      form.setValue('hackathonId', currentHackathon.id);
                     }
                   } else {
                     form.setValue('hackathonId', undefined);
@@ -234,20 +241,16 @@ function Type() {
                       </div>
                     </SelectItem>
                   ))}
-                  {hackathon && (
-                    <SelectItem key={'hackathon'} value={'hackathon'}>
+                  {hackathons?.map((hackathon) => (
+                    <SelectItem key={hackathon.id} value={hackathon.slug}>
                       <div className="flex items-center gap-2 text-xs">
-                        <LocalImage
-                          src={hackathon.altLogo || ''}
-                          alt={hackathon.name}
-                          className="h-4 w-4 object-contain"
-                        />
+                        {getListingIcon('hackathon')}
                         <span className="max-w-20 truncate">
                           {hackathon.name}
                         </span>
                       </div>
                     </SelectItem>
-                  )}
+                  ))}
                 </SelectContent>
               </Select>
             </FormControl>
