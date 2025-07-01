@@ -18,18 +18,20 @@ import { useAtomValue } from 'jotai';
 import {
   Baseline,
   CheckSquare,
+  Copy,
   GripVertical,
-  Info,
   LetterText,
   Link2,
+  ListCheck,
   Plus,
   Settings,
   Trash2,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   type FieldArrayWithId,
   useFieldArray,
+  useFormContext,
   useWatch,
 } from 'react-hook-form';
 
@@ -57,18 +59,17 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Tooltip } from '@/components/ui/tooltip';
 import { cn } from '@/utils/cn';
 
-import { hackathonAtom, isEditingAtom } from '../../atoms';
-import { useListingForm } from '../../hooks';
+import { hackathonsAtom, isEditingAtom } from '../../../atoms';
+import { useListingForm } from '../../../hooks';
 
 // Define the interface for eligibility question based on the schema
 interface EligibilityQuestion {
   order: number;
   question: string;
   description?: string | null;
-  type: 'text' | 'paragraph' | 'link' | 'checkbox';
+  type: 'text' | 'paragraph' | 'link' | 'checkbox' | 'select';
   optional?: boolean;
 }
 
@@ -81,7 +82,6 @@ function QuestionSettingsPopover({ index }: QuestionSettingsDialogProps) {
 
   const changeBoolean = (field: any) => {
     field.onChange(!field.value);
-    form.saveDraft();
   };
   return (
     <FormField
@@ -94,7 +94,7 @@ function QuestionSettingsPopover({ index }: QuestionSettingsDialogProps) {
               type="button"
               variant="ghost"
               size="icon"
-              className="h-auto p-1 text-muted-foreground text-slate-700 hover:bg-transparent hover:text-black"
+              className="h-auto p-1 text-muted-foreground text-slate-500 hover:bg-transparent hover:text-slate-600"
             >
               <Settings className="h-4 w-4" />
             </Button>
@@ -131,6 +131,7 @@ const questionTypes = [
   { value: 'paragraph', label: 'Paragraph', icon: LetterText },
   { value: 'link', label: 'Link', icon: Link2 },
   { value: 'checkbox', label: 'Checkbox', icon: CheckSquare },
+  { value: 'select', label: 'Select', icon: ListCheck },
 ];
 
 interface QuestionTypeSelectProps {
@@ -151,7 +152,14 @@ function QuestionTypeSelect({ index }: QuestionTypeSelectProps) {
             defaultValue="text"
             onValueChange={(value) => {
               field.onChange(value);
-              if (form.getValues().id) form.saveDraft();
+              if (value === 'checkbox') {
+                form.setValue(`eligibility.${index}.description`, '');
+              }
+              if (value === 'select') {
+                form.setValue(`eligibility.${index}.variants`, ['Variant 1']);
+              } else {
+                form.setValue(`eligibility.${index}.variants`, null);
+              }
             }}
           >
             <FormControl>
@@ -187,17 +195,90 @@ function QuestionTypeSelect({ index }: QuestionTypeSelectProps) {
   );
 }
 
+interface VariantsArrayProps {
+  index: number;
+}
+
+function VariantsArray({ index }: VariantsArrayProps) {
+  const { control } = useFormContext();
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: `eligibility.${index}.variants`,
+  });
+
+  const handleAddVariant = () => {
+    append('', { shouldFocus: true });
+  };
+
+  const handleRemoveVariant = (index2: number) => {
+    console.log(index2);
+    remove(index2);
+  };
+
+  return (
+    <div className="pl-2">
+      {fields?.map((field, index2) => (
+        <FormField
+          key={field.id}
+          control={control}
+          name={`eligibility.${index}.variants.${index2}`}
+          render={({ field }) => (
+            <div className="border-b border-slate-200">
+              <div className="group flex items-center gap-2">
+                <GripVertical className="h-4 w-4 text-slate-400" />
+                <Textarea
+                  {...field}
+                  placeholder="Enter your option"
+                  className="min-h-[20px] resize-none overflow-hidden border-none pl-0 font-medium !text-muted-foreground shadow-none focus-visible:ring-0"
+                  rows={1}
+                />
+                {fields.length !== 1 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-5 p-0 text-slate-500 opacity-0 group-hover:opacity-100 hover:bg-transparent hover:text-destructive"
+                    onClick={() => handleRemoveVariant(index2)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+              <FormMessage className="pl-6" />
+            </div>
+          )}
+        />
+      ))}
+      <Button
+        variant="ghost"
+        className="w-full justify-start pl-6 text-slate-400 hover:bg-transparent hover:text-slate-500"
+        onClick={handleAddVariant}
+      >
+        Add Option
+      </Button>
+    </div>
+  );
+}
+
 interface EligibilityQuestionProps {
   index: number;
   id: string;
   fields: FieldArrayWithId<any, 'eligibility', 'id'>[];
   handleRemoveQuestion: (index: number) => void;
+  handleDuplicateQuestion: (
+    question: string,
+    type: 'text' | 'link' | 'paragraph' | 'checkbox' | 'select',
+    description: string,
+    optional: boolean,
+    variants: string[] | null,
+  ) => void;
 }
 
 function EligibilityQuestion({
   index,
   fields,
   handleRemoveQuestion,
+  handleDuplicateQuestion,
   id,
 }: EligibilityQuestionProps) {
   const form = useListingForm();
@@ -222,9 +303,26 @@ function EligibilityQuestion({
     height: 'auto',
   };
 
-  const questionData = form.getValues().eligibility?.[index] as
-    | EligibilityQuestion
-    | undefined;
+  const optional = useWatch({
+    control: form.control,
+    name: `eligibility.${index}.optional`,
+  });
+  const questionType = useWatch({
+    control: form.control,
+    name: `eligibility.${index}.type`,
+  });
+  const question = useWatch({
+    control: form.control,
+    name: `eligibility.${index}.question`,
+  });
+  const description = useWatch({
+    control: form.control,
+    name: `eligibility.${index}.description`,
+  });
+  const variants = useWatch({
+    control: form.control,
+    name: `eligibility.${index}.variants`,
+  });
 
   // Add useEffect to adjust textarea height on mount and value change
   useEffect(() => {
@@ -254,8 +352,6 @@ function EligibilityQuestion({
         control={form.control}
         name={`eligibility.${index}.question`}
         render={() => {
-          const { type: questionType, question } =
-            form.getValues()?.eligibility?.[index] ?? {};
           return (
             <div className="group relative">
               <FormItem className="rounded-lg border">
@@ -282,12 +378,23 @@ function EligibilityQuestion({
                     >
                       <span className="text-muted-foreground">
                         Question {index + 1}
-                        <span className="text-red-500">
-                          {questionData?.optional !== true && ' *'}
-                        </span>
                       </span>
                     </FormLabel>
                   </div>
+                  <Button
+                    onClick={() => {
+                      form.setValue(`eligibility.${index}.optional`, !optional);
+                    }}
+                    variant="ghost"
+                    className={cn(
+                      'ml-auto h-fit rounded-md px-[6px] py-[2px] text-xs',
+                      optional
+                        ? 'bg-slate-50 text-slate-500'
+                        : 'bg-orange-50 text-orange-600 hover:bg-orange-100 hover:text-orange-600',
+                    )}
+                  >
+                    {optional ? 'Optional Question' : 'Required Question'}
+                  </Button>
                   <QuestionTypeSelect index={index} />
                 </div>
                 <div>
@@ -314,7 +421,6 @@ function EligibilityQuestion({
                               value={field.value || ''}
                               onChange={(e) => {
                                 field.onChange(e);
-                                form.saveDraft();
                                 e.target.style.height = 'auto';
                                 e.target.style.height =
                                   e.target.scrollHeight + 'px';
@@ -356,7 +462,6 @@ function EligibilityQuestion({
                                 rows={1}
                                 onChange={(e) => {
                                   field.onChange(e);
-                                  form.saveDraft();
                                   e.target.style.height = 'auto';
                                   e.target.style.height =
                                     e.target.scrollHeight + 'px';
@@ -368,6 +473,7 @@ function EligibilityQuestion({
                       />
                     )}
                 </div>
+                {questionType === 'select' && <VariantsArray index={index} />}
               </FormItem>
               <FormMessage />
 
@@ -379,12 +485,29 @@ function EligibilityQuestion({
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="hover:bg-transparent hover:text-destructive"
+                      className="h-5 p-0 text-slate-500 hover:bg-transparent hover:text-destructive"
                       onClick={() => handleRemoveQuestion(index)}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   )}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="mt-1 h-5 p-0 text-slate-500 hover:bg-transparent hover:text-slate-600"
+                    onClick={() =>
+                      handleDuplicateQuestion(
+                        question,
+                        questionType,
+                        description ?? '',
+                        optional,
+                        variants ?? null,
+                      )
+                    }
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
                   <QuestionSettingsPopover index={index} />
                 </div>
               </div>
@@ -396,14 +519,21 @@ function EligibilityQuestion({
   );
 }
 
-export function EligibilityQuestions() {
+export function EligibilityQuestionsForm() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const form = useListingForm();
   const type = useWatch({
     control: form.control,
     name: 'type',
   });
-  const hackathon = useAtomValue(hackathonAtom);
+  const hackathonId = useWatch({
+    name: 'hackathonId',
+    control: form.control,
+  });
+  const hackathons = useAtomValue(hackathonsAtom);
+  const currentHackathon = useMemo(() => {
+    return hackathons?.find((h) => h.id === hackathonId);
+  }, [hackathonId, hackathons]);
 
   const { fields, append, remove, move } = useFieldArray({
     control: form.control,
@@ -437,8 +567,6 @@ export function EligibilityQuestions() {
       fields.forEach((_, index) => {
         form.setValue(`eligibility.${index}.order`, index + 1);
       });
-
-      form.saveDraft();
     }
   };
 
@@ -449,6 +577,7 @@ export function EligibilityQuestions() {
         question: '',
         type: 'text',
         optional: false,
+        variants: null,
       },
       {
         shouldFocus: focus,
@@ -458,7 +587,28 @@ export function EligibilityQuestions() {
 
   const handleRemoveQuestion = (index: number) => {
     remove(index);
-    form.saveDraft();
+  };
+
+  const handleDuplicateQuestion = (
+    question: string,
+    type: 'text' | 'link' | 'paragraph' | 'checkbox' | 'select',
+    description: string,
+    optional: boolean,
+    variants: string[] | null,
+  ) => {
+    append(
+      {
+        order: fields.length + 1,
+        question: question,
+        type: type,
+        description: description,
+        optional: optional,
+        variants: variants || null,
+      },
+      {
+        shouldFocus: false,
+      },
+    );
   };
 
   useEffect(() => {
@@ -468,8 +618,8 @@ export function EligibilityQuestions() {
           handleAddQuestion(false);
         }
       } else {
-        if (type === 'hackathon' && hackathon?.eligibility) {
-          form.setValue('eligibility', hackathon?.eligibility as any);
+        if (type === 'hackathon' && currentHackathon?.eligibility) {
+          form.setValue('eligibility', currentHackathon?.eligibility as any);
         } else {
           if (fields.length > 0) {
             form.setValue('eligibility', fields.slice(0, 2));
@@ -479,7 +629,7 @@ export function EligibilityQuestions() {
         }
       }
     }
-  }, [type, hackathon, isEditing]);
+  }, [type, currentHackathon, isEditing]);
 
   return (
     <FormField
@@ -487,23 +637,9 @@ export function EligibilityQuestions() {
       name={`eligibility`}
       render={() => (
         <FormItem className="gap-2 pt-2">
-          <div className="flex items-center gap-2">
-            <FormLabel className="font-bold uppercase text-slate-400">
-              Custom Questions
-            </FormLabel>
-            <Tooltip
-              delayDuration={100}
-              content={
-                <p className="max-w-sm">
-                  {type === 'project' || type === 'sponsorship'
-                    ? `Applicant's names, email IDs, Discord / Twitter IDs, and NEAR wallet are collected by default. Please use this space to ask about anything else! At least one question is required.`
-                    : `The main bounty submission link, the submitter's names, email IDs, Discord / Twitter IDs, and NEAR wallet are collected by default. Please use this space to ask about anything else!`}
-                </p>
-              }
-            >
-              <Info className="h-3 w-3 text-slate-400" />
-            </Tooltip>
-          </div>
+          <p className="text-xs font-medium uppercase text-slate-500">
+            Custom Questions
+          </p>
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
@@ -522,6 +658,7 @@ export function EligibilityQuestions() {
                     index={index}
                     fields={fields}
                     handleRemoveQuestion={handleRemoveQuestion}
+                    handleDuplicateQuestion={handleDuplicateQuestion}
                   />
                 ))}
               </div>
@@ -537,6 +674,7 @@ export function EligibilityQuestions() {
                         index={index}
                         fields={fields}
                         handleRemoveQuestion={handleRemoveQuestion}
+                        handleDuplicateQuestion={handleDuplicateQuestion}
                       />
                     ) : null,
                   )}

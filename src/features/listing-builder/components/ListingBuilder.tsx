@@ -113,9 +113,7 @@ export function ListingBuilder({ route, slug }: ListingBuilderLayout) {
           : listing
       }
       isEditing={!!listing?.publishedAt}
-      hackathon={
-        listing?.type === 'hackathon' ? (listing?.Hackathon as any) : hackathon
-      }
+      hackathons={hackathon ? [hackathon] : []}
     />
   );
 }

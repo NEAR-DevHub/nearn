@@ -75,10 +75,11 @@ export interface ListingWithSubmissions extends Listing {
 interface Eligibility {
   order: number;
   question: string;
-  type?: 'text' | 'link' | 'paragraph' | 'checkbox';
+  type?: 'text' | 'link' | 'paragraph' | 'checkbox' | 'select';
   optional?: boolean;
   isLink?: boolean;
   description?: string;
+  variants?: string[];
 }
 
 export interface References {
