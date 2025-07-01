@@ -7,7 +7,13 @@ import { prisma } from '@/prisma';
 import { safeStringify } from '@/utils/safeStringify';
 
 const corsMiddleware = cors({
-  origin: ['http://localhost:8080', 'http://127.0.0.1:8080', '*.near.page'],
+  origin: [
+    'http://localhost:8080',
+    'http://127.0.0.1:8080',
+    '*.near.page',
+    'https://near.social',
+    'https://dev.near.org',
+  ],
   methods: ['GET'],
 });
 
