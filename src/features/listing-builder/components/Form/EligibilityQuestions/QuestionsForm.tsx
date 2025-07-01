@@ -18,6 +18,7 @@ import { useAtomValue } from 'jotai';
 import {
   Baseline,
   CheckSquare,
+  Copy,
   GripVertical,
   Info,
   LetterText,
@@ -82,7 +83,6 @@ function QuestionSettingsPopover({ index }: QuestionSettingsDialogProps) {
 
   const changeBoolean = (field: any) => {
     field.onChange(!field.value);
-    form.saveDraft();
   };
   return (
     <FormField
@@ -95,7 +95,7 @@ function QuestionSettingsPopover({ index }: QuestionSettingsDialogProps) {
               type="button"
               variant="ghost"
               size="icon"
-              className="h-auto p-1 text-muted-foreground text-slate-700 hover:bg-transparent hover:text-black"
+              className="h-auto p-1 text-muted-foreground text-slate-500 hover:bg-transparent hover:text-slate-600"
             >
               <Settings className="h-4 w-4" />
             </Button>
@@ -152,7 +152,9 @@ function QuestionTypeSelect({ index }: QuestionTypeSelectProps) {
             defaultValue="text"
             onValueChange={(value) => {
               field.onChange(value);
-              if (form.getValues().id) form.saveDraft();
+              if (value === 'checkbox') {
+                form.setValue(`eligibility.${index}.description`, '');
+              }
             }}
           >
             <FormControl>
@@ -193,12 +195,19 @@ interface EligibilityQuestionProps {
   id: string;
   fields: FieldArrayWithId<any, 'eligibility', 'id'>[];
   handleRemoveQuestion: (index: number) => void;
+  handleDuplicateQuestion: (
+    question: string,
+    type: 'text' | 'link' | 'paragraph' | 'checkbox',
+    description: string,
+    optional: boolean,
+  ) => void;
 }
 
 function EligibilityQuestion({
   index,
   fields,
   handleRemoveQuestion,
+  handleDuplicateQuestion,
   id,
 }: EligibilityQuestionProps) {
   const form = useListingForm();
@@ -223,9 +232,22 @@ function EligibilityQuestion({
     height: 'auto',
   };
 
-  const questionData = form.getValues().eligibility?.[index] as
-    | EligibilityQuestion
-    | undefined;
+  const optional = useWatch({
+    control: form.control,
+    name: `eligibility.${index}.optional`,
+  });
+  const questionType = useWatch({
+    control: form.control,
+    name: `eligibility.${index}.type`,
+  });
+  const question = useWatch({
+    control: form.control,
+    name: `eligibility.${index}.question`,
+  });
+  const description = useWatch({
+    control: form.control,
+    name: `eligibility.${index}.description`,
+  });
 
   // Add useEffect to adjust textarea height on mount and value change
   useEffect(() => {
@@ -255,8 +277,6 @@ function EligibilityQuestion({
         control={form.control}
         name={`eligibility.${index}.question`}
         render={() => {
-          const { type: questionType, question } =
-            form.getValues()?.eligibility?.[index] ?? {};
           return (
             <div className="group relative">
               <FormItem className="rounded-lg border">
@@ -283,12 +303,23 @@ function EligibilityQuestion({
                     >
                       <span className="text-muted-foreground">
                         Question {index + 1}
-                        <span className="text-red-500">
-                          {questionData?.optional !== true && ' *'}
-                        </span>
                       </span>
                     </FormLabel>
                   </div>
+                  <Button
+                    onClick={() => {
+                      form.setValue(`eligibility.${index}.optional`, !optional);
+                    }}
+                    variant="ghost"
+                    className={cn(
+                      'ml-auto h-fit rounded-md px-[6px] py-[2px] text-xs',
+                      optional
+                        ? 'bg-slate-50 text-slate-500'
+                        : 'bg-orange-50 text-orange-600 hover:bg-orange-100 hover:text-orange-600',
+                    )}
+                  >
+                    {optional ? 'Optional Question' : 'Required Question'}
+                  </Button>
                   <QuestionTypeSelect index={index} />
                 </div>
                 <div>
@@ -315,7 +346,6 @@ function EligibilityQuestion({
                               value={field.value || ''}
                               onChange={(e) => {
                                 field.onChange(e);
-                                form.saveDraft();
                                 e.target.style.height = 'auto';
                                 e.target.style.height =
                                   e.target.scrollHeight + 'px';
@@ -357,7 +387,6 @@ function EligibilityQuestion({
                                 rows={1}
                                 onChange={(e) => {
                                   field.onChange(e);
-                                  form.saveDraft();
                                   e.target.style.height = 'auto';
                                   e.target.style.height =
                                     e.target.scrollHeight + 'px';
@@ -380,12 +409,28 @@ function EligibilityQuestion({
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="hover:bg-transparent hover:text-destructive"
+                      className="h-5 p-0 text-slate-500 hover:bg-transparent hover:text-destructive"
                       onClick={() => handleRemoveQuestion(index)}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   )}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="mt-1 h-5 p-0 text-slate-500 hover:bg-transparent hover:text-slate-600"
+                    onClick={() =>
+                      handleDuplicateQuestion(
+                        question,
+                        questionType,
+                        description ?? '',
+                        optional,
+                      )
+                    }
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
                   <QuestionSettingsPopover index={index} />
                 </div>
               </div>
@@ -445,8 +490,6 @@ export function EligibilityQuestionsForm() {
       fields.forEach((_, index) => {
         form.setValue(`eligibility.${index}.order`, index + 1);
       });
-
-      form.saveDraft();
     }
   };
 
@@ -466,7 +509,26 @@ export function EligibilityQuestionsForm() {
 
   const handleRemoveQuestion = (index: number) => {
     remove(index);
-    form.saveDraft();
+  };
+
+  const handleDuplicateQuestion = (
+    question: string,
+    type: 'text' | 'link' | 'paragraph' | 'checkbox',
+    description: string,
+    optional: boolean,
+  ) => {
+    append(
+      {
+        order: fields.length + 1,
+        question: question,
+        type: type,
+        description: description,
+        optional: optional,
+      },
+      {
+        shouldFocus: false,
+      },
+    );
   };
 
   useEffect(() => {
@@ -530,6 +592,7 @@ export function EligibilityQuestionsForm() {
                     index={index}
                     fields={fields}
                     handleRemoveQuestion={handleRemoveQuestion}
+                    handleDuplicateQuestion={handleDuplicateQuestion}
                   />
                 ))}
               </div>
@@ -545,6 +608,7 @@ export function EligibilityQuestionsForm() {
                         index={index}
                         fields={fields}
                         handleRemoveQuestion={handleRemoveQuestion}
+                        handleDuplicateQuestion={handleDuplicateQuestion}
                       />
                     ) : null,
                   )}

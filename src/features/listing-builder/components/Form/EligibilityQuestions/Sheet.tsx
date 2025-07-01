@@ -36,7 +36,6 @@ export function EligibilityQuestionsSheet() {
     control: form.control,
     name: 'type',
   });
-  console.log(form.formState.errors);
 
   const hasEligibilityQsErrors = useMemo(() => {
     const errors = form.formState.errors;
@@ -48,9 +47,20 @@ export function EligibilityQuestionsSheet() {
 
   const subtext = useMemo(
     () =>
-      type === 'project' || type === 'sponsorship'
-        ? `Applicant's names, email IDs, and NEAR wallet are collected by default. Please use this space to ask about anything else!`
-        : `The main ${type === 'bounty' ? 'bounty' : 'hackathon'} submission link, the submitter's names, email IDs, and NEAR wallet are collected by default. Please use this space to ask about anything else!`,
+      type === 'project' || type === 'sponsorship' ? (
+        <>
+          Applicant&apos;s <strong>Names</strong>, <strong>Email</strong>,{' '}
+          <strong>IDs</strong>, and <strong>NEAR Wallet</strong> are collected
+          by default. Please use this space to ask about anything else!
+        </>
+      ) : (
+        <>
+          The main {type === 'bounty' ? 'bounty' : 'hackathon'} submission link,
+          the submitter&apos;s <strong>Names</strong>, <strong>Email</strong>,{' '}
+          <strong>IDs</strong>, and <strong>NEAR Wallet</strong> are collected
+          by default. Please use this space to ask about anything else!
+        </>
+      ),
     [type],
   );
 
@@ -59,6 +69,7 @@ export function EligibilityQuestionsSheet() {
       open={open}
       onOpenChange={async (e) => {
         setOpen(e);
+        if (!e) form.saveDraft();
       }}
     >
       <SheetTrigger className="w-full">
@@ -93,7 +104,7 @@ export function EligibilityQuestionsSheet() {
                   size="sm"
                   className="ml-auto group-hover:underline"
                 >
-                  {(field.value?.length || 0) > 0 ? 'Edit' : 'Add'}
+                  Edit
                 </Button>
               </div>
               {hasEligibilityQsErrors ? (
@@ -110,9 +121,9 @@ export function EligibilityQuestionsSheet() {
       <SheetContent
         showCloseIcon={false}
         side="right"
-        className="flex h-[100vh] flex-col p-0 sm:max-w-xl"
+        className="flex h-[100vh] flex-col overflow-y-auto p-0 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-slate-300 sm:max-w-xl"
       >
-        <SheetHeader className={cn('shrink-0 space-y-2 border-b p-6')}>
+        <SheetHeader className={cn('space-y-2 border-b p-6')}>
           <SheetTitle>
             {type === 'project' ? 'Application' : 'Submission'} Form
           </SheetTitle>
@@ -123,16 +134,13 @@ export function EligibilityQuestionsSheet() {
         </SheetHeader>
 
         <div
-          className={cn(
-            'flex min-h-0 flex-1 flex-col p-6 pt-0',
-            'w-[calc(100%-28px)]',
-          )}
+          className={cn('flex flex-col p-6 pt-0', 'w-[calc(100%-28px)]')}
           id="main-content"
         >
           <EligibilityQuestionsForm />
         </div>
 
-        <div className="shrink-0">
+        <div className="mt-auto">
           <Separator className="mb-4" />
           <SheetFooter className="p-6 pt-0">
             <Button
