@@ -32,10 +32,9 @@ export function DescriptionUI({ description, showMoreHeight }: Props) {
     setIsMounted(true);
   }, []);
 
-  const limitHeight = showMoreHeight || window.innerHeight / 2;
-
   const checkIfTruncationNeeded = useCallback(() => {
     if (!descriptionRef.current) return;
+    const limitHeight = showMoreHeight || window.innerHeight / 2;
 
     const container = descriptionRef.current;
 
@@ -47,7 +46,7 @@ export function DescriptionUI({ description, showMoreHeight }: Props) {
       setShowCollapser(false);
       setShowMore(true);
     }
-  }, [limitHeight]);
+  }, [showMoreHeight]);
 
   useEffect(() => {
     // Use a timeout to ensure the DOM has been updated
@@ -58,11 +57,13 @@ export function DescriptionUI({ description, showMoreHeight }: Props) {
     }, 0);
 
     return () => clearTimeout(timer);
-  }, [checkIfTruncationNeeded, isMounted, isNotMD, limitHeight]);
+  }, [checkIfTruncationNeeded, isMounted, isNotMD, showMoreHeight]);
 
   if (!isMounted) {
     return null;
   }
+
+  const height = showMoreHeight ? `${showMoreHeight}px` : `50vh`;
 
   return (
     <div
@@ -81,7 +82,7 @@ export function DescriptionUI({ description, showMoreHeight }: Props) {
             !showMore && 'overflow-hidden',
           )}
           style={{
-            height: !showMore ? `${limitHeight}px` : 'auto',
+            height: !showMore ? height : 'auto',
           }}
         >
           <div className="minimal-tiptap-editor tiptap ProseMirror h-full w-full overflow-visible !px-0 pb-7">
