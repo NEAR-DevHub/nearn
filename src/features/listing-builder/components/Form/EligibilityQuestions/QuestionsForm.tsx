@@ -20,9 +20,9 @@ import {
   CheckSquare,
   Copy,
   GripVertical,
-  Info,
   LetterText,
   Link2,
+  ListCheck,
   Plus,
   Settings,
   Trash2,
@@ -31,6 +31,7 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   type FieldArrayWithId,
   useFieldArray,
+  useFormContext,
   useWatch,
 } from 'react-hook-form';
 
@@ -58,8 +59,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Tooltip } from '@/components/ui/tooltip';
-import hackathon from '@/pages/api/hackathon';
 import { cn } from '@/utils/cn';
 
 import { hackathonsAtom, isEditingAtom } from '../../../atoms';
@@ -70,7 +69,7 @@ interface EligibilityQuestion {
   order: number;
   question: string;
   description?: string | null;
-  type: 'text' | 'paragraph' | 'link' | 'checkbox';
+  type: 'text' | 'paragraph' | 'link' | 'checkbox' | 'select';
   optional?: boolean;
 }
 
@@ -132,6 +131,7 @@ const questionTypes = [
   { value: 'paragraph', label: 'Paragraph', icon: LetterText },
   { value: 'link', label: 'Link', icon: Link2 },
   { value: 'checkbox', label: 'Checkbox', icon: CheckSquare },
+  { value: 'select', label: 'Select', icon: ListCheck },
 ];
 
 interface QuestionTypeSelectProps {
@@ -154,6 +154,11 @@ function QuestionTypeSelect({ index }: QuestionTypeSelectProps) {
               field.onChange(value);
               if (value === 'checkbox') {
                 form.setValue(`eligibility.${index}.description`, '');
+              }
+              if (value === 'select') {
+                form.setValue(`eligibility.${index}.variants`, ['Variant 1']);
+              } else {
+                form.setValue(`eligibility.${index}.variants`, null);
               }
             }}
           >
@@ -190,6 +195,71 @@ function QuestionTypeSelect({ index }: QuestionTypeSelectProps) {
   );
 }
 
+interface VariantsArrayProps {
+  index: number;
+}
+
+function VariantsArray({ index }: VariantsArrayProps) {
+  const { control } = useFormContext();
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: `eligibility.${index}.variants`,
+  });
+
+  const handleAddVariant = () => {
+    append('', { shouldFocus: true });
+  };
+
+  const handleRemoveVariant = (index2: number) => {
+    console.log(index2);
+    remove(index2);
+  };
+
+  return (
+    <div className="pl-2">
+      {fields?.map((field, index2) => (
+        <FormField
+          key={field.id}
+          control={control}
+          name={`eligibility.${index}.variants.${index2}`}
+          render={({ field }) => (
+            <div className="border-b border-slate-200">
+              <div className="group flex items-center gap-2">
+                <GripVertical className="h-4 w-4 text-slate-400" />
+                <Textarea
+                  {...field}
+                  placeholder="Enter your option"
+                  className="min-h-[20px] resize-none overflow-hidden border-none pl-0 font-medium !text-muted-foreground shadow-none focus-visible:ring-0"
+                  rows={1}
+                />
+                {fields.length !== 1 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-5 p-0 text-slate-500 opacity-0 group-hover:opacity-100 hover:bg-transparent hover:text-destructive"
+                    onClick={() => handleRemoveVariant(index2)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+              <FormMessage className="pl-6" />
+            </div>
+          )}
+        />
+      ))}
+      <Button
+        variant="ghost"
+        className="w-full justify-start pl-6 text-slate-400 hover:bg-transparent hover:text-slate-500"
+        onClick={handleAddVariant}
+      >
+        Add Option
+      </Button>
+    </div>
+  );
+}
+
 interface EligibilityQuestionProps {
   index: number;
   id: string;
@@ -197,9 +267,10 @@ interface EligibilityQuestionProps {
   handleRemoveQuestion: (index: number) => void;
   handleDuplicateQuestion: (
     question: string,
-    type: 'text' | 'link' | 'paragraph' | 'checkbox',
+    type: 'text' | 'link' | 'paragraph' | 'checkbox' | 'select',
     description: string,
     optional: boolean,
+    variants: string[] | null,
   ) => void;
 }
 
@@ -247,6 +318,10 @@ function EligibilityQuestion({
   const description = useWatch({
     control: form.control,
     name: `eligibility.${index}.description`,
+  });
+  const variants = useWatch({
+    control: form.control,
+    name: `eligibility.${index}.variants`,
   });
 
   // Add useEffect to adjust textarea height on mount and value change
@@ -398,6 +473,7 @@ function EligibilityQuestion({
                       />
                     )}
                 </div>
+                {questionType === 'select' && <VariantsArray index={index} />}
               </FormItem>
               <FormMessage />
 
@@ -426,6 +502,7 @@ function EligibilityQuestion({
                         questionType,
                         description ?? '',
                         optional,
+                        variants ?? null,
                       )
                     }
                   >
@@ -500,6 +577,7 @@ export function EligibilityQuestionsForm() {
         question: '',
         type: 'text',
         optional: false,
+        variants: null,
       },
       {
         shouldFocus: focus,
@@ -513,9 +591,10 @@ export function EligibilityQuestionsForm() {
 
   const handleDuplicateQuestion = (
     question: string,
-    type: 'text' | 'link' | 'paragraph' | 'checkbox',
+    type: 'text' | 'link' | 'paragraph' | 'checkbox' | 'select',
     description: string,
     optional: boolean,
+    variants: string[] | null,
   ) => {
     append(
       {
@@ -524,6 +603,7 @@ export function EligibilityQuestionsForm() {
         type: type,
         description: description,
         optional: optional,
+        variants: variants || null,
       },
       {
         shouldFocus: false,
@@ -549,7 +629,7 @@ export function EligibilityQuestionsForm() {
         }
       }
     }
-  }, [type, hackathon, isEditing]);
+  }, [type, currentHackathon, isEditing]);
 
   return (
     <FormField
@@ -557,23 +637,9 @@ export function EligibilityQuestionsForm() {
       name={`eligibility`}
       render={() => (
         <FormItem className="gap-2 pt-2">
-          <div className="flex items-center gap-2">
-            <FormLabel className="font-bold uppercase text-slate-400">
-              Custom Questions
-            </FormLabel>
-            <Tooltip
-              delayDuration={100}
-              content={
-                <p className="max-w-sm">
-                  {type === 'project' || type === 'sponsorship'
-                    ? `Applicant's names, email IDs, Discord / Twitter IDs, and NEAR wallet are collected by default. Please use this space to ask about anything else! At least one question is required.`
-                    : `The main bounty submission link, the submitter's names, email IDs, Discord / Twitter IDs, and NEAR wallet are collected by default. Please use this space to ask about anything else!`}
-                </p>
-              }
-            >
-              <Info className="h-3 w-3 text-slate-400" />
-            </Tooltip>
-          </div>
+          <p className="text-xs font-medium uppercase text-slate-500">
+            Custom Questions
+          </p>
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}

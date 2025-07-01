@@ -45,8 +45,8 @@ export const createListingFormSchema = ({
 }: ListingFormSchemaOptions) => {
   const eligibilityQuestionSchema = z.object({
     order: z.number(),
-    question: z.string().trim().min(1, 'Please add your question').max(512),
-    type: z.enum(['text', 'link', 'paragraph', 'checkbox']),
+    question: z.string().trim().min(1, 'Question should not be empty').max(512),
+    type: z.enum(['text', 'link', 'paragraph', 'checkbox', 'select']),
     description: z.string().optional().nullable(),
     optional: z
       .boolean()
@@ -54,6 +54,10 @@ export const createListingFormSchema = ({
       .nullable()
       .default(false)
       .transform((val) => val ?? false),
+    variants: z
+      .array(z.string().min(1, 'Variant should not be empty'))
+      .optional()
+      .nullable(),
   });
 
   const rewardsSchema = z
@@ -428,6 +432,22 @@ export const createListingRefinements = async (
             code: z.ZodIssueCode.custom,
             message: 'Description is forbidden for checkbox questions',
             path: [`eligibility.${index}.question`],
+          });
+        }
+
+        if (question.type === 'select' && !question.variants?.length) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Variants are required for select questions',
+            path: [`eligibility.${index}.variants`],
+          });
+        }
+
+        if (question.type !== 'select' && question.variants?.length) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Variants are only allowed for select questions',
+            path: [`eligibility.${index}.variants`],
           });
         }
       }

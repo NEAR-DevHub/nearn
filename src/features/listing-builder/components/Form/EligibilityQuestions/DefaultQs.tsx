@@ -26,7 +26,7 @@ export function DefaultEligibilityQuestions() {
   const TOOLTIP_CONTENT = `This is a default field for your ${type === 'project' ? 'Application' : 'Submission'} form. This question cannot be edited or removed.`;
   return (
     <div>
-      <p className="pb-3 text-xs font-medium uppercase text-slate-500">
+      <p className="pb-2 text-xs font-medium uppercase text-slate-500">
         COLLECTED BY DEFAULT
       </p>
       <div className="flex flex-col gap-4">
