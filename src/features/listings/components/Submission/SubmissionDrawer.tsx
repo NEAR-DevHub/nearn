@@ -44,6 +44,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { SideDrawer, SideDrawerContent } from '@/components/ui/side-drawer';
 import { WalletConnectField } from '@/components/ui/wallet-connect-field';
 import { CHAIN_NAME } from '@/constants/project';
@@ -472,6 +479,56 @@ export const SubmissionDrawer = ({
                                   />
                                 </div>
                                 <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        );
+                      } else if (e.type === 'select') {
+                        return (
+                          <FormField
+                            key={`${index}-${e.order}`}
+                            control={form.control}
+                            name={`eligibilityAnswers.${index}.answer`}
+                            render={({ field }) => (
+                              <FormItem className={cn('flex flex-col gap-2')}>
+                                <div>
+                                  <FormLabel isRequired={e.optional !== true}>
+                                    {e.question}
+                                  </FormLabel>
+                                  {e.description && (
+                                    <FormDescription className="whitespace-pre-wrap text-wrap">
+                                      {e.description}
+                                    </FormDescription>
+                                  )}
+                                </div>
+                                <div>
+                                  <FormControl>
+                                    <Select
+                                      value={field.value}
+                                      onValueChange={field.onChange}
+                                    >
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Select an option..." />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {e.variants?.map(
+                                          (
+                                            variant: string,
+                                            variantIndex: number,
+                                          ) => (
+                                            <SelectItem
+                                              key={variantIndex}
+                                              value={variant}
+                                            >
+                                              {variant}
+                                            </SelectItem>
+                                          ),
+                                        )}
+                                      </SelectContent>
+                                    </Select>
+                                  </FormControl>
+                                  <FormMessage className="pt-1" />
+                                </div>
                               </FormItem>
                             )}
                           />
