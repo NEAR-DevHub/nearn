@@ -66,8 +66,26 @@ export function DefaultEligibilityQuestions() {
                 }}
               />
             }
-            label="Compensation Quote"
+            label={`Compensation Quote${token === 'Any' ? ' in USD' : ''}`}
             required
+          />
+        )}
+        {token === 'Any' && (
+          <DefaultQuestionField
+            TOOLTIP_CONTENT={TOOLTIP_CONTENT}
+            required
+            icon={
+              <TokenLabel
+                symbol={token}
+                showIcon
+                classNames={{
+                  amount: 'font-medium text-base ml-0',
+                  symbol: 'font-medium text-base mr-0',
+                  icon: 'mr-0',
+                }}
+              />
+            }
+            label="Token to be paid in"
           />
         )}
         <DefaultQuestionField
@@ -95,7 +113,7 @@ export function DefaultQuestionField({
 }: DefaultQuestionFieldProps) {
   return (
     <Tooltip content={TOOLTIP_CONTENT}>
-      <div className="flex h-9 cursor-not-allowed items-center rounded-md border bg-slate-100 opacity-80">
+      <div className="flex h-9 w-[calc(100%-28px)] cursor-not-allowed items-center rounded-md border bg-slate-100 opacity-80">
         <span className="flex h-full items-center rounded-md border-r px-4 text-slate-400">
           {icon}
         </span>
