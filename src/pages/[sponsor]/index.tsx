@@ -207,7 +207,9 @@ Check out all of ${title}'s latest earning opportunities on a single page.
                 </div>
                 {about && (
                   <div className="mt-8 flex flex-col text-slate-500">
-                    <h2 className="font-medium text-slate-600">About Us</h2>
+                    <p className="whitespace-nowrap pr-2 text-[14px] font-semibold text-slate-700 sm:text-[15px] md:text-[16px]">
+                      Overview
+                    </p>
                     <DescriptionUI description={about} showMoreHeight={130} />
                   </div>
                 )}
