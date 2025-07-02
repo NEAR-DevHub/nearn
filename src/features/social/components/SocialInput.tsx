@@ -79,6 +79,7 @@ interface SocialInputProps {
     input?: string;
   };
   withIcon?: boolean;
+  hideMessage?: boolean;
 }
 export const SocialInput = ({
   control,
@@ -91,6 +92,7 @@ export const SocialInput = ({
   height,
   classNames,
   withIcon = true,
+  hideMessage = false,
 }: SocialInputProps) => {
   const social = useMemo(
     () => socials.find((s) => s.name === socialName),
@@ -178,7 +180,7 @@ export const SocialInput = ({
                   />
                 </FormControl>
               </div>
-              <FormMessage className="pt-1" />
+              {hideMessage && <FormMessage className="pt-1" />}
             </div>
           </FormItem>
         );

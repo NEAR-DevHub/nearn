@@ -5,9 +5,10 @@ import {
   extractDaoFromTreasury,
   isNearnIoRequestor,
   isValidDaoPolicy,
-  NEAR_ACCOUNT,
 } from '@/utils/near';
 import { getURL } from '@/utils/validUrl';
+
+export const NEARN_NO_REQUESTOR_RIGHTS = 'NEARN_NO_REQUESTOR_RIGHTS';
 
 export const nearTreasuryFormSchema = z
   .object({
@@ -17,7 +18,7 @@ export const nearTreasuryFormSchema = z
       .refine(
         (value) =>
           !value ||
-          value.endsWith('.near.page') ||
+          value.includes('.near.page') ||
           value.startsWith('https://near.social/') ||
           value.startsWith('near.social/') ||
           value.startsWith('https://dev.near.org/') ||
@@ -76,7 +77,7 @@ export const nearTreasuryFormSchema = z
       if (!isRequestor) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: `${NEAR_ACCOUNT} doesn't have rights to add proposals in the provided NEAR Treasury`,
+          message: `[${NEARN_NO_REQUESTOR_RIGHTS}]${data.nearTreasuryFrontend}`,
           path: ['nearTreasuryFrontend'],
         });
       }

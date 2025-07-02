@@ -28,10 +28,10 @@ import {
 } from '@/features/sponsor-dashboard/queries/isNearnIoRequestor';
 
 import {
+  NEARN_NO_REQUESTOR_RIGHTS,
   nearTreasuryFormSchema,
   type NearTreasuryFormValues,
 } from '../utils/integrationsFormSchema';
-
 interface Props {
   sponsorData: SponsorType;
   refetchUser: () => void;
@@ -47,6 +47,22 @@ function NearTreasuryForm({
   onSubmit: (data: NearTreasuryFormValues) => void;
   isLoading: boolean;
 }) {
+  const [frontendLinkTransformedError, setIsError] = useState<
+    string | undefined
+  >(undefined);
+
+  useEffect(() => {
+    const error = form.formState.errors.nearTreasuryFrontend;
+    if (
+      error?.type === 'custom' &&
+      error.message?.includes(`[${NEARN_NO_REQUESTOR_RIGHTS}]`)
+    ) {
+      setIsError(error.message.split(`[${NEARN_NO_REQUESTOR_RIGHTS}]`)[1]);
+    } else if (!!error) {
+      setIsError(undefined);
+    }
+  }, [form.formState.errors.nearTreasuryFrontend, form.clearErrors]);
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -102,9 +118,38 @@ function NearTreasuryForm({
               placeholder="your-treasury.near.page"
               control={form.control}
               withIcon={false}
+              hideMessage={!frontendLinkTransformedError}
             />
           </div>
         </div>
+
+        {frontendLinkTransformedError && (
+          <div className="mt-4 flex items-center gap-3 bg-red-50 p-3 text-red-500">
+            <TriangleAlert className="h-full w-5" />
+            <p className="h-full w-full text-sm">
+              The member{' '}
+              <span
+                className="inline-flex cursor-pointer items-center gap-1 rounded py-0.5 font-bold hover:bg-red-100"
+                onClick={() => {
+                  navigator.clipboard.writeText('nearn-io.near');
+                  toast.success('Copied to clipboard!');
+                }}
+              >
+                nearn-io.near <Copy className="h-4 w-4" />
+              </span>{' '}
+              is not a requestor in your Treasury, so NEARN cannot submit
+              payment proposals. To fix this, go to{' '}
+              <Link
+                href={`${getURLSanitized(frontendLinkTransformedError + '/?page=settings&tab=members&member=nearn-io.near&permissions=requestor') ?? 'https://neartreasury.com'}`}
+                className="underline underline-offset-[3px]"
+                target="_blank"
+              >
+                NEAR Treasury
+              </Link>{' '}
+              and add the member with the &quot;Requestor&quot; permission.
+            </p>
+          </div>
+        )}
 
         <div className="mt-8">
           <Button
