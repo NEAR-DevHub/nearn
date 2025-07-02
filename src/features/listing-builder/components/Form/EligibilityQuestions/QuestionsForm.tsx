@@ -370,6 +370,7 @@ interface EligibilityQuestionProps {
     description: string,
     optional: boolean,
     variants: string[] | null,
+    sourceIndex: number,
   ) => void;
 }
 
@@ -602,6 +603,7 @@ function EligibilityQuestion({
                         description ?? '',
                         optional,
                         variants ?? null,
+                        index,
                       )
                     }
                   >
@@ -634,7 +636,7 @@ export function EligibilityQuestionsForm() {
     return hackathons?.find((h) => h.id === hackathonId);
   }, [hackathonId, hackathons]);
 
-  const { fields, append, remove, move } = useFieldArray({
+  const { fields, append, remove, move, insert } = useFieldArray({
     control: form.control,
     name: 'eligibility',
   });
@@ -705,9 +707,10 @@ export function EligibilityQuestionsForm() {
       action: {
         label: 'Restore',
         onClick: () => {
-          append(
+          insert(
+            index,
             {
-              order: fields.length + 1,
+              order: index + 1,
               question: questionData.question,
               type: questionData.type,
               description: questionData.description,
@@ -731,20 +734,22 @@ export function EligibilityQuestionsForm() {
     description: string,
     optional: boolean,
     variants: string[] | null,
+    sourceIndex: number,
   ) => {
-    append(
-      {
-        order: fields.length + 1,
-        question: question,
-        type: type,
-        description: description,
-        optional: optional,
-        variants: variants || null,
-      },
-      {
-        shouldFocus: false,
-      },
-    );
+    const insertIndex = sourceIndex + 1;
+
+    insert(insertIndex, {
+      order: insertIndex + 1,
+      question: question,
+      type: type,
+      description: description,
+      optional: optional,
+      variants: variants || null,
+    });
+
+    fields.forEach((_, index) => {
+      form.setValue(`eligibility.${index}.order`, index + 1);
+    });
   };
 
   useEffect(() => {
