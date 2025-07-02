@@ -119,6 +119,12 @@ export function EligibilityQuestionsSheet() {
         />
       </SheetTrigger>
       <SheetContent
+        onInteractOutside={(e) => {
+          const isToastItem = (e.target as Element)?.closest(
+            '[data-sonner-toaster]',
+          );
+          if (isToastItem) e.preventDefault();
+        }}
         showCloseIcon={false}
         side="right"
         className="flex h-[100vh] flex-col overflow-y-auto p-0 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-slate-300 sm:max-w-xl"
