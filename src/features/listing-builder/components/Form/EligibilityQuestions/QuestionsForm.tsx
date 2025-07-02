@@ -34,6 +34,7 @@ import {
   useFormContext,
   useWatch,
 } from 'react-hook-form';
+import { toast } from 'sonner';
 
 import { RichEditor } from '@/components/shared/RichEditor';
 import { Button } from '@/components/ui/button';
@@ -369,6 +370,7 @@ interface EligibilityQuestionProps {
     description: string,
     optional: boolean,
     variants: string[] | null,
+    sourceIndex: number,
   ) => void;
 }
 
@@ -601,6 +603,7 @@ function EligibilityQuestion({
                         description ?? '',
                         optional,
                         variants ?? null,
+                        index,
                       )
                     }
                   >
@@ -633,7 +636,7 @@ export function EligibilityQuestionsForm() {
     return hackathons?.find((h) => h.id === hackathonId);
   }, [hackathonId, hackathons]);
 
-  const { fields, append, remove, move } = useFieldArray({
+  const { fields, append, remove, move, insert } = useFieldArray({
     control: form.control,
     name: 'eligibility',
   });
@@ -684,7 +687,45 @@ export function EligibilityQuestionsForm() {
   };
 
   const handleRemoveQuestion = (index: number) => {
+    const questionToRemove = fields[index];
+    if (!questionToRemove) return;
+
+    const questionData = {
+      question: questionToRemove.question || '',
+      type: questionToRemove.type || 'text',
+      description: questionToRemove.description || '',
+      optional: questionToRemove.optional || false,
+      variants: questionToRemove.variants || null,
+      index: index,
+    };
+
     remove(index);
+
+    toast('Question removed', {
+      description: 'You can restore it within 10 seconds',
+      position: 'top-right',
+      action: {
+        label: 'Restore',
+        onClick: () => {
+          insert(
+            index,
+            {
+              order: index + 1,
+              question: questionData.question,
+              type: questionData.type,
+              description: questionData.description,
+              optional: questionData.optional,
+              variants: questionData.variants || null,
+            },
+            {
+              shouldFocus: false,
+            },
+          );
+        },
+      },
+      className: 'pointer-events-auto',
+      duration: 10000,
+    });
   };
 
   const handleDuplicateQuestion = (
@@ -693,20 +734,22 @@ export function EligibilityQuestionsForm() {
     description: string,
     optional: boolean,
     variants: string[] | null,
+    sourceIndex: number,
   ) => {
-    append(
-      {
-        order: fields.length + 1,
-        question: question,
-        type: type,
-        description: description,
-        optional: optional,
-        variants: variants || null,
-      },
-      {
-        shouldFocus: false,
-      },
-    );
+    const insertIndex = sourceIndex + 1;
+
+    insert(insertIndex, {
+      order: insertIndex + 1,
+      question: question,
+      type: type,
+      description: description,
+      optional: optional,
+      variants: variants || null,
+    });
+
+    fields.forEach((_, index) => {
+      form.setValue(`eligibility.${index}.order`, index + 1);
+    });
   };
 
   useEffect(() => {
