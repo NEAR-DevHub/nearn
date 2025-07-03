@@ -259,7 +259,7 @@ export function EligibilityQuestionsSheet() {
                 <EligibilityQuestionsForm />
               </div>
             </TabsContent>
-            <TabsContent value="preview" className="mt-0 flex flex-col gap-4">
+            <TabsContent value="preview" className="mt-0 flex flex-col px-6">
               <EligibilityQuestionsPreview
                 questions={eligibility}
                 control={previewForm.control as any}
