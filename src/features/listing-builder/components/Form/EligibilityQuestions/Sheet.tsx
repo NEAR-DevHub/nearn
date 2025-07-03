@@ -146,7 +146,7 @@ export function EligibilityQuestionsSheet() {
           <EligibilityQuestionsForm />
         </div>
 
-        <div className="mt-auto">
+        <div className="sticky bottom-0 bg-white">
           <Separator className="mb-4" />
           <SheetFooter className="p-6 pt-0">
             <Button
@@ -158,6 +158,7 @@ export function EligibilityQuestionsSheet() {
                 } else {
                   toast.warning(
                     'Please resolve all errors in Custom Questions to Continue',
+                    { position: 'top-right' },
                   );
                 }
               }}
