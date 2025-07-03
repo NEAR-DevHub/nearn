@@ -11,6 +11,13 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import {
   Sheet,
@@ -29,6 +36,56 @@ import { useListingForm } from '@/features/listing-builder/hooks';
 
 import { DefaultEligibilityQuestions } from './DefaultQs';
 import { EligibilityQuestionsForm } from './QuestionsForm';
+
+function SubmissionLimit() {
+  const form = useListingForm();
+  const type = useWatch({
+    control: form.control,
+    name: 'type',
+  });
+
+  const value = type === 'sponsorship' ? 'multiple' : 'single';
+  const description =
+    type === 'sponsorship'
+      ? 'Multiple submissions are allowed throughout the bounty period'
+      : 'Contributors can submit only once during the entire bounty period';
+
+  return (
+    <div className="flex justify-between">
+      <div className="">
+        <div className="flex items-center gap-1">
+          <p className="text-sm font-medium">Submission Limit</p>
+          <Tooltip
+            contentProps={{ style: { zIndex: 1000 } }}
+            content={
+              <p className="text-xs text-slate-500">
+                Contributors can submit only one submission for bounties and
+                projects. For sponsorships, additional submissions can be sent
+                after the previous one is approved or rejected.
+              </p>
+            }
+          >
+            <Info className="h-3 w-3 text-slate-400" />
+          </Tooltip>
+        </div>
+        <p className="text-xs text-slate-500">{description}</p>
+      </div>
+      <Select value={value} disabled>
+        <SelectTrigger className="w-52">
+          <SelectValue placeholder="Select a limit" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem className="w-52" value="multiple">
+            Multiple submissions
+          </SelectItem>
+          <SelectItem className="w-52" value="single">
+            Only one submission
+          </SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
 
 export function EligibilityQuestionsSheet() {
   const form = useListingForm();
@@ -196,6 +253,7 @@ export function EligibilityQuestionsSheet() {
               value="builder"
               className="flex w-[calc(100%-28px)] flex-col gap-4"
             >
+              <SubmissionLimit />
               <DefaultEligibilityQuestions />
               <EligibilityQuestionsForm />
             </TabsContent>
