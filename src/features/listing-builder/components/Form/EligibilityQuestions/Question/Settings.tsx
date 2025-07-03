@@ -27,6 +27,7 @@ export default function QuestionSettingsPopover({
 
   const changeBoolean = (field: any) => {
     field.onChange(!field.value);
+    form.saveDraft();
   };
   return (
     <FormField

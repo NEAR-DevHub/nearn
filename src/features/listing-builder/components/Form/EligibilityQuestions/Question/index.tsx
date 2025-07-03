@@ -147,6 +147,7 @@ export default function EligibilityQuestion({
                   <Button
                     onClick={() => {
                       form.setValue(`eligibility.${index}.optional`, !optional);
+                      form.saveDraft();
                     }}
                     variant="ghost"
                     className={cn(
@@ -172,6 +173,10 @@ export default function EligibilityQuestion({
                               {...field}
                               id={`eligibilityAnswers.${index}.answer`}
                               value={field.value || ''}
+                              onChange={(e) => {
+                                field.onChange(e);
+                                form.saveDraft();
+                              }}
                               error={false}
                               placeholder={'Enter text for checkbox...'}
                               className="border-none ring-transparent focus-visible:ring-0 [&_p]:text-muted-foreground"
