@@ -19,18 +19,101 @@ import { useFieldArray, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
-import {
-  FormDescription,
-  FormField,
-  FormItem,
-  FormMessage,
-} from '@/components/ui/form';
+import { FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { cn } from '@/utils/cn';
 
 import { hackathonsAtom, isEditingAtom } from '../../../atoms';
 import { useListingForm } from '../../../hooks';
 import EligibilityQuestion from './Question';
 import type { QuestionType } from './Question/Type';
+
+interface ToastWithProgressProps {
+  message: string;
+  undoAction: () => void;
+  dismissToast: () => void;
+  duration?: number;
+}
+
+function ToastWithProgress({
+  message,
+  undoAction,
+  dismissToast,
+  duration = 10000,
+}: ToastWithProgressProps) {
+  const [progress, setProgress] = useState(100);
+  const [isPaused, setIsPaused] = useState(false);
+  const [pausedAt, setPausedAt] = useState<number | null>(null);
+  const [adjustedStartTime, setAdjustedStartTime] = useState(Date.now());
+
+  useEffect(() => {
+    setAdjustedStartTime(Date.now());
+  }, []);
+
+  useEffect(() => {
+    if (isPaused) return;
+
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - adjustedStartTime;
+      const remaining = Math.max(0, duration - elapsed);
+      const remainingPercentage = (remaining / duration) * 100;
+
+      setProgress(remainingPercentage);
+
+      if (remaining <= 0) {
+        clearInterval(interval);
+      }
+    }, 50);
+
+    return () => clearInterval(interval);
+  }, [duration, adjustedStartTime, isPaused]);
+
+  const handleMouseEnter = () => {
+    setIsPaused(true);
+    setPausedAt(Date.now());
+  };
+
+  const handleMouseLeave = () => {
+    if (pausedAt) {
+      const pauseDuration = Date.now() - pausedAt;
+      setAdjustedStartTime((prev) => prev + pauseDuration);
+      setPausedAt(null);
+    }
+    setIsPaused(false);
+  };
+
+  return (
+    <div
+      className="flex w-full justify-between"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      <div className="flex items-center gap-2">
+        <span className="text-slate-600">{message}</span>
+      </div>
+      <Button
+        variant="outline"
+        className="pointer-events-auto h-7 cursor-pointer px-3 py-1 text-slate-600"
+        size="sm"
+        onClick={() => {
+          undoAction();
+          dismissToast();
+        }}
+      >
+        Undo
+      </Button>
+      <div
+        className={cn(
+          'absolute -bottom-[1px] left-[1px] right-[1px] top-[80%] w-full rounded-bl-sm border-b-2 border-b-emerald-700 bg-transparent transition-all',
+          progress > 98 && 'rounded-br-sm',
+          isPaused ? 'duration-0' : 'duration-75 ease-linear',
+        )}
+        style={{
+          width: `${progress}%`,
+        }}
+      />
+    </div>
+  );
+}
 
 export function EligibilityQuestionsForm() {
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -113,31 +196,38 @@ export function EligibilityQuestionsForm() {
 
     remove(index);
 
-    toast('Question removed', {
-      description: 'You can restore it within 10 seconds',
-      position: 'top-right',
-      action: {
-        label: 'Restore',
-        onClick: () => {
-          insert(
-            index,
-            {
-              order: index + 1,
-              question: questionData.question,
-              type: questionData.type,
-              description: questionData.description,
-              optional: questionData.optional,
-              variants: questionData.variants || null,
-            },
-            {
-              shouldFocus: false,
-            },
-          );
-        },
+    toast.custom(
+      (t) => (
+        <ToastWithProgress
+          message="Question Deleted"
+          undoAction={() => {
+            insert(
+              index,
+              {
+                order: index + 1,
+                question: questionData.question,
+                type: questionData.type,
+                description: questionData.description,
+                optional: questionData.optional,
+                variants: questionData.variants || null,
+              },
+              {
+                shouldFocus: false,
+              },
+            );
+          }}
+          dismissToast={() => toast.dismiss(t)}
+          duration={10000}
+        />
+      ),
+      {
+        dismissible: false,
+        position: 'top-right',
+        className:
+          'pointer-events-auto bg-white border w-full max-w-72 border-slate-200 shadow-lg rounded-lg py-4 px-3',
+        duration: 10000,
       },
-      className: 'pointer-events-auto',
-      duration: 10000,
-    });
+    );
   };
 
   const handleDuplicateQuestion = (
@@ -235,27 +325,21 @@ export function EligibilityQuestionsForm() {
               ) : null}
             </DragOverlay>
           </DndContext>
-          {type !== 'bounty' || fields.length < 2 ? (
-            <div className="flex justify-between">
-              <FormMessage />
-              <Button
-                type="button"
-                variant={fields.length === 0 ? 'outline' : 'link'}
-                size="sm"
-                className={cn(
-                  fields.length > 0 && 'ml-auto flex w-fit px-0',
-                  fields.length === 0 && 'mt-2 w-full text-slate-500',
-                )}
-                onClick={() => handleAddQuestion()}
-              >
-                <Plus /> Add Question
-              </Button>
-            </div>
-          ) : (
-            <FormDescription>
-              Max two custom questions allow for bounties
-            </FormDescription>
-          )}
+          <div className="flex justify-between">
+            <FormMessage />
+            <Button
+              type="button"
+              variant={fields.length === 0 ? 'outline' : 'link'}
+              size="sm"
+              className={cn(
+                fields.length > 0 && 'ml-auto flex w-fit px-0',
+                fields.length === 0 && 'mt-2 w-full text-slate-500',
+              )}
+              onClick={() => handleAddQuestion()}
+            >
+              <Plus /> Add Question
+            </Button>
+          </div>
         </FormItem>
       )}
     />
