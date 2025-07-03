@@ -146,7 +146,7 @@ export function EligibilityQuestionsSheet() {
           <EligibilityQuestionsForm />
         </div>
 
-        <div className="sticky bottom-0 bg-white">
+        <div className="sticky bottom-0 z-50 mt-auto bg-white">
           <Separator className="mb-4" />
           <SheetFooter className="p-6 pt-0">
             <Button
