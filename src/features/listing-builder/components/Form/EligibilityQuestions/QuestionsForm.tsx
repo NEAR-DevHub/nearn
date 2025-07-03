@@ -260,16 +260,8 @@ export function EligibilityQuestionsForm() {
         if (fields.length === 0) {
           handleAddQuestion(false);
         }
-      } else {
-        if (type === 'hackathon' && currentHackathon?.eligibility) {
-          form.setValue('eligibility', currentHackathon?.eligibility as any);
-        } else {
-          if (fields.length > 0) {
-            form.setValue('eligibility', fields.slice(0, 2));
-          } else {
-            form.setValue('eligibility', []);
-          }
-        }
+      } else if (type === 'hackathon' && currentHackathon?.eligibility) {
+        form.setValue('eligibility', currentHackathon?.eligibility as any);
       }
     }
   }, [type, currentHackathon, isEditing]);
