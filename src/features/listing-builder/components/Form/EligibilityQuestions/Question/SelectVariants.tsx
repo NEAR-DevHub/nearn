@@ -23,6 +23,8 @@ import { FormField, FormMessage } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/utils/cn';
 
+import { useListingForm } from '@/features/listing-builder/hooks';
+
 interface VariantsArrayProps {
   index: number;
 }
@@ -39,6 +41,7 @@ function SortableVariant({
   onRemove: (index: number) => void;
 }) {
   const { control } = useFormContext();
+  const form = useListingForm();
   const {
     attributes,
     listeners,
@@ -76,6 +79,10 @@ function SortableVariant({
               placeholder="Enter your option"
               className="min-h-[20px] resize-none overflow-hidden border-none pl-0 font-medium !text-muted-foreground shadow-none focus-visible:ring-0"
               rows={1}
+              onChange={(e) => {
+                field.onChange(e);
+                form.saveDraft();
+              }}
             />
             <Button
               type="button"
@@ -95,6 +102,7 @@ function SortableVariant({
 }
 
 export default function QuestionSelectVariants({ index }: VariantsArrayProps) {
+  const form = useListingForm();
   const { control } = useFormContext();
   const { fields, append, remove, move } = useFieldArray({
     control,
@@ -113,10 +121,12 @@ export default function QuestionSelectVariants({ index }: VariantsArrayProps) {
 
   const handleAddVariant = () => {
     append('', { shouldFocus: true });
+    form.saveDraft();
   };
 
   const handleRemoveVariant = (variantIndex: number) => {
     remove(variantIndex);
+    form.saveDraft();
   };
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -133,6 +143,7 @@ export default function QuestionSelectVariants({ index }: VariantsArrayProps) {
 
       move(oldIndex, newIndex);
     }
+    form.saveDraft();
   };
 
   return (

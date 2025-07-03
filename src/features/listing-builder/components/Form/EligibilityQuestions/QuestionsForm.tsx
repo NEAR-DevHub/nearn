@@ -163,6 +163,8 @@ export function EligibilityQuestionsForm() {
       fields.forEach((_, index) => {
         form.setValue(`eligibility.${index}.order`, index + 1);
       });
+
+      form.saveDraft();
     }
   };
 
@@ -179,6 +181,8 @@ export function EligibilityQuestionsForm() {
         shouldFocus: focus,
       },
     );
+
+    form.saveDraft();
   };
 
   const handleRemoveQuestion = (index: number) => {
@@ -215,6 +219,8 @@ export function EligibilityQuestionsForm() {
                 shouldFocus: false,
               },
             );
+
+            form.saveDraft();
           }}
           dismissToast={() => toast.dismiss(t)}
           duration={10000}
@@ -228,6 +234,8 @@ export function EligibilityQuestionsForm() {
         duration: 10000,
       },
     );
+
+    form.saveDraft();
   };
 
   const handleDuplicateQuestion = (
@@ -252,6 +260,8 @@ export function EligibilityQuestionsForm() {
     fields.forEach((_, index) => {
       form.setValue(`eligibility.${index}.order`, index + 1);
     });
+
+    form.saveDraft();
   };
 
   useEffect(() => {

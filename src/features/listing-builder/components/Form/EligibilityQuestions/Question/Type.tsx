@@ -62,6 +62,7 @@ export default function QuestionTypeSelect({ index }: QuestionTypeSelectProps) {
               } else {
                 form.setValue(`eligibility.${index}.variants`, null);
               }
+              form.saveDraft();
             }}
           >
             <FormControl>

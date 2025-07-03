@@ -184,6 +184,7 @@ export default function EligibilityQuestion({
                               value={field.value || ''}
                               onChange={(e) => {
                                 field.onChange(e);
+                                form.saveDraft();
                                 e.target.style.height = 'auto';
                                 e.target.style.height =
                                   e.target.scrollHeight + 'px';
@@ -225,6 +226,7 @@ export default function EligibilityQuestion({
                                 rows={1}
                                 onChange={(e) => {
                                   field.onChange(e);
+                                  form.saveDraft();
                                   e.target.style.height = 'auto';
                                   e.target.style.height =
                                     e.target.scrollHeight + 'px';
