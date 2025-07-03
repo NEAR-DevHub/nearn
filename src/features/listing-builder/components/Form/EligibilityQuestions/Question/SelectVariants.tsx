@@ -60,7 +60,7 @@ function SortableVariant({
     <div
       ref={setNodeRef}
       style={style}
-      className={cn('border-b border-slate-200', isDragging && 'opacity-50')}
+      className={cn(isDragging && 'opacity-50')}
     >
       <FormField
         control={control}
@@ -74,25 +74,27 @@ function SortableVariant({
             >
               <GripVertical className="h-4 w-4 text-slate-400" />
             </div>
-            <Textarea
-              {...field}
-              placeholder="Enter your option"
-              className="min-h-[20px] resize-none overflow-hidden border-none pl-0 font-medium !text-muted-foreground shadow-none focus-visible:ring-0"
-              rows={1}
-              onChange={(e) => {
-                field.onChange(e);
-                form.saveDraft();
-              }}
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-5 p-0 text-slate-500 opacity-0 group-hover/variant:opacity-100 hover:bg-transparent hover:text-destructive"
-              onClick={() => onRemove(variantIndex)}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            <div className="flex w-full items-center gap-2 border-b border-slate-200">
+              <Textarea
+                {...field}
+                placeholder="Enter your option"
+                className="min-h-[20px] resize-none overflow-hidden border-none pl-0 font-medium !text-muted-foreground shadow-none focus-visible:ring-0"
+                rows={1}
+                onChange={(e) => {
+                  field.onChange(e);
+                  form.saveDraft();
+                }}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-5 p-0 text-slate-500 opacity-0 group-hover/variant:opacity-100 hover:bg-transparent hover:text-destructive"
+                onClick={() => onRemove(variantIndex)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         )}
       />

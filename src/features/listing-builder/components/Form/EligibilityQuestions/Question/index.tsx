@@ -219,7 +219,7 @@ export default function EligibilityQuestion({
                                 {...field}
                                 placeholder="Write a description if necessary"
                                 className={cn(
-                                  'h-fit min-h-[20px] resize-none overflow-hidden border-none pt-0 !text-xs !text-muted-foreground ring-transparent transition-transform duration-300 ease-out animate-in slide-in-from-top-4 focus-visible:ring-0',
+                                  'h-fit min-h-[20px] resize-none overflow-hidden border-none pt-0 !text-xs !text-muted-foreground shadow-none ring-transparent transition-transform duration-300 ease-out animate-in slide-in-from-top-4 focus-visible:ring-0',
                                   field.value && 'opacity-100',
                                 )}
                                 value={field.value || ''}
