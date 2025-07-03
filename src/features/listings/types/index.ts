@@ -4,6 +4,8 @@ import type { User } from 'next-auth';
 import type { Skills } from '@/interface/skills';
 import type { SponsorType } from '@/interface/sponsor';
 
+import type { QuestionType } from '@/features/listing-builder/components/Form/EligibilityQuestions/Question/Type';
+
 export interface Listing {
   id?: string;
   sequentialId?: number;
@@ -75,7 +77,7 @@ export interface ListingWithSubmissions extends Listing {
 interface Eligibility {
   order: number;
   question: string;
-  type?: 'text' | 'link' | 'paragraph' | 'checkbox' | 'select';
+  type?: QuestionType;
   optional?: boolean;
   isLink?: boolean;
   description?: string;

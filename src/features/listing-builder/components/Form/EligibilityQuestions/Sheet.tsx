@@ -69,7 +69,7 @@ export function EligibilityQuestionsSheet() {
       open={open}
       onOpenChange={async (e) => {
         setOpen(e);
-        if (!e) form.saveDraft();
+        form.saveDraft();
       }}
     >
       <SheetTrigger className="w-full">

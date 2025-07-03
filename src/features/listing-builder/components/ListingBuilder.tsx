@@ -23,7 +23,7 @@ interface ListingBuilderLayout {
 }
 
 export function ListingBuilder({ route, slug }: ListingBuilderLayout) {
-  const { user } = useUser();
+  const { user, isLoading: isUserLoading } = useUser();
   const { data: session, status } = useSession();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -45,6 +45,7 @@ export function ListingBuilder({ route, slug }: ListingBuilderLayout) {
   });
 
   useEffect(() => {
+    if (isListingLoading || isUserLoading) return;
     if (listing) {
       if (listing.sponsorId !== user?.currentSponsorId) {
         router.push('/dashboard/listings');
