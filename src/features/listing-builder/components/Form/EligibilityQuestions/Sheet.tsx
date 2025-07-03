@@ -54,7 +54,7 @@ function SubmissionLimit() {
     <div className="flex justify-between">
       <div className="">
         <div className="flex items-center gap-1">
-          <p className="text-sm font-medium">Submission Limit</p>
+          <p className="text-sm font-medium text-slate-500">Submission Limit</p>
           <Tooltip
             contentProps={{ style: { zIndex: 1000 } }}
             content={
@@ -222,11 +222,11 @@ export function EligibilityQuestionsSheet() {
           </SheetDescription>
         </SheetHeader>
 
-        <div id="main-content" className="flex flex-col px-6">
+        <div id="main-content" className="flex flex-col">
           <Tabs defaultValue="builder" className="mb-0">
             <TabsList
               className={cn(
-                'relative mb-4 w-full justify-start gap-4',
+                'relative mb-4 w-full justify-start gap-4 px-6',
                 'before:absolute before:bottom-[-2px] before:left-1 before:right-0 before:h-[1px] before:w-full before:bg-slate-200',
               )}
             >
@@ -249,13 +249,15 @@ export function EligibilityQuestionsSheet() {
                 Preview
               </TabsTrigger>
             </TabsList>
-            <TabsContent
-              value="builder"
-              className="flex w-[calc(100%-28px)] flex-col gap-4"
-            >
-              <SubmissionLimit />
-              <DefaultEligibilityQuestions />
-              <EligibilityQuestionsForm />
+            <TabsContent value="builder" className="flex w-full flex-col gap-4">
+              <div className="flex w-[calc(100%-28px)] flex-col gap-4 px-6">
+                <SubmissionLimit />
+                <DefaultEligibilityQuestions />
+              </div>
+              <Separator />
+              <div className="w-[calc(100%-28px)] px-6">
+                <EligibilityQuestionsForm />
+              </div>
             </TabsContent>
             <TabsContent value="preview" className="mt-0 flex flex-col gap-4">
               <EligibilityQuestionsPreview
