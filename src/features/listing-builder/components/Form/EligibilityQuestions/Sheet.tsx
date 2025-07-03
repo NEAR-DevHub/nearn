@@ -1,8 +1,9 @@
 import { FilePen, Info } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { useWatch } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 
+import { EligibilityQuestions as EligibilityQuestionsPreview } from '@/components/eligibility/EligibilityQuestions';
 import { Button } from '@/components/ui/button';
 import {
   FormField,
@@ -20,6 +21,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip } from '@/components/ui/tooltip';
 import { cn } from '@/utils/cn';
 
@@ -35,6 +37,33 @@ export function EligibilityQuestionsSheet() {
   const type = useWatch({
     control: form.control,
     name: 'type',
+  });
+  const compensationType = useWatch({
+    control: form.control,
+    name: 'compensationType',
+  });
+  const token = useWatch({
+    control: form.control,
+    name: 'token',
+  });
+  const eligibility = useWatch({
+    control: form.control,
+    name: 'eligibility',
+  });
+
+  // Form instance for preview purposes
+  const previewForm = useForm({
+    defaultValues: {
+      eligibilityAnswers: (eligibility || []).map(() => ({
+        answer: '',
+      })),
+      link: '',
+      tweet: '',
+      otherInfo: '',
+      ask: null,
+      token: '',
+      otherTokenDetails: '',
+    },
   });
 
   const hasEligibilityQsErrors = useMemo(() => {
@@ -127,23 +156,61 @@ export function EligibilityQuestionsSheet() {
         }}
         showCloseIcon={false}
         side="right"
-        className="flex h-[100vh] flex-col overflow-y-auto p-0 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-slate-300 sm:max-w-xl"
+        className="flex h-[100vh] flex-col overflow-y-auto p-0 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-slate-300 sm:max-w-2xl"
       >
-        <SheetHeader className={cn('space-y-2 border-b p-6')}>
-          <SheetTitle>
-            {type === 'project' ? 'Application' : 'Submission'} Form
-          </SheetTitle>
-          <SheetDescription className={cn('pb-4 text-sm text-slate-500')}>
+        <SheetHeader className="space-y-2 p-6 pb-0">
+          <SheetTitle>Application Form</SheetTitle>
+          <SheetDescription className="text-sm text-slate-500">
             {subtext}
           </SheetDescription>
-          <DefaultEligibilityQuestions />
         </SheetHeader>
 
-        <div
-          className={cn('flex flex-col p-6 pt-0', 'w-[calc(100%-28px)]')}
-          id="main-content"
-        >
-          <EligibilityQuestionsForm />
+        <div id="main-content" className="flex flex-col px-6">
+          <Tabs defaultValue="builder" className="mb-0">
+            <TabsList
+              className={cn(
+                'relative mb-4 w-full justify-start gap-4',
+                'before:absolute before:bottom-[-2px] before:left-1 before:right-0 before:h-[1px] before:w-full before:bg-slate-200',
+              )}
+            >
+              <TabsTrigger
+                value="builder"
+                className={cn(
+                  'data-[state=active]:bg-transparent data-[state=hover]:bg-gray-900 data-[state=active]:text-slate-500 after:data-[state=active]:h-[1px] hover:text-slate-500',
+                  'hover:after:absolute hover:after:bottom-[-6px] hover:after:left-0 hover:after:h-[1px] hover:after:w-full hover:after:bg-gray-900',
+                )}
+              >
+                Form Builder
+              </TabsTrigger>
+              <TabsTrigger
+                value="preview"
+                className={cn(
+                  'data-[state=active]:bg-transparent data-[state=hover]:bg-gray-900 data-[state=active]:text-slate-500 after:data-[state=active]:h-[1px] after:data-[state=active]:bg-gray-900 hover:text-slate-500',
+                  'hover:after:absolute hover:after:bottom-[-6px] hover:after:left-0 hover:after:h-[1px] hover:after:w-full hover:after:bg-gray-900',
+                )}
+              >
+                Preview
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent
+              value="builder"
+              className="flex w-[calc(100%-28px)] flex-col gap-4"
+            >
+              <DefaultEligibilityQuestions />
+              <EligibilityQuestionsForm />
+            </TabsContent>
+            <TabsContent value="preview" className="mt-0 flex flex-col gap-4">
+              <EligibilityQuestionsPreview
+                questions={eligibility}
+                control={previewForm.control as any}
+                listingId={''}
+                editFetched={false}
+                compensationType={compensationType}
+                token={token}
+                listingType={type}
+              />
+            </TabsContent>
+          </Tabs>
         </div>
 
         <div className="sticky bottom-0 z-50 mt-auto bg-white">

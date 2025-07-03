@@ -113,7 +113,7 @@ export function DefaultQuestionField({
 }: DefaultQuestionFieldProps) {
   return (
     <Tooltip content={TOOLTIP_CONTENT}>
-      <div className="flex h-9 w-[calc(100%-28px)] cursor-not-allowed items-center rounded-md border bg-slate-100 opacity-80">
+      <div className="flex h-9 w-full cursor-not-allowed items-center rounded-md border bg-slate-100 opacity-80">
         <span className="flex h-full items-center rounded-md border-r px-4 text-slate-400">
           {icon}
         </span>
