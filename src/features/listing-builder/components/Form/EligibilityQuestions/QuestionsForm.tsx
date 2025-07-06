@@ -228,7 +228,7 @@ export function EligibilityQuestionsForm() {
       ),
       {
         dismissible: false,
-        position: 'bottom-right',
+        position: 'top-right',
         className:
           'pointer-events-auto bg-white border w-full max-w-72 border-slate-200 shadow-lg rounded-lg py-4 px-3',
         duration: 10000,
