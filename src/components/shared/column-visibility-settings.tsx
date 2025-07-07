@@ -91,8 +91,10 @@ export function ColumnVisibilitySettings<ColumnKey extends string = string>(
           <Settings className="h-4 w-4" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="flex w-56 flex-col gap-2 p-2">
-        <span className="px-3 text-xs text-slate-400">SHOW IN TABLE</span>
+      <PopoverContent align="end" className="flex w-56 flex-col p-1.5">
+        <span className="px-1.5 py-2 text-xs text-slate-400">
+          SHOW IN TABLE
+        </span>
         <div className="flex flex-col">
           {columns.map(({ key, label }) => (
             <Button
@@ -100,8 +102,10 @@ export function ColumnVisibilitySettings<ColumnKey extends string = string>(
               variant="ghost"
               size="sm"
               className={cn(
-                'h-fit w-full items-center justify-between gap-3 px-3 py-2 hover:text-slate-600',
-                visibleColumns[key] ? 'text-slate-600' : 'text-slate-400',
+                'h-fit w-full items-center justify-between gap-3 p-1.5',
+                visibleColumns[key]
+                  ? 'text-slate-600 hover:text-slate-600'
+                  : 'text-slate-400 hover:text-slate-400',
               )}
               onClick={() => toggleColumn(key)}
             >
