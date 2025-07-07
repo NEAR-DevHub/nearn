@@ -13,9 +13,13 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 import { usePostHog } from 'posthog-js/react';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
+import {
+  ColumnVisibilitySettings,
+  useColumnVisibility,
+} from '@/components/shared/column-visibility-settings';
 import { SortableTH } from '@/components/shared/sortable-th';
 import { Button } from '@/components/ui/button';
 import {
@@ -68,6 +72,25 @@ interface SubmissionTableProps {
 const thClassName =
   'text-sm font-medium capitalize tracking-tight text-slate-400';
 
+type ColumnKey =
+  | 'contributor'
+  | 'title'
+  | 'ask'
+  | 'status'
+  | 'submissionDate'
+  | 'approvedDate'
+  | 'paymentDate';
+
+const columnLabels: Record<ColumnKey, string> = {
+  contributor: 'Contributor',
+  title: 'Listing Name',
+  ask: 'Ask',
+  status: 'Status',
+  submissionDate: 'Submission Date',
+  approvedDate: 'Approved Date',
+  paymentDate: 'Payment Date',
+};
+
 export const SubmissionTh = ({
   children,
   className,
@@ -119,6 +142,30 @@ export const SubmissionTable = ({
     SubmissionWithListingUser | undefined
   >(undefined);
 
+  const defaultVisibleColumns: Record<ColumnKey, boolean> = {
+    contributor: true,
+    title: true,
+    ask: true,
+    status: true,
+    submissionDate: true,
+    approvedDate: false,
+    paymentDate: true,
+  };
+
+  const { visibleColumns, toggleColumn } = useColumnVisibility<ColumnKey>(
+    'MySubmissions-Sponsor-Dashboard',
+    defaultVisibleColumns,
+  );
+
+  const columnDefinitions = useMemo(
+    () =>
+      (Object.keys(defaultVisibleColumns) as ColumnKey[]).map((k) => ({
+        key: k,
+        label: columnLabels[k],
+      })),
+    [],
+  );
+
   const handleOpenSubmissionDrawer = (
     submission: SubmissionWithListingUser,
   ) => {
@@ -143,10 +190,10 @@ export const SubmissionTable = ({
 
   return (
     <>
-      <div className="w-full overflow-x-auto rounded-md border border-slate-200">
+      <div className="max-w-8xl w-full overflow-x-auto rounded-md border border-slate-200">
         <Table>
           <TableHeader>
-            <TableRow className="bg-slate-100">
+            <TableRow className="bg-slate-100 hover:bg-muted">
               <SortableTH
                 column="id"
                 currentSort={currentSort}
@@ -155,50 +202,70 @@ export const SubmissionTable = ({
               >
                 #
               </SortableTH>
-              <SortableTH
-                column="submittedBy"
-                currentSort={currentSort}
-                setSort={onSort}
-                className={cn(thClassName)}
-              >
-                Contributor
-              </SortableTH>
-              <SubmissionTh />
-              <SortableTH
-                column="title"
-                currentSort={currentSort}
-                setSort={onSort}
-                className={cn(thClassName)}
-              >
-                Listing Name
-              </SortableTH>
-              <SubmissionTh>Ask</SubmissionTh>
-              <SortableTH
-                column="status"
-                currentSort={currentSort}
-                setSort={onSort}
-                className={cn(thClassName)}
-              >
-                Status
-              </SortableTH>
-              <SortableTH
-                column="createdAt"
-                currentSort={currentSort}
-                setSort={onSort}
-                className={cn(thClassName)}
-              >
-                Submission Date
-              </SortableTH>
-              <ListingTh className="text-nowrap">Approved Date</ListingTh>
-              <ListingTh className="text-nowrap">Payment Date</ListingTh>
+              {visibleColumns.contributor && (
+                <SortableTH
+                  column="submittedBy"
+                  currentSort={currentSort}
+                  setSort={onSort}
+                  className={cn(thClassName)}
+                >
+                  Contributor
+                </SortableTH>
+              )}
+              {visibleColumns.title && (
+                <>
+                  <SubmissionTh />
+                  <SortableTH
+                    column="title"
+                    currentSort={currentSort}
+                    setSort={onSort}
+                    className={cn(thClassName)}
+                  >
+                    Listing Name
+                  </SortableTH>
+                </>
+              )}
+              {visibleColumns.ask && <SubmissionTh>Ask</SubmissionTh>}
+              {visibleColumns.status && (
+                <SortableTH
+                  column="status"
+                  currentSort={currentSort}
+                  setSort={onSort}
+                  className={cn(thClassName)}
+                >
+                  Status
+                </SortableTH>
+              )}
+              {visibleColumns.submissionDate && (
+                <SortableTH
+                  column="createdAt"
+                  currentSort={currentSort}
+                  setSort={onSort}
+                  className={cn(thClassName)}
+                >
+                  Submission Date
+                </SortableTH>
+              )}
+              {visibleColumns.approvedDate && (
+                <ListingTh className="text-nowrap">Approved Date</ListingTh>
+              )}
+              {visibleColumns.paymentDate && (
+                <ListingTh className="text-nowrap">Payment Date</ListingTh>
+              )}
               <ListingTh className="pl-6">Actions</ListingTh>
-              <TableHead className="pl-0" />
+              <TableHead className="sticky right-0 z-50 flex items-center bg-slate-100 group-hover:bg-muted">
+                <ColumnVisibilitySettings
+                  columns={columnDefinitions}
+                  visibleColumns={visibleColumns}
+                  toggleColumn={toggleColumn}
+                />
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody className="w-full">
             {submissions.map((submission) => {
               const submissionDate = dayjs(submission?.createdAt).format(
-                "DD MMM'YY h:mm A",
+                "DD MMM'YY",
               );
               const paymentDate =
                 submission?.paymentDate && submission?.isPaid
@@ -251,122 +318,140 @@ export const SubmissionTable = ({
                       {submission.sequentialId}
                     </p>
                   </TableCell>
-                  <TableCell className="max-w-80 whitespace-normal break-words font-medium text-slate-700">
-                    <Link
-                      href={listingSubmissionLink}
-                      className="flex items-center"
-                    >
-                      <EarnAvatar
-                        id={submission?.user?.id}
-                        avatar={submission?.user?.photo || undefined}
-                      />
-                      <div className="ml-2 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className="truncate whitespace-nowrap text-sm font-medium text-slate-700">
-                            {submission?.user?.name}
+                  {visibleColumns.contributor && (
+                    <TableCell className="max-w-80 whitespace-normal break-words font-medium text-slate-700">
+                      <Link
+                        href={listingSubmissionLink}
+                        className="flex items-center"
+                      >
+                        <EarnAvatar
+                          id={submission?.user?.id}
+                          avatar={submission?.user?.photo || undefined}
+                        />
+                        <div className="ml-2 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="truncate whitespace-nowrap text-sm font-medium text-slate-700">
+                              {submission?.user?.name}
+                            </p>
+                            {submission?.user?.publicKey && (
+                              <KycComponent
+                                address={submission.user.publicKey}
+                                imageOnly
+                                variant="xs"
+                                listingSponsorId={
+                                  submission?.listing?.sponsorId
+                                }
+                              />
+                            )}
+                          </div>
+                          <p className="truncate text-xs font-medium text-slate-500">
+                            {truncatePublicKey(submission.user.publicKey, 20)}
                           </p>
-                          {submission?.user?.publicKey && (
-                            <KycComponent
-                              address={submission.user.publicKey}
-                              imageOnly
-                              variant="xs"
-                              listingSponsorId={submission?.listing?.sponsorId}
-                            />
-                          )}
                         </div>
-                        <p className="truncate text-xs font-medium text-slate-500">
-                          {truncatePublicKey(submission.user.publicKey, 20)}
-                        </p>
+                      </Link>
+                    </TableCell>
+                  )}
+                  {visibleColumns.title && (
+                    <>
+                      <TableCell className="pr-0">
+                        <Tooltip content={<p>{listingType}</p>}>
+                          <img
+                            className="mt-1.5 h-5 min-h-5 w-5 min-w-5 flex-shrink-0 rounded-full"
+                            alt={`New ${listingType}`}
+                            src={getListingIcon(submission?.listing?.type!)}
+                            title={listingType}
+                          />
+                        </Tooltip>
+                      </TableCell>
+                      <TableCell className="py-2">
+                        <Link href={listingLink}>
+                          <p className="max-w-80 whitespace-normal break-words font-medium text-slate-700">
+                            {submission?.listing?.title}
+                          </p>
+                        </Link>
+                      </TableCell>
+                    </>
+                  )}
+                  {visibleColumns.ask && (
+                    <TableCell className="min-w-[225px] font-medium text-slate-700">
+                      <div className="flex w-full items-center overflow-visible">
+                        <img
+                          src={tokenObject?.icon}
+                          alt={tokenObject?.tokenSymbol}
+                          className="h-4 w-4 rounded-full"
+                        />
+                        <span className="ml-1 truncate text-sm">
+                          {isUsdBased && '$'}
+                          {ask ? formatNumberWithSuffix(ask, 1) : '0'}
+                          <span className="text-slate-400">
+                            {isUsdBased && ' to be paid in'}
+                          </span>
+                          <span
+                            className={cn(
+                              'ml-1',
+                              !isUsdBased && 'font-semibold text-slate-400',
+                            )}
+                          >
+                            {token}
+                          </span>
+                        </span>
                       </div>
-                    </Link>
-                  </TableCell>
-                  <TableCell className="pr-0">
-                    <Tooltip content={<p>{listingType}</p>}>
-                      <img
-                        className="mt-1.5 h-5 min-h-5 w-5 min-w-5 flex-shrink-0 rounded-full"
-                        alt={`New ${listingType}`}
-                        src={getListingIcon(submission?.listing?.type!)}
-                        title={listingType}
-                      />
-                    </Tooltip>
-                  </TableCell>
-                  <TableCell className="py-2">
-                    <Link href={listingLink}>
-                      <p className="max-w-80 whitespace-normal break-words font-medium text-slate-700">
-                        {submission?.listing?.title}
+                    </TableCell>
+                  )}
+                  {visibleColumns.status && (
+                    <TableCell className="items-center py-2">
+                      <p
+                        className={cn(
+                          'inline-flex items-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium',
+                          textColor,
+                          bgColor,
+                        )}
+                      >
+                        {listingStatus}
                       </p>
-                    </Link>
-                  </TableCell>
-                  <TableCell className="min-w-[225px] font-medium text-slate-700">
-                    <div className="flex w-full items-center overflow-visible">
-                      <img
-                        src={tokenObject?.icon}
-                        alt={tokenObject?.tokenSymbol}
-                        className="h-4 w-4 rounded-full"
-                      />
-                      <span className="ml-1 truncate text-sm">
-                        {isUsdBased && '$'}
-                        {ask ? formatNumberWithSuffix(ask, 1) : '0'}
-                        <span className="text-slate-400">
-                          {isUsdBased && ' to be paid in'}
-                        </span>
-                        <span
-                          className={cn(
-                            'ml-1',
-                            !isUsdBased && 'font-semibold text-slate-400',
-                          )}
-                        >
-                          {token}
-                        </span>
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="items-center py-2">
-                    <p
-                      className={cn(
-                        'inline-flex items-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium',
-                        textColor,
-                        bgColor,
-                      )}
-                    >
-                      {listingStatus}
-                    </p>
-                  </TableCell>
-                  <TableCell className="items-center py-2">
-                    <p className="whitespace-nowrap text-sm font-medium text-slate-500">
-                      {submissionDate}
-                    </p>
-                  </TableCell>
-                  <TableCell className="items-center py-2">
-                    <Tooltip
-                      disabled={!submission?.approvedBy}
-                      content={
-                        <DoneBy
-                          doneBy={submission?.approvedBy!}
-                          doneByType="approved"
-                        />
-                      }
-                    >
+                    </TableCell>
+                  )}
+                  {visibleColumns.submissionDate && (
+                    <TableCell className="items-center py-2">
                       <p className="whitespace-nowrap text-sm font-medium text-slate-500">
-                        {approveDate}
+                        {submissionDate}
                       </p>
-                    </Tooltip>
-                  </TableCell>
-                  <TableCell>
-                    <Tooltip
-                      disabled={!submission?.paidBy}
-                      content={
-                        <DoneBy
-                          doneBy={submission?.paidBy!}
-                          doneByType="paid"
-                        />
-                      }
-                    >
-                      <p className="whitespace-nowrap text-sm font-medium text-slate-500">
-                        {paymentDate}
-                      </p>
-                    </Tooltip>
-                  </TableCell>
+                    </TableCell>
+                  )}
+                  {visibleColumns.approvedDate && (
+                    <TableCell className="items-center py-2">
+                      <Tooltip
+                        disabled={!submission?.approvedBy}
+                        content={
+                          <DoneBy
+                            doneBy={submission?.approvedBy!}
+                            doneByType="approved"
+                          />
+                        }
+                      >
+                        <p className="whitespace-nowrap text-sm font-medium text-slate-500">
+                          {approveDate}
+                        </p>
+                      </Tooltip>
+                    </TableCell>
+                  )}
+                  {visibleColumns.paymentDate && (
+                    <TableCell>
+                      <Tooltip
+                        disabled={!submission?.paidBy}
+                        content={
+                          <DoneBy
+                            doneBy={submission?.paidBy!}
+                            doneByType="paid"
+                          />
+                        }
+                      >
+                        <p className="whitespace-nowrap text-sm font-medium text-slate-500">
+                          {paymentDate}
+                        </p>
+                      </Tooltip>
+                    </TableCell>
+                  )}
                   <TableCell>
                     <Button
                       variant="ghost"

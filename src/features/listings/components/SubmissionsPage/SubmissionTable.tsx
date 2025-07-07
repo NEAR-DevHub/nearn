@@ -11,6 +11,10 @@ import React, {
 } from 'react';
 import { toast } from 'sonner';
 
+import {
+  ColumnVisibilitySettings,
+  useColumnVisibility,
+} from '@/components/shared/column-visibility-settings';
 import { SortableTH } from '@/components/shared/sortable-th';
 import { Button } from '@/components/ui/button';
 import { ExternalImage } from '@/components/ui/cloudinary-image';
@@ -28,6 +32,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Tooltip } from '@/components/ui/tooltip';
 import { tokenList } from '@/constants/tokenList';
 import { useDynamicClipboard } from '@/hooks/use-clipboard';
 import type { SubmissionWithUser } from '@/interface/submission';
@@ -37,6 +42,10 @@ import { cn } from '@/utils/cn';
 import { dayjs } from '@/utils/dayjs';
 import { formatNumberWithSuffix } from '@/utils/formatNumberWithSuffix';
 
+import {
+  parseHtml,
+  tableOptions,
+} from '@/features/sponsor-dashboard/components/InfoBox';
 import { ListingTh } from '@/features/sponsor-dashboard/components/ListingTable';
 import { colorMap } from '@/features/sponsor-dashboard/utils/statusColorMap';
 import { EarnAvatar } from '@/features/talent/components/EarnAvatar';
@@ -187,6 +196,11 @@ export const SubmissionTable = ({
   }>({ column: '', direction: null });
   const { onCopy: onCopySubmissionLink } = useDynamicClipboard();
 
+  const eligibilityQuestions = bounty.eligibility ?? [];
+  const eligibilityColumnKeys = eligibilityQuestions.map(
+    (_, idx) => `eligibility-${idx}` as const,
+  );
+
   const filteredSubmissions = useMemo(() => {
     if (currentSort.direction && currentSort.column) {
       return [...submissions].sort((a, b) => {
@@ -245,6 +259,92 @@ export const SubmissionTable = ({
 
   const isUsdBased = bounty.token === 'Any';
 
+  type ColumnKey =
+    | (typeof eligibilityColumnKeys)[number]
+    | 'submission'
+    | 'ask'
+    | 'status'
+    | 'community';
+
+  const defaultVisibleColumns = useMemo<Record<ColumnKey, boolean>>(() => {
+    const base: Record<ColumnKey, boolean> = {
+      submission: true,
+      ask: true,
+      status: true,
+      community: true,
+    } as Record<ColumnKey, boolean>;
+
+    eligibilityColumnKeys.forEach((k) => {
+      base[k] = false as boolean;
+    });
+    return base;
+  }, [eligibilityColumnKeys]);
+
+  const { visibleColumns, toggleColumn } = useColumnVisibility<ColumnKey>(
+    `SubmissionTable:${bounty.id}`,
+    defaultVisibleColumns,
+  );
+
+  const answers = useMemo(() => {
+    const answers = new Map<string, React.ReactNode>();
+    filteredSubmissions.forEach((submission) => {
+      submission.eligibilityAnswers?.forEach(
+        (answer: { question: string; answer: string }) => {
+          const ans = answer.answer ?? '\u2014';
+          if (typeof ans === 'string') {
+            answers.set(
+              `${submission.id}-${answer.question}`,
+              parseHtml(ans, tableOptions),
+            );
+          } else {
+            answers.set(
+              `${submission.id}-${answer.question}`,
+              JSON.stringify(ans),
+            );
+          }
+        },
+      );
+    });
+    return answers;
+  }, [filteredSubmissions]);
+
+  const getColumnLabel = (key: ColumnKey) => {
+    if (key === 'submission') return 'Submission';
+    if (key === 'ask')
+      return bounty.compensationType === 'fixed' ? 'Reward' : 'Ask';
+    if (key === 'status') return 'Status';
+    if (key === 'community') return 'Community';
+    if (key.startsWith('eligibility-')) {
+      const index = Number(key.split('-')[1]);
+      const q = eligibilityQuestions[index];
+      if (!q?.question) return `Question ${index + 1}`;
+      return (
+        <span className="inline-flex max-w-[12rem] items-center">
+          <p className="line-clamp-1 text-left">
+            {parseHtml(q.question, tableOptions)}
+          </p>
+        </span>
+      );
+    }
+    return key;
+  };
+
+  const columnDefinitions = useMemo<
+    { key: ColumnKey; label: React.ReactNode }[]
+  >(
+    () => [
+      { key: 'submission' as ColumnKey, label: getColumnLabel('submission') },
+      { key: 'ask' as ColumnKey, label: getColumnLabel('ask') },
+      { key: 'status' as ColumnKey, label: getColumnLabel('status') },
+      ...eligibilityColumnKeys.map((k) => ({
+        key: k,
+        label: getColumnLabel(k),
+      })),
+      { key: 'community' as ColumnKey, label: getColumnLabel('community') },
+    ],
+    [eligibilityQuestions],
+  );
+
   const onSort = (column: string, direction: 'asc' | 'desc' | null) => {
     setCurrentSort({ column, direction });
   };
@@ -260,10 +360,10 @@ export const SubmissionTable = ({
     <>
       <div className="mt-10 flex min-h-screen w-full flex-col items-center md:items-start">
         {isSponsorship || dayjs(endTime).valueOf() < Date.now() ? (
-          <div className="w-full overflow-x-auto rounded-md border border-slate-200">
-            <Table>
+          <div className="w-full max-w-4xl overflow-x-auto rounded-md border border-slate-200">
+            <Table className="w-full">
               <TableHeader>
-                <TableRow className="bg-slate-100">
+                <TableRow className="group bg-slate-100 hover:bg-muted">
                   <SortableTH
                     column="id"
                     currentSort={currentSort}
@@ -272,32 +372,52 @@ export const SubmissionTable = ({
                   >
                     #
                   </SortableTH>
-                  <SortableTH
-                    column="user"
-                    currentSort={currentSort}
-                    setSort={onSort}
-                    className={cn(thClassName)}
-                  >
-                    Submission
-                  </SortableTH>
-                  <SortableTH
-                    column="ask"
-                    currentSort={currentSort}
-                    setSort={onSort}
-                    className={cn(thClassName)}
-                  >
-                    {bounty.compensationType === 'fixed' ? 'Reward' : 'Ask'}
-                  </SortableTH>
-                  <SortableTH
-                    column="status"
-                    currentSort={currentSort}
-                    setSort={onSort}
-                    className={cn(thClassName)}
-                  >
-                    Status
-                  </SortableTH>
-                  <ListingTh>Community</ListingTh>
+                  {visibleColumns.submission && (
+                    <SortableTH
+                      column="user"
+                      currentSort={currentSort}
+                      setSort={onSort}
+                      className={cn(thClassName)}
+                    >
+                      {getColumnLabel('submission')}
+                    </SortableTH>
+                  )}
+                  {visibleColumns.ask && (
+                    <SortableTH
+                      column="ask"
+                      currentSort={currentSort}
+                      setSort={onSort}
+                      className={cn(thClassName)}
+                    >
+                      {getColumnLabel('ask')}
+                    </SortableTH>
+                  )}
+                  {visibleColumns.status && (
+                    <SortableTH
+                      column="status"
+                      currentSort={currentSort}
+                      setSort={onSort}
+                      className={cn(thClassName)}
+                    >
+                      {getColumnLabel('status')}
+                    </SortableTH>
+                  )}
+                  {eligibilityColumnKeys.map((colKey) =>
+                    visibleColumns[colKey] ? (
+                      <ListingTh key={colKey}>
+                        {getColumnLabel(colKey)}
+                      </ListingTh>
+                    ) : null,
+                  )}
+                  {visibleColumns.community && <ListingTh>Community</ListingTh>}
                   <ListingTh>Actions</ListingTh>
+                  <ListingTh className="sticky right-0 z-50 flex items-center bg-slate-100 group-hover:bg-muted">
+                    <ColumnVisibilitySettings
+                      columns={columnDefinitions}
+                      visibleColumns={visibleColumns}
+                      toggleColumn={toggleColumn}
+                    />
+                  </ListingTh>
                 </TableRow>
               </TableHeader>
               {
@@ -326,83 +446,115 @@ export const SubmissionTable = ({
                             {submission.sequentialId}
                           </p>
                         </TableCell>
-                        <TableCell className="min-w-[225px] pr-0">
-                          <div className="flex items-center">
-                            <EarnAvatar
-                              id={submission?.user?.id}
-                              avatar={submission?.user?.photo || undefined}
-                            />
-                            <div className="ml-2 min-w-0">
-                              <div className="flex items-center gap-2">
-                                <p className="truncate whitespace-nowrap text-sm font-medium text-slate-700">
-                                  {submission?.user?.private
-                                    ? submission?.user?.username
-                                    : submission?.user?.name}
+                        {visibleColumns.submission && (
+                          <TableCell className="min-w-[225px] pr-0">
+                            <div className="flex items-center">
+                              <EarnAvatar
+                                id={submission?.user?.id}
+                                avatar={submission?.user?.photo || undefined}
+                              />
+                              <div className="ml-2 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <p className="truncate whitespace-nowrap text-sm font-medium text-slate-700">
+                                    {submission?.user?.private
+                                      ? submission?.user?.username
+                                      : submission?.user?.name}
+                                  </p>
+                                  {submission?.user?.publicKey && (
+                                    <KycComponent
+                                      address={submission.user.publicKey}
+                                      imageOnly
+                                      variant="xs"
+                                      listingSponsorId={bounty?.sponsorId}
+                                    />
+                                  )}
+                                </div>
+                                <p className="truncate text-xs font-medium text-slate-500">
+                                  {dayjs(submission.createdAt).format(
+                                    "D MMM' YY h:MM A",
+                                  )}
                                 </p>
-                                {submission?.user?.publicKey && (
-                                  <KycComponent
-                                    address={submission.user.publicKey}
-                                    imageOnly
-                                    variant="xs"
-                                    listingSponsorId={bounty?.sponsorId}
-                                  />
-                                )}
                               </div>
-                              <p className="truncate text-xs font-medium text-slate-500">
-                                {dayjs(submission.createdAt).format(
-                                  "D MMM' YY h:MM A",
-                                )}
-                              </p>
                             </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="min-w-[225px] font-medium text-slate-700">
-                          <div className="flex w-full items-center overflow-visible">
-                            <img
-                              src={tokenObject?.icon}
-                              alt={tokenObject?.tokenSymbol}
-                              className="h-4 w-4 rounded-full"
-                            />
-                            <span className="ml-1 truncate text-sm">
-                              {isUsdBased && '$'}
-                              {ask ? formatNumberWithSuffix(ask, 1) : '0'}
-                              <span className="text-slate-400">
-                                {isUsdBased && ' to be paid in'}
+                          </TableCell>
+                        )}
+                        {visibleColumns.ask && (
+                          <TableCell className="min-w-[225px] font-medium text-slate-700">
+                            <div className="flex w-full items-center overflow-visible">
+                              <img
+                                src={tokenObject?.icon}
+                                alt={tokenObject?.tokenSymbol}
+                                className="h-4 w-4 rounded-full"
+                              />
+                              <span className="ml-1 truncate text-sm">
+                                {isUsdBased && '$'}
+                                {ask ? formatNumberWithSuffix(ask, 1) : '0'}
+                                <span className="text-slate-400">
+                                  {isUsdBased && ' to be paid in'}
+                                </span>
+                                <span
+                                  className={cn(
+                                    'ml-1',
+                                    !isUsdBased &&
+                                      'font-semibold text-slate-400',
+                                  )}
+                                >
+                                  {token}
+                                </span>
                               </span>
-                              <span
-                                className={cn(
-                                  'ml-1',
-                                  !isUsdBased && 'font-semibold text-slate-400',
-                                )}
-                              >
-                                {token}
-                              </span>
+                            </div>
+                          </TableCell>
+                        )}
+                        {visibleColumns.status && (
+                          <TableCell className="py-2">
+                            <span
+                              className={cn(
+                                'inline-flex whitespace-nowrap rounded-full px-3 py-1 text-center text-[10px] capitalize',
+                                colorMap[
+                                  submissionStatus as keyof typeof colorMap
+                                ].bg,
+                                colorMap[
+                                  submissionStatus as keyof typeof colorMap
+                                ].color,
+                              )}
+                            >
+                              {submissionStatus}
                             </span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="py-2">
-                          <span
-                            className={cn(
-                              'inline-flex whitespace-nowrap rounded-full px-3 py-1 text-center text-[10px] capitalize',
-                              colorMap[
-                                submissionStatus as keyof typeof colorMap
-                              ].bg,
-                              colorMap[
-                                submissionStatus as keyof typeof colorMap
-                              ].color,
-                            )}
-                          >
-                            {submissionStatus}
-                          </span>
-                        </TableCell>
-                        <TableCell className="items-center py-2">
-                          <LikeAndComment
-                            id={submission.id}
-                            bounty={bounty}
-                            submission={submission}
-                            setUpdate={setUpdate}
-                          />
-                        </TableCell>
+                          </TableCell>
+                        )}
+                        {eligibilityColumnKeys.map((colKey, colIndex) => {
+                          if (!visibleColumns[colKey]) return null;
+
+                          const answer = answers.get(
+                            `${submission.id}-${eligibilityQuestions[colIndex]?.question ?? ''}`,
+                          );
+
+                          return (
+                            <TableCell
+                              key={`${submission.id}-${colKey}`}
+                              className="py-2"
+                            >
+                              <Tooltip
+                                content={answer}
+                                triggerClassName="flex max-w-[12rem]"
+                              >
+                                <div className="line-clamp-2 text-left text-sm text-slate-700">
+                                  {answer}
+                                </div>
+                              </Tooltip>
+                            </TableCell>
+                          );
+                        })}
+                        {visibleColumns.community && (
+                          <TableCell className="items-center py-2">
+                            <LikeAndComment
+                              id={submission.id}
+                              bounty={bounty}
+                              submission={submission}
+                              setUpdate={setUpdate}
+                            />
+                          </TableCell>
+                        )}
                         <TableCell className="px-0 py-2">
                           <div className="flex items-center justify-between">
                             <Button
@@ -418,32 +570,34 @@ export const SubmissionTable = ({
                                 View Submission
                               </Link>
                             </Button>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  className="hover:bg-slate-100"
-                                  size="icon"
-                                  variant="ghost"
-                                >
-                                  <MoreVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent
-                                align="end"
-                                className="max-w-60"
-                              >
-                                <DropdownMenuItem
-                                  className="cursor-pointer text-sm font-medium text-slate-500"
-                                  onClick={() => {
-                                    handleCopySubmissionLink(submissionLink);
-                                  }}
-                                >
-                                  <Copy className="mr-1 h-4 w-4" />
-                                  Copy Link
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
                           </div>
+                        </TableCell>
+                        <TableCell className="px-0 py-2">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                className="hover:bg-slate-100"
+                                size="icon"
+                                variant="ghost"
+                              >
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                              align="end"
+                              className="max-w-60"
+                            >
+                              <DropdownMenuItem
+                                className="cursor-pointer text-sm font-medium text-slate-500"
+                                onClick={() => {
+                                  handleCopySubmissionLink(submissionLink);
+                                }}
+                              >
+                                <Copy className="mr-1 h-4 w-4" />
+                                Copy Link
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     );

@@ -19,6 +19,10 @@ import React, { useState } from 'react';
 import { IoDuplicateOutline } from 'react-icons/io5';
 import { toast } from 'sonner';
 
+import {
+  ColumnVisibilitySettings,
+  useColumnVisibility,
+} from '@/components/shared/column-visibility-settings';
 import { SortableTH } from '@/components/shared/sortable-th';
 import { Button } from '@/components/ui/button';
 import {
@@ -59,6 +63,7 @@ import { UnpublishModal } from './Modals/UnpublishModal';
 import { VerifyPaymentModal } from './Modals/VerifyPayment';
 import { SponsorPrize } from './SponsorPrize';
 import { DeleteRestoreListingModal } from './Submissions/Modals/DeleteRestoreListingModal';
+
 interface ListingTableProps {
   sponsor: SponsorType | undefined;
   listings: ListingWithSubmissions[];
@@ -73,11 +78,22 @@ interface ListingTableProps {
 const thClassName =
   'text-sm font-medium capitalize tracking-tight text-slate-400';
 
+type ColumnKey = 'title' | 'submissions' | 'deadline' | 'prize' | 'status';
+
+// helper to get readable label
+const columnLabels: Record<ColumnKey, string> = {
+  title: 'Listing Name',
+  submissions: 'Submissions',
+  deadline: 'Deadline',
+  prize: 'Prize',
+  status: 'Status',
+};
+
 export const ListingTh = ({
   children,
   className,
 }: {
-  children?: string;
+  children?: string | React.ReactNode;
   className?: string;
 }) => {
   return (
@@ -124,6 +140,23 @@ export const ListingTable = ({
     onOpen: deleteModalOnOpen,
     onClose: deleteModalOnClose,
   } = useDisclosure();
+
+  const defaultVisibleColumns: Record<ColumnKey, boolean> = {
+    title: true,
+    submissions: true,
+    deadline: true,
+    prize: true,
+    status: true,
+  };
+
+  const { visibleColumns, toggleColumn } = useColumnVisibility<ColumnKey>(
+    `MyListings-Sponsor-Dashboard`,
+    defaultVisibleColumns,
+  );
+
+  const columnDefinitions = (
+    Object.keys(defaultVisibleColumns) as ColumnKey[]
+  ).map((k) => ({ key: k, label: columnLabels[k] }));
 
   const handleUnpublish = async (
     unpublishedListing: ListingWithSubmissions,
@@ -201,7 +234,7 @@ export const ListingTable = ({
       <div className="w-full overflow-x-auto rounded-md border border-slate-200">
         <Table>
           <TableHeader>
-            <TableRow className="bg-slate-100">
+            <TableRow className="bg-slate-100 hover:bg-muted">
               <SortableTH
                 column="id"
                 currentSort={currentSort}
@@ -211,57 +244,71 @@ export const ListingTable = ({
                 #
               </SortableTH>
               <ListingTh />
-              <SortableTH
-                column="title"
-                currentSort={currentSort}
-                setSort={onSort}
-                className={cn(thClassName)}
-              >
-                Listing Name
-              </SortableTH>
-              <SortableTH
-                column="submissions"
-                currentSort={currentSort}
-                setSort={onSort}
-                className={cn(thClassName, 'text-center')}
-              >
-                Submissions
-              </SortableTH>
-              <SortableTH
-                column="deadline"
-                currentSort={currentSort}
-                setSort={onSort}
-                className={cn(thClassName)}
-              >
-                Deadline
-              </SortableTH>
-              <ListingTh>Prize</ListingTh>
-              <SortableTH
-                column="status"
-                currentSort={currentSort}
-                setSort={onSort}
-                className={cn(thClassName)}
-              >
-                <div className="flex items-center gap-1">
-                  Status
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-3 w-3 p-0"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      statusModalOnOpen();
-                    }}
-                  >
-                    <CircleHelp
-                      className="text-slate-400 hover:text-slate-600"
-                      style={{ width: '12px', height: '12px' }}
-                    />
-                  </Button>
-                </div>
-              </SortableTH>
+              {visibleColumns.title && (
+                <SortableTH
+                  column="title"
+                  currentSort={currentSort}
+                  setSort={onSort}
+                  className={cn(thClassName)}
+                >
+                  Listing Name
+                </SortableTH>
+              )}
+              {visibleColumns.submissions && (
+                <SortableTH
+                  column="submissions"
+                  currentSort={currentSort}
+                  setSort={onSort}
+                  className={cn(thClassName, 'text-center')}
+                >
+                  Submissions
+                </SortableTH>
+              )}
+              {visibleColumns.deadline && (
+                <SortableTH
+                  column="deadline"
+                  currentSort={currentSort}
+                  setSort={onSort}
+                  className={cn(thClassName)}
+                >
+                  Deadline
+                </SortableTH>
+              )}
+              {visibleColumns.prize && <ListingTh>Prize</ListingTh>}
+              {visibleColumns.status && (
+                <SortableTH
+                  column="status"
+                  currentSort={currentSort}
+                  setSort={onSort}
+                  className={cn(thClassName)}
+                >
+                  <div className="flex items-center gap-1">
+                    Status
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-3 w-3 p-0"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        statusModalOnOpen();
+                      }}
+                    >
+                      <CircleHelp
+                        className="text-slate-400 hover:text-slate-600"
+                        style={{ width: '12px', height: '12px' }}
+                      />
+                    </Button>
+                  </div>
+                </SortableTH>
+              )}
               <ListingTh className="pl-6">Actions</ListingTh>
-              <TableHead className="pl-0" />
+              <ListingTh className="sticky right-0 z-50 flex items-center bg-slate-100 group-hover:bg-muted">
+                <ColumnVisibilitySettings
+                  columns={columnDefinitions}
+                  visibleColumns={visibleColumns}
+                  toggleColumn={toggleColumn}
+                />
+              </ListingTh>
             </TableRow>
           </TableHeader>
           <TableBody className="w-full">
@@ -310,76 +357,86 @@ export const ListingTable = ({
                       />
                     </Tooltip>
                   </TableCell>
-                  <TableCell className="max-w-80 whitespace-normal break-words font-medium text-slate-700">
-                    <Link
-                      className={cn('ph-no-capture')}
-                      href={
-                        listing.isPublished ? listingSubmissionLink : editLink
-                      }
-                      onClick={() => {
-                        posthog.capture('submissions_sponsor');
-                      }}
-                    >
-                      <p
-                        className="cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap text-[15px] font-medium text-slate-500 hover:underline"
-                        title={listing.title}
-                      >
-                        {listing.title}
-                      </p>
-                    </Link>
-                  </TableCell>
-                  <TableCell className="py-2">
-                    <p className="text-center text-sm font-medium text-slate-500">
-                      {listing.submissionCount}
-                    </p>
-                  </TableCell>
-                  <TableCell className="items-center py-2">
-                    <p className="whitespace-nowrap text-sm font-medium text-slate-500">
-                      {deadline}
-                    </p>
-                  </TableCell>
-                  <TableCell className="py-2">
-                    <div className="flex items-center justify-start gap-1">
-                      <img
-                        className="h-5 w-5 rounded-full"
-                        alt={'green dollar'}
-                        src={
-                          tokenList.filter(
-                            (e) => e?.tokenSymbol === listing.token,
-                          )[0]?.icon ?? '/assets/dollar.svg'
+                  {visibleColumns.title && (
+                    <TableCell className="max-w-80 whitespace-normal break-words font-medium text-slate-700">
+                      <Link
+                        className={cn('ph-no-capture')}
+                        href={
+                          listing.isPublished ? listingSubmissionLink : editLink
                         }
-                      />
-                      {listing?.type === 'grant' && (
-                        <p className="whitespace-nowrap text-sm font-medium text-slate-700">
-                          {grantAmount({
-                            minReward: listing?.minRewardAsk!,
-                            maxReward: listing?.maxRewardAsk!,
-                          })}
+                        onClick={() => {
+                          posthog.capture('submissions_sponsor');
+                        }}
+                      >
+                        <p
+                          className="cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap text-[15px] font-medium text-slate-500 hover:underline"
+                          title={listing.title}
+                        >
+                          {listing.title}
                         </p>
-                      )}
-                      <SponsorPrize
-                        compensationType={listing?.compensationType}
-                        maxRewardAsk={listing?.maxRewardAsk}
-                        minRewardAsk={listing?.minRewardAsk}
-                        rewardAmount={listing?.rewardAmount}
-                        className="text-sm font-medium text-slate-700"
-                      />
-                      <p className="text-sm font-medium text-slate-400">
-                        {listing.token}
+                      </Link>
+                    </TableCell>
+                  )}
+                  {visibleColumns.submissions && (
+                    <TableCell className="py-2">
+                      <p className="text-center text-sm font-medium text-slate-500">
+                        {listing.submissionCount}
                       </p>
-                    </div>
-                  </TableCell>
-                  <TableCell className="items-center py-2">
-                    <p
-                      className={cn(
-                        'inline-flex items-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium',
-                        textColor,
-                        bgColor,
-                      )}
-                    >
-                      {listingStatus}
-                    </p>
-                  </TableCell>
+                    </TableCell>
+                  )}
+                  {visibleColumns.deadline && (
+                    <TableCell className="items-center py-2">
+                      <p className="whitespace-nowrap text-sm font-medium text-slate-500">
+                        {deadline}
+                      </p>
+                    </TableCell>
+                  )}
+                  {visibleColumns.prize && (
+                    <TableCell className="py-2">
+                      <div className="flex items-center justify-start gap-1">
+                        <img
+                          className="h-5 w-5 rounded-full"
+                          alt={'green dollar'}
+                          src={
+                            tokenList.filter(
+                              (e) => e?.tokenSymbol === listing.token,
+                            )[0]?.icon ?? '/assets/dollar.svg'
+                          }
+                        />
+                        {listing?.type === 'grant' && (
+                          <p className="whitespace-nowrap text-sm font-medium text-slate-700">
+                            {grantAmount({
+                              minReward: listing?.minRewardAsk!,
+                              maxReward: listing?.maxRewardAsk!,
+                            })}
+                          </p>
+                        )}
+                        <SponsorPrize
+                          compensationType={listing?.compensationType}
+                          maxRewardAsk={listing?.maxRewardAsk}
+                          minRewardAsk={listing?.minRewardAsk}
+                          rewardAmount={listing?.rewardAmount}
+                          className="text-sm font-medium text-slate-700"
+                        />
+                        <p className="text-sm font-medium text-slate-400">
+                          {listing.token}
+                        </p>
+                      </div>
+                    </TableCell>
+                  )}
+                  {visibleColumns.status && (
+                    <TableCell className="items-center py-2">
+                      <p
+                        className={cn(
+                          'inline-flex items-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium',
+                          textColor,
+                          bgColor,
+                        )}
+                      >
+                        {listingStatus}
+                      </p>
+                    </TableCell>
+                  )}
                   <TableCell className="px-3 py-2">
                     {listing.status === 'OPEN' && !!listing.isPublished ? (
                       <Button

@@ -1,4 +1,7 @@
-import parse, { type HTMLReactParserOptions } from 'html-react-parser';
+import parse, {
+  domToReact,
+  type HTMLReactParserOptions,
+} from 'html-react-parser';
 
 import { LinkTextParser } from '@/components/shared/LinkTextParser';
 import { cn } from '@/utils/cn';
@@ -12,8 +15,28 @@ const options: HTMLReactParserOptions = {
   },
 };
 
-export function parseHtml(content: string) {
-  return parse(content || '', options);
+export const tableOptions: HTMLReactParserOptions = {
+  replace: (node: any) => {
+    const { name, children } = node ?? {};
+
+    if (name === 'p' && (!children || children.length === 0)) {
+      return <br />;
+    }
+
+    // Render <a> tags as plain text so they are not clickable (useful for titles / table headers).
+    if (name === 'a') {
+      return <span>{domToReact(children, options)}</span>;
+    }
+
+    return undefined; // use default rendering for other nodes
+  },
+};
+
+export function parseHtml(
+  content: string,
+  parseOptions: HTMLReactParserOptions = options,
+) {
+  return parse(content || '', parseOptions);
 }
 
 export const InfoBox = ({

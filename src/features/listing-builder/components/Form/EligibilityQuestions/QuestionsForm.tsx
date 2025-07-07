@@ -83,7 +83,7 @@ function ToastWithProgress({
 
   return (
     <div
-      className="flex w-full justify-between"
+      className="flex w-80 justify-between"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
@@ -230,7 +230,7 @@ export function EligibilityQuestionsForm() {
         dismissible: false,
         position: 'top-right',
         className:
-          'pointer-events-auto bg-white border w-full max-w-72 border-slate-200 shadow-lg rounded-lg py-4 px-3',
+          'pointer-events-auto bg-white border w-full border-slate-200 shadow-lg rounded-lg py-4 px-3',
         duration: 10000,
       },
     );
