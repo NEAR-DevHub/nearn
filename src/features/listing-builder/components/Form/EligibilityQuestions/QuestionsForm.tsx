@@ -281,10 +281,7 @@ export function EligibilityQuestionsForm() {
       control={form.control}
       name={`eligibility`}
       render={() => (
-        <FormItem className="gap-2 pt-2">
-          <p className="text-xs font-medium uppercase text-slate-500">
-            Custom Questions
-          </p>
+        <FormItem className="gap-2">
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}

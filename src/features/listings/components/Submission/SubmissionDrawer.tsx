@@ -1,34 +1,22 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
-import { X } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { usePostHog } from 'posthog-js/react';
-import { type JSX, useEffect, useState } from 'react';
-import { useForm, type UseFormReturn, useWatch } from 'react-hook-form';
+import { useEffect, useState } from 'react';
+import { useForm, type UseFormReturn } from 'react-hook-form';
 import { toast } from 'sonner';
 import { type z } from 'zod';
 
-import { EligibilityQuestions } from '@/components/eligibility/EligibilityQuestions';
+import { EligibilityQuestionsForm } from '@/components/eligibility/EligibilityQuestions';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { KycComponent } from '@/components/ui/KycComponent';
+import { Form } from '@/components/ui/form';
 import { SideDrawer, SideDrawerContent } from '@/components/ui/side-drawer';
-import { CHAIN_NAME } from '@/constants/project';
 import { tokenList } from '@/constants/tokenList';
 import { type SubmissionWithUser } from '@/interface/submission';
 import { api } from '@/lib/api';
 import { useUser } from '@/store/user';
-import { cn } from '@/utils/cn';
 
 import { AuthWrapper } from '@/features/auth/components/AuthWrapper';
 
@@ -97,10 +85,6 @@ export const SubmissionDrawer = ({
           : [],
       token: token === 'Any' ? tokenList[0]?.tokenSymbol : undefined,
     },
-  });
-  const formPublicKey = useWatch({
-    control: form.control,
-    name: 'publicKey',
   });
 
   const posthog = usePostHog();
@@ -242,53 +226,6 @@ export const SubmissionDrawer = ({
     }
   };
 
-  let headerText = '';
-  let subheadingText: JSX.Element | string = '';
-  switch (type) {
-    case 'project':
-      headerText = 'Submit Your Application';
-      subheadingText = (
-        <>
-          Don&apos;t start working just yet! Apply first, and then begin working
-          only once you&apos;ve been chosen for the project by the sponsor.
-          <p>
-            Please note that the sponsor might contact you to assess fit before
-            picking the winner.
-          </p>
-        </>
-      );
-      break;
-    case 'bounty':
-      headerText = 'Bounty Submission';
-      subheadingText = "We can't wait to see what you've created!";
-      break;
-    case 'sponsorship':
-      headerText = 'Sponsorship Submission';
-      subheadingText = "We can't wait to see what you've created!";
-      break;
-    case 'hackathon':
-      headerText = `${CHAIN_NAME} Radar Track Submission`;
-      subheadingText = (
-        <>
-          Note:
-          <p>
-            1. In the &quot;Link to your Submission&quot; field, submit your
-            hackathon project&apos;s most useful link (could be a loom video,
-            GitHub link, website, etc)
-          </p>
-          <p>
-            2. To be eligible for different challenges, you need to submit to
-            each challenge separately
-          </p>
-          <p>
-            3. {`There's no`} restriction on the number of challenges you can
-            submit to
-          </p>
-        </>
-      );
-      break;
-  }
-
   return (
     <SideDrawer open={isOpen} onClose={handleClose} className="scrollbar-none">
       <SideDrawerContent>
@@ -298,91 +235,16 @@ export const SubmissionDrawer = ({
             style={{ width: '100%', height: '100%' }}
           >
             <div className="flex h-full flex-col justify-between gap-6">
-              <div className="h-full overflow-y-auto rounded-lg border border-slate-200 px-2 shadow-[0px_1px_3px_rgba(0,0,0,0.08),_0px_1px_2px_rgba(0,0,0,0.06)] md:px-4 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-track]:w-1.5 [&::-webkit-scrollbar]:w-1">
-                <div className="mb-4 border-b border-slate-100 bg-white py-3">
-                  <div className="flex items-center justify-between">
-                    <p className="text-lg font-medium text-slate-700">
-                      {isGodMode ? '[GOD MODE] ' : ''}
-                      {headerText}
-                    </p>
-                    <X
-                      className="h-4 w-4 text-slate-400"
-                      onClick={handleClose}
-                    />
-                  </div>
-                  <p className="text-sm text-slate-500">{subheadingText}</p>
-                </div>
-                <div>
-                  <div className="mb-5 flex flex-col gap-4">
-                    <EligibilityQuestions
-                      questions={eligibility}
-                      control={form.control}
-                      listingId={id ?? null}
-                      editFetched={editFetched}
-                      compensationType={compensationType ?? null}
-                      token={token ?? null}
-                      listingType={type ?? null}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="publicKey"
-                      render={({ field }) => (
-                        <FormItem className="flex w-full flex-col gap-2">
-                          <div>
-                            <FormLabel isRequired={!user?.publicKey}>
-                              Your {CHAIN_NAME} Wallet Address
-                            </FormLabel>
-                            <FormDescription>
-                              {!!user?.publicKey ? (
-                                <>
-                                  This is where you will receive your payment if
-                                  your submission is approved. If you want to
-                                  edit it,{' '}
-                                  <a
-                                    href={`/t/${user?.username}/edit`}
-                                    className="text-blue-600 underline hover:text-blue-700"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                  >
-                                    click here
-                                  </a>
-                                </>
-                              ) : (
-                                <>
-                                  This wallet address will be linked to your
-                                  profile and you will receive your rewards here
-                                  if you win.
-                                </>
-                              )}
-                            </FormDescription>
-                          </div>
-                          <FormControl>
-                            <div className="flex flex-col gap-2">
-                              <Input
-                                className={cn(
-                                  !!user?.publicKey &&
-                                    'cursor-not-allowed text-slate-600 opacity-80',
-                                )}
-                                placeholder={`Add your ${CHAIN_NAME} wallet address`}
-                                readOnly={!!user?.publicKey}
-                                {...(!!user?.publicKey ? {} : field)}
-                                value={user?.publicKey || field.value}
-                              />
-                            </div>
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                    <KycComponent
-                      address={formPublicKey ?? user?.publicKey ?? ''}
-                      listingSponsorId={listing.sponsorId}
-                      variant="extended"
-                    />
-                  </div>
-                </div>
-              </div>
-
+              <EligibilityQuestionsForm
+                questions={eligibility}
+                control={form.control}
+                listingId={id ?? null}
+                editFetched={editFetched}
+                compensationType={compensationType ?? null}
+                token={token ?? null}
+                listingType={type ?? null}
+                isGodMode={isGodMode}
+              />
               <div className="flex w-full flex-col">
                 {user?.private && !editMode && (
                   <div className="mb-4">

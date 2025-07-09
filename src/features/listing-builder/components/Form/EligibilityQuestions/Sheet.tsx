@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 
-import { EligibilityQuestions as EligibilityQuestionsPreview } from '@/components/eligibility/EligibilityQuestions';
+import { EligibilityQuestionsForm as EligibilityQuestionsPreview } from '@/components/eligibility/EligibilityQuestions';
 import { Button } from '@/components/ui/button';
 import {
   FormField,
@@ -34,7 +34,6 @@ import { cn } from '@/utils/cn';
 
 import { useListingForm } from '@/features/listing-builder/hooks';
 
-import { DefaultEligibilityQuestions } from './DefaultQs';
 import { EligibilityQuestionsForm } from './QuestionsForm';
 
 function SubmissionLimit() {
@@ -45,13 +44,13 @@ function SubmissionLimit() {
   });
 
   const value = type === 'sponsorship' ? 'multiple' : 'single';
-  const description =
+  const tooltip =
     type === 'sponsorship'
-      ? 'Multiple submissions are allowed throughout the bounty period'
-      : 'Contributors can submit only once during the entire bounty period';
+      ? 'Multiple submissions are allowed, but only after the first one is approved or rejected. Support for additional options is coming soon.'
+      : 'Only one submission per user is allowed for this listing type. Support for multiple submissions is coming soon.';
 
   return (
-    <div className="flex justify-between">
+    <div className="flex items-center justify-between">
       <div className="">
         <div className="flex items-center gap-1">
           <p className="text-sm font-medium text-slate-500">Submission Limit</p>
@@ -68,11 +67,15 @@ function SubmissionLimit() {
             <Info className="h-3 w-3 text-slate-400" />
           </Tooltip>
         </div>
-        <p className="text-xs text-slate-500">{description}</p>
+        <p className="text-xs text-slate-500">
+          Set how many times a contributor can submit during the listing period
+        </p>
       </div>
       <Select value={value} disabled>
         <SelectTrigger className="w-52">
-          <SelectValue placeholder="Select a limit" />
+          <Tooltip content={tooltip} contentProps={{ className: 'z-[1000]' }}>
+            <SelectValue placeholder="Select a limit" />
+          </Tooltip>
         </SelectTrigger>
         <SelectContent>
           <SelectItem className="w-52" value="multiple">
@@ -107,6 +110,9 @@ export function EligibilityQuestionsSheet() {
     control: form.control,
     name: 'eligibility',
   });
+  const [activeTab, setActiveTab] = useState<
+    'builder' | 'settings' | 'preview'
+  >('builder');
 
   // Form instance for preview purposes
   const previewForm = useForm({
@@ -120,6 +126,7 @@ export function EligibilityQuestionsSheet() {
       ask: null,
       token: '',
       otherTokenDetails: '',
+      publicKey: '',
     },
   });
 
@@ -130,25 +137,6 @@ export function EligibilityQuestionsSheet() {
       errors?.eligibility?.some?.((question) => !!question)
     );
   }, [form]);
-
-  const subtext = useMemo(
-    () =>
-      type === 'project' || type === 'sponsorship' ? (
-        <>
-          Applicant&apos;s <strong>Names</strong>, <strong>Email</strong>,{' '}
-          <strong>IDs</strong>, and <strong>NEAR Wallet</strong> are collected
-          by default. Please use this space to ask about anything else!
-        </>
-      ) : (
-        <>
-          The main {type === 'bounty' ? 'bounty' : 'hackathon'} submission link,
-          the submitter&apos;s <strong>Names</strong>, <strong>Email</strong>,{' '}
-          <strong>IDs</strong>, and <strong>NEAR Wallet</strong> are collected
-          by default. Please use this space to ask about anything else!
-        </>
-      ),
-    [type],
-  );
 
   return (
     <Sheet
@@ -168,12 +156,6 @@ export function EligibilityQuestionsSheet() {
                 <FormLabel isRequired={type !== 'bounty'} className="">
                   Application Form
                 </FormLabel>
-                <Tooltip
-                  delayDuration={100}
-                  content={<p className="max-w-sm">{subtext}</p>}
-                >
-                  <Info className="h-3 w-3 text-slate-400" />
-                </Tooltip>
               </div>
               <div className="flex w-full items-center gap-2 rounded-md border border-slate-200 bg-slate-50 py-0.5 pl-2">
                 <FilePen className="size-4 stroke-[1.5] text-slate-900" />
@@ -213,56 +195,86 @@ export function EligibilityQuestionsSheet() {
         }}
         showCloseIcon={false}
         side="right"
-        className="flex h-[100vh] flex-col overflow-y-auto p-0 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-slate-300 sm:max-w-2xl"
+        className="flex h-[100vh] flex-col overflow-y-auto p-0 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-slate-300 sm:max-w-xl"
       >
         <SheetHeader className="space-y-2 p-6 pb-0">
           <SheetTitle>Application Form</SheetTitle>
           <SheetDescription className="text-sm text-slate-500">
-            {subtext}
+            Customize the form applicants fill out when applying to your
+            listing.
           </SheetDescription>
         </SheetHeader>
 
-        <div id="main-content" className="flex flex-col">
-          <Tabs defaultValue="builder" className="mb-0">
+        <div id="main-content" className="flex flex-col px-8">
+          <Tabs
+            value={activeTab}
+            onValueChange={(tab) => {
+              setActiveTab(tab as 'builder' | 'settings' | 'preview');
+            }}
+            className="mb-0"
+          >
             <TabsList
               className={cn(
-                'relative mb-4 w-full justify-start gap-4 px-6',
+                'relative mb-4 w-full justify-start gap-4',
                 'before:absolute before:bottom-[-2px] before:left-1 before:right-0 before:h-[1px] before:w-full before:bg-slate-200',
               )}
             >
               <TabsTrigger
                 value="builder"
                 className={cn(
-                  'data-[state=active]:bg-transparent data-[state=hover]:bg-gray-900 data-[state=active]:text-slate-500 after:data-[state=active]:h-[1px] hover:text-slate-500',
-                  'hover:after:absolute hover:after:bottom-[-6px] hover:after:left-0 hover:after:h-[1px] hover:after:w-full hover:after:bg-gray-900',
+                  'data-[state=active]:bg-transparent data-[state=hover]:bg-brand-green-50 data-[state=active]:text-slate-500 after:data-[state=active]:h-[2px] after:data-[state=active]:bg-brand-green-50 hover:text-slate-500',
+                  'hover:after:absolute hover:after:bottom-[-6px] hover:after:left-0 hover:after:h-[2px] hover:after:w-full hover:after:bg-brand-green-50',
                 )}
               >
-                Form Builder
+                Edit
               </TabsTrigger>
               <TabsTrigger
                 value="preview"
                 className={cn(
-                  'data-[state=active]:bg-transparent data-[state=hover]:bg-gray-900 data-[state=active]:text-slate-500 after:data-[state=active]:h-[1px] after:data-[state=active]:bg-gray-900 hover:text-slate-500',
-                  'hover:after:absolute hover:after:bottom-[-6px] hover:after:left-0 hover:after:h-[1px] hover:after:w-full hover:after:bg-gray-900',
+                  'data-[state=active]:bg-transparent data-[state=hover]:bg-brand-green-50 data-[state=active]:text-slate-500 after:data-[state=active]:h-[2px] after:data-[state=active]:bg-brand-green-50 hover:text-slate-500',
+                  'hover:after:absolute hover:after:bottom-[-6px] hover:after:left-0 hover:after:h-[2px] hover:after:w-full hover:after:bg-brand-green-50',
                 )}
               >
                 Preview
               </TabsTrigger>
+              <TabsTrigger
+                value="settings"
+                className={cn(
+                  'data-[state=active]:bg-transparent data-[state=hover]:bg-brand-green-50 data-[state=active]:text-slate-500 after:data-[state=active]:h-[2px] after:data-[state=active]:bg-brand-green-50 hover:text-slate-500',
+                  'hover:after:absolute hover:after:bottom-[-6px] hover:after:left-0 hover:after:h-[2px] hover:after:w-full hover:after:bg-brand-green-50',
+                )}
+              >
+                Settings
+              </TabsTrigger>
             </TabsList>
-            <TabsContent value="builder" className="flex w-full flex-col gap-4">
-              <div className="flex w-[calc(100%-28px)] flex-col gap-4 px-6">
-                <SubmissionLimit />
-                <DefaultEligibilityQuestions />
+            <TabsContent value="builder" className="flex w-full flex-col gap-6">
+              <div className="flex items-center gap-[10px] rounded-lg bg-sky-50 p-4 text-sky-700">
+                <Info className="h-4 w-4 shrink-0" />
+                <div className="line-clamp-2 text-sm">
+                  <span className="font-medium">Name</span>,{' '}
+                  <span className="font-medium">Email</span>,{' '}
+                  <span className="font-medium">NEAR Wallet</span>, and other
+                  key details are collected automatically. Use the{' '}
+                  <Button
+                    variant="link"
+                    onClick={() => setActiveTab('preview')}
+                    className="h-fit w-fit bg-sky-50 p-0 font-normal text-sky-700 underline underline-offset-2"
+                  >
+                    {' '}
+                    Preview tab
+                  </Button>{' '}
+                  to see the full applicant view
+                </div>
               </div>
-              <Separator />
-              <div className="w-[calc(100%-28px)] px-6">
+
+              <div className="w-[calc(100%-28px)]">
                 <EligibilityQuestionsForm />
               </div>
             </TabsContent>
-            <TabsContent
-              value="preview"
-              className="mt-0 flex flex-col gap-4 px-6"
-            >
+            <TabsContent value="preview" className="mt-0 flex flex-col gap-4">
+              <p className="text-sm font-medium text-slate-600">
+                Preview the form as it will appear to applicants 👇
+              </p>
               <EligibilityQuestionsPreview
                 questions={eligibility}
                 control={previewForm.control as any}
@@ -271,7 +283,12 @@ export function EligibilityQuestionsSheet() {
                 compensationType={compensationType}
                 token={token}
                 listingType={type}
+                isGodMode={false}
               />
+            </TabsContent>
+
+            <TabsContent value="settings" className="mt-0 flex flex-col gap-4">
+              <SubmissionLimit />
             </TabsContent>
           </Tabs>
         </div>
