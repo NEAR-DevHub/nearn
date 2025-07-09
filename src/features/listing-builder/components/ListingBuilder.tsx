@@ -106,6 +106,8 @@ export function ListingBuilder({ route, slug }: ListingBuilderLayout) {
               ...listing,
               title: listing?.title + ' (copy)',
               slug: '',
+              rewards:
+                listing?.type === 'sponsorship' ? undefined : listing?.rewards,
               isPublished: false,
               publishedAt: undefined,
               id: undefined,

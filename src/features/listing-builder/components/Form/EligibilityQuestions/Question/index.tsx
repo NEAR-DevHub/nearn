@@ -1,7 +1,7 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Copy, GripVertical, Trash2 } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { type FieldArrayWithId, useWatch } from 'react-hook-form';
 
 import { RichEditor } from '@/components/shared/RichEditor';
@@ -49,6 +49,7 @@ export default function EligibilityQuestion({
     control: form.control,
     name: 'type',
   });
+  const descriptionRef = useRef<HTMLTextAreaElement>(null);
 
   const {
     attributes,
@@ -108,6 +109,14 @@ export default function EligibilityQuestion({
       adjustTextareaHeight(descriptionTextarea);
     }
   }, [index]);
+
+  useEffect(() => {
+    if (descriptionRef.current) {
+      descriptionRef.current.style.height = 'auto';
+      descriptionRef.current.style.height =
+        descriptionRef.current.scrollHeight + 'px';
+    }
+  }, [descriptionRef.current]);
 
   return (
     <div className="bg-white" ref={setNodeRef} style={style}>
@@ -222,6 +231,7 @@ export default function EligibilityQuestion({
                             <FormControl>
                               <Textarea
                                 {...field}
+                                ref={descriptionRef}
                                 placeholder="Write a description if necessary"
                                 className={cn(
                                   'h-fit min-h-[20px] resize-none overflow-hidden border-none pt-0 !text-xs !text-muted-foreground shadow-none ring-transparent transition-transform duration-300 ease-out animate-in slide-in-from-top-4 focus-visible:ring-0',

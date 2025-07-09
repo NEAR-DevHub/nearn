@@ -195,7 +195,7 @@ export function EligibilityQuestionsSheet() {
         }}
         showCloseIcon={false}
         side="right"
-        className="flex h-[100vh] flex-col overflow-y-auto p-0 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-slate-300 sm:max-w-xl"
+        className="flex h-[100vh] flex-col overflow-y-auto p-0 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-slate-300 sm:max-w-[694px]"
       >
         <SheetHeader className="space-y-2 p-6 pb-0">
           <SheetTitle>Application Form</SheetTitle>
@@ -205,7 +205,7 @@ export function EligibilityQuestionsSheet() {
           </SheetDescription>
         </SheetHeader>
 
-        <div id="main-content" className="flex flex-col px-8">
+        <div id="main-content" className="flex flex-col px-6">
           <Tabs
             value={activeTab}
             onValueChange={(tab) => {
@@ -254,7 +254,9 @@ export function EligibilityQuestionsSheet() {
                   <span className="font-medium">Name</span>,{' '}
                   <span className="font-medium">Email</span>,{' '}
                   <span className="font-medium">NEAR Wallet</span>, and other
-                  key details are collected automatically. Use the{' '}
+                  key details are collected automatically.
+                  <br />
+                  Use the{' '}
                   <Button
                     variant="link"
                     onClick={() => setActiveTab('preview')}
