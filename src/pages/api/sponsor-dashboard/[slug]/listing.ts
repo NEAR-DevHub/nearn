@@ -35,6 +35,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
         ...(isGod ? {} : { isActive: true, isArchived: false }),
       },
       include: {
+        BountyCounts: true,
         sponsor: {
           select: {
             name: true,

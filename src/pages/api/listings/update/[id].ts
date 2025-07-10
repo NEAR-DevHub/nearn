@@ -121,8 +121,6 @@ async function listing(req: NextApiRequestWithSponsor, res: NextApiResponse) {
     const innerSchema = listingSchema._def.schema.omit({
       isPublished: true,
       isWinnersAnnounced: true,
-      totalWinnersSelected: true,
-      totalPaymentsMade: true,
       status: true,
       publishedAt: true,
       sponsorId: true,
@@ -204,11 +202,10 @@ async function listing(req: NextApiRequestWithSponsor, res: NextApiResponse) {
     });
     // Handle winners count update
     const newRewardsCount = Object.keys(rewards || {}).length;
-    const currentTotalWinners = listing.totalWinnersSelected
-      ? listing.totalWinnersSelected - (maxBonusSpots ?? 0)
+    const currentTotalWinners = listing.BountyCounts.totalWinnersSelected
+      ? listing.BountyCounts.totalWinnersSelected - (maxBonusSpots ?? 0)
       : 0;
 
-    let totalWinnersSelected = currentTotalWinners;
     // handle selected winners update
     if (newRewardsCount < currentTotalWinners) {
       logger.info(
@@ -219,7 +216,6 @@ async function listing(req: NextApiRequestWithSponsor, res: NextApiResponse) {
           currentTotalWinners,
         },
       );
-      totalWinnersSelected = newRewardsCount;
 
       for (
         let position = newRewardsCount + 1;
@@ -344,7 +340,6 @@ async function listing(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       usdValue,
       language,
       isFndnPaying,
-      totalWinnersSelected,
       templateId: validatedData.templateId || null,
       id: validatedData.id || undefined,
       eligibility: validatedData.eligibility || [],

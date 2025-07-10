@@ -109,7 +109,12 @@ export const ListingTable = ({
   refreshListings,
 }: ListingTableProps) => {
   const [selectedListing, setSelectedListing] =
-    useState<ListingWithSubmissions>({});
+    useState<ListingWithSubmissions>({
+      BountyCounts: {
+        totalWinnersSelected: 0,
+        totalPaymentsMade: 0,
+      },
+    });
 
   const router = useRouter();
   const posthog = usePostHog();

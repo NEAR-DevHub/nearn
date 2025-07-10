@@ -108,6 +108,10 @@ export function ListingBuilder({ route, slug }: ListingBuilderLayout) {
               slug: '',
               rewards:
                 listing?.type === 'sponsorship' ? undefined : listing?.rewards,
+              BountyCounts: {
+                totalWinnersSelected: 0,
+                totalPaymentsMade: 0,
+              },
               isPublished: false,
               publishedAt: undefined,
               id: undefined,

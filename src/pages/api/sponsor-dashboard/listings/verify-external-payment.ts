@@ -47,6 +47,9 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       where: {
         id: listingId,
       },
+      include: {
+        BountyCounts: true,
+      },
     });
     const submissions = await prisma.submission.findMany({
       where: {
@@ -189,17 +192,6 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
     logger.debug(
       `Updating listing with ID: ${listingId} with new totalPaymentsMade`,
     );
-    await prisma.bounties.update({
-      where: {
-        id: listingId,
-      },
-      data: {
-        totalPaymentsMade: {
-          increment: validationResults.filter((r) => r.status === 'SUCCESS')
-            .length,
-        },
-      },
-    });
 
     return res.status(200).json({ validationResults });
   } catch (err: any) {

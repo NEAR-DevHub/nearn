@@ -77,7 +77,7 @@ export async function POST(
     if (
       !!totalRewards &&
       !isSponsorship &&
-      listing?.totalWinnersSelected !== totalRewards
+      listing?.BountyCounts.totalWinnersSelected !== totalRewards
     ) {
       logger.warn(
         'All winners have not been selected before publishing the results',

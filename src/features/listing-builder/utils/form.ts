@@ -179,9 +179,9 @@ export function transformListingToFormListing(
     sponsorId: listing.sponsorId,
     isPublished: listing.isPublished,
     publishedAt: listing.publishedAt,
-    totalPaymentsMade: listing.totalPaymentsMade,
     isWinnersAnnounced: listing.isWinnersAnnounced,
-    totalWinnersSelected: listing.totalWinnersSelected,
+    totalPaymentsMade: listing.BountyCounts.totalPaymentsMade,
+    totalWinnersSelected: listing.BountyCounts.totalWinnersSelected,
   };
 }
 

@@ -31,6 +31,9 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
   try {
     const currentListing = await prisma.bounties.findUnique({
       where: { id },
+      include: {
+        BountyCounts: true,
+      },
     });
 
     if (!currentListing) {

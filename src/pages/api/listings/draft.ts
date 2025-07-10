@@ -68,6 +68,9 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
             id,
             isPublished: true,
           },
+          include: {
+            BountyCounts: true,
+          },
         })
       : false;
     if (isBountyPublishedAlready) {

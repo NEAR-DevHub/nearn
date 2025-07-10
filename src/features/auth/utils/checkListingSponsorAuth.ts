@@ -12,7 +12,7 @@ export const checkListingSponsorAuth = async (
 
   const listing = await prisma.bounties.findUnique({
     where: { id: listingId },
-    include: { sponsor: true },
+    include: { sponsor: true, BountyCounts: true },
   });
 
   if (!listing) {

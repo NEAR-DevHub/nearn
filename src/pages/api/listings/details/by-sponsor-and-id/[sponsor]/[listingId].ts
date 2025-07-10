@@ -56,6 +56,7 @@ async function handler(
     const result = await prisma.bounties.findFirst({
       where,
       include: {
+        BountyCounts: true,
         sponsor: {
           select: {
             name: true,

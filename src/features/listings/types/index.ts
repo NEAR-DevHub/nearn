@@ -34,15 +34,17 @@ export interface Listing {
   source?: string;
   type?: BountyType | string;
   applicationType?: 'fixed';
-  totalWinnersSelected?: number;
   region?: string;
-  totalPaymentsMade?: number;
   isWinnersAnnounced?: boolean;
   templateId?: string;
   hackathonprize?: boolean;
   publishedAt?: string;
   isPrivate?: boolean;
   Hackathon?: ListingHackathon;
+  BountyCounts: {
+    totalWinnersSelected: number;
+    totalPaymentsMade: number;
+  };
   compensationType?: 'fixed' | 'range' | 'variable';
   minRewardAsk?: number;
   maxRewardAsk?: number;

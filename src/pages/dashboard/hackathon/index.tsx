@@ -75,7 +75,12 @@ export default function Hackathon() {
   const { user } = useUser();
   const [totalBounties, setTotalBounties] = useState(0);
   const [bounties, setBounties] = useState<ListingWithSubmissions[]>([]);
-  const [bounty, setBounty] = useState<ListingWithSubmissions>({});
+  const [bounty, setBounty] = useState<ListingWithSubmissions>({
+    BountyCounts: {
+      totalWinnersSelected: 0,
+      totalPaymentsMade: 0,
+    },
+  });
   const [isChangingStatus, setIsChangingStatus] = useState(false);
   const [isBountiesLoading, setIsBountiesLoading] = useState(true);
   const [startDate, setStartDate] = useState();

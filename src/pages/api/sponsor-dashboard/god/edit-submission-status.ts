@@ -114,7 +114,6 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
             data: {
               rewards: remainingRewards,
               usdValue: { decrement: currentSubmission.rewardInUSD },
-              totalWinnersSelected: { decrement: 1 },
               updatedAt: new Date(),
             },
           });
@@ -159,15 +158,6 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
           },
         });
       }
-    }
-
-    if (isPaid !== undefined && isPaid !== currentSubmission.isPaid) {
-      await prisma.bounties.update({
-        where: { id: currentSubmission.listingId },
-        data: {
-          totalPaymentsMade: isPaid ? { increment: 1 } : { decrement: 1 },
-        },
-      });
     }
 
     logger.info(`Successfully updated submission status with ID: ${id}`);

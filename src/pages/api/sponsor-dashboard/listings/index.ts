@@ -58,8 +58,8 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
           b.rewards,
           b.rewardAmount,
           b.isActive,
-          b.totalWinnersSelected,
-          b.totalPaymentsMade,
+          bc.totalWinnersSelected,
+          bc.totalPaymentsMade,
           b.isWinnersAnnounced,
           b.maxRewardAsk,
           b.minRewardAsk,
@@ -69,6 +69,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
           NULL as airtableId,
           CAST((SELECT COUNT(*) FROM Submission s WHERE s.listingId = b.id) AS SIGNED) as submissionCount
         FROM Bounties b
+        JOIN BountyCounts bc ON b.id = bc.bountyId
         WHERE
         b.sponsorId = ?
         AND b.status <> ?
@@ -129,6 +130,8 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       ...item,
       submissionCount: Number(item.submissionCount),
       sequentialId: Number(item.sequentialId),
+      totalWinnersSelected: Number(item.totalWinnersSelected),
+      totalPaymentsMade: Number(item.totalPaymentsMade),
     }));
 
     logger.info(
