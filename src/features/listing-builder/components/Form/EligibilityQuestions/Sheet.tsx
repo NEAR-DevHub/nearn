@@ -250,7 +250,7 @@ export function EligibilityQuestionsSheet() {
             <TabsContent value="builder" className="flex w-full flex-col gap-6">
               <div className="flex items-center gap-[10px] rounded-lg bg-sky-50 p-4 text-sky-700">
                 <Info className="h-4 w-4 shrink-0" />
-                <div className="line-clamp-2 text-sm">
+                <div className="text-sm">
                   <span className="font-medium">Name</span>,{' '}
                   <span className="font-medium">Email</span>,{' '}
                   <span className="font-medium">NEAR Wallet</span>, and other
