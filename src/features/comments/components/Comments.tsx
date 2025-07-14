@@ -22,6 +22,7 @@ interface Props {
   refType: CommentRefType;
   sponsorId: string | undefined;
   poc: User | undefined;
+  submissionAuthor: User | undefined;
   hideCount?: boolean;
   listingType: string;
   listingSlug: string;
@@ -39,6 +40,7 @@ export const Comments = ({
   refType,
   sponsorId,
   poc,
+  submissionAuthor,
   hideCount = false,
   listingType,
   listingSlug,
@@ -94,6 +96,9 @@ export const Comments = ({
       setComments([...comments, ...allComments]);
       setDefaultSuggestions((prevSuggestions) => {
         const newSuggestions = new Map(prevSuggestions);
+        if (submissionAuthor && submissionAuthor.id) {
+          newSuggestions.set(submissionAuthor.id, submissionAuthor);
+        }
         if (poc && poc.id) {
           newSuggestions.set(poc.id, poc);
         }
@@ -171,6 +176,7 @@ export const Comments = ({
               key={comment.id}
               comment={comment}
               poc={poc}
+              submissionAuthor={submissionAuthor}
               sponsorId={sponsorId}
               refType={refType}
               refId={refId}

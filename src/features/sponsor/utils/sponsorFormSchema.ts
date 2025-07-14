@@ -40,6 +40,13 @@ export const sponsorBaseSchema = z
     linkedinCompany: linkedinCompanyUsernameSchema.optional().or(z.literal('')),
     telegram: telegramUsernameSchema.optional().or(z.literal('')),
     website: websiteUrlSchema.optional().or(z.literal('')),
+    about: z
+      .string()
+      .min(30, 'About must be at least 30 characters')
+      .optional()
+      .or(z.literal(''))
+      .or(z.null())
+      .or(z.undefined()),
   })
   .superRefine((data, ctx) => {
     if (!data.website) {

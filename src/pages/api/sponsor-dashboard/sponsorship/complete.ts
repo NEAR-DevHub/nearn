@@ -27,6 +27,9 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       where: {
         id: listingId,
       },
+      include: {
+        BountyCounts: true,
+      },
     });
 
     if (!listing) {

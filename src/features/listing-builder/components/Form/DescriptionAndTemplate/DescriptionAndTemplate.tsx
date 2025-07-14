@@ -1,4 +1,5 @@
-import { useMemo } from 'react';
+import { useAtom } from 'jotai';
+import { useEffect } from 'react';
 import { useWatch } from 'react-hook-form';
 
 import { MinimalTiptapEditor } from '@/components/tiptap';
@@ -8,6 +9,8 @@ import {
   FormItem,
   FormMessage,
 } from '@/components/ui/form';
+
+import { descriptionKeyAtom } from '@/features/listing-builder/atoms';
 
 import { useListingForm } from '../../../hooks';
 import { Templates } from './Templates';
@@ -19,10 +22,11 @@ export function DescriptionAndTemplate() {
     name: 'templateId',
   });
 
-  const editorKey = useMemo(
-    () => `editor-${templateId || 'default'}`,
-    [templateId],
-  );
+  const [descriptionKey, setDescriptionKey] = useAtom(descriptionKeyAtom);
+
+  useEffect(() => {
+    setDescriptionKey(`editor-${templateId || 'default'}`);
+  }, [templateId]);
 
   return (
     <>
@@ -35,7 +39,7 @@ export function DescriptionAndTemplate() {
               <div className="flex rounded-md border ring-primary has-[:focus]:ring-1">
                 <FormControl>
                   <MinimalTiptapEditor
-                    key={editorKey}
+                    key={descriptionKey}
                     value={field.value}
                     onChange={(e) => {
                       field.onChange(e);
@@ -53,7 +57,7 @@ export function DescriptionAndTemplate() {
                       folderName: 'listing-description',
                       type: 'description',
                     }}
-                    toolbarClassName="sticky top-0 bg-white z-10"
+                    toolbarClassName="sticky rounded-t-md top-0 bg-white z-10"
                   />
                 </FormControl>
               </div>

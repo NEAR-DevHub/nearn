@@ -46,6 +46,9 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       where: {
         id: listingId,
       },
+      include: {
+        BountyCounts: true,
+      },
     });
 
     if (!listing) return res.status(400).json({ error: 'Listing not found' });
@@ -115,17 +118,6 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
     logger.debug(
       `Updating listing with ID: ${listingId} with new totalPaymentsMade`,
     );
-    await prisma.bounties.update({
-      where: {
-        id: listingId,
-      },
-      data: {
-        totalPaymentsMade: {
-          increment: validationResults.filter((r) => r.status === 'SUCCESS')
-            .length,
-        },
-      },
-    });
 
     return res.status(200).json({ validationResults });
   } catch (err: any) {

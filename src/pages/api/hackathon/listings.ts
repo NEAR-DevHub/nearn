@@ -81,8 +81,6 @@ async function getHackathonListings(
         isPublished: true,
         rewards: true,
         rewardAmount: true,
-        totalWinnersSelected: true,
-        totalPaymentsMade: true,
         isWinnersAnnounced: true,
         sponsor: {
           select: {
@@ -95,6 +93,12 @@ async function getHackathonListings(
         Hackathon: {
           select: {
             slug: true,
+          },
+        },
+        BountyCounts: {
+          select: {
+            totalWinnersSelected: true,
+            totalPaymentsMade: true,
           },
         },
       },

@@ -1,9 +1,10 @@
 import debounce from 'lodash.debounce';
-import { type KeyboardEvent, useEffect, useState } from 'react';
+import { type KeyboardEvent, useEffect, useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { type User } from '@/interface/user';
 import { api } from '@/lib/api';
+import { useUser } from '@/store/user';
 import { cn } from '@/utils/cn';
 
 import { EarnAvatar } from '@/features/talent/components/EarnAvatar';
@@ -17,21 +18,22 @@ interface Props {
 const MAX_COMMENT_SUGGESTIONS = 5;
 
 export const Suggestions = ({ defaultSuggestions, input, onSelect }: Props) => {
-  const [suggestions, setSuggestions] =
+  const [preFilteredSuggestions, setPreFilteredSuggestions] =
     useState<Map<string, User>>(defaultSuggestions);
   const [searchSuggestions, setSearchSuggestions] =
     useState<Map<string, User>>(defaultSuggestions);
   const [activeIndex, setActiveIndex] = useState<number>(0);
+  const { user, isLoading } = useUser();
 
   async function filterSuggestions(text: string) {
     if (text === '') {
-      setSuggestions(searchSuggestions);
+      setPreFilteredSuggestions(searchSuggestions);
     } else {
-      if (suggestions.size < MAX_COMMENT_SUGGESTIONS) {
+      if (preFilteredSuggestions.size < MAX_COMMENT_SUGGESTIONS) {
         const searchResp = await api.get('/api/user/search', {
           params: {
             query: text,
-            take: MAX_COMMENT_SUGGESTIONS - suggestions.size,
+            take: MAX_COMMENT_SUGGESTIONS - preFilteredSuggestions.size,
           },
         });
         const users = searchResp.data.users as User[];
@@ -49,9 +51,15 @@ export const Suggestions = ({ defaultSuggestions, input, onSelect }: Props) => {
           filteredSuggestions.set(key, value);
         }
       });
-      setSuggestions(filteredSuggestions);
+      setPreFilteredSuggestions(filteredSuggestions);
     }
   }
+
+  const suggestions = useMemo(() => {
+    return Array.from(preFilteredSuggestions.entries())
+      .filter(([key]) => key !== user?.id)
+      .map(([_, suggestion]) => suggestion);
+  }, [preFilteredSuggestions, user]);
 
   useEffect(() => {
     const debouncedFilterSuggestions = debounce(() => {
@@ -67,18 +75,18 @@ export const Suggestions = ({ defaultSuggestions, input, onSelect }: Props) => {
     const handleKeyPress = (event: globalThis.KeyboardEvent) => {
       switch (event.key) {
         case 'Enter':
-          onSelect([...suggestions.values()][activeIndex]?.username ?? '');
+          onSelect(suggestions[activeIndex]?.username ?? '');
           break;
         case 'ArrowUp':
           if (activeIndex === 0) {
-            setActiveIndex(suggestions.size - 1);
+            setActiveIndex(suggestions.length - 1);
           } else {
             setActiveIndex(activeIndex - 1);
           }
           break;
         case 'Tab':
         case 'ArrowDown':
-          if (activeIndex === suggestions.size - 1) {
+          if (activeIndex === suggestions.length - 1) {
             setActiveIndex(0);
           } else {
             setActiveIndex(activeIndex + 1);
@@ -95,11 +103,11 @@ export const Suggestions = ({ defaultSuggestions, input, onSelect }: Props) => {
     };
   }, [activeIndex, suggestions]);
 
-  if (suggestions.size === 0) return null;
+  if (suggestions.length === 0 || isLoading) return null;
 
   return (
     <div className="flex w-[15rem] flex-col items-start gap-2 rounded-lg border border-slate-300 bg-white p-1">
-      {[...suggestions.values()]
+      {suggestions
         .slice(0, MAX_COMMENT_SUGGESTIONS)
         .map((suggestion, index) => (
           <Button

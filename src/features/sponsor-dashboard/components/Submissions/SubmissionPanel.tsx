@@ -505,7 +505,7 @@ export const SubmissionPanel = ({
                             ...prev,
                             isPaid: true,
                             paymentDetails: {
-                              link: prev.paymentDetails?.link,
+                              link: prev.paymentDetails?.treasury?.link,
                             },
                           }
                         : prev,

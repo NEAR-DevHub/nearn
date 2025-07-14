@@ -22,5 +22,6 @@ interface SponsorType {
     dao: string;
     frontend: string;
   };
+  about?: string;
 }
 export type { SponsorType };

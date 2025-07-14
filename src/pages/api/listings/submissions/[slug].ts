@@ -29,6 +29,7 @@ async function handler(
         ...validation,
       },
       include: {
+        BountyCounts: true,
         sponsor: {
           select: {
             name: true,
@@ -41,6 +42,8 @@ async function handler(
           select: {
             id: true,
             name: true,
+            username: true,
+            photo: true,
           },
         },
         Hackathon: {

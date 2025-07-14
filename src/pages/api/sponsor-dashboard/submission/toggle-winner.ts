@@ -78,10 +78,6 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
 
     if (currentSubmission.isWinner !== isWinner) {
       const bountyId = result.listingId;
-      const totalWinnersUpdate = {
-        totalWinnersSelected: isWinner ? { increment: 1 } : { decrement: 1 },
-      };
-
       logger.debug(`Updating bounty total winners for listing ID: ${bountyId}`);
 
       const listing = result.listing;
@@ -98,16 +94,10 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
         await prisma.bounties.update({
           where: { id: bountyId },
           data: {
-            ...totalWinnersUpdate,
             rewards: { ...(oldRewards as Rewards), [position]: ask },
             rewardAmount: ask,
             usdValue: { increment: usdValue },
           },
-        });
-      } else {
-        await prisma.bounties.update({
-          where: { id: bountyId },
-          data: totalWinnersUpdate,
         });
       }
     }

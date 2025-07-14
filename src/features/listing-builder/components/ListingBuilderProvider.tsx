@@ -17,7 +17,7 @@ import { Header } from '@/features/navbar/components/Header';
 import {
   confirmModalAtom,
   draftQueueAtom,
-  hackathonAtom,
+  hackathonsAtom,
   isEditingAtom,
   isGodAtom,
   isSTAtom,
@@ -34,7 +34,7 @@ import {
 import { listingToStatus } from '../utils/listingToStatus.ts';
 import { Deadline } from './Form/Deadline';
 import { DescriptionAndTemplate } from './Form/DescriptionAndTemplate/DescriptionAndTemplate';
-import { EligibilityQuestions } from './Form/EligibilityQuestions';
+import { EligibilityQuestionsSheet } from './Form/EligibilityQuestions/Sheet';
 import { POC } from './Form/POC';
 import { RewardsSheet } from './Form/Rewards/Sheet';
 import { Skills } from './Form/Skills';
@@ -47,22 +47,22 @@ import { UnderVerificationModal } from './Modals/UnderVerficationModal';
 function ListingEditor({
   defaultListing,
   isDuplicating,
-  hackathon,
+  hackathons,
   isST,
   isGod,
 }: {
   defaultListing: ListingFormData;
   isDuplicating?: boolean;
-  hackathon?: Hackathon;
+  hackathons?: Hackathon[];
   isST: boolean;
   isGod: boolean;
 }) {
-  const form = useListingForm(defaultListing, hackathon);
+  const form = useListingForm(defaultListing, hackathons);
   useInitAtom(
     listingStatusAtom,
     defaultListing ? listingToStatus(defaultListing) : undefined,
   );
-  useInitAtom(hackathonAtom, hackathon);
+  useInitAtom(hackathonsAtom, hackathons);
   useInitAtom(isSTAtom, isST);
   useInitAtom(isGodAtom, isGod);
   useInitAtom(isEditingAtom, !!defaultListing.isPublished);
@@ -128,7 +128,7 @@ function ListingEditor({
                   <Deadline />
                   <Skills />
                   <POC />
-                  <EligibilityQuestions />
+                  <EligibilityQuestionsSheet />
                 </div>
               </div>
             </div>
@@ -146,7 +146,7 @@ interface Props {
   isEditing?: boolean;
   isDuplicating?: boolean;
   listing?: Listing;
-  hackathon?: Hackathon;
+  hackathons?: Hackathon[];
 }
 
 // atom values wont be available here, will only exist in child of HydrateAtoms immeditealy
@@ -154,7 +154,7 @@ function ListingBuilderProvider({
   isEditing = false,
   isDuplicating,
   listing,
-  hackathon,
+  hackathons,
 }: Props) {
   const { data: session } = useSession();
   const { user } = useUser();
@@ -169,7 +169,7 @@ function ListingBuilderProvider({
         isEditing: !!isEditing,
         isST: isST,
         type: (params?.get('type') as BountyType) || 'bounty',
-        hackathon: hackathon,
+        hackathons: hackathons,
       });
 
   return (
@@ -179,7 +179,7 @@ function ListingBuilderProvider({
           [isEditingAtom, isEditing],
           [isGodAtom, isGod],
           [isSTAtom, isST],
-          [hackathonAtom, hackathon],
+          [hackathonsAtom, hackathons],
           [listingStatusAtom, listingToStatus(defaultListing)],
           [
             draftQueueAtom,
@@ -193,7 +193,7 @@ function ListingBuilderProvider({
         <ListingEditor
           defaultListing={defaultListing}
           isDuplicating={isDuplicating}
-          hackathon={hackathon}
+          hackathons={hackathons}
           isST={isST}
           isGod={isGod}
         />

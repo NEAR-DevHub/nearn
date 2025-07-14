@@ -204,11 +204,14 @@ export const VerifyPaymentModal = ({
         );
 
         if (listing) {
-          const existingPayments = listing.totalPaymentsMade || 0;
+          const existingPayments = listing.BountyCounts.totalPaymentsMade || 0;
           const newPayments = successfulResults.length;
           const newListing = {
             ...listing,
-            totalPaymentsMade: existingPayments + newPayments,
+            BountyCounts: {
+              ...listing.BountyCounts,
+              totalPaymentsMade: existingPayments + newPayments,
+            },
           };
           queryClient.setQueryData<ListingWithSubmissions[]>(
             ['dashboard', user?.currentSponsorId],
@@ -245,7 +248,7 @@ export const VerifyPaymentModal = ({
         }
       },
       onError: () => {
-        setStatus('error');
+        setStatus('retry');
         toast.error('Error occurred while verifying payment');
       },
     });
@@ -283,11 +286,14 @@ export const VerifyPaymentModal = ({
         );
 
         if (listing) {
-          const existingPayments = listing.totalPaymentsMade || 0;
+          const existingPayments = listing.BountyCounts.totalPaymentsMade || 0;
           const newPayments = successfulResults.length;
           const newListing = {
             ...listing,
-            totalPaymentsMade: existingPayments + newPayments,
+            BountyCounts: {
+              ...listing.BountyCounts,
+              totalPaymentsMade: existingPayments + newPayments,
+            },
           };
           queryClient.setQueryData<ListingWithSubmissions[]>(
             ['dashboard', user?.currentSponsorId],
@@ -313,7 +319,8 @@ export const VerifyPaymentModal = ({
 
         setStatus('success');
       },
-      onError: () => {
+      onError: (error) => {
+        console.log('error', error);
         setStatus('error');
         toast.error('Error occurred while force verifying payment');
       },
@@ -402,7 +409,8 @@ export const VerifyPaymentModal = ({
               </p>
             </div>
 
-            {listing?.totalPaymentsMade !== listing?.totalWinnersSelected && (
+            {listing?.BountyCounts.totalPaymentsMade !==
+              listing?.BountyCounts.totalWinnersSelected && (
               <Button
                 className="bg-none text-sm font-normal underline"
                 onClick={tryAgain}

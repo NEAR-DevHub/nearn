@@ -8,9 +8,10 @@ import { cn } from '@/utils/cn';
 
 interface Props {
   description?: string;
+  showMoreHeight?: number;
 }
 
-export function DescriptionUI({ description }: Props) {
+export function DescriptionUI({ description, showMoreHeight }: Props) {
   const options: HTMLReactParserOptions = {
     replace: ({ name, children, attribs }: any) => {
       if (name === 'p' && (!children || children.length === 0)) {
@@ -31,28 +32,38 @@ export function DescriptionUI({ description }: Props) {
     setIsMounted(true);
   }, []);
 
-  const decideCollapser = useCallback(() => {
-    if (descriptionRef) {
-      const fiftyVH = window.innerHeight / 2;
-      if (isNotMD && (descriptionRef.current?.clientHeight ?? 0) > fiftyVH) {
-        setShowCollapser(true);
-        setShowMore(false);
-      }
+  const checkIfTruncationNeeded = useCallback(() => {
+    if (!descriptionRef.current) return;
+    const limitHeight = showMoreHeight || window.innerHeight / 2;
+
+    const container = descriptionRef.current;
+
+    // Check if content exceeds the height limit
+    if (container.scrollHeight > limitHeight) {
+      setShowCollapser(true);
+      setShowMore(false);
+    } else {
+      setShowCollapser(false);
+      setShowMore(true);
     }
-  }, [descriptionRef.current, isNotMD]);
+  }, [showMoreHeight]);
 
   useEffect(() => {
     // Use a timeout to ensure the DOM has been updated
     const timer = setTimeout(() => {
-      decideCollapser();
+      if (isNotMD || showMoreHeight) {
+        checkIfTruncationNeeded();
+      }
     }, 0);
 
     return () => clearTimeout(timer);
-  }, [decideCollapser, isMounted]);
+  }, [checkIfTruncationNeeded, isMounted, isNotMD, showMoreHeight]);
 
   if (!isMounted) {
     return null;
   }
+
+  const height = showMoreHeight ? `${showMoreHeight}px` : `50vh`;
 
   return (
     <div
@@ -67,9 +78,12 @@ export function DescriptionUI({ description }: Props) {
       >
         <div
           className={cn(
-            'transition-all duration-200',
-            !showMore && 'h-[50vh] overflow-hidden',
+            'relative transition-all duration-200',
+            !showMore && 'overflow-hidden',
           )}
+          style={{
+            height: !showMore ? height : 'auto',
+          }}
         >
           <div className="minimal-tiptap-editor tiptap ProseMirror h-full w-full overflow-visible !px-0 pb-7">
             <div className="tiptap ProseMirror listing-description !mt-0 !px-0">
@@ -81,6 +95,13 @@ export function DescriptionUI({ description }: Props) {
               )}
             </div>
           </div>
+          {/* Fade-out gradient overlay when truncated */}
+          {!showMore && showCollapser && (
+            <div
+              className="pointer-events-none absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent"
+              style={{ marginBottom: '-1px' }}
+            />
+          )}
         </div>
         {showCollapser && (
           <Button

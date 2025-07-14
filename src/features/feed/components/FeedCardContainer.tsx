@@ -215,6 +215,7 @@ export const FeedCardContainer = ({
                   isAnnounced={false}
                   listingSlug={''}
                   listingType={''}
+                  submissionAuthor={undefined}
                   poc={undefined}
                   sponsorId={undefined}
                   isVerified={false}

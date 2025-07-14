@@ -20,6 +20,7 @@ import { KycComponent } from '@/components/ui/KycComponent';
 import { Tooltip } from '@/components/ui/tooltip';
 import { useClipboard } from '@/hooks/use-clipboard';
 import type { SubmissionWithUser } from '@/interface/submission';
+import { type User } from '@/interface/user';
 import { ListingPageLayout } from '@/layouts/Listing';
 import { api } from '@/lib/api';
 import { authOptions } from '@/pages/api/auth/[...nextauth]';
@@ -362,10 +363,11 @@ function Content({
         <div className="md:px-2" ref={commentsRef}>
           <Comments
             isAnnounced={false}
-            listingSlug={''}
-            listingType={''}
-            poc={undefined}
-            sponsorId={undefined}
+            listingSlug={bounty.slug ?? ''}
+            listingType={bounty.type ?? ''}
+            poc={bounty.poc as User}
+            sponsorId={bounty.sponsorId}
+            submissionAuthor={submission.user as User}
             isVerified={false}
             refId={submission.id}
             refType={'SUBMISSION'}

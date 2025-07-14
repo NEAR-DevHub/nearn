@@ -85,6 +85,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       github,
       linkedinCompany,
       discord,
+      about,
     } = validationResult.data;
 
     const preSponsor = await prisma.sponsors.findUnique({
@@ -113,6 +114,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
         linkedin:
           linkedinCompany && linkedinCompany !== '' ? linkedinCompany : null,
         discord: discord && discord !== '' ? discord : null,
+        about: about && about !== '' ? about : null,
       },
     });
 

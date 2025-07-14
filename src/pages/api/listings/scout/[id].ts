@@ -58,6 +58,9 @@ async function scoutTalent(req: NextApiRequestWithUser, res: NextApiResponse) {
   try {
     logger.debug(`Fetching bounty with ID: ${id}`);
     const scoutBounty = await prisma.bounties.findFirst({
+      include: {
+        BountyCounts: true,
+      },
       where: {
         id,
       },

@@ -115,20 +115,22 @@ async function listing(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       isGod: user?.role === 'GOD',
       isEditing: true,
       isST: !!sponsor?.st,
-      hackathon,
+      hackathons: hackathon ? [hackathon] : [],
       pastListing: listing as any,
     });
     const innerSchema = listingSchema._def.schema.omit({
       isPublished: true,
       isWinnersAnnounced: true,
-      totalWinnersSelected: true,
-      totalPaymentsMade: true,
       status: true,
       publishedAt: true,
       sponsorId: true,
     });
     const superValidator = innerSchema.superRefine(async (data, ctx) => {
-      await createListingRefinements(data as any, ctx, hackathon);
+      await createListingRefinements(
+        data as any,
+        ctx,
+        hackathon ? [hackathon] : [],
+      );
       await backendListingRefinements(data as any, ctx);
     });
 
@@ -200,11 +202,10 @@ async function listing(req: NextApiRequestWithSponsor, res: NextApiResponse) {
     });
     // Handle winners count update
     const newRewardsCount = Object.keys(rewards || {}).length;
-    const currentTotalWinners = listing.totalWinnersSelected
-      ? listing.totalWinnersSelected - (maxBonusSpots ?? 0)
+    const currentTotalWinners = listing.BountyCounts.totalWinnersSelected
+      ? listing.BountyCounts.totalWinnersSelected - (maxBonusSpots ?? 0)
       : 0;
 
-    let totalWinnersSelected = currentTotalWinners;
     // handle selected winners update
     if (newRewardsCount < currentTotalWinners) {
       logger.info(
@@ -215,7 +216,6 @@ async function listing(req: NextApiRequestWithSponsor, res: NextApiResponse) {
           currentTotalWinners,
         },
       );
-      totalWinnersSelected = newRewardsCount;
 
       for (
         let position = newRewardsCount + 1;
@@ -340,7 +340,6 @@ async function listing(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       usdValue,
       language,
       isFndnPaying,
-      totalWinnersSelected,
       templateId: validatedData.templateId || null,
       id: validatedData.id || undefined,
       eligibility: validatedData.eligibility || [],

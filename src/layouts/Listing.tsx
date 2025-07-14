@@ -235,6 +235,7 @@ export function ListingPageLayout({
                       refType="BOUNTY"
                       count={commentCount}
                       setCount={setCommentCount}
+                      submissionAuthor={undefined}
                       isDisabled={
                         !initialBounty.isPublished &&
                         initialBounty.status === 'OPEN'

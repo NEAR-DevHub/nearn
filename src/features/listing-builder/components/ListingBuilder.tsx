@@ -23,7 +23,7 @@ interface ListingBuilderLayout {
 }
 
 export function ListingBuilder({ route, slug }: ListingBuilderLayout) {
-  const { user } = useUser();
+  const { user, isLoading: isUserLoading } = useUser();
   const { data: session, status } = useSession();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -45,6 +45,7 @@ export function ListingBuilder({ route, slug }: ListingBuilderLayout) {
   });
 
   useEffect(() => {
+    if (isListingLoading || isUserLoading) return;
     if (listing) {
       if (listing.sponsorId !== user?.currentSponsorId) {
         router.push('/dashboard/listings');
@@ -105,6 +106,12 @@ export function ListingBuilder({ route, slug }: ListingBuilderLayout) {
               ...listing,
               title: listing?.title + ' (copy)',
               slug: '',
+              rewards:
+                listing?.type === 'sponsorship' ? undefined : listing?.rewards,
+              BountyCounts: {
+                totalWinnersSelected: 0,
+                totalPaymentsMade: 0,
+              },
               isPublished: false,
               publishedAt: undefined,
               id: undefined,
@@ -113,9 +120,7 @@ export function ListingBuilder({ route, slug }: ListingBuilderLayout) {
           : listing
       }
       isEditing={!!listing?.publishedAt}
-      hackathon={
-        listing?.type === 'hackathon' ? (listing?.Hackathon as any) : hackathon
-      }
+      hackathons={hackathon ? [hackathon] : []}
     />
   );
 }

@@ -33,6 +33,7 @@ async function handler(
         ...validation,
       },
       include: {
+        BountyCounts: true,
         sponsor: {
           select: {
             name: true,

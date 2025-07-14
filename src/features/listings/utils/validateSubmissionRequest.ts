@@ -10,7 +10,10 @@ export async function validateSubmissionRequest(
 ) {
   const [user, listing] = await Promise.all([
     prisma.user.findUnique({ where: { id: userId } }),
-    prisma.bounties.findUnique({ where: { id: listingId } }),
+    prisma.bounties.findUnique({
+      where: { id: listingId },
+      include: { BountyCounts: true },
+    }),
   ]);
 
   if (!user) throw new Error('User not found');

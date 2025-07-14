@@ -4,6 +4,8 @@ import type { User } from 'next-auth';
 import type { Skills } from '@/interface/skills';
 import type { SponsorType } from '@/interface/sponsor';
 
+import type { QuestionType } from '@/features/listing-builder/components/Form/EligibilityQuestions/Question/Type';
+
 export interface Listing {
   id?: string;
   sequentialId?: number;
@@ -32,15 +34,17 @@ export interface Listing {
   source?: string;
   type?: BountyType | string;
   applicationType?: 'fixed';
-  totalWinnersSelected?: number;
   region?: string;
-  totalPaymentsMade?: number;
   isWinnersAnnounced?: boolean;
   templateId?: string;
   hackathonprize?: boolean;
   publishedAt?: string;
   isPrivate?: boolean;
   Hackathon?: ListingHackathon;
+  BountyCounts: {
+    totalWinnersSelected: number;
+    totalPaymentsMade: number;
+  };
   compensationType?: 'fixed' | 'range' | 'variable';
   minRewardAsk?: number;
   maxRewardAsk?: number;
@@ -75,10 +79,11 @@ export interface ListingWithSubmissions extends Listing {
 interface Eligibility {
   order: number;
   question: string;
-  type?: 'text' | 'link' | 'paragraph' | 'checkbox';
+  type?: QuestionType;
   optional?: boolean;
   isLink?: boolean;
   description?: string;
+  variants?: string[];
 }
 
 export interface References {
