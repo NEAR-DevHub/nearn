@@ -16,6 +16,7 @@ import {
   DOCS_URL,
   GITHUB_URL,
   PROJECT_NAME,
+  TELEGRAM_URL,
   TWITTER_URL,
 } from '@/constants/project';
 import { TeamRegions } from '@/constants/Team';
@@ -24,6 +25,7 @@ import { PRIVACY_POLICY, TERMS_OF_USE } from '@/constants/TERMS_OF_USE';
 import {
   Discord,
   GitHub,
+  Telegram,
   Twitter,
 } from '@/features/social/components/SocialIcons';
 
@@ -198,6 +200,9 @@ export const Footer = () => {
               )}
               {TWITTER_URL && (
                 <Twitter link={TWITTER_URL} className="text-slate-500" />
+              )}
+              {TELEGRAM_URL && (
+                <Telegram link={TELEGRAM_URL} className="text-slate-500" />
               )}
               {DISCORD_URL && (
                 <Discord link={DISCORD_URL} className="text-slate-500" />
