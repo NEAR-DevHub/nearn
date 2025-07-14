@@ -170,13 +170,6 @@ function Type() {
   const isEditing = useAtomValue(isEditingAtom);
   const hackathons = useAtomValue(hackathonsAtom);
   const [prevCompType, setPrevCompType] = useState<CompensationType>('fixed');
-  const hackathonId = useWatch({
-    name: 'hackathonId',
-    control: form.control,
-  });
-  const currentHackathon = useMemo(() => {
-    return hackathons?.find((h) => h.id === hackathonId);
-  }, [hackathonId, hackathons]);
   return (
     <FormField
       name="type"
@@ -189,12 +182,14 @@ function Type() {
                 value={field.value}
                 disabled={isEditing}
                 onValueChange={(e) => {
-                  field.onChange(e);
-                  if (e === 'hackathon') {
-                    if (currentHackathon) {
-                      form.setValue('hackathonId', currentHackathon.id);
-                    }
+                  const selectedHackathon = hackathons?.find(
+                    (h) => h.slug === e,
+                  );
+                  if (selectedHackathon) {
+                    field.onChange('hackathon');
+                    form.setValue('hackathonId', selectedHackathon.id);
                   } else {
+                    field.onChange(e);
                     form.setValue('hackathonId', undefined);
                   }
                   const values = form.getValues();
