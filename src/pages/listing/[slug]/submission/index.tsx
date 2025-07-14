@@ -21,7 +21,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   return {
     redirect: {
-      destination: `${getBountyUrl(bountyData?.bounty)}/submissions`,
+      destination: `${getBountyUrl(bountyData?.bounty)}/submission`,
       permanent: true,
     },
   };
