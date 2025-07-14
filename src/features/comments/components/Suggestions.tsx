@@ -98,9 +98,6 @@ export const Suggestions = ({ defaultSuggestions, input, onSelect }: Props) => {
   }, [activeIndex, suggestions]);
 
   if (suggestions.size === 0 || isLoading) return null;
-  console.log('suggestions', suggestions);
-  console.log('user', user);
-  console.log(suggestions.get(user?.id ?? ''));
 
   return (
     <div className="flex w-[15rem] flex-col items-start gap-2 rounded-lg border border-slate-300 bg-white p-1">

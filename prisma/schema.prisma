@@ -93,7 +93,7 @@ view BountyCounts {
   bountyId             String     @unique @map("bountyId")
   totalWinnersSelected Int
   totalPaymentsMade    Int
-  Bounties             Bounties[]
+  bounty               Bounties?
 
   @@map("BountyCounts")
 }
