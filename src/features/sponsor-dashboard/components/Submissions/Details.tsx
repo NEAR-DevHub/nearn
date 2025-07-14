@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Tooltip } from '@/components/ui/tooltip';
 import { tokenList } from '@/constants/tokenList';
 import { type SubmissionWithUser } from '@/interface/submission';
+import { type User } from '@/interface/user';
 import { api } from '@/lib/api';
 import { cn } from '@/utils/cn';
 import { getURLSanitized } from '@/utils/getURLSanitized';
@@ -255,11 +256,12 @@ export const Details = ({ bounty, externalView, atom }: Props) => {
                   key={selectedSubmission.id}
                   hideCount
                   isAnnounced={false}
-                  listingSlug={''}
-                  listingType={''}
-                  poc={undefined}
-                  sponsorId={undefined}
-                  isVerified={false}
+                  listingSlug={bounty?.slug ?? ''}
+                  listingType={bounty?.type ?? ''}
+                  poc={bounty?.poc as User}
+                  sponsorId={bounty?.sponsorId}
+                  isVerified={bounty?.sponsor?.isVerified}
+                  submissionAuthor={selectedSubmission.user as User}
                   refId={selectedSubmission.id}
                   refType={'SUBMISSION'}
                   count={commentCount}

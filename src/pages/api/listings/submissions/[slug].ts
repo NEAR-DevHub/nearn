@@ -42,6 +42,8 @@ async function handler(
           select: {
             id: true,
             name: true,
+            username: true,
+            photo: true,
           },
         },
         Hackathon: {

@@ -4,6 +4,7 @@ import { type KeyboardEvent, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { type User } from '@/interface/user';
 import { api } from '@/lib/api';
+import { useUser } from '@/store/user';
 import { cn } from '@/utils/cn';
 
 import { EarnAvatar } from '@/features/talent/components/EarnAvatar';
@@ -22,6 +23,7 @@ export const Suggestions = ({ defaultSuggestions, input, onSelect }: Props) => {
   const [searchSuggestions, setSearchSuggestions] =
     useState<Map<string, User>>(defaultSuggestions);
   const [activeIndex, setActiveIndex] = useState<number>(0);
+  const { user, isLoading } = useUser();
 
   async function filterSuggestions(text: string) {
     if (text === '') {
@@ -95,13 +97,17 @@ export const Suggestions = ({ defaultSuggestions, input, onSelect }: Props) => {
     };
   }, [activeIndex, suggestions]);
 
-  if (suggestions.size === 0) return null;
+  if (suggestions.size === 0 || isLoading) return null;
+  console.log('suggestions', suggestions);
+  console.log('user', user);
+  console.log(suggestions.get(user?.id ?? ''));
 
   return (
     <div className="flex w-[15rem] flex-col items-start gap-2 rounded-lg border border-slate-300 bg-white p-1">
-      {[...suggestions.values()]
+      {Array.from(suggestions.entries())
         .slice(0, MAX_COMMENT_SUGGESTIONS)
-        .map((suggestion, index) => (
+        .filter(([key]) => key !== user?.id)
+        .map(([_, suggestion], index) => (
           <Button
             key={suggestion.id}
             variant="ghost"

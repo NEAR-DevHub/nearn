@@ -47,6 +47,7 @@ interface Props {
   refId: string;
   refType: CommentRefType;
   sponsorId: string | undefined;
+  submissionAuthor: User | undefined;
   defaultSuggestions: Map<string, User>;
   deleteComment: (commentId: string) => Promise<void>;
   listingSlug: string;
@@ -65,6 +66,7 @@ export const Comment = ({
   refId,
   refType,
   poc,
+  submissionAuthor,
   deleteComment,
   defaultSuggestions,
   addNewReply,
@@ -255,12 +257,17 @@ export const Comment = ({
                 </p>
               )}
             </Link>
-            {comment?.author?.currentSponsorId === sponsorId && (
+
+            {comment?.authorId === submissionAuthor?.id ? (
+              <p className="flex items-center gap-0.5 pb-0.5 text-xs font-medium text-brand-green-50 md:text-sm">
+                Author
+              </p>
+            ) : comment?.author?.currentSponsorId === sponsorId ? (
               <p className="flex items-center gap-0.5 pb-0.5 text-xs font-medium text-blue-500 md:text-sm">
                 {isVerified && <VerifiedBadge />}
                 Sponsor
               </p>
-            )}
+            ) : null}
             <Tooltip content={fullDate}>
               <p className="pb-0.5 text-xs font-medium text-slate-400 md:text-sm">
                 {date}
@@ -387,6 +394,7 @@ export const Comment = ({
                   isReply
                   key={reply.id}
                   refType={refType}
+                  submissionAuthor={submissionAuthor}
                   sponsorId={sponsorId}
                   comment={reply}
                   refId={refId}

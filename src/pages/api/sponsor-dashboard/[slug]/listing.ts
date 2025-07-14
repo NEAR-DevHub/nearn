@@ -50,6 +50,8 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
             id: true,
             name: true,
             email: true,
+            username: true,
+            photo: true,
           },
         },
         Hackathon: {
