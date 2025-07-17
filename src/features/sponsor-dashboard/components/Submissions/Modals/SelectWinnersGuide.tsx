@@ -49,8 +49,8 @@ export const SelectWinnersGuide = () => {
     <>
       <Dialog>
         <DialogTrigger asChild>
-          <Button variant="outline" size="icon" className="h-4 w-4 bg-none">
-            <CircleHelp className="h-4 w-4 text-slate-600" />
+          <Button variant="ghost" className="h-4 w-4 p-0 hover:bg-transparent">
+            <CircleHelp className="text-slate-400 hover:text-slate-600" />
           </Button>
         </DialogTrigger>
         <DialogContent className="p-6">
@@ -60,9 +60,13 @@ export const SelectWinnersGuide = () => {
           <DialogDescription className="flex flex-col gap-4">
             {steps.map((step, index) => (
               <div key={index} className="flex items-start gap-1">
-                <p className="text-sm text-slate-600">{index + 1}.</p>
+                <p className="text-sm font-semibold text-slate-600">
+                  {index + 1}.
+                </p>
                 <div className="flex flex-col gap-1">
-                  <p className="text-sm text-slate-600">{step.step}</p>
+                  <p className="text-sm font-semibold text-slate-600">
+                    {step.step}
+                  </p>
                   <p className="text-sm text-slate-500">{step.description}</p>
                   {step.custom && step.custom}
                 </div>

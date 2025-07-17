@@ -437,14 +437,24 @@ export const SubmissionPanel = ({
                           <div className="flex items-center gap-2">
                             <Tooltip
                               content={
-                                <>
-                                  You cannot change the winners once the results
-                                  are published!
-                                  <TooltipArrow />
-                                </>
+                                !bounty?.isWinnersAnnounced ? (
+                                  <>
+                                    Allocate the whole prize pool or edit the
+                                    listing to shrink it before you can continue
+                                  </>
+                                ) : (
+                                  <>
+                                    You cannot change the winners once the
+                                    results are published!
+                                    <TooltipArrow />
+                                  </>
+                                )
                               }
-                              disabled={!bounty?.isWinnersAnnounced}
-                              contentProps={{ sideOffset: 5 }}
+                              contentProps={{
+                                side: 'bottom',
+                                align: 'center',
+                                className: 'w-[97%]',
+                              }}
                             >
                               <Button
                                 className={cn(

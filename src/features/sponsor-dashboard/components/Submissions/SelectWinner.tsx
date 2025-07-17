@@ -194,8 +194,8 @@ export const SelectWinner = ({
                   <>
                     {' '}
                     <p className="px-1.5 pb-1 pt-2 text-xs text-slate-400">
-                      {filteredWinnersSlotsLength} Winner
-                      {filteredWinnersSlotsLength > 1 ? 's' : ''}
+                      {usedRewards.length}/{rewardsLength} Winner
+                      {filteredWinnersSlotsLength > 1 ? 's' : ''} assigned
                     </p>
                     {filteredWinnersSlots.map((reward) => {
                       return (
@@ -233,10 +233,8 @@ export const SelectWinner = ({
                 {usedBonusPositions < (bounty?.maxBonusSpots ?? 0) && (
                   <div className="border-t border-slate-200">
                     <p className="px-1.5 pb-1 pt-2 text-xs text-slate-400">
-                      {bounty?.maxBonusSpots! - usedBonusPositions} Bonus
-                      {bounty?.maxBonusSpots! - usedBonusPositions > 1
-                        ? 'es'
-                        : ''}
+                      {usedBonusPositions}/{bounty?.maxBonusSpots!} Bonus
+                      {bounty?.maxBonusSpots! > 1 ? 'es' : ''} assigned
                     </p>
                     <SelectItemWithoutIndicator
                       className="relative flex w-full cursor-pointer select-none items-center justify-between rounded-sm p-1.5 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 hover:bg-slate-50 focus:bg-slate-50"

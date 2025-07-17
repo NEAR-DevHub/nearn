@@ -296,7 +296,7 @@ ${socialListingLink('twitter')}
           </p>
         </div>
         <div>
-          <p className="mb-3 text-slate-500">Prize</p>
+          <p className="mb-3 text-slate-500">Rewards</p>
           <SponsorPrize bounty={bounty} />
         </div>
         <div className="ml-auto">

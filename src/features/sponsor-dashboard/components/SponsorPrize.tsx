@@ -78,9 +78,8 @@ export const SponsorPrize = ({
           </>
         )}
       </PopoverTrigger>
-      <PopoverContent className="flex w-56 shrink-0 flex-col gap-1 p-3">
-        <p className="text-slate-500">{prizes + bonusSpots} Total Prizes</p>
-        <TotalRewardWithIcon bounty={bounty} />
+      <PopoverContent className="flex w-56 shrink-0 flex-col gap-2 p-3">
+        <p className="text-xs font-medium text-slate-400">REWARDS</p>
         <div>
           <div className="border-t border-slate-200 pb-1 pt-2 text-xs text-slate-400">
             {prizes} Winners
@@ -107,7 +106,7 @@ export const SponsorPrize = ({
                 </div>
               );
             })}
-          {bonusSpots && bonusSpots > 0 && (
+          {bonusSpots && bonusSpots > 0 ? (
             <>
               <div className="border-t border-slate-200 pb-1 pt-2 text-xs text-slate-400">
                 {bonusSpots} Bonus{bonusSpots > 1 ? 'es' : ''}
@@ -123,7 +122,7 @@ export const SponsorPrize = ({
                 </p>
               </div>
             </>
-          )}
+          ) : null}
         </div>
       </PopoverContent>
     </Popover>
