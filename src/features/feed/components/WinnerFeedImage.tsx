@@ -1,7 +1,7 @@
 import { ExternalImage } from '@/components/ui/cloudinary-image';
 import { LocalImage } from '@/components/ui/local-image';
 import { tokenList } from '@/constants/tokenList';
-import { getRankLabels } from '@/utils/rank';
+import { nthLabelGenerator } from '@/utils/rank';
 
 import { type Rewards } from '@/features/listings/types';
 
@@ -44,7 +44,10 @@ export const WinnerFeedImage = ({
         {!!grantApplicationAmount ? (
           'GRANT'
         ) : (
-          <>{getRankLabels(Number(winnerPosition))?.toUpperCase()} PRIZE</>
+          <>
+            {nthLabelGenerator(Number(winnerPosition), false).toUpperCase()}{' '}
+            PRIZE
+          </>
         )}
       </p>
     </div>

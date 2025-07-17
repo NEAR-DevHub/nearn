@@ -78,10 +78,13 @@ export const SponsorPrize = ({
           </>
         )}
       </PopoverTrigger>
-      <PopoverContent className="flex w-56 shrink-0 flex-col gap-2 p-3">
-        <p className="text-xs font-medium text-slate-400">REWARDS</p>
-        <div>
-          <div className="border-t border-slate-200 pb-1 pt-2 text-xs text-slate-400">
+      <PopoverContent className="flex w-56 shrink-0 flex-col gap-2 p-1.5">
+        <p className="px-1.5 pt-1 text-xs font-medium text-slate-400">
+          REWARDS
+        </p>
+
+        <div className="flex flex-col">
+          <div className="mx-1.5 border-t border-slate-200 pb-1 pt-2 text-xs text-slate-400">
             {prizes} Winners
           </div>
           {values
@@ -90,7 +93,7 @@ export const SponsorPrize = ({
               return (
                 <div
                   key={key}
-                  className="flex items-center justify-between gap-1 py-1.5 font-sans text-sm"
+                  className="flex items-center justify-between gap-1 px-1.5 font-sans text-sm"
                 >
                   <p className="text-slate-600">
                     {nthLabelGenerator(Number(key), true)}
@@ -106,24 +109,24 @@ export const SponsorPrize = ({
                 </div>
               );
             })}
-          {bonusSpots && bonusSpots > 0 ? (
-            <>
-              <div className="border-t border-slate-200 pb-1 pt-2 text-xs text-slate-400">
-                {bonusSpots} Bonus{bonusSpots > 1 ? 'es' : ''}
-              </div>
-              <div className="flex justify-between gap-1 py-1.5 text-sm">
-                <p className="text-slate-600">
-                  {nthLabelGenerator(prizes + 1, true)} -{' '}
-                  {nthLabelGenerator(prizes + bonusSpots, true)}
-                </p>
-                <p className="flex shrink-0 items-center font-sans font-semibold text-slate-900">
-                  {formatNumberWithSuffix(bounty?.rewards?.['99']!, 2, true)}
-                  <span className="ml-1 text-slate-500">{bounty?.token}</span>
-                </p>
-              </div>
-            </>
-          ) : null}
         </div>
+        {bonusSpots && bonusSpots > 0 ? (
+          <div className="flex flex-col">
+            <div className="mx-1.5 border-t border-slate-200 pb-1 pt-2 text-xs text-slate-400">
+              {bonusSpots} Bonus{bonusSpots > 1 ? 'es' : ''}
+            </div>
+            <div className="flex justify-between gap-1 p-1.5 text-sm">
+              <p className="text-slate-600">
+                {nthLabelGenerator(prizes + 1, true)} -{' '}
+                {nthLabelGenerator(prizes + bonusSpots, true)}
+              </p>
+              <p className="flex shrink-0 items-center font-sans font-semibold text-slate-900">
+                {formatNumberWithSuffix(bounty?.rewards?.['99']!, 2, true)}
+                <span className="ml-1 text-slate-500">{bounty?.token}</span>
+              </p>
+            </div>
+          </div>
+        ) : null}
       </PopoverContent>
     </Popover>
   );

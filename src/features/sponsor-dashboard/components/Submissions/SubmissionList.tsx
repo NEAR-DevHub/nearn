@@ -23,7 +23,7 @@ import { KycComponent } from '@/components/ui/KycComponent';
 import { useDisclosure } from '@/hooks/use-disclosure';
 import type { SubmissionWithUser } from '@/interface/submission';
 import { cn } from '@/utils/cn';
-import { getRankLabels } from '@/utils/rank';
+import { nthLabelGenerator } from '@/utils/rank';
 
 import { SubmissionDrawer } from '@/features/listings/components/Submission/SubmissionDrawer';
 import { sponsorshipSubmissionStatus } from '@/features/listings/components/SubmissionsPage/SubmissionTable';
@@ -123,7 +123,7 @@ export const SubmissionList = ({
         if (submission.isPaid) return 'Paid';
         return 'Approved';
       } else {
-        return getRankLabels(submission.winnerPosition);
+        return nthLabelGenerator(submission.winnerPosition, false);
       }
     } else if (submission.status === 'Rejected') {
       return 'Rejected';

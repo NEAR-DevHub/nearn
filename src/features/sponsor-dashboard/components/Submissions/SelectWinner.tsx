@@ -184,95 +184,93 @@ export const SelectWinner = ({
               )}
             </SelectTrigger>
             <SelectContent
-              className="flex flex-col gap-2 py-1.5"
+              className="flex flex-col gap-0 py-1.5"
               style={{ maxHeight: 'none', overflow: 'visible' }}
             >
-              <p className="p-1.5 pt-1 text-xs font-medium text-slate-400">
+              <p className="px-1.5 pt-1 text-xs font-medium text-slate-400">
                 REWARDS
               </p>
 
-              <div className="border-t border-slate-200">
-                {filteredWinnersSlotsLength > 0 ? (
-                  <>
-                    {' '}
-                    <p className="px-1.5 pb-1 pt-2 text-xs text-slate-400">
-                      {usedRewards.length} / {rewardsLength} Winner
-                      {filteredWinnersSlotsLength > 1 ? 's' : ''} assigned
-                    </p>
-                    {filteredWinnersSlots.map((reward) => {
-                      return (
-                        <SelectItemWithoutIndicator
-                          className="relative flex w-full cursor-pointer select-none items-center justify-between rounded-sm p-1.5 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 hover:bg-slate-50 focus:bg-slate-50 [&[data-state=checked]]:bg-slate-100"
-                          key={reward}
-                          value={reward.toString()}
-                          onMouseDown={() => {
-                            if (selectedSubmission?.winnerPosition === reward) {
-                              setUnselect(true);
-                            }
-                          }}
-                        >
-                          <span className="text-slate-600">
-                            {nthLabelGenerator(Number(reward), true)}
+              {filteredWinnersSlotsLength > 0 ? (
+                <div className="mt-2 flex flex-col">
+                  {' '}
+                  <p className="mx-1.5 border-t border-slate-200 pb-1 pt-2 text-xs text-slate-400">
+                    {usedRewards.length} / {rewardsLength} Winner
+                    {filteredWinnersSlotsLength > 1 ? 's' : ''} assigned
+                  </p>
+                  {filteredWinnersSlots.map((reward) => {
+                    return (
+                      <SelectItemWithoutIndicator
+                        className="relative flex w-full cursor-pointer select-none items-center justify-between rounded-sm p-1.5 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 hover:bg-slate-50 focus:bg-slate-50 [&[data-state=checked]]:bg-slate-100"
+                        key={reward}
+                        value={reward.toString()}
+                        onMouseDown={() => {
+                          if (selectedSubmission?.winnerPosition === reward) {
+                            setUnselect(true);
+                          }
+                        }}
+                      >
+                        <span className="text-slate-600">
+                          {nthLabelGenerator(Number(reward), true)}
+                        </span>
+                        <span className="flex items-center gap-1 font-semibold text-slate-900">
+                          <span>
+                            {formatNumberWithSuffix(
+                              bounty?.rewards?.[reward]!,
+                              2,
+                              true,
+                            )}
                           </span>
-                          <span className="flex items-center gap-1 font-semibold text-slate-900">
-                            <span>
-                              {formatNumberWithSuffix(
-                                bounty?.rewards?.[reward]!,
-                                2,
-                                true,
-                              )}
-                            </span>
-                            <span className="text-slate-500">
-                              {bounty?.token}
-                            </span>
+                          <span className="text-slate-500">
+                            {bounty?.token}
                           </span>
-                        </SelectItemWithoutIndicator>
-                      );
-                    })}
-                  </>
-                ) : null}
+                        </span>
+                      </SelectItemWithoutIndicator>
+                    );
+                  })}
+                </div>
+              ) : null}
 
-                {usedBonusPositions < (bounty?.maxBonusSpots ?? 0) ||
-                isBonusAssigned ? (
-                  <div className="border-t border-slate-200">
-                    <p className="px-1.5 pb-1 pt-2 text-xs text-slate-400">
-                      {usedBonusPositions} / {bounty?.maxBonusSpots!} Bonus
-                      {bounty?.maxBonusSpots! > 1 ? 'es' : ''} assigned
-                    </p>
-                    <SelectItemWithoutIndicator
-                      className="relative flex w-full cursor-pointer select-none items-center justify-between rounded-sm p-1.5 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 hover:bg-slate-50 focus:bg-slate-50"
-                      key={BONUS_REWARD_POSITION}
-                      value={String(BONUS_REWARD_POSITION)}
-                      onMouseDown={() => {
-                        if (
-                          selectedSubmission?.winnerPosition ===
-                          BONUS_REWARD_POSITION
-                        ) {
-                          setUnselect(true);
-                        }
-                      }}
-                    >
-                      <span className="text-slate-600">
-                        {nthLabelGenerator(rewardsLength + 1, true)} -{' '}
-                        {nthLabelGenerator(
-                          rewardsLength + (bounty?.maxBonusSpots ?? 0),
+              {usedBonusPositions < (bounty?.maxBonusSpots ?? 0) ||
+              isBonusAssigned ? (
+                <div className="mt-2 flex flex-col">
+                  <p className="mx-1.5 border-t border-slate-200 pb-1 pt-2 text-xs text-slate-400">
+                    {usedBonusPositions} / {bounty?.maxBonusSpots!} Bonus
+                    {bounty?.maxBonusSpots! > 1 ? 'es' : ''} assigned
+                  </p>
+                  <SelectItemWithoutIndicator
+                    className="relative flex w-full cursor-pointer select-none items-center justify-between rounded-sm p-1.5 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 hover:bg-slate-50 focus:bg-slate-50 [&[data-state=checked]]:bg-slate-100"
+                    key={BONUS_REWARD_POSITION}
+                    value={String(BONUS_REWARD_POSITION)}
+                    onMouseDown={() => {
+                      if (
+                        selectedSubmission?.winnerPosition ===
+                        BONUS_REWARD_POSITION
+                      ) {
+                        setUnselect(true);
+                      }
+                    }}
+                  >
+                    <span className="text-slate-600">
+                      {nthLabelGenerator(rewardsLength + 1, true)} -{' '}
+                      {nthLabelGenerator(
+                        rewardsLength + (bounty?.maxBonusSpots ?? 0),
+                        true,
+                      )}
+                    </span>
+                    <span className="flex items-center gap-1 font-semibold text-slate-900">
+                      <span>
+                        {formatNumberWithSuffix(
+                          bounty?.rewards?.[BONUS_REWARD_POSITION]!,
+                          2,
                           true,
                         )}
                       </span>
-                      <span className="flex items-center gap-1 font-semibold text-slate-900">
-                        <span>
-                          {formatNumberWithSuffix(
-                            bounty?.rewards?.[BONUS_REWARD_POSITION]!,
-                            2,
-                            true,
-                          )}
-                        </span>
-                        <span className="text-slate-500">{bounty?.token}</span>
-                      </span>
-                    </SelectItemWithoutIndicator>
-                  </div>
-                ) : null}
-              </div>
+                      <span className="text-slate-500">{bounty?.token}</span>
+                    </span>
+                  </SelectItemWithoutIndicator>
+                </div>
+              ) : null}
             </SelectContent>
           </Select>
         )}

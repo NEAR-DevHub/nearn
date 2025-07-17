@@ -11,7 +11,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { cn } from '@/utils/cn';
-import { getRankLabels } from '@/utils/rank';
+import { nthLabelGenerator } from '@/utils/rank';
 
 import {
   BONUS_REWARD_POSITION,
@@ -159,7 +159,7 @@ export const Podiums = () => {
                   <FormItem className="group relative gap-2">
                     <div className="flex justify-between">
                       <FormLabel isRequired className="w-fit capitalize">
-                        {getRankLabels(position)} Prize
+                        {nthLabelGenerator(position, false)} prize
                       </FormLabel>
                     </div>
                     <FormControl>
