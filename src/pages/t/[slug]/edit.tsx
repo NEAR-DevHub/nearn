@@ -249,7 +249,6 @@ export default function EditProfilePage({ slug }: { slug: string }) {
             userId: user?.id,
           },
         });
-        console.log(response.data);
         setPow(response.data);
       } catch (error) {
         console.log(error);
