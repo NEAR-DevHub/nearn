@@ -110,6 +110,10 @@ export function EligibilityQuestionsSheet() {
     control: form.control,
     name: 'eligibility',
   });
+  const sponsorId = useWatch({
+    control: form.control,
+    name: 'sponsorId',
+  });
   const [activeTab, setActiveTab] = useState<
     'builder' | 'settings' | 'preview'
   >('builder');
@@ -280,6 +284,7 @@ export function EligibilityQuestionsSheet() {
               <EligibilityQuestionsPreview
                 questions={eligibility}
                 control={previewForm.control as any}
+                sponsorId={sponsorId ?? null}
                 listingId={''}
                 editFetched={false}
                 compensationType={compensationType}

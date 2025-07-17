@@ -60,6 +60,7 @@ interface Question {
 interface EligibilityQuestionsProps {
   questions: Question[] | null | undefined;
   control: Control<any>;
+  sponsorId: string | null;
   listingId: string | number | null;
   editFetched: boolean;
   compensationType: string | null;
@@ -71,6 +72,7 @@ interface EligibilityQuestionsProps {
 export function EligibilityQuestionsForm({
   questions,
   control,
+  sponsorId,
   listingId,
   listingType,
   editFetched = false,
@@ -467,7 +469,7 @@ export function EligibilityQuestionsForm({
             />
             <KycComponent
               address={formPublicKey ?? user?.publicKey ?? ''}
-              listingSponsorId={user?.currentSponsorId}
+              listingSponsorId={sponsorId as string}
               variant="extended"
             />
           </div>

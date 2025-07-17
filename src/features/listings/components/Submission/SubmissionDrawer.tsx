@@ -239,6 +239,7 @@ export const SubmissionDrawer = ({
                 questions={eligibility}
                 control={form.control}
                 listingId={id ?? null}
+                sponsorId={listing.sponsorId ?? null}
                 editFetched={editFetched}
                 compensationType={compensationType ?? null}
                 token={token ?? null}
