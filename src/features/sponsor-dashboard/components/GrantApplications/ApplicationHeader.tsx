@@ -29,6 +29,7 @@ import { formatNumberWithSuffix } from '@/utils/formatNumberWithSuffix';
 import { getURL } from '@/utils/validUrl';
 
 import { type Grant } from '@/features/grants/types';
+import { type Listing } from '@/features/listings/types';
 import { getColorStyles } from '@/features/listings/utils/getColorStyles';
 import { getListingStatus } from '@/features/listings/utils/status';
 
@@ -43,7 +44,7 @@ interface Props {
 export const ApplicationHeader = ({ grant }: Props) => {
   const listingPath = `grants/${grant?.slug}`;
   const { hasCopied, onCopy } = useClipboard(`${getURL()}${listingPath}`);
-  const grantStatus = getListingStatus(grant, true);
+  const grantStatus = getListingStatus(grant as unknown as Listing, true);
 
   const exportMutation = useMutation({
     mutationFn: async () => {
