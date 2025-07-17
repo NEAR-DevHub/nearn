@@ -27,7 +27,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { PROJECT_NAME, TWITTER_HANDLE } from '@/constants/project';
-import { tokenList } from '@/constants/tokenList';
 import { useClipboard } from '@/hooks/use-clipboard';
 import { useDisclosure } from '@/hooks/use-disclosure';
 import { api } from '@/lib/api';
@@ -297,25 +296,8 @@ ${socialListingLink('twitter')}
           </p>
         </div>
         <div>
-          <p className="text-slate-500">Prize</p>
-          <div className="mt-3 flex items-center justify-start gap-1">
-            <img
-              className="h-5 w-5 rounded-full"
-              alt={'green dollar'}
-              src={
-                tokenList.filter((e) => e?.tokenSymbol === bounty?.token)[0]
-                  ?.icon ?? '/assets/dollar.svg'
-              }
-            />
-            <SponsorPrize
-              compensationType={bounty?.compensationType}
-              maxRewardAsk={bounty?.maxRewardAsk}
-              minRewardAsk={bounty?.minRewardAsk}
-              rewardAmount={bounty?.rewardAmount}
-              className="font-semibold text-slate-700"
-            />
-            <p className="font-semibold text-slate-400">{bounty?.token}</p>
-          </div>
+          <p className="mb-3 text-slate-500">Prize</p>
+          <SponsorPrize bounty={bounty} />
         </div>
         <div className="ml-auto">
           <p className="text-slate-500">Share</p>

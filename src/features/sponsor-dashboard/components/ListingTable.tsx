@@ -40,14 +40,12 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Tooltip } from '@/components/ui/tooltip';
-import { tokenList } from '@/constants/tokenList';
 import { useDisclosure } from '@/hooks/use-disclosure';
 import { type SponsorType } from '@/interface/sponsor';
 import { getBountyUrl } from '@/utils/bounty-urls';
 import { cn } from '@/utils/cn';
 import { getURL } from '@/utils/validUrl';
 
-import { grantAmount } from '@/features/grants/utils/grantAmount';
 import { type ListingWithSubmissions } from '@/features/listings/types';
 import { formatDeadline } from '@/features/listings/utils/deadline';
 import { getColorStyles } from '@/features/listings/utils/getColorStyles';
@@ -397,36 +395,8 @@ export const ListingTable = ({
                     </TableCell>
                   )}
                   {visibleColumns.prize && (
-                    <TableCell className="py-2">
-                      <div className="flex items-center justify-start gap-1">
-                        <img
-                          className="h-5 w-5 rounded-full"
-                          alt={'green dollar'}
-                          src={
-                            tokenList.filter(
-                              (e) => e?.tokenSymbol === listing.token,
-                            )[0]?.icon ?? '/assets/dollar.svg'
-                          }
-                        />
-                        {listing?.type === 'grant' && (
-                          <p className="whitespace-nowrap text-sm font-medium text-slate-700">
-                            {grantAmount({
-                              minReward: listing?.minRewardAsk!,
-                              maxReward: listing?.maxRewardAsk!,
-                            })}
-                          </p>
-                        )}
-                        <SponsorPrize
-                          compensationType={listing?.compensationType}
-                          maxRewardAsk={listing?.maxRewardAsk}
-                          minRewardAsk={listing?.minRewardAsk}
-                          rewardAmount={listing?.rewardAmount}
-                          className="text-sm font-medium text-slate-700"
-                        />
-                        <p className="text-sm font-medium text-slate-400">
-                          {listing.token}
-                        </p>
-                      </div>
+                    <TableCell className="mt-0">
+                      <SponsorPrize bounty={listing} smallView={true} />
                     </TableCell>
                   )}
                   {visibleColumns.status && (

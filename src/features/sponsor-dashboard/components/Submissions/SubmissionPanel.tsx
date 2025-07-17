@@ -2,7 +2,6 @@ import { TooltipArrow } from '@radix-ui/react-tooltip';
 import { useQuery } from '@tanstack/react-query';
 import { useAtom } from 'jotai';
 import {
-  AlertTriangle,
   ArrowRight,
   Copy,
   DollarSign,
@@ -51,6 +50,7 @@ import { selectedSubmissionAtom } from '../../atoms';
 import { getUserQuery } from '../../queries/user';
 import { Details } from './Details';
 import NearTreasuryPaymentModal from './Modals/NearTreasuryPaymentModal';
+import { SelectWinnersGuide } from './Modals/SelectWinnersGuide';
 import { UpdateDateModal } from './Modals/UpdateDateModal';
 import { SelectLabel } from './SelectLabel';
 import { SelectWinner } from './SelectWinner';
@@ -434,66 +434,42 @@ export const SubmissionPanel = ({
                           isHackathonPage={isHackathonPage}
                         />
                         {!isProject && !isSponsorship && (
-                          <Tooltip
-                            content={
-                              <>
-                                You cannot change the winners once the results
-                                are published!
-                                <TooltipArrow />
-                              </>
-                            }
-                            disabled={!bounty?.isWinnersAnnounced}
-                            contentProps={{ sideOffset: 5 }}
-                          >
-                            <Button
-                              className={cn(
-                                'ml-4',
-                                'disabled:cursor-not-allowed disabled:bg-[#A1A1A1] disabled:hover:bg-[#A1A1A1]',
-                              )}
-                              disabled={
-                                !afterAnnounceDate ||
-                                isHackathonPage ||
-                                remainings?.podiums !== 0 ||
-                                remainings?.bonus !== 0
+                          <div className="flex items-center gap-2">
+                            <Tooltip
+                              content={
+                                <>
+                                  You cannot change the winners once the results
+                                  are published!
+                                  <TooltipArrow />
+                                </>
                               }
-                              onClick={onWinnersAnnounceOpen}
-                              variant="default"
+                              disabled={!bounty?.isWinnersAnnounced}
+                              contentProps={{ sideOffset: 5 }}
                             >
-                              Announce Winners
-                            </Button>
-                          </Tooltip>
+                              <Button
+                                className={cn(
+                                  'bg-slate-900 hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-gray-500 disabled:hover:bg-gray-500',
+                                )}
+                                disabled={
+                                  !afterAnnounceDate ||
+                                  isHackathonPage ||
+                                  remainings?.podiums !== 0 ||
+                                  remainings?.bonus !== 0
+                                }
+                                onClick={onWinnersAnnounceOpen}
+                                variant="default"
+                              >
+                                Announce Winners
+                              </Button>
+                            </Tooltip>
+                            <SelectWinnersGuide />
+                          </div>
                         )}
                       </>
                     )}
                 </div>
               </div>
               <div className="ml-auto flex w-fit px-4 py-1 text-xs">
-                {!!remainings && !isProject && !isSponsorship && (
-                  <>
-                    {!!(remainings.bonus > 0 || remainings.podiums > 0) ? (
-                      <p className="flex items-center rounded-md bg-red-100 px-5 py-1 text-[#f55151]">
-                        <AlertTriangle className="mr-1 inline-block h-3 w-3" />
-                        {remainings.podiums > 0 && (
-                          <>
-                            {remainings.podiums}{' '}
-                            {remainings.podiums === 1 ? 'Winner' : 'Winners'}{' '}
-                          </>
-                        )}
-                        {remainings.bonus > 0 && (
-                          <>
-                            {remainings.bonus}{' '}
-                            {remainings.bonus === 1 ? 'Bonus' : 'Bonus'}{' '}
-                          </>
-                        )}
-                        Remaining
-                      </p>
-                    ) : (
-                      <p className="rounded-md bg-green-100 px-3 py-1 text-[#48CB6D]">
-                        All winners selected
-                      </p>
-                    )}
-                  </>
-                )}
                 <TreasuryStatus
                   treasury={treasury}
                   submissionId={selectedSubmission?.id ?? ''}

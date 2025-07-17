@@ -1,19 +1,25 @@
 import { useAtom } from 'jotai';
 import { X } from 'lucide-react';
-import React, { type Dispatch, type SetStateAction } from 'react';
+import React, {
+  type Dispatch,
+  type SetStateAction,
+  useEffect,
+  useState,
+} from 'react';
 
 import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
-  SelectItem,
+  SelectItemWithoutIndicator,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
 import { useDisclosure } from '@/hooks/use-disclosure';
 import { type SubmissionWithUser } from '@/interface/submission';
 import { cn } from '@/utils/cn';
-import { cleanRewards, getRankLabels, sortRank } from '@/utils/rank';
+import { formatNumberWithSuffix } from '@/utils/formatNumberWithSuffix';
+import { cleanRewards, nthLabelGenerator, sortRank } from '@/utils/rank';
 
 import { BONUS_REWARD_POSITION } from '@/features/listing-builder/constants';
 import { type Listing } from '@/features/listings/types';
@@ -47,6 +53,7 @@ export const SelectWinner = ({
   const rewards = sortRank(cleanRewards(bounty?.rewards));
 
   const [selectedSubmission] = useAtom(selectedSubmissionAtom);
+  const [unselect, setUnselect] = useState(false);
 
   const isProject = bounty?.type === 'project';
   const isSponsorship = bounty?.type === 'sponsorship';
@@ -73,6 +80,22 @@ export const SelectWinner = ({
     rejectedOnClose();
   };
 
+  useEffect(() => {
+    if (unselect) {
+      setTimeout(() => {
+        selectWinner(0, selectedSubmission?.id);
+        setUnselect(false);
+      }, 100);
+    }
+  }, [unselect]);
+
+  const rewardsLength =
+    rewards.length - ((bounty?.maxBonusSpots ?? 0) > 0 ? 1 : 0);
+  const usedBonusPositions =
+    usedPositions.filter((u) => u === BONUS_REWARD_POSITION).length -
+    (selectedSubmission?.winnerPosition === BONUS_REWARD_POSITION ? 1 : 0);
+  const usedRewards = usedPositions.filter((u) => u !== BONUS_REWARD_POSITION);
+
   const selectWinner = async (position: number, id: string | undefined) => {
     if (!id) return;
     toggleWinner({
@@ -81,6 +104,16 @@ export const SelectWinner = ({
       winnerPosition: position || null,
     });
   };
+
+  const filteredWinnersSlots = rewards
+    .filter((reward) => reward !== BONUS_REWARD_POSITION)
+    .filter(
+      (reward) =>
+        !usedRewards.includes(reward) ||
+        selectedSubmission?.winnerPosition === reward,
+    );
+  const filteredWinnersSlotsLength = filteredWinnersSlots.length;
+
   return (
     <>
       <div>
@@ -111,9 +144,9 @@ export const SelectWinner = ({
         ) : (
           <Select
             disabled={!!bounty?.isWinnersAnnounced || isHackathonPage}
-            onValueChange={(value) =>
-              selectWinner(Number(value), selectedSubmission?.id)
-            }
+            onValueChange={(value) => {
+              selectWinner(Number(value), selectedSubmission?.id);
+            }}
             value={
               selectedSubmission?.isWinner
                 ? selectedSubmission.winnerPosition?.toString() || ''
@@ -122,42 +155,123 @@ export const SelectWinner = ({
           >
             <SelectTrigger
               className={cn(
-                'h-10 w-40 border-slate-300 font-medium capitalize text-slate-700',
+                'h-10 w-44 border-slate-300 font-medium capitalize text-slate-700',
                 'focus:border-brand-green focus:ring-black',
               )}
             >
-              <SelectValue
-                className="placeholder:text-slate-800"
-                placeholder="Select Winner"
-              />
+              {selectedSubmission?.isWinner &&
+              selectedSubmission.winnerPosition ? (
+                <p className="text-slate-500">
+                  {nthLabelGenerator(
+                    Number(selectedSubmission.winnerPosition),
+                    false,
+                  )}{' '}
+                  |{' '}
+                  {formatNumberWithSuffix(
+                    bounty?.rewards?.[selectedSubmission.winnerPosition]!,
+                    2,
+                    true,
+                  )}{' '}
+                  {bounty?.token}
+                </p>
+              ) : (
+                <SelectValue
+                  className="placeholder:text-slate-800"
+                  placeholder="Select Winner"
+                />
+              )}
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="placeholder">Select Winner</SelectItem>
-              {rewards.map((reward) => {
-                let isRewardUsed = usedPositions.includes(reward);
-                if (reward === BONUS_REWARD_POSITION) {
-                  if (
-                    usedPositions.filter((u) => u === BONUS_REWARD_POSITION)
-                      .length < (bounty?.maxBonusSpots ?? 0)
-                  ) {
-                    isRewardUsed = false;
-                  }
-                }
-                const isCurrentSubmissionReward =
-                  Number(selectedSubmission?.winnerPosition) === reward;
+            <SelectContent
+              className="flex flex-col gap-2 p-1.5"
+              style={{ maxHeight: 'none', overflow: 'visible' }}
+            >
+              <p className="py-1.5 pt-1 text-xs font-medium text-slate-400">
+                REWARDS
+              </p>
 
-                return (
-                  (!isRewardUsed || isCurrentSubmissionReward) && (
-                    <SelectItem
-                      className="capitalize"
-                      key={reward}
-                      value={reward.toString()}
+              <div className="border-t border-slate-200">
+                {filteredWinnersSlotsLength > 0 && (
+                  <>
+                    {' '}
+                    <p className="pb-1 pt-2 text-xs text-slate-400">
+                      {filteredWinnersSlotsLength} Winner
+                      {filteredWinnersSlotsLength > 1 ? 's' : ''}
+                    </p>
+                    {filteredWinnersSlots.map((reward) => {
+                      return (
+                        <SelectItemWithoutIndicator
+                          className="relative flex w-full cursor-pointer select-none items-center justify-between rounded-sm p-1.5 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 hover:bg-slate-50 focus:bg-slate-50 [&[data-state=checked]]:bg-slate-100"
+                          key={reward}
+                          value={reward.toString()}
+                          onMouseDown={() => {
+                            if (selectedSubmission?.winnerPosition === reward) {
+                              setUnselect(true);
+                            }
+                          }}
+                        >
+                          <span className="text-slate-600">
+                            {nthLabelGenerator(Number(reward), true)}
+                          </span>
+                          <span className="flex items-center gap-1 font-semibold text-slate-900">
+                            <span>
+                              {formatNumberWithSuffix(
+                                bounty?.rewards?.[reward]!,
+                                2,
+                                true,
+                              )}
+                            </span>
+                            <span className="text-slate-500">
+                              {bounty?.token}
+                            </span>
+                          </span>
+                        </SelectItemWithoutIndicator>
+                      );
+                    })}
+                  </>
+                )}
+
+                {usedBonusPositions < (bounty?.maxBonusSpots ?? 0) && (
+                  <div className="border-t border-slate-200">
+                    <p className="pb-1 pt-2 text-xs text-slate-400">
+                      {bounty?.maxBonusSpots! - usedBonusPositions} Bonus
+                      {bounty?.maxBonusSpots! - usedBonusPositions > 1
+                        ? 'es'
+                        : ''}
+                    </p>
+                    <SelectItemWithoutIndicator
+                      className="relative flex w-full cursor-pointer select-none items-center justify-between rounded-sm p-1.5 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 hover:bg-slate-50 focus:bg-slate-50"
+                      key={BONUS_REWARD_POSITION}
+                      value={String(BONUS_REWARD_POSITION)}
+                      onMouseDown={() => {
+                        if (
+                          selectedSubmission?.winnerPosition ===
+                          BONUS_REWARD_POSITION
+                        ) {
+                          setUnselect(true);
+                        }
+                      }}
                     >
-                      {isProject ? 'Winner' : getRankLabels(reward)}
-                    </SelectItem>
-                  )
-                );
-              })}
+                      <span className="text-slate-600">
+                        {nthLabelGenerator(rewardsLength + 1, true)} -{' '}
+                        {nthLabelGenerator(
+                          rewardsLength + (bounty?.maxBonusSpots ?? 0),
+                          true,
+                        )}
+                      </span>
+                      <span className="flex items-center gap-1 font-semibold text-slate-900">
+                        <span>
+                          {formatNumberWithSuffix(
+                            bounty?.rewards?.[BONUS_REWARD_POSITION]!,
+                            2,
+                            true,
+                          )}
+                        </span>
+                        <span className="text-slate-500">{bounty?.token}</span>
+                      </span>
+                    </SelectItemWithoutIndicator>
+                  </div>
+                )}
+              </div>
             </SelectContent>
           </Select>
         )}
