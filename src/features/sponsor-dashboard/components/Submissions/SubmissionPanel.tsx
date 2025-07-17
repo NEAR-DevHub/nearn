@@ -51,7 +51,7 @@ import { getUserQuery } from '../../queries/user';
 import { Details } from './Details';
 import NearTreasuryPaymentModal from './Modals/NearTreasuryPaymentModal';
 import { SelectWinnersGuide } from './Modals/SelectWinnersGuide';
-import { UpdateDateModal } from './Modals/UpdateDateModal';
+import { UpdatePaymentDateModal } from './Modals/UpdateDateModal';
 import { SelectLabel } from './SelectLabel';
 import { SelectWinner } from './SelectWinner';
 
@@ -250,17 +250,8 @@ export const SubmissionPanel = ({
     }
   };
   const [isUpdateDateModalOpen, setIsUpdateDateModalOpen] = useState(false);
-  const [dateModalType, setDateModalType] = useState<'payment' | 'approved'>(
-    'payment',
-  );
 
   const handleUpdatePaymentDate = () => {
-    setDateModalType('payment');
-    setIsUpdateDateModalOpen(true);
-  };
-
-  const handleUpdateApprovedDate = () => {
-    setDateModalType('approved');
     setIsUpdateDateModalOpen(true);
   };
 
@@ -555,6 +546,12 @@ export const SubmissionPanel = ({
                     .filter((social) => social.isVisible)
                     .map((social) => social.icon)}
                 </div>
+                <div className="flex items-center">
+                  <p className="text-sm text-slate-400">
+                    Created on:{' '}
+                    {dayjs(selectedSubmission?.createdAt).format('MMM D, YYYY')}
+                  </p>
+                </div>
                 {selectedSubmission?.status === 'Approved' &&
                   selectedSubmission?.approveDate && (
                     <div className="flex items-center">
@@ -575,14 +572,6 @@ export const SubmissionPanel = ({
                           )}
                         </p>
                       </Tooltip>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="p-0 text-xs text-slate-500"
-                        onClick={handleUpdateApprovedDate}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
                     </div>
                   )}
                 {selectedSubmission?.isPaid &&
@@ -607,11 +596,10 @@ export const SubmissionPanel = ({
                       </Tooltip>
                       <Button
                         variant="ghost"
-                        size="icon"
-                        className="p-0 text-xs text-slate-500"
+                        className="h-4 w-4 p-0 hover:bg-transparent"
                         onClick={handleUpdatePaymentDate}
                       >
-                        <Pencil className="h-4 w-4" />
+                        <Pencil className="ml-3 h-4 w-4 text-slate-400" />
                       </Button>
                     </div>
                   )}
@@ -630,25 +618,16 @@ export const SubmissionPanel = ({
           </div>
         )}
       </div>
-      <UpdateDateModal
+      <UpdatePaymentDateModal
         isOpen={isUpdateDateModalOpen}
         onClose={() => setIsUpdateDateModalOpen(false)}
         submissionId={selectedSubmission?.id || ''}
         listingId={bounty?.id || ''}
-        dateType={dateModalType}
-        currentDate={
-          dateModalType === 'payment'
-            ? selectedSubmission?.paymentDate
-            : selectedSubmission?.approveDate
-        }
+        currentDate={selectedSubmission?.paymentDate}
         onSuccess={(date: string) => {
-          const update =
-            dateModalType === 'payment'
-              ? { paymentDate: date }
-              : { approveDate: date };
           setSelectedSubmission((prev) =>
             prev && prev.id === selectedSubmission?.id
-              ? { ...prev, ...update }
+              ? { ...prev, paymentDate: date }
               : prev,
           );
         }}

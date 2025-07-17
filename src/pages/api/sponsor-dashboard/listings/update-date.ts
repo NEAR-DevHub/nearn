@@ -29,7 +29,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    if (!['payment', 'approved'].includes(dateType)) {
+    if (!['payment'].includes(dateType)) {
       return res.status(400).json({ error: 'Invalid date type' });
     }
 
