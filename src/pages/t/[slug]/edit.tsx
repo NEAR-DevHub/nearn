@@ -1,5 +1,19 @@
+import {
+  closestCenter,
+  DndContext,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Edit, Info, Loader2, Plus, Trash } from 'lucide-react';
+import { Edit, GripVertical, Info, Loader2, Plus, Trash } from 'lucide-react';
 import type { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
@@ -51,6 +65,61 @@ import {
 import { type ProfileFormData, profileSchema } from '@/features/talent/schema';
 import { useUsernameValidation } from '@/features/talent/utils/useUsernameValidation';
 
+// Draggable PoW item component
+function SortablePoWItem({
+  pow,
+  idx,
+  onEdit,
+  onDelete,
+}: {
+  pow: PoW;
+  idx: number;
+  onEdit: (index: number) => void;
+  onDelete: (index: number) => void;
+}) {
+  const sortableId = pow.id ?? `temp-${idx}`;
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: sortableId });
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.7 : undefined,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="mb-1.5 mt-2 flex items-center rounded-md border border-slate-300 bg-white px-[1rem] py-[0.5rem] text-slate-500"
+    >
+      {/* Drag handle */}
+      <GripVertical
+        className="mr-2 h-3.5 w-3.5 cursor-grab text-slate-400"
+        {...listeners}
+        {...attributes}
+      />
+      <p className="w-full text-sm text-gray-800">{pow.title}</p>
+      <div className="flex items-center gap-3">
+        <Edit
+          onClick={() => onEdit(idx)}
+          className="h-3.5 w-3.5 cursor-pointer"
+        />
+        <Trash
+          onClick={() => onDelete(idx)}
+          className="h-3.5 w-3.5 cursor-pointer"
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function EditProfilePage({ slug }: { slug: string }) {
   const { user, refetchUser } = useUser();
   const { data: session, status } = useSession();
@@ -87,6 +156,11 @@ export default function EditProfilePage({ slug }: { slug: string }) {
   const [pow, setPow] = useState<PoW[]>([]);
   const [selectedProject, setSelectedProject] = useState<number | null>(null);
   const [skillsRefreshKey, setSkillsRefreshKey] = useState<number>(0);
+
+  // dnd-kit sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+  );
 
   const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -175,6 +249,7 @@ export default function EditProfilePage({ slug }: { slug: string }) {
             userId: user?.id,
           },
         });
+        console.log(response.data);
         setPow(response.data);
       } catch (error) {
         console.log(error);
@@ -281,7 +356,6 @@ export default function EditProfilePage({ slug }: { slug: string }) {
               return acc;
             }, {} as Partial<ProfileFormData>);
 
-            console.log('final updated data', finalUpdatedData);
             await api.post('/api/pow/edit', {
               pows: pow,
             });
@@ -556,37 +630,53 @@ export default function EditProfilePage({ slug }: { slug: string }) {
               </FormFieldWrapper>
 
               <FormLabel>Proof of Work</FormLabel>
-              <div>
-                {pow.map((data, idx) => {
-                  return (
-                    <div
-                      className="mb-1.5 mt-2 flex items-center rounded-md border border-slate-300 px-[1rem] py-[0.5rem] text-slate-500"
-                      key={data.id}
-                    >
-                      <p className="w-full text-sm text-gray-800">
-                        {data.title}
-                      </p>
-                      <div className="flex items-center gap-3">
-                        <Edit
-                          onClick={() => {
-                            setSelectedProject(idx);
-                            onOpen();
-                          }}
-                          className="h-3.5 w-3.5 cursor-pointer"
-                        />
-                        <Trash
-                          onClick={() => {
-                            setPow((prevPow) =>
-                              prevPow.filter((_ele, id) => idx !== id),
-                            );
-                          }}
-                          className="h-3.5 w-3.5 cursor-pointer"
-                        />
-                      </div>
-                    </div>
+
+              {/* Draggable PoW list */}
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={async (event) => {
+                  const { active, over } = event;
+                  if (!over || active.id === over.id) return;
+
+                  const oldIndex = pow.findIndex(
+                    (item, i) => (item.id ?? `temp-${i}`) === active.id,
                   );
-                })}
-              </div>
+                  const newIndex = pow.findIndex(
+                    (item, i) => (item.id ?? `temp-${i}`) === over.id,
+                  );
+
+                  if (oldIndex === -1 || newIndex === -1) return;
+
+                  const newPow = arrayMove(pow, oldIndex, newIndex).map(
+                    (p, index) => ({ ...p, displayOrder: index }),
+                  );
+
+                  setPow(newPow);
+                }}
+              >
+                <SortableContext
+                  items={pow.map((p, i) => (p.id ?? `temp-${i}`) as string)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div>
+                    {pow.map((data, idx) => (
+                      <SortablePoWItem
+                        key={data.id}
+                        pow={data}
+                        idx={idx}
+                        onEdit={(index) => {
+                          setSelectedProject(index);
+                          onOpen();
+                        }}
+                        onDelete={(index) => {
+                          setPow((prev) => prev.filter((_e, i) => i !== index));
+                        }}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
               <Button
                 className="mb-8 w-full"
                 onClick={() => {

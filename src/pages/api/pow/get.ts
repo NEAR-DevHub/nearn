@@ -25,6 +25,7 @@ export default async function handler(
       where: {
         userId,
       },
+      orderBy: [{ displayOrder: 'asc' }, { createdAt: 'desc' }],
     });
 
     if (!pows || pows.length === 0) {

@@ -15,6 +15,7 @@ interface PoW {
   subSkills: string[];
   link: string;
   createdAt?: Date;
+  displayOrder?: number;
 }
 
 async function handler(req: NextApiRequestWithUser, res: NextApiResponse) {
@@ -38,7 +39,7 @@ async function handler(req: NextApiRequestWithUser, res: NextApiResponse) {
       where: {
         userId,
       },
-      select: { id: true },
+      select: { id: true, displayOrder: true },
     });
 
     const existingIds = existingPoWs.map((pow) => pow.id);
@@ -56,8 +57,16 @@ async function handler(req: NextApiRequestWithUser, res: NextApiResponse) {
         continue;
       }
 
-      const { id, title, description, skills, subSkills, link, createdAt } =
-        pow;
+      const {
+        id,
+        title,
+        description,
+        skills,
+        subSkills,
+        link,
+        createdAt,
+        displayOrder,
+      } = pow;
 
       if (id) {
         if (existingIds.includes(id)) {
@@ -70,6 +79,7 @@ async function handler(req: NextApiRequestWithUser, res: NextApiResponse) {
               subSkills,
               link,
               createdAt,
+              displayOrder,
             },
           });
         } else {
@@ -84,6 +94,7 @@ async function handler(req: NextApiRequestWithUser, res: NextApiResponse) {
           subSkills,
           link,
           createdAt,
+          displayOrder,
         });
       }
     }

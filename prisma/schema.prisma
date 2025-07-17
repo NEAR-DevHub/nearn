@@ -499,20 +499,21 @@ model TalentRankings {
 }
 
 model PoW {
-  id          String    @id @default(uuid())
-  userId      String
-  title       String
-  description String    @db.Text
-  skills      Json?
-  link        String
-  createdAt   DateTime  @default(now())
-  subSkills   Json?
-  updatedAt   DateTime  @updatedAt
-  like        Json?
-  likeCount   Int       @default(0)
-  user        User      @relation(fields: [userId], references: [id])
-  ogImage     String?   @db.Text
-  Comments    Comment[]
+  id           String    @id @default(uuid())
+  userId       String
+  title        String
+  description  String    @db.Text
+  skills       Json?
+  link         String
+  createdAt    DateTime  @default(now())
+  subSkills    Json?
+  updatedAt    DateTime  @updatedAt
+  like         Json?
+  likeCount    Int       @default(0)
+  user         User      @relation(fields: [userId], references: [id])
+  ogImage      String?   @db.Text
+  displayOrder Int       @default(0)
+  Comments     Comment[]
 
   @@index([userId])
   @@index([createdAt])
@@ -520,6 +521,7 @@ model PoW {
   @@index([likeCount(sort: Desc), createdAt(sort: Desc)])
   @@index([userId, createdAt(sort: Desc)])
   @@index([userId, id])
+  @@index([userId, displayOrder])
 }
 
 model EmailSettings {

@@ -2,6 +2,7 @@
 import { type Prisma } from '@prisma/client';
 import { type NextApiResponse } from 'next';
 
+import { type PoW } from '@/interface/pow';
 import logger from '@/lib/logger';
 import { prisma } from '@/prisma';
 import { dayjs } from '@/utils/dayjs';
@@ -206,8 +207,12 @@ async function handler(
               take: parseInt(take as string, 10),
               orderBy:
                 filter === 'popular'
-                  ? [{ likeCount: 'desc' }, { createdAt: 'desc' }]
-                  : { createdAt: 'desc' },
+                  ? [
+                      { likeCount: 'desc' },
+                      { displayOrder: 'asc' },
+                      { createdAt: 'desc' },
+                    ]
+                  : [{ displayOrder: 'asc' }, { createdAt: 'desc' }],
               include: poWInclude,
             })
           : [];
@@ -374,6 +379,7 @@ async function handler(
         like: pow.like,
         likeCount: pow.likeCount,
         ogImage: pow.ogImage,
+        displayOrder: pow.displayOrder,
         commentCount: pow._count.Comments,
         recentCommenters: pow.Comments,
       })),
@@ -403,6 +409,13 @@ async function handler(
     results.sort((a, b) => {
       if (a.id === highlightId) return -1;
       if (b.id === highlightId) return 1;
+      if (a.type === 'pow' && b.type === 'pow' && a.username === b.username) {
+        const aPow = a as unknown as PoW;
+        const bPow = b as unknown as PoW;
+        if ((aPow.displayOrder ?? 0) - (bPow.displayOrder ?? 0) !== 0) {
+          return (aPow.displayOrder ?? 0) - (bPow.displayOrder ?? 0);
+        }
+      }
       if (filter === 'popular') {
         if (a.likeCount === b.likeCount) {
           return b.createdAt.getTime() - a.createdAt.getTime();

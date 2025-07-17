@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { OgImageViewer } from '@/components/shared/ogImageViewer';
+import { getURLSanitized } from '@/utils/getURLSanitized';
 
 import { type FeedDataProps } from '../types';
 import { FeedCardContainer } from './FeedCardContainer';
@@ -45,7 +46,9 @@ export function PowCard({ pow, type, commentCount }: PowCardProps) {
           {pow?.title}
         </p>
       </div>
-      <FeedCardLink href={pow?.link}>View Project</FeedCardLink>
+      <FeedCardLink href={getURLSanitized(pow?.link)}>
+        View Project
+      </FeedCardLink>
     </>
   );
 
