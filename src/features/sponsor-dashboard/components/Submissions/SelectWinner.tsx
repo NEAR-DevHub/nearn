@@ -182,10 +182,10 @@ export const SelectWinner = ({
               )}
             </SelectTrigger>
             <SelectContent
-              className="flex flex-col gap-2 p-1.5"
+              className="flex flex-col gap-2 py-1.5"
               style={{ maxHeight: 'none', overflow: 'visible' }}
             >
-              <p className="py-1.5 pt-1 text-xs font-medium text-slate-400">
+              <p className="p-1.5 pt-1 text-xs font-medium text-slate-400">
                 REWARDS
               </p>
 
@@ -193,7 +193,7 @@ export const SelectWinner = ({
                 {filteredWinnersSlotsLength > 0 && (
                   <>
                     {' '}
-                    <p className="pb-1 pt-2 text-xs text-slate-400">
+                    <p className="px-1.5 pb-1 pt-2 text-xs text-slate-400">
                       {filteredWinnersSlotsLength} Winner
                       {filteredWinnersSlotsLength > 1 ? 's' : ''}
                     </p>
@@ -232,7 +232,7 @@ export const SelectWinner = ({
 
                 {usedBonusPositions < (bounty?.maxBonusSpots ?? 0) && (
                   <div className="border-t border-slate-200">
-                    <p className="pb-1 pt-2 text-xs text-slate-400">
+                    <p className="px-1.5 pb-1 pt-2 text-xs text-slate-400">
                       {bounty?.maxBonusSpots! - usedBonusPositions} Bonus
                       {bounty?.maxBonusSpots! - usedBonusPositions > 1
                         ? 'es'
