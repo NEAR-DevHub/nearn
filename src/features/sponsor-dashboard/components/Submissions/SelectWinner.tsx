@@ -91,9 +91,9 @@ export const SelectWinner = ({
 
   const rewardsLength =
     rewards.length - ((bounty?.maxBonusSpots ?? 0) > 0 ? 1 : 0);
-  const usedBonusPositions =
-    usedPositions.filter((u) => u === BONUS_REWARD_POSITION).length -
-    (selectedSubmission?.winnerPosition === BONUS_REWARD_POSITION ? 1 : 0);
+  const usedBonusPositions = usedPositions.filter(
+    (u) => u === BONUS_REWARD_POSITION,
+  ).length;
   const usedRewards = usedPositions.filter((u) => u !== BONUS_REWARD_POSITION);
 
   const selectWinner = async (position: number, id: string | undefined) => {
@@ -113,6 +113,8 @@ export const SelectWinner = ({
         selectedSubmission?.winnerPosition === reward,
     );
   const filteredWinnersSlotsLength = filteredWinnersSlots.length;
+  const isBonusAssigned =
+    selectedSubmission?.winnerPosition === BONUS_REWARD_POSITION;
 
   return (
     <>
@@ -190,11 +192,11 @@ export const SelectWinner = ({
               </p>
 
               <div className="border-t border-slate-200">
-                {filteredWinnersSlotsLength > 0 && (
+                {filteredWinnersSlotsLength > 0 ? (
                   <>
                     {' '}
                     <p className="px-1.5 pb-1 pt-2 text-xs text-slate-400">
-                      {usedRewards.length}/{rewardsLength} Winner
+                      {usedRewards.length} / {rewardsLength} Winner
                       {filteredWinnersSlotsLength > 1 ? 's' : ''} assigned
                     </p>
                     {filteredWinnersSlots.map((reward) => {
@@ -228,12 +230,13 @@ export const SelectWinner = ({
                       );
                     })}
                   </>
-                )}
+                ) : null}
 
-                {usedBonusPositions < (bounty?.maxBonusSpots ?? 0) && (
+                {usedBonusPositions < (bounty?.maxBonusSpots ?? 0) ||
+                isBonusAssigned ? (
                   <div className="border-t border-slate-200">
                     <p className="px-1.5 pb-1 pt-2 text-xs text-slate-400">
-                      {usedBonusPositions}/{bounty?.maxBonusSpots!} Bonus
+                      {usedBonusPositions} / {bounty?.maxBonusSpots!} Bonus
                       {bounty?.maxBonusSpots! > 1 ? 'es' : ''} assigned
                     </p>
                     <SelectItemWithoutIndicator
@@ -268,7 +271,7 @@ export const SelectWinner = ({
                       </span>
                     </SelectItemWithoutIndicator>
                   </div>
-                )}
+                ) : null}
               </div>
             </SelectContent>
           </Select>
