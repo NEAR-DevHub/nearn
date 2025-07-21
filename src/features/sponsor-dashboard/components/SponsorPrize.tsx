@@ -78,7 +78,10 @@ export const SponsorPrize = ({
           </>
         )}
       </PopoverTrigger>
-      <PopoverContent className="flex shrink-0 flex-col gap-2 p-1.5">
+      <PopoverContent
+        style={{ width: 'var(--radix-popover-trigger-width)' }}
+        className="flex shrink-0 flex-col gap-2 p-1.5"
+      >
         <p className="px-1.5 pt-1 text-xs font-medium text-slate-400">
           REWARDS
         </p>
