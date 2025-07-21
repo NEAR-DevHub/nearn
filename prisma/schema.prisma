@@ -64,6 +64,7 @@ model Bounties {
   Scouts             Scouts[]
   Comments           Comment[]
   BountyCounts       BountyCounts       @relation(fields: [id], references: [bountyId])
+  EventLog           EventLog[]
 
   @@unique([sponsorId, sequentialId])
   @@index([id, slug])
@@ -90,7 +91,7 @@ model Bounties {
 }
 
 view BountyCounts {
-  bountyId             String     @unique @map("bountyId")
+  bountyId             String    @unique @map("bountyId")
   totalWinnersSelected Int
   totalPaymentsMade    Int
   bounty               Bounties?
@@ -307,6 +308,7 @@ model Submission {
   paidBy             String?
   approvedBy         String?
   Comments           Comment[]
+  EventLog           EventLog[]
 
   @@index([id, listingId])
   @@index([userId])
@@ -356,6 +358,7 @@ model Sponsors {
   Grants            Grants[]
   User              User[]
   UserInvites       UserInvites[]
+  EventLog          EventLog[]
 
   @@index([id, slug])
   @@index([isVerified, st])
@@ -449,6 +452,7 @@ model User {
   GrantApplication   GrantApplication[]
   SubscribeHackathon SubscribeHackathon[]
   isBlocked          Boolean              @default(false)
+  EventLog           EventLog[]
 
   @@index([currentSponsorId])
   @@index([hackathonId])
@@ -662,6 +666,104 @@ model BlockedEmail {
   id        String   @id @default(uuid())
   email     String   @unique
   createdAt DateTime @default(now())
+}
+
+model EventLog {
+  id String @id @default(uuid())
+
+  listingId    String?
+  submissionId String?
+  sponsorId    String?
+
+  eventType     EventType
+  eventCategory EventCategory
+
+  actorId   String
+  actorType ActorType
+
+  data Json
+
+  eventTime  DateTime        @default(now())
+  visibility EventVisibility
+  createdAt  DateTime        @default(now())
+
+  listing    Bounties?   @relation(fields: [listingId], references: [id])
+  submission Submission? @relation(fields: [submissionId], references: [id])
+  sponsor    Sponsors?   @relation(fields: [sponsorId], references: [id])
+  User       User?       @relation(fields: [actorId], references: [id])
+
+  @@index([listingId, eventTime(sort: Desc)])
+  @@index([submissionId, eventTime(sort: Desc)])
+  @@index([sponsorId, eventTime(sort: Desc)])
+  @@index([actorId, eventTime(sort: Desc)])
+  @@index([eventType, eventTime(sort: Desc)])
+  @@index([visibility, eventTime(sort: Desc)])
+  @@index([eventCategory, eventType, eventTime(sort: Desc)])
+}
+
+enum EventCategory {
+  SPONSOR
+  SUBMISSION
+  LISTING
+  COMMENT
+  TREASURY
+  SYSTEM
+}
+
+enum EventType {
+  // Sponsor Events
+  SPONSOR_TREASURY_ADDED
+  SPONSOR_TREASURY_REMOVED
+  SPONSOR_MEMBER_INVITED
+  SPONSOR_MEMBER_REMOVED
+  SPONSOR_MEMBER_ACCEPTED
+  SPONSOR_PROFILE_EDITED
+
+  // Listing Events
+  LISTING_CREATED
+  LISTING_PUBLISHED
+  LISTING_EDITED
+  LISTING_COMPLETED
+  LISTING_UNPUBLISHED
+
+  // Submission Events
+  SUBMISSION_CREATED
+  SUBMISSION_EDITED
+  SUBMISSION_NOTE_CHANGED
+  SUBMISSION_LABEL_CHANGED
+  SUBMISSION_APPROVED
+  SUBMISSION_REJECTED
+  SUBMISSION_PAYMENT_ADDED
+  SUBMISSION_TREASURY_CREATED
+  SUBMISSION_PAYMENT_DATE_EDITED
+  SUBMISSION_PAID
+
+  // Comment Events
+  COMMENT_ADDED
+  COMMENT_REPLIED
+  COMMENT_DELETED
+
+  // Treasury Events
+  TREASURY_PROPOSAL_APPROVED
+  TREASURY_PROPOSAL_REJECTED
+  TREASURY_PROPOSAL_EXPIRED
+
+  // System Events
+  SYSTEM_STATUS_CHANGED
+}
+
+enum ActorType {
+  SPONSOR
+  TALENT
+  PLATFORM_ADMIN
+  SYSTEM
+}
+
+enum EventVisibility {
+  PUBLIC // Everyone can see
+  TALENT // Talent + higher levels
+  SPONSOR // Sponsor + higher levels
+  PLATFORM_ADMIN // Only platform admins
 }
 
 enum TalentRankingSkills {
