@@ -14,6 +14,8 @@ import { getSponsorSession } from '@/features/auth/utils/getSponsorSession';
 import { sendEmailNotification } from '@/features/emails/utils/sendEmailNotification';
 import { BONUS_REWARD_POSITION } from '@/features/listing-builder/constants';
 import { type Rewards } from '@/features/listings/types';
+import { eventLogger } from '@/features/logging/services/event-logger';
+import { EventType } from '@/features/logging/types/event-data';
 
 export async function POST(
   _request: NextRequest,
@@ -151,10 +153,61 @@ export async function POST(
         }),
       );
 
+      if (listing.type === 'sponsorship') {
+        const existingEventLog = await prisma.eventLog.findFirst({
+          where: {
+            eventType: EventType.SUBMISSION_APPROVED,
+            listingId: id,
+            submissionId: winners[currentIndex]?.id,
+          },
+        });
+
+        if (existingEventLog) {
+          continue;
+        }
+      }
+
+      promises.push(
+        eventLogger.log({
+          eventType: EventType.SUBMISSION_APPROVED,
+          actor: {
+            id: userId as string,
+            type: 'SPONSOR',
+          },
+          data: {
+            position: winnerPosition,
+          },
+          entities: {
+            listingId: id,
+            submissionId: winners[currentIndex]?.id,
+            sponsorId: userSponsorId,
+          },
+        }),
+      );
+
       currentIndex += 1;
     }
 
     await Promise.all(promises);
+    if (listing.type !== 'sponsorship') {
+      eventLogger.log({
+        eventType: EventType.LISTING_WINNERS_ANNOUNCED,
+        actor: {
+          id: userId as string,
+          type: 'SPONSOR',
+        },
+        data: {
+          winners: winners.map((winner) => ({
+            submissionId: winner.id,
+            position: winner.winnerPosition ?? 0,
+          })),
+        },
+        entities: {
+          listingId: id,
+          sponsorId: userSponsorId,
+        },
+      });
+    }
 
     waitUntil(
       (async () => {

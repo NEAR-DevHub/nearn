@@ -1,10 +1,39 @@
-import type {
-  CompensationType,
-  EventType,
-  Role,
-  SubmissionLabels,
-} from '@prisma/client';
-import { type Record } from '@prisma/client/runtime/library';
+import type { CompensationType, Role, SubmissionLabels } from '@prisma/client';
+import { type JsonValue, type Record } from '@prisma/client/runtime/library';
+
+export enum EventType {
+  SPONSOR_TREASURY_ADDED = 'SPONSOR_TREASURY_ADDED',
+  SPONSOR_TREASURY_REMOVED = 'SPONSOR_TREASURY_REMOVED',
+  SPONSOR_MEMBER_INVITED = 'SPONSOR_MEMBER_INVITED',
+  SPONSOR_MEMBER_REMOVED = 'SPONSOR_MEMBER_REMOVED',
+  SPONSOR_MEMBER_ACCEPTED = 'SPONSOR_MEMBER_ACCEPTED',
+  SPONSOR_PROFILE_EDITED = 'SPONSOR_PROFILE_EDITED',
+  LISTING_CREATED = 'LISTING_CREATED',
+  LISTING_PUBLISHED = 'LISTING_PUBLISHED',
+  LISTING_EDITED = 'LISTING_EDITED',
+  LISTING_COMPLETED = 'LISTING_COMPLETED',
+  LISTING_UNPUBLISHED = 'LISTING_UNPUBLISHED',
+  LISTING_WINNERS_ANNOUNCED = 'LISTING_WINNERS_ANNOUNCED',
+  SUBMISSION_CREATED = 'SUBMISSION_CREATED',
+  SUBMISSION_EDITED = 'SUBMISSION_EDITED',
+  SUBMISSION_NOTE_CHANGED = 'SUBMISSION_NOTE_CHANGED',
+  SUBMISSION_LABEL_CHANGED = 'SUBMISSION_LABEL_CHANGED',
+  // This is an intermediate state for bounties
+  SUBMISSION_TOGGLED_WINNER = 'SUBMISSION_TOGGLED_WINNER',
+  // This is a winner state for bounties
+  SUBMISSION_APPROVED = 'SUBMISSION_APPROVED',
+  SUBMISSION_REJECTED = 'SUBMISSION_REJECTED',
+  SUBMISSION_TREASURY_CREATED = 'SUBMISSION_TREASURY_CREATED',
+  SUBMISSION_PAYMENT_DATE_EDITED = 'SUBMISSION_PAYMENT_DATE_EDITED',
+  SUBMISSION_PAID = 'SUBMISSION_PAID',
+  COMMENT_ADDED = 'COMMENT_ADDED',
+  COMMENT_REPLIED = 'COMMENT_REPLIED',
+  COMMENT_DELETED = 'COMMENT_DELETED',
+  TREASURY_PROPOSAL_APPROVED = 'TREASURY_PROPOSAL_APPROVED',
+  TREASURY_PROPOSAL_REJECTED = 'TREASURY_PROPOSAL_REJECTED',
+  TREASURY_PROPOSAL_EXPIRED = 'TREASURY_PROPOSAL_EXPIRED',
+  SYSTEM_STATUS_CHANGED = 'SYSTEM_STATUS_CHANGED',
+}
 
 /**
  * Fields that can be edited in a sponsor profile
@@ -29,19 +58,19 @@ export type SponsorEditableFields =
  * Type mapping for sponsor field values
  */
 export interface SponsorFieldValueMap {
-  name: string;
-  slug: string;
-  bio: string;
+  name: string | null;
+  slug: string | null;
+  bio: string | null;
   logo: string | null;
   banner: string | null;
-  industry: string;
-  website: string;
+  industry: string | null;
+  website: string | null;
   twitter: string | null;
   linkedin: string | null;
   github: string | null;
   telegram: string | null;
   discord: string | null;
-  entityName: string;
+  entityName: string | null;
   about: string | null;
 }
 
@@ -69,23 +98,16 @@ export type ListingEditableFields =
  */
 export interface ListingFieldValueMap {
   title: string;
-  description: string;
-  pocSocials: string;
-  deadline: string;
-  skills: string[];
-  eligibility: Array<{
-    order: number;
-    question: string;
-    type: 'text' | 'link' | 'paragraph' | 'checkbox' | 'select';
-    description?: string;
-    optional?: boolean;
-    variants?: string[];
-  }>;
-  region: string;
+  description: string | null;
+  pocSocials: string | null;
+  deadline: Date | null;
+  skills: JsonValue | null;
+  eligibility: JsonValue | null;
+  region: string | null;
   isPrivate: boolean;
-  token: string;
+  token: string | null;
   compensationType: CompensationType;
-  rewards: Record<string, number> | null;
+  rewards: JsonValue | null;
   maxBonusSpots: number | null;
   minRewardAsk: number | null;
   maxRewardAsk: number | null;
@@ -107,13 +129,10 @@ export type SubmissionEditableFields =
  * Type mapping for submission field values
  */
 export interface SubmissionFieldValueMap {
-  link: string;
-  tweet: string;
-  otherInfo: string;
-  eligibilityAnswers: Array<{
-    question: string;
-    answer: string;
-  }>;
+  link: string | null;
+  tweet: string | null;
+  otherInfo: string | null;
+  eligibilityAnswers: JsonValue | null;
   ask: number | null;
   token: string | null;
   otherTokenDetails: string | null;
@@ -131,8 +150,8 @@ export interface EventDataMap {
   };
 
   [EventType.SPONSOR_TREASURY_REMOVED]: {
-    dao?: string;
-    url?: string;
+    old_dao?: string;
+    old_url?: string;
   };
 
   [EventType.SPONSOR_MEMBER_INVITED]: {
@@ -142,6 +161,7 @@ export interface EventDataMap {
   };
 
   [EventType.SPONSOR_MEMBER_REMOVED]: {
+    // TODO:
     removedUserId: string;
     previousRole: Role;
   };
@@ -170,8 +190,14 @@ export interface EventDataMap {
     }>;
   };
 
-  [EventType.LISTING_COMPLETED]: Record<string, never>;
+  [EventType.LISTING_COMPLETED]: Record<string, never>; // TODO: except for sponsorship manual
   [EventType.LISTING_UNPUBLISHED]: Record<string, never>;
+  [EventType.LISTING_WINNERS_ANNOUNCED]: {
+    winners: Array<{
+      submissionId: string;
+      position: number;
+    }>;
+  };
 
   // Submission Events
   [EventType.SUBMISSION_CREATED]: Record<string, never>;
@@ -185,8 +211,8 @@ export interface EventDataMap {
   };
 
   [EventType.SUBMISSION_NOTE_CHANGED]: {
-    before: string;
-    after: string;
+    before?: string;
+    after?: string;
   };
 
   [EventType.SUBMISSION_LABEL_CHANGED]: {
@@ -194,37 +220,42 @@ export interface EventDataMap {
     after: SubmissionLabels;
   };
 
-  [EventType.SUBMISSION_APPROVED]: {
+  [EventType.SUBMISSION_TOGGLED_WINNER]: {
     winnerPosition?: number;
   };
 
-  [EventType.SUBMISSION_REJECTED]: Record<string, never>;
-
-  [EventType.SUBMISSION_PAYMENT_ADDED]: {
-    link: string;
+  [EventType.SUBMISSION_APPROVED]: {
+    position: number;
   };
+
+  [EventType.SUBMISSION_REJECTED]: Record<string, never>;
 
   [EventType.SUBMISSION_TREASURY_CREATED]: {
     proposalLink: string;
   };
 
   [EventType.SUBMISSION_PAYMENT_DATE_EDITED]: {
-    before: string;
-    after: string;
+    before: Date | null;
+    after: Date;
   };
 
-  [EventType.SUBMISSION_PAID]: Record<string, never>;
+  [EventType.SUBMISSION_PAID]: {
+    link: string;
+  };
 
   // Comment Events
   [EventType.COMMENT_ADDED]: {
+    // TODO:
     commentId: string;
   };
 
   [EventType.COMMENT_REPLIED]: {
+    // TODO:
     commentId: string;
   };
 
   [EventType.COMMENT_DELETED]: {
+    // TODO:
     commentId: string;
   };
 
@@ -234,15 +265,18 @@ export interface EventDataMap {
   };
 
   [EventType.TREASURY_PROPOSAL_REJECTED]: {
+    // TODO:
     proposalLink: string;
   };
 
   [EventType.TREASURY_PROPOSAL_EXPIRED]: {
+    // TODO:
     proposalLink: string;
   };
 
   // System Events
   [EventType.SYSTEM_STATUS_CHANGED]: {
+    // TODO:
     oldStatus: string;
     newStatus: string;
   };

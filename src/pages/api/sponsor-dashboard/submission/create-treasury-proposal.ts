@@ -11,6 +11,8 @@ import { type NextApiRequestWithSponsor } from '@/features/auth/types';
 import { checkListingSponsorAuth } from '@/features/auth/utils/checkListingSponsorAuth';
 import { withSponsorAuth } from '@/features/auth/utils/withSponsorAuth';
 import { type Rewards } from '@/features/listings/types';
+import { eventLogger } from '@/features/logging/services/event-logger';
+import { EventType } from '@/features/logging/types/event-data';
 
 function generateProposalDescription(
   listingName: string,
@@ -166,6 +168,22 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
             dao: nearTreasury.dao,
           },
         },
+      },
+    });
+
+    eventLogger.log({
+      eventType: EventType.SUBMISSION_TREASURY_CREATED,
+      actor: {
+        id: req.userId as string,
+        type: 'SPONSOR',
+      },
+      data: {
+        proposalLink: treasuryLink,
+      },
+      entities: {
+        listingId: listing.id,
+        submissionId: id,
+        sponsorId: userSponsorId,
       },
     });
 

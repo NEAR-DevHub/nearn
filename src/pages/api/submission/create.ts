@@ -10,6 +10,8 @@ import { sendEmailNotification } from '@/features/emails/utils/sendEmailNotifica
 import { isDeadlineOver } from '@/features/listings/utils/deadline';
 import { submissionSchema } from '@/features/listings/utils/submissionFormSchema';
 import { validateSubmissionRequest } from '@/features/listings/utils/validateSubmissionRequest';
+import { eventLogger } from '@/features/logging/services/event-logger';
+import { EventType } from '@/features/logging/types/event-data';
 
 async function createSubmission(
   userId: string,
@@ -73,7 +75,7 @@ async function createSubmission(
     select: { submissionCounter: true },
   });
 
-  return prisma.submission.create({
+  const result = await prisma.submission.create({
     data: {
       userId,
       listingId,
@@ -92,6 +94,20 @@ async function createSubmission(
       },
     },
   });
+  eventLogger.log({
+    eventType: EventType.SUBMISSION_CREATED,
+    actor: {
+      id: userId,
+      type: 'TALENT',
+    },
+    entities: {
+      listingId,
+      sponsorId: listing.sponsorId,
+      submissionId: result.id,
+    },
+    data: {},
+  });
+  return result;
 }
 
 async function submission(req: NextApiRequestWithUser, res: NextApiResponse) {

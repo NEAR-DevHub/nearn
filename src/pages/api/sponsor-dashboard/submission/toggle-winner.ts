@@ -8,6 +8,8 @@ import { type NextApiRequestWithSponsor } from '@/features/auth/types';
 import { checkListingSponsorAuth } from '@/features/auth/utils/checkListingSponsorAuth';
 import { withSponsorAuth } from '@/features/auth/utils/withSponsorAuth';
 import { type Rewards } from '@/features/listings/types';
+import { eventLogger } from '@/features/logging/services/event-logger';
+import { EventType } from '@/features/logging/types/event-data';
 
 async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
   const userId = req.userId;
@@ -72,6 +74,21 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
         approvedBy: position ? userId : null,
       },
       include: { listing: true },
+    });
+
+    eventLogger.log({
+      eventType: EventType.SUBMISSION_TOGGLED_WINNER,
+      actor: {
+        id: userId as string,
+        type: 'SPONSOR',
+      },
+      data: {
+        winnerPosition: position,
+      },
+      entities: {
+        sponsorId: userSponsorId,
+        listingId: currentSubmission.listingId,
+      },
     });
 
     const ask = result.ask || 0;

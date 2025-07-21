@@ -2,7 +2,6 @@ import {
   type ActorType,
   type EventCategory,
   type EventLog,
-  EventType,
   type EventVisibility,
   type Prisma,
   type PrismaClient,
@@ -10,11 +9,11 @@ import {
 
 import { prisma } from '@/prisma';
 
-import { type EventDataMap } from '../types/event-data';
+import { type EventDataMap, EventType } from '../types/event-data';
 
 export interface Log<T extends EventType> {
   eventType: T;
-  actor: { id: string; type: ActorType };
+  actor: { id?: string; type: ActorType };
   entities?: {
     listingId?: string;
     submissionId?: string;
@@ -55,13 +54,13 @@ function getDefaultVisibility(eventType: EventType): EventVisibility {
     [EventType.COMMENT_ADDED]: 'PUBLIC',
     [EventType.COMMENT_REPLIED]: 'PUBLIC',
     [EventType.COMMENT_DELETED]: 'PUBLIC',
-    [EventType.SUBMISSION_APPROVED]: 'PUBLIC',
     [EventType.LISTING_EDITED]: 'PUBLIC',
     [EventType.LISTING_COMPLETED]: 'PUBLIC',
     [EventType.LISTING_UNPUBLISHED]: 'PUBLIC',
+    [EventType.LISTING_WINNERS_ANNOUNCED]: 'PUBLIC',
     [EventType.SUBMISSION_LABEL_CHANGED]: 'PUBLIC',
     [EventType.SUBMISSION_REJECTED]: 'PUBLIC',
-    [EventType.SUBMISSION_PAYMENT_ADDED]: 'PUBLIC',
+    [EventType.SUBMISSION_APPROVED]: 'PUBLIC',
     [EventType.SUBMISSION_TREASURY_CREATED]: 'PUBLIC',
     [EventType.SUBMISSION_PAID]: 'PUBLIC',
     [EventType.TREASURY_PROPOSAL_APPROVED]: 'PUBLIC',
@@ -69,6 +68,7 @@ function getDefaultVisibility(eventType: EventType): EventVisibility {
     [EventType.TREASURY_PROPOSAL_EXPIRED]: 'PUBLIC',
     [EventType.SYSTEM_STATUS_CHANGED]: 'PUBLIC',
     [EventType.SUBMISSION_EDITED]: 'TALENT',
+    [EventType.SUBMISSION_TOGGLED_WINNER]: 'SPONSOR',
     [EventType.LISTING_CREATED]: 'SPONSOR',
     [EventType.SPONSOR_TREASURY_ADDED]: 'SPONSOR',
     [EventType.SPONSOR_TREASURY_REMOVED]: 'SPONSOR',

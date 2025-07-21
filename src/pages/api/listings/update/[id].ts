@@ -22,6 +22,11 @@ import {
   createListingRefinements,
 } from '@/features/listing-builder/types/schema';
 import { isDeadlineOver } from '@/features/listings/utils/deadline';
+import { eventLogger } from '@/features/logging/services/event-logger';
+import {
+  detectListingChanges,
+  EventType,
+} from '@/features/logging/types/event-data';
 
 const allowedFields = [
   'type',
@@ -353,6 +358,20 @@ async function listing(req: NextApiRequestWithSponsor, res: NextApiResponse) {
     const result = await prisma.bounties.update({
       where: { id: id as string },
       data: dataToUpdate,
+    });
+    eventLogger.log({
+      eventType: EventType.LISTING_EDITED,
+      actor: {
+        id: userId as string,
+        type: 'SPONSOR',
+      },
+      entities: {
+        listingId: result.id,
+        sponsorId: result.sponsorId,
+      },
+      data: {
+        changes: detectListingChanges(listing, result),
+      },
     });
     logger.debug(`Update Listing Successful`, { id });
 

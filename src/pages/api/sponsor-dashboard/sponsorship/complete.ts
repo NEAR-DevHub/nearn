@@ -9,6 +9,8 @@ import { type NextApiRequestWithSponsor } from '@/features/auth/types';
 import { checkListingSponsorAuth } from '@/features/auth/utils/checkListingSponsorAuth';
 import { withSponsorAuth } from '@/features/auth/utils/withSponsorAuth';
 import { isDeadlineOver } from '@/features/listings/utils/deadline';
+import { eventLogger } from '@/features/logging/services/event-logger';
+import { EventType } from '@/features/logging/types/event-data';
 
 async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
   const { listingId } = req.body;
@@ -57,6 +59,19 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       include: {
         sponsor: true,
       },
+    });
+
+    eventLogger.log({
+      eventType: EventType.LISTING_COMPLETED,
+      actor: {
+        id: userSponsorId as string,
+        type: 'SPONSOR',
+      },
+      entities: {
+        listingId: listingId,
+        sponsorId: userSponsorId,
+      },
+      data: {},
     });
 
     return res.status(200).json({ message: 'Listing closed' });

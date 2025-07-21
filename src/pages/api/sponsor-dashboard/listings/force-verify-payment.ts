@@ -7,6 +7,8 @@ import { safeStringify } from '@/utils/safeStringify';
 import { type NextApiRequestWithSponsor } from '@/features/auth/types';
 import { checkListingSponsorAuth } from '@/features/auth/utils/checkListingSponsorAuth';
 import { withSponsorAuth } from '@/features/auth/utils/withSponsorAuth';
+import { eventLogger } from '@/features/logging/services/event-logger';
+import { EventType } from '@/features/logging/types/event-data';
 import { type VerifyPaymentsFormData } from '@/features/sponsor-dashboard/types';
 
 export const config = {
@@ -111,6 +113,22 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
           paymentDetails: { link: validationResult.link },
           paymentDate: new Date(),
           paidBy: req.userId,
+        },
+      });
+
+      eventLogger.log({
+        eventType: EventType.SUBMISSION_PAID,
+        actor: {
+          id: req.userId as string,
+          type: 'SPONSOR',
+        },
+        data: {
+          link: validationResult.link as string,
+        },
+        entities: {
+          listingId: listingId,
+          submissionId: validationResult.submissionId,
+          sponsorId: userSponsorId,
         },
       });
     }

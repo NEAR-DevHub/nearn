@@ -7,6 +7,8 @@ import { safeStringify } from '@/utils/safeStringify';
 import { type NextApiRequestWithSponsor } from '@/features/auth/types';
 import { checkListingSponsorAuth } from '@/features/auth/utils/checkListingSponsorAuth';
 import { withSponsorAuth } from '@/features/auth/utils/withSponsorAuth';
+import { eventLogger } from '@/features/logging/services/event-logger';
+import { EventType } from '@/features/logging/types/event-data';
 
 async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
   const userId = req.userId;
@@ -51,6 +53,23 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
     const result = await prisma.submission.update({
       where: { id },
       data: { label },
+    });
+
+    eventLogger.log({
+      eventType: EventType.SUBMISSION_LABEL_CHANGED,
+      actor: {
+        id: userId as string,
+        type: 'SPONSOR',
+      },
+      data: {
+        before: currentSubmission.label,
+        after: label,
+      },
+      entities: {
+        listingId: currentSubmission.listingId,
+        submissionId: id,
+        sponsorId: userSponsorId,
+      },
     });
 
     logger.info(`Successfully updated submission with ID: ${id}`);

@@ -6,6 +6,8 @@ import { safeStringify } from '@/utils/safeStringify';
 
 import { type NextApiRequestWithSponsor } from '@/features/auth/types';
 import { withSponsorAuth } from '@/features/auth/utils/withSponsorAuth';
+import { eventLogger } from '@/features/logging/services/event-logger';
+import { EventType } from '@/features/logging/types/event-data';
 import { nearTreasuryFormSchema } from '@/features/sponsor/utils/integrationsFormSchema';
 
 async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
@@ -47,12 +49,47 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
           }
         : undefined;
 
+    let loggingCallData;
+    if (nearTreasury) {
+      loggingCallData = {
+        eventType: EventType.SPONSOR_TREASURY_ADDED,
+        data: {
+          dao: nearTreasury.dao,
+          url: nearTreasury.frontend,
+        },
+      };
+    } else {
+      const result = await prisma.sponsors.findUnique({
+        where: {
+          id: userSponsorId,
+        },
+      });
+      loggingCallData = {
+        eventType: EventType.SPONSOR_TREASURY_REMOVED,
+        data: {
+          old_dao: (result?.nearTreasury as any)?.dao,
+          old_url: (result?.nearTreasury as any)?.frontend,
+        },
+      };
+    }
+
     const result = await prisma.sponsors.update({
       where: {
         id: userSponsorId,
       },
       data: {
         nearTreasury: nearTreasury ?? (null as any),
+      },
+    });
+
+    await eventLogger.log({
+      ...loggingCallData,
+      actor: {
+        id: userId as string,
+        type: 'SPONSOR',
+      },
+      entities: {
+        sponsorId: userSponsorId,
       },
     });
 

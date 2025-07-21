@@ -7,6 +7,8 @@ import { type NextApiRequestWithSponsor } from '@/features/auth/types';
 import { checkListingSponsorAuth } from '@/features/auth/utils/checkListingSponsorAuth';
 import { withSponsorAuth } from '@/features/auth/utils/withSponsorAuth';
 import { sendEmailNotification } from '@/features/emails/utils/sendEmailNotification';
+import { eventLogger } from '@/features/logging/services/event-logger';
+import { EventType } from '@/features/logging/types/event-data';
 
 const MAX_RECORDS = 10;
 
@@ -91,6 +93,19 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
 
     for (const submission of currentSubmissions) {
       try {
+        eventLogger.log({
+          eventType: EventType.SUBMISSION_REJECTED,
+          actor: {
+            id: req.userId as string,
+            type: 'SPONSOR',
+          },
+          entities: {
+            listingId: submission.listingId,
+            submissionId: submission.id,
+            sponsorId: req.userSponsorId,
+          },
+          data: {},
+        });
         sendEmailNotification({
           type: 'submissionRejected',
           id: submission.id,

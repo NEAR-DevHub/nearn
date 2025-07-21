@@ -5,6 +5,9 @@ import { prisma } from '@/prisma';
 import { getProposalStatus } from '@/utils/near';
 import { safeStringify } from '@/utils/safeStringify';
 
+import { eventLogger } from '@/features/logging/services/event-logger';
+import { EventType } from '@/features/logging/types/event-data';
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
@@ -58,6 +61,21 @@ export default async function handler(
           paymentDetails: {
             link: paymentDetails.treasury.link,
           },
+        },
+      });
+
+      eventLogger.log({
+        eventType: EventType.TREASURY_PROPOSAL_APPROVED,
+        actor: {
+          type: 'SYSTEM',
+        },
+        data: {
+          proposalLink: paymentDetails.treasury.link,
+        },
+        entities: {
+          listingId: currentSubmission.listingId,
+          submissionId: id,
+          sponsorId: currentSubmission.listing.sponsor.id,
         },
       });
       logger.info(`Successfully updated submission ID: ${id} to paid status`);

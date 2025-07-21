@@ -12,6 +12,8 @@ import { checkListingSponsorAuth } from '@/features/auth/utils/checkListingSpons
 import { withSponsorAuth } from '@/features/auth/utils/withSponsorAuth';
 import { fetchSlugCheck } from '@/features/listing-builder/queries/slug-check';
 import { type ListingFormData } from '@/features/listing-builder/types';
+import { eventLogger } from '@/features/logging/services/event-logger';
+import { EventType } from '@/features/logging/types/event-data';
 
 import { generateUniqueSlug } from './check-slug';
 
@@ -142,6 +144,18 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
     } else {
       result = await prisma.bounties.create({
         data,
+      });
+      eventLogger.log({
+        eventType: EventType.LISTING_CREATED,
+        actor: {
+          id: userId,
+          type: 'SPONSOR',
+        },
+        entities: {
+          listingId: result.id,
+          sponsorId: result.sponsorId,
+        },
+        data: {},
       });
     }
 
