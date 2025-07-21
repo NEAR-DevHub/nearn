@@ -158,9 +158,10 @@ async function prepareProposal(
   };
 }
 
-export async function getDAOPolicy(
-  dao: string,
-): Promise<{ proposal_bond: string | undefined }> {
+export async function getDAOPolicy(dao: string): Promise<{
+  proposal_bond: string | undefined;
+  proposal_period: string | undefined;
+}> {
   const account = await near.account(NEAR_ACCOUNT);
   return account.viewFunction({
     contractId: dao,
@@ -280,6 +281,18 @@ export async function getProposalStatus(dao: string, proposalId: number) {
     methodName: 'get_proposal',
     args: { id: Number(proposalId) },
   });
+
+  if (proposal.status === 'InProgress') {
+    // check if deadline is in the past
+    const submissionTime = proposal.submission_time;
+    const daoPolicy = await getDAOPolicy(dao);
+    const deadline =
+      BigInt(daoPolicy.proposal_period ?? 0) + BigInt(submissionTime);
+    const now = BigInt(Date.now() * 1000000);
+    if (now > deadline) {
+      return 'Expired';
+    }
+  }
 
   return proposal.status;
 }
