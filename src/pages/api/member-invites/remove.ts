@@ -6,6 +6,8 @@ import { safeStringify } from '@/utils/safeStringify';
 
 import { type NextApiRequestWithSponsor } from '@/features/auth/types';
 import { withSponsorAuth } from '@/features/auth/utils/withSponsorAuth';
+import { eventLogger } from '@/features/logging/services/event-logger';
+import { EventType } from '@/features/logging/types/event-data';
 
 async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
   const userId = req.userId;
@@ -43,10 +45,26 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
     }
 
     logger.debug(`Removing invite with ID: ${inviteId}`);
-    await prisma.userInvites.delete({
+    const invite = await prisma.userInvites.delete({
       where: {
         id: inviteId,
         sponsorId: sponsorId as string,
+      },
+    });
+
+    eventLogger.log({
+      eventType: EventType.SPONSOR_MEMBER_INVITE_REMOVED,
+      actor: {
+        id: userId,
+        type: 'SPONSOR',
+      },
+      data: {
+        invitedEmail: invite.email,
+        invitedUserId: invite.senderId,
+        role: invite.memberType,
+      },
+      entities: {
+        sponsorId: sponsorId,
       },
     });
 

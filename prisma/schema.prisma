@@ -715,6 +715,7 @@ enum ActorType {
   TALENT
   PLATFORM_ADMIN
   SYSTEM
+  USER // For comments, can be anyone
 }
 
 enum EventVisibility {

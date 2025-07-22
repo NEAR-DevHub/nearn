@@ -8,12 +8,10 @@ import { safeStringify } from '@/utils/safeStringify';
 import { type NextApiRequestWithUser } from '@/features/auth/types';
 import { withAuth } from '@/features/auth/utils/withAuth';
 import { sendEmailNotification } from '@/features/emails/utils/sendEmailNotification';
+import { eventLogger } from '@/features/logging/services/event-logger';
+import { EventType } from '@/features/logging/types/event-data';
 
-type CommentType =
-  | 'NORMAL'
-  | 'SUBMISSION'
-  | 'DEADLINE_EXTENSION'
-  | 'WINNER_ANNOUNCEMENT';
+type CommentType = 'NORMAL' | 'SUBMISSION';
 
 async function comment(req: NextApiRequestWithUser, res: NextApiResponse) {
   const userId = req.userId;
@@ -60,6 +58,29 @@ async function comment(req: NextApiRequestWithUser, res: NextApiResponse) {
         },
       },
     });
+    if (refType === 'SUBMISSION' || refType === 'BOUNTY') {
+      const entities =
+        refType === 'SUBMISSION'
+          ? {
+              submissionId: refId,
+            }
+          : {
+              bountyId: refId,
+            };
+
+      eventLogger.log({
+        eventType: EventType.COMMENT_ADDED,
+        actor: {
+          id: userId,
+          type: 'USER',
+        },
+        data: {
+          commentId: result.id,
+          repliedTo: replyToId as string | undefined,
+        },
+        entities,
+      });
+    }
 
     logger.debug('Checking for tagged users in the comment');
     const taggedUsernames = (message as string)

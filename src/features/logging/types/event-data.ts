@@ -6,6 +6,7 @@ export enum EventType {
   SPONSOR_TREASURY_REMOVED = 'SPONSOR_TREASURY_REMOVED',
   SPONSOR_MEMBER_INVITED = 'SPONSOR_MEMBER_INVITED',
   SPONSOR_MEMBER_REMOVED = 'SPONSOR_MEMBER_REMOVED',
+  SPONSOR_MEMBER_INVITE_REMOVED = 'SPONSOR_MEMBER_INVITE_REMOVED',
   SPONSOR_MEMBER_ACCEPTED = 'SPONSOR_MEMBER_ACCEPTED',
   SPONSOR_PROFILE_EDITED = 'SPONSOR_PROFILE_EDITED',
   LISTING_CREATED = 'LISTING_CREATED',
@@ -27,7 +28,6 @@ export enum EventType {
   SUBMISSION_PAYMENT_DATE_EDITED = 'SUBMISSION_PAYMENT_DATE_EDITED',
   SUBMISSION_PAID = 'SUBMISSION_PAID',
   COMMENT_ADDED = 'COMMENT_ADDED',
-  COMMENT_REPLIED = 'COMMENT_REPLIED',
   COMMENT_DELETED = 'COMMENT_DELETED',
   TREASURY_PROPOSAL_APPROVED = 'TREASURY_PROPOSAL_APPROVED',
   TREASURY_PROPOSAL_REJECTED = 'TREASURY_PROPOSAL_REJECTED',
@@ -161,9 +161,14 @@ export interface EventDataMap {
   };
 
   [EventType.SPONSOR_MEMBER_REMOVED]: {
-    // TODO:
     removedUserId: string;
     previousRole: Role;
+  };
+
+  [EventType.SPONSOR_MEMBER_INVITE_REMOVED]: {
+    invitedEmail: string;
+    invitedUserId?: string;
+    role: Role;
   };
 
   [EventType.SPONSOR_MEMBER_ACCEPTED]: {
@@ -245,17 +250,11 @@ export interface EventDataMap {
 
   // Comment Events
   [EventType.COMMENT_ADDED]: {
-    // TODO:
     commentId: string;
-  };
-
-  [EventType.COMMENT_REPLIED]: {
-    // TODO:
-    commentId: string;
+    repliedTo?: string;
   };
 
   [EventType.COMMENT_DELETED]: {
-    // TODO:
     commentId: string;
   };
 

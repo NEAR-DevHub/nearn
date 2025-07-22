@@ -87,6 +87,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       },
       entities: {
         sponsorId: userSponsorId,
+        submissionId: id,
         listingId: currentSubmission.listingId,
       },
     });
