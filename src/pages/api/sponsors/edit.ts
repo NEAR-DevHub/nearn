@@ -97,7 +97,6 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       where: {
         id: userSponsorId,
       },
-      select: { name: true },
     });
 
     const result = await prisma.sponsors.update({

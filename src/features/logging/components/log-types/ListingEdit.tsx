@@ -8,6 +8,7 @@ import {
 } from '@/features/logging/types/event-data';
 
 import type { LogProperties } from './index';
+import { renderSimpleFieldChange } from './utils';
 
 interface EligibilityQuestion {
   question: string;
@@ -208,22 +209,12 @@ function renderFieldChange(
       return <span className="text-slate-500">Edited bounty description</span>;
 
     case 'pocSocials':
-      if (wasEmpty && !isNowEmpty) {
-        return (
-          <span className="text-slate-500">
-            Added point of contact:{' '}
-            <span className="font-medium">{formattedNew}</span>
-          </span>
-        );
-      }
-      if (!wasEmpty && isNowEmpty) {
-        return <span className="text-slate-500">Removed point of contact</span>;
-      }
-      return (
-        <span className="text-slate-500">
-          Changed point of contact from {formattedOld} to{' '}
-          <span className="font-medium">{formattedNew}</span>
-        </span>
+      return renderSimpleFieldChange(
+        wasEmpty,
+        isNowEmpty,
+        'point of contact',
+        formattedNew,
+        formattedOld,
       );
 
     case 'deadline':
@@ -281,23 +272,15 @@ function renderFieldChange(
       return renderSkillChanges(oldValue as Skill[], newValue as Skill[]);
 
     case 'region':
-      if (wasEmpty && !isNowEmpty) {
-        return (
-          <span className="text-slate-500">
-            Set region to <span className="font-medium">{formattedNew}</span>
-          </span>
-        );
-      }
-      if (!wasEmpty && isNowEmpty) {
-        return (
-          <span className="text-slate-500">Removed region restriction</span>
-        );
-      }
-      return (
-        <span className="text-slate-500">
-          Changed region from {formattedOld} to{' '}
-          <span className="font-medium">{formattedNew}</span>
-        </span>
+      return renderSimpleFieldChange(
+        wasEmpty,
+        isNowEmpty,
+        'region',
+        formattedNew,
+        formattedOld,
+        {
+          actionVerbs: { added: 'Set', removed: 'Removed', changed: 'Changed' },
+        },
       );
 
     case 'isPrivate':
@@ -316,33 +299,18 @@ function renderFieldChange(
       );
 
     case 'compensationType':
-      return (
-        <span className="text-slate-500">
-          Changed compensation type from {formattedOld} to{' '}
-          <span className="font-medium">{formattedNew}</span>
-        </span>
-      );
-
     case 'minRewardAsk':
-      return (
-        <span className="text-slate-500">
-          Changed minimum reward from {formattedOld} to{' '}
-          <span className="font-medium">{formattedNew}</span>
-        </span>
-      );
-
     case 'maxRewardAsk':
-      return (
-        <span className="text-slate-500">
-          Changed maximum reward from {formattedOld} to{' '}
-          <span className="font-medium">{formattedNew}</span>
-        </span>
-      );
-
     case 'maxBonusSpots':
+      const fieldLabels: Record<string, string> = {
+        compensationType: 'compensation type',
+        minRewardAsk: 'minimum reward',
+        maxRewardAsk: 'maximum reward',
+        maxBonusSpots: 'bonus spots',
+      };
       return (
         <span className="text-slate-500">
-          Changed bonus spots from {formattedOld} to{' '}
+          Changed {fieldLabels[field] || field} from {formattedOld} to{' '}
           <span className="font-medium">{formattedNew}</span>
         </span>
       );

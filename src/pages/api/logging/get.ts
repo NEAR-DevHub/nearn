@@ -179,6 +179,8 @@ async function submission(
         listing: {
           select: {
             sequentialId: true,
+            type: true,
+            title: true,
           },
         },
         sponsor: {

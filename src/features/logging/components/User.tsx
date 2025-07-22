@@ -8,7 +8,11 @@ import { formatFromNow } from '@/features/comments/utils';
 
 import { type LogProperties } from './log-types';
 
-export default function User({ event }: LogProperties) {
+interface Properties extends LogProperties {
+  globalView?: boolean;
+}
+
+export default function User({ event, globalView = false }: Properties) {
   const now = dayjs();
   const date = now.isSame(dayjs(event.eventTime), 'day')
     ? formatFromNow(dayjs(event.eventTime).fromNow())
@@ -29,7 +33,18 @@ export default function User({ event }: LogProperties) {
       />
 
       <span className="font-medium text-slate-900">{name}</span>
-      {event.actorType === 'SPONSOR' && (
+      {globalView && event.sponsor?.slug && event.listing?.sequentialId && (
+        <>
+          <span className="text-slate-500">in</span>
+          <a
+            href={`/${event.sponsor?.slug}/${event.listing?.sequentialId}`}
+            className="text-sm font-medium text-slate-900"
+          >
+            {event.listing.title}
+          </a>
+        </>
+      )}
+      {event.actorType === 'SPONSOR' && !globalView && (
         <span className="text-sm font-medium text-blue-600">Sponsor</span>
       )}
       <Tooltip content={fullDate}>

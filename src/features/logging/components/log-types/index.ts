@@ -4,10 +4,16 @@ import { type Log } from '../../queries/logs';
 import CreateListing from './ListingCreated';
 import ListingEdit from './ListingEdit';
 import PublishListing from './Publish';
+import SimpleLogMessage from './SimpleLogMessage';
+import SponsorEdit from './SponsorEdit';
+import SponsorMember from './SponsorMember';
+import SponsorTreasury from './SponsorTreasury';
 import SubmissionApproveReject from './SubmissionApproveReject';
 import SubmissionCreated from './SubmissionCreated';
 import SubmissionEdit from './SubmissionEdit';
 import SubmissionLabelChange from './SubmissionLabelChange';
+import SubmissionNoteChanged from './SubmissionNoteChanged';
+import SubmissionToggledWinner from './SubmissionToggledWinner';
 
 export interface LogProperties {
   event: Log;
@@ -17,24 +23,28 @@ const LOG_IMPLEMENTATION_MAPPING: Record<
   EventType,
   ((props: LogProperties) => React.ReactNode) | null
 > = {
-  [EventType.SPONSOR_TREASURY_ADDED]: null,
-  [EventType.SPONSOR_TREASURY_REMOVED]: null,
-  [EventType.SPONSOR_MEMBER_INVITED]: null,
-  [EventType.SPONSOR_MEMBER_REMOVED]: null,
-  [EventType.SPONSOR_MEMBER_INVITE_REMOVED]: null,
-  [EventType.SPONSOR_MEMBER_ACCEPTED]: null,
-  [EventType.SPONSOR_PROFILE_EDITED]: null,
+  [EventType.SPONSOR_TREASURY_ADDED]: SponsorTreasury,
+  [EventType.SPONSOR_TREASURY_REMOVED]: SponsorTreasury,
+  [EventType.SPONSOR_MEMBER_INVITED]: SponsorMember,
+  [EventType.SPONSOR_MEMBER_REMOVED]: SponsorMember,
+  [EventType.SPONSOR_MEMBER_INVITE_REMOVED]: SponsorMember,
+  [EventType.SPONSOR_MEMBER_ACCEPTED]: SponsorMember,
+  [EventType.SPONSOR_PROFILE_EDITED]: SponsorEdit,
   [EventType.LISTING_CREATED]: CreateListing,
   [EventType.LISTING_PUBLISHED]: PublishListing,
   [EventType.LISTING_EDITED]: ListingEdit,
-  [EventType.LISTING_COMPLETED]: null,
-  [EventType.LISTING_UNPUBLISHED]: null,
-  [EventType.LISTING_WINNERS_ANNOUNCED]: null,
+  [EventType.LISTING_COMPLETED]: () =>
+    SimpleLogMessage({ message: 'Marked listing as Completed' }),
+  [EventType.LISTING_UNPUBLISHED]: () =>
+    SimpleLogMessage({ message: 'Unpublished listing' }),
+  // TODO: this component should have winners data (userIds, we need to display those usernames)
+  [EventType.LISTING_WINNERS_ANNOUNCED]: () =>
+    SimpleLogMessage({ message: 'Announced winners' }),
   [EventType.SUBMISSION_CREATED]: SubmissionCreated,
   [EventType.SUBMISSION_EDITED]: SubmissionEdit,
-  [EventType.SUBMISSION_NOTE_CHANGED]: null,
+  [EventType.SUBMISSION_NOTE_CHANGED]: SubmissionNoteChanged,
   [EventType.SUBMISSION_LABEL_CHANGED]: SubmissionLabelChange,
-  [EventType.SUBMISSION_TOGGLED_WINNER]: null,
+  [EventType.SUBMISSION_TOGGLED_WINNER]: SubmissionToggledWinner,
   [EventType.SUBMISSION_APPROVED]: SubmissionApproveReject,
   [EventType.SUBMISSION_REJECTED]: SubmissionApproveReject,
   [EventType.SUBMISSION_TREASURY_CREATED]: null,

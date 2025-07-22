@@ -22,6 +22,8 @@ export type Log = EventLog & {
   };
   listing?: {
     sequentialId: number;
+    type: 'bounty' | 'sponsorship' | 'project' | 'hackathon';
+    title: string;
   };
   sponsor?: {
     name: string;

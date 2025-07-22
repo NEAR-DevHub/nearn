@@ -6,6 +6,7 @@ import {
 } from '@/features/logging/types/event-data';
 
 import type { LogProperties } from './index';
+import { renderSimpleFieldChange } from './utils';
 
 interface EligibilityAnswer {
   question: string;
@@ -132,41 +133,14 @@ function renderFieldChange(
 
   switch (field) {
     case 'link':
-      if (wasEmpty && !isNowEmpty) {
-        return (
-          <span className="text-slate-500">
-            Added submission link:{' '}
-            <span className="font-medium">{formattedNew}</span>
-          </span>
-        );
-      }
-      if (!wasEmpty && isNowEmpty) {
-        return <span className="text-slate-500">Removed submission link</span>;
-      }
-      return (
-        <span className="text-slate-500">
-          Updated submission link to{' '}
-          <span className="font-medium">{formattedNew}</span>
-        </span>
-      );
-
     case 'tweet':
-      if (wasEmpty && !isNowEmpty) {
-        return (
-          <span className="text-slate-500">
-            Added tweet link:{' '}
-            <span className="font-medium">{formattedNew}</span>
-          </span>
-        );
-      }
-      if (!wasEmpty && isNowEmpty) {
-        return <span className="text-slate-500">Removed tweet link</span>;
-      }
-      return (
-        <span className="text-slate-500">
-          Updated tweet link to{' '}
-          <span className="font-medium">{formattedNew}</span>
-        </span>
+      const fieldDisplayName = formatFieldName(field);
+      return renderSimpleFieldChange(
+        wasEmpty,
+        isNowEmpty,
+        fieldDisplayName,
+        formattedNew,
+        formattedOld,
       );
 
     case 'ask':
@@ -186,37 +160,23 @@ function renderFieldChange(
       );
 
     case 'otherInfo':
-      if (wasEmpty && !isNowEmpty) {
-        return (
-          <span className="text-slate-500">Added additional information</span>
-        );
-      }
-      if (!wasEmpty && isNowEmpty) {
-        return (
-          <span className="text-slate-500">Removed additional information</span>
-        );
-      }
-      return (
-        <span className="text-slate-500">Updated additional information</span>
+      return renderSimpleFieldChange(
+        wasEmpty,
+        isNowEmpty,
+        'additional information',
+        formattedNew,
+        undefined,
+        { includeValue: false },
       );
 
     case 'otherTokenDetails':
-      if (wasEmpty && !isNowEmpty) {
-        return (
-          <span className="text-slate-500">
-            Added token details:{' '}
-            <span className="font-medium">{formattedNew}</span>
-          </span>
-        );
-      }
-      if (!wasEmpty && isNowEmpty) {
-        return <span className="text-slate-500">Removed token details</span>;
-      }
-      return (
-        <span className="text-slate-500">
-          Updated token details to{' '}
-          <span className="font-medium">{formattedNew}</span>
-        </span>
+      const tokenDetailsName = formatFieldName(field);
+      return renderSimpleFieldChange(
+        wasEmpty,
+        isNowEmpty,
+        tokenDetailsName,
+        formattedNew,
+        formattedOld,
       );
 
     default:

@@ -8,9 +8,14 @@ import Log from './Log';
 interface Properties {
   refType: 'submission' | 'listing' | 'sponsor';
   refId: string;
+  sponsorGlobalView?: boolean;
 }
 
-export default function LogsTimeline({ refType, refId }: Properties) {
+export default function LogsTimeline({
+  refType,
+  refId,
+  sponsorGlobalView = false,
+}: Properties) {
   const { data: logs, isLoading, error } = useGetLogs({ refType, refId });
 
   if (isLoading) {
@@ -40,7 +45,7 @@ export default function LogsTimeline({ refType, refId }: Properties) {
   return (
     <div className="space-y-4">
       {logs.map((log) => (
-        <Log key={log.id} event={log} />
+        <Log key={log.id} event={log} sponsorGlobalView={sponsorGlobalView} />
       ))}
     </div>
   );
