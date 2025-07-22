@@ -1,42 +1,39 @@
 'use client';
 
-import { type EventLog } from '@prisma/client';
 import dayjs from 'dayjs';
 
-import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip } from '@/components/ui/tooltip';
 
 import { formatFromNow } from '@/features/comments/utils';
 
-import { useGetSponsorOrUser } from '../queries';
+import { type LogProperties } from './log-types';
 
-interface Properties {
-  event: Pick<EventLog, 'actorId' | 'actorType' | 'sponsorId' | 'eventTime'>;
-}
-
-export default function User({ event }: Properties) {
-  const actorId = event.actorId || event.sponsorId;
-
-  const { data: user } = useGetSponsorOrUser({
-    id: actorId!,
-    type: !event.actorId ? 'sponsor' : 'user',
-  });
-
+export default function User({ event }: LogProperties) {
   const now = dayjs();
   const date = now.isSame(dayjs(event.eventTime), 'day')
     ? formatFromNow(dayjs(event.eventTime).fromNow())
     : dayjs(event.eventTime).format('HH:mm');
   const fullDate = dayjs(event.eventTime).format('MMM D, YYYY h:mm A');
 
+  const name = event.User
+    ? (event.User.name ?? event.User.username)
+    : event.sponsor?.name;
+  const photo = event.User ? event.User.photo : event.sponsor?.logo;
+
   return (
     <div className="flex items-center gap-2">
-      <Avatar className="size-6">
-        <AvatarImage src={user?.photo ?? undefined} />
-      </Avatar>
+      <img
+        src={photo ?? undefined}
+        alt={name ?? ''}
+        className="size-6 rounded-full"
+      />
 
-      <span className="text-sm font-medium">{user?.name}</span>
+      <span className="font-medium text-slate-900">{name}</span>
+      {event.actorType === 'SPONSOR' && (
+        <span className="text-sm font-medium text-blue-600">Sponsor</span>
+      )}
       <Tooltip content={fullDate}>
-        <span className="text-sm text-muted-foreground">{date}</span>
+        <span className="text-sm font-medium text-slate-400">{date}</span>
       </Tooltip>
     </div>
   );

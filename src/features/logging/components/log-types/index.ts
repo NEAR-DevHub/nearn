@@ -1,13 +1,16 @@
-import { type EventLog } from '@prisma/client';
-
 import { EventType } from '@/features/logging/types/event-data';
 
+import { type Log } from '../../queries/logs';
 import CreateListing from './ListingCreated';
+import ListingEdit from './ListingEdit';
 import PublishListing from './Publish';
+import SubmissionApproveReject from './SubmissionApproveReject';
 import SubmissionCreated from './SubmissionCreated';
+import SubmissionEdit from './SubmissionEdit';
+import SubmissionLabelChange from './SubmissionLabelChange';
 
 export interface LogProperties {
-  event: EventLog;
+  event: Log;
 }
 
 const LOG_IMPLEMENTATION_MAPPING: Record<
@@ -23,17 +26,17 @@ const LOG_IMPLEMENTATION_MAPPING: Record<
   [EventType.SPONSOR_PROFILE_EDITED]: null,
   [EventType.LISTING_CREATED]: CreateListing,
   [EventType.LISTING_PUBLISHED]: PublishListing,
-  [EventType.LISTING_EDITED]: null,
+  [EventType.LISTING_EDITED]: ListingEdit,
   [EventType.LISTING_COMPLETED]: null,
   [EventType.LISTING_UNPUBLISHED]: null,
   [EventType.LISTING_WINNERS_ANNOUNCED]: null,
   [EventType.SUBMISSION_CREATED]: SubmissionCreated,
-  [EventType.SUBMISSION_EDITED]: null,
+  [EventType.SUBMISSION_EDITED]: SubmissionEdit,
   [EventType.SUBMISSION_NOTE_CHANGED]: null,
-  [EventType.SUBMISSION_LABEL_CHANGED]: null,
+  [EventType.SUBMISSION_LABEL_CHANGED]: SubmissionLabelChange,
   [EventType.SUBMISSION_TOGGLED_WINNER]: null,
-  [EventType.SUBMISSION_APPROVED]: null,
-  [EventType.SUBMISSION_REJECTED]: null,
+  [EventType.SUBMISSION_APPROVED]: SubmissionApproveReject,
+  [EventType.SUBMISSION_REJECTED]: SubmissionApproveReject,
   [EventType.SUBMISSION_TREASURY_CREATED]: null,
   [EventType.SUBMISSION_PAYMENT_DATE_EDITED]: null,
   [EventType.SUBMISSION_PAID]: null,

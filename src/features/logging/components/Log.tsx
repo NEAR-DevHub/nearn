@@ -1,14 +1,8 @@
-import { type EventLog } from '@prisma/client';
-
 import { type EventType } from '../types/event-data';
-import LOG_IMPLEMENTATION_MAPPING from './log-types';
+import LOG_IMPLEMENTATION_MAPPING, { type LogProperties } from './log-types';
 import User from './User';
 
-interface Properties {
-  event: EventLog;
-}
-
-export default function Log({ event }: Properties) {
+export default function Log({ event }: LogProperties) {
   const Component = LOG_IMPLEMENTATION_MAPPING[event.eventType as EventType];
 
   // if (!Component) {

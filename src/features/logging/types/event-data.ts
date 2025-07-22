@@ -412,6 +412,20 @@ export function detectListingChanges(
             | null,
         });
       }
+    } else if (field === 'deadline') {
+      const oldDeadline = oldData.deadline?.toString();
+      const newDeadline = newData.deadline?.toString();
+      if (oldDeadline !== newDeadline) {
+        changes.push({
+          field,
+          oldValue: oldDeadline as
+            | ListingFieldValueMap[ListingEditableFields]
+            | null,
+          newValue: newDeadline as
+            | ListingFieldValueMap[ListingEditableFields]
+            | null,
+        });
+      }
     } else if (oldVal !== newVal) {
       changes.push({
         field,

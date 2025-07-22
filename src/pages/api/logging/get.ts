@@ -102,6 +102,7 @@ async function getLogRef(
           },
           {
             listingId: submission?.listingId,
+            submissionId: null,
           },
         ],
       };
@@ -164,21 +165,63 @@ async function submission(
         ...visibilityToPrisma(visibility),
         ...(await getLogRef(refType, refId)),
       },
+      include: {
+        submission: {
+          select: {
+            sequentialId: true,
+            user: {
+              select: {
+                username: true,
+              },
+            },
+          },
+        },
+        listing: {
+          select: {
+            sequentialId: true,
+          },
+        },
+        sponsor: {
+          select: {
+            name: true,
+            slug: true,
+            logo: true,
+          },
+        },
+        User: {
+          select: {
+            username: true,
+            name: true,
+            photo: true,
+            private: true,
+          },
+        },
+      },
       orderBy: {
         createdAt: 'desc',
       },
     });
 
     return res.status(200).json(
-      logs.map((log) => ({
-        ...log,
-        // We don't want to expose who behind the scenes for sponsors
-        actorId:
+      logs.map((log) => {
+        const actorHidden =
           log.actorType === ActorType.SPONSOR &&
-          !isRoleAtLeast(visibility, 'SPONSOR')
-            ? undefined
-            : log.actorId,
-      })),
+          !isRoleAtLeast(visibility, 'SPONSOR');
+
+        return {
+          ...log,
+          User:
+            log.User && !actorHidden
+              ? {
+                  ...log.User,
+                  name: log.User.private ? undefined : log.User.name,
+                  private: undefined,
+                }
+              : undefined,
+          // We don't want to expose who behind the scenes for sponsors
+          actorId: actorHidden ? undefined : log.actorId,
+        };
+      }),
     );
   } catch (error: any) {
     logger.error(

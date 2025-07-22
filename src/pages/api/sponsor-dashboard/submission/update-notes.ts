@@ -78,7 +78,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
           },
         },
       });
-    } else {
+    } else if ((currentSubmission.notes ?? '') !== (notes ?? '')) {
       await eventLogger.log({
         eventType: EventType.SUBMISSION_NOTE_CHANGED,
         actor: {

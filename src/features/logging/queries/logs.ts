@@ -8,7 +8,29 @@ interface GetLogsParams {
   refId: string;
 }
 
-const fetchLogs = async (params: GetLogsParams): Promise<EventLog[]> => {
+export type Log = EventLog & {
+  User?: {
+    username: string;
+    name?: string;
+    photo: string;
+  };
+  submission?: {
+    sequentialId: number;
+    user: {
+      username: string;
+    };
+  };
+  listing?: {
+    sequentialId: number;
+  };
+  sponsor?: {
+    name: string;
+    slug: string;
+    logo: string;
+  };
+};
+
+const fetchLogs = async (params: GetLogsParams): Promise<Log[]> => {
   const { data } = await api.get('/api/logging/get', {
     params,
   });
