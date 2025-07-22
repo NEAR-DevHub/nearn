@@ -1,4 +1,9 @@
-import type { CompensationType, Role, SubmissionLabels } from '@prisma/client';
+import type {
+  CompensationType,
+  EventVisibility,
+  Role,
+  SubmissionLabels,
+} from '@prisma/client';
 import { type JsonValue, type Record } from '@prisma/client/runtime/library';
 
 export enum EventType {
@@ -480,4 +485,25 @@ export function detectSubmissionChanges(
   }
 
   return changes;
+}
+
+export function isRoleAtLeast(
+  role: EventVisibility,
+  requiredRole: EventVisibility,
+) {
+  const roles: EventVisibility[] = [
+    'PLATFORM_ADMIN',
+    'SPONSOR',
+    'TALENT',
+    'PUBLIC',
+  ];
+  const roleIndex = roles.indexOf(role);
+  const requiredRoleIndex = roles.indexOf(requiredRole);
+  console.log({
+    role,
+    requiredRole,
+    roleIndex,
+    requiredRoleIndex,
+  });
+  return roleIndex <= requiredRoleIndex;
 }

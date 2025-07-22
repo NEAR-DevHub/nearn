@@ -41,6 +41,7 @@ import {
 } from '@/features/listings/components/SubmissionsPage/SubmissionTable';
 import { listingSubmissionsQuery } from '@/features/listings/queries/submissions';
 import { type Listing } from '@/features/listings/types';
+import LogsTimeline from '@/features/logging/components/LogsTimeline';
 import {
   Telegram,
   Twitter,
@@ -452,6 +453,7 @@ function SubmissionPage({
       <div>
         <ListingPageLayout bounty={bounty} submissions={[submission]}>
           <Content bounty={bounty} submission={submission} />
+          <LogsTimeline refType="submission" refId={submission.id} />
         </ListingPageLayout>
       </div>
     </>

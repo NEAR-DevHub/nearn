@@ -6,7 +6,6 @@ import earncognitoClient from '@/lib/earncognitoClient';
 import logger from '@/lib/logger';
 import { prisma } from '@/prisma';
 import { cleanSkills } from '@/utils/cleanSkills';
-import { dayjs } from '@/utils/dayjs';
 import { fetchTokenUSDValue } from '@/utils/fetchTokenUSDValue';
 import { filterAllowedFields } from '@/utils/filterAllowedFields';
 import { safeStringify } from '@/utils/safeStringify';
@@ -400,31 +399,6 @@ async function listing(req: NextApiRequestWithSponsor, res: NextApiResponse) {
         newDeadline: result.deadline,
       });
     if (deadlineChanged && result.isPublished && userId) {
-      const dayjsDeadline = dayjs(result.deadline);
-      logger.debug(
-        `Creating comment for deadline extension for listing ID: ${result.id}`,
-        {
-          id,
-          deadlineChanged,
-          isPublished: result.isPublished,
-        },
-      );
-      await prisma.comment.create({
-        data: {
-          message: `The deadline for this listing has been updated to ${dayjsDeadline.format('h:mm A, MMMM D, YYYY (UTC)')}`,
-          refId: result.id,
-          refType: 'BOUNTY',
-          authorId: userId,
-          type: 'DEADLINE_EXTENSION',
-        },
-      });
-      logger.debug(
-        `Comment Created for deadline extension for listing ID: ${result.id}`,
-        {
-          id: result.id,
-        },
-      );
-
       logger.debug(`Sending email notification for deadline extension`, {
         id,
       });
