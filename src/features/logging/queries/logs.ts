@@ -7,11 +7,12 @@ import { EventType } from '@/features/logging/types/event-data';
 
 interface GetLogsParams {
   refType: 'submission' | 'listing' | 'sponsor';
-  refId: string;
+  refId?: string;
   eventTypes?: EventType[];
   searchText?: string;
   page?: number;
   limit?: number;
+  sort?: 'asc' | 'desc';
 }
 
 interface PaginatedLogsResponse {
@@ -26,7 +27,13 @@ interface PaginatedLogsResponse {
 }
 
 export function eventFilters(
-  category: 'listing' | 'submission' | 'team' | 'profile' | 'payments',
+  category:
+    | 'listing'
+    | 'submission'
+    | 'team'
+    | 'profile'
+    | 'payments'
+    | 'comments',
 ): EventType[] {
   const mapping = {
     listing: [
@@ -72,6 +79,7 @@ export function eventFilters(
       EventType.SUBMISSION_PAYMENT_DATE_EDITED,
       EventType.SUBMISSION_TREASURY_CREATED,
     ],
+    comments: [EventType.COMMENT_ADDED, EventType.COMMENT_DELETED],
   };
 
   return mapping[category];

@@ -4,6 +4,7 @@ import { type Atom, useAtomValue } from 'jotai';
 import { Info } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 
+import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tooltip } from '@/components/ui/tooltip';
 import { type SubmissionWithUser } from '@/interface/submission';
@@ -15,6 +16,8 @@ import { getURLSanitized } from '@/utils/getURLSanitized';
 import { Comments } from '@/features/comments/components/Comments';
 import { DescriptionUI } from '@/features/listings/components/ListingPage/DescriptionUI';
 import { type Listing } from '@/features/listings/types';
+import LogsTimeline from '@/features/logging/components/LogsTimeline';
+import { useGetLogsInfinite } from '@/features/logging/queries';
 
 import { selectedSubmissionAtom } from '../../atoms';
 import { InfoBox, parseHtml } from '../InfoBox';
@@ -27,7 +30,7 @@ interface Props {
   atom?: Atom<SubmissionWithUser | undefined>;
 }
 
-type ActionTab = 'notes' | 'comments';
+type ActionTab = 'notes' | 'comments' | 'activity';
 
 export const Details = ({ bounty, externalView, atom }: Props) => {
   const selectedSubmission = useAtomValue(atom ?? selectedSubmissionAtom);
@@ -35,6 +38,15 @@ export const Details = ({ bounty, externalView, atom }: Props) => {
   const isSponsorship = bounty?.type === 'sponsorship';
   const [commentCount, setCommentCount] = useState(0);
   const [activeTab, setActiveTab] = useState<ActionTab>('notes');
+  const {
+    data: logs,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useGetLogsInfinite({
+    refType: 'submission',
+    refId: selectedSubmission?.id,
+  });
 
   useEffect(() => {
     if (externalView) return;
@@ -181,7 +193,7 @@ export const Details = ({ bounty, externalView, atom }: Props) => {
             onValueChange={(tab) => setActiveTab(tab as ActionTab)}
             className="w-full"
           >
-            <TabsList className="grid h-auto w-full grid-cols-2 rounded-none">
+            <TabsList className="grid h-auto w-full grid-cols-3 rounded-none">
               <TabsTrigger
                 value="notes"
                 className={cn(
@@ -197,6 +209,14 @@ export const Details = ({ bounty, externalView, atom }: Props) => {
                 )}
               >
                 Comments: {commentCount}
+              </TabsTrigger>
+              <TabsTrigger
+                value="activity"
+                className={cn(
+                  'h-auto rounded-none border-b-2 px-4 py-2 text-muted-foreground data-[state=active]:border-brand-green',
+                )}
+              >
+                Activity
               </TabsTrigger>
             </TabsList>
 
@@ -235,6 +255,30 @@ export const Details = ({ bounty, externalView, atom }: Props) => {
                   setCount={setCommentCount}
                   take={2}
                 />
+              </div>
+            </TabsContent>
+            <TabsContent value="activity" className="p-0">
+              <div className="flex max-h-[30rem] flex-col gap-4 overflow-y-auto px-4 py-4 scrollbar-thin scrollbar-track-slate-100 scrollbar-thumb-slate-300">
+                <div className="flex items-center gap-2 font-semibold text-slate-500">
+                  Activity
+                  <Tooltip content="A contributor can only see their own changes to a submission. Changes made by other contributor are not visible.">
+                    <Info className="size-4 text-slate-400" />
+                  </Tooltip>
+                </div>
+                <LogsTimeline
+                  logs={logs?.pages.flatMap((page) => page.logs) ?? []}
+                />
+                {hasNextPage && (
+                  <div className="flex justify-center">
+                    <Button
+                      variant="outline"
+                      onClick={() => fetchNextPage()}
+                      disabled={isFetchingNextPage}
+                    >
+                      {isFetchingNextPage ? 'Loading...' : 'Load more'}
+                    </Button>
+                  </div>
+                )}
               </div>
             </TabsContent>
           </Tabs>

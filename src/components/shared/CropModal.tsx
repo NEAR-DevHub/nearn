@@ -56,7 +56,6 @@ const getCroppedImg = async (
 
       canvas.width = pixelCrop.width;
       canvas.height = pixelCrop.height;
-      console.log(pixelCrop);
 
       ctx.drawImage(
         image,

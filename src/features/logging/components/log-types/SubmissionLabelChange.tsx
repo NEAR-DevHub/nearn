@@ -15,7 +15,7 @@ export default function SubmissionLabelChange(props: LogProperties) {
   const username = event.submission?.user.username;
 
   return (
-    <p className="inline-flex items-center gap-1 text-slate-500">
+    <p className="items-center gap-1 text-slate-500">
       Changed{' '}
       <a href={`/t/${username}`} className="font-medium">
         @{username}
@@ -26,10 +26,10 @@ export default function SubmissionLabelChange(props: LogProperties) {
       >
         submission
       </a>{' '}
-      status to{' '}
+      status to
       <span
         className={cn(
-          'inline-flex rounded-full px-3 py-0.5 text-center text-sm font-medium',
+          'ml-1 inline-flex rounded-full px-3 py-0.5 text-center text-sm font-medium',
           labelStyle.bg,
           labelStyle.color,
         )}

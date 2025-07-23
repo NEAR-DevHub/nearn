@@ -48,6 +48,7 @@ import { getListingStatus } from '@/features/listings/utils/status';
 import { useCompleteSponsorship } from '../../mutations/useCompleteSponsorship';
 import { ListingStatusModal } from '../ListingStatusModal';
 import { SponsorPrize } from '../SponsorPrize';
+import { ActivityModal } from './Modals/ActivityModal';
 import { CompleteSponsorshipModal } from './Modals/CompleteSponsorshipModal';
 import { DeleteRestoreListingModal } from './Modals/DeleteRestoreListingModal';
 
@@ -187,6 +188,7 @@ ${socialListingLink('twitter')}
           <p className="text-xl font-bold text-slate-800">{bounty?.title}</p>
         </div>
         <div className="flex items-center gap-2">
+          <ActivityModal listingId={bounty?.id} />
           <Button
             className="text-slate-400"
             disabled={exportMutation.isPending}

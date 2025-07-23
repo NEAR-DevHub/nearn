@@ -90,9 +90,7 @@ export default function LogsTimeline({
       {} as Record<string, typeof logs>,
     );
 
-    const dates = Object.keys(groups).sort((a, b) => b.localeCompare(a));
-
-    return { groupedLogs: groups, sortedDates: dates };
+    return { groupedLogs: groups, sortedDates: Object.keys(groups) };
   }, [logs]);
 
   if (!logs || logs.length === 0) {

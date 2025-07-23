@@ -122,7 +122,6 @@ function renderSkillChanges(
   oldSkills: Skill[] | null,
   newSkills: Skill[] | null,
 ): React.ReactNode {
-  console.log(oldSkills, newSkills);
   const oldSkillSet = new Set<string>();
   const newSkillSet = new Set<string>();
 
@@ -372,7 +371,7 @@ export default function ListingEdit({ event }: LogProperties) {
   return (
     <div className="flex flex-col gap-1">
       {changeElements.map((element, index) => (
-        <p key={index}>{element}</p>
+        <div key={index}>{element}</div>
       ))}
     </div>
   );

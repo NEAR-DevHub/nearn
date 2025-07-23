@@ -59,15 +59,25 @@ async function comment(req: NextApiRequestWithUser, res: NextApiResponse) {
       },
     });
     if (refType === 'SUBMISSION' || refType === 'BOUNTY') {
-      const entities =
-        refType === 'SUBMISSION'
-          ? {
-              submissionId: refId,
-            }
-          : {
-              bountyId: refId,
-            };
-
+      let entities;
+      if (refType === 'SUBMISSION') {
+        const submissionListingId = await prisma.submission.findUnique({
+          where: {
+            id: refId,
+          },
+          select: {
+            listingId: true,
+          },
+        });
+        entities = {
+          submissionId: refId,
+          listingId: submissionListingId?.listingId,
+        };
+      } else {
+        entities = {
+          listingId: refId,
+        };
+      }
       eventLogger.log({
         eventType: EventType.COMMENT_ADDED,
         actor: {

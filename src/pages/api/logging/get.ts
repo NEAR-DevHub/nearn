@@ -160,6 +160,7 @@ async function submission(
   const searchText = req.query.searchText as string | undefined;
   const page = parseInt(req.query.page as string) || 1;
   const limit = parseInt(req.query.limit as string) || 50;
+  const sort = (req.query.sort as 'asc' | 'desc' | undefined) || 'desc';
 
   if (!refId || !refType) {
     return res.status(400).json({
@@ -256,7 +257,7 @@ async function submission(
         },
       },
       orderBy: {
-        createdAt: 'desc',
+        createdAt: sort,
       },
       skip: (page - 1) * limit,
       take: limit,
