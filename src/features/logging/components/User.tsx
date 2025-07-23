@@ -1,6 +1,7 @@
 'use client';
 
 import dayjs from 'dayjs';
+import Image from 'next/image';
 
 import { Tooltip } from '@/components/ui/tooltip';
 
@@ -26,10 +27,12 @@ export default function User({ event, globalView = false }: Properties) {
 
   return (
     <div className="flex items-center gap-2">
-      <img
-        src={photo ?? undefined}
+      <Image
+        src={photo ?? ''}
         alt={name ?? ''}
         className="size-6 rounded-full"
+        width={24}
+        height={24}
       />
 
       <span className="font-medium text-slate-900">{name}</span>

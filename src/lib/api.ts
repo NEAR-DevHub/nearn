@@ -1,6 +1,10 @@
 import axios from 'axios';
 
-const api = axios.create();
+const api = axios.create({
+  paramsSerializer: {
+    indexes: null, // This prevents adding [] to array parameters
+  },
+});
 
 // api.interceptors.response.use(
 //   (response) => response,

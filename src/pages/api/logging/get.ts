@@ -6,7 +6,10 @@ import { prisma } from '@/prisma';
 
 import { type NextApiRequestWithPotentialSponsor } from '@/features/auth/types';
 import { withPotentialSponsorAuth } from '@/features/auth/utils/withPotentialSponsorAuth';
-import { isRoleAtLeast } from '@/features/logging/types/event-data';
+import {
+  type EventType,
+  isRoleAtLeast,
+} from '@/features/logging/types/event-data';
 
 type RefType = 'submission' | 'listing' | 'sponsor';
 
@@ -148,6 +151,13 @@ async function submission(
 ) {
   const refId = req.query.refId as string;
   const refType = req.query.refType as RefType;
+  const eventTypesRaw = req.query.eventTypes as EventType[] | undefined;
+  const eventTypes = eventTypesRaw
+    ? Array.isArray(eventTypesRaw)
+      ? eventTypesRaw
+      : [eventTypesRaw]
+    : undefined;
+  const searchText = req.query.searchText as string | undefined;
 
   if (!refId || !refType) {
     return res.status(400).json({
@@ -159,11 +169,47 @@ async function submission(
   if (!!req.authorized && !!req.userId) {
     visibility = await getAuthorizedVisibility(req.userId, refType, refId);
   }
+
+  const searchTextWhere: Prisma.EventLogWhereInput = searchText
+    ? {
+        OR: [
+          // Only allow user search if visibility is SPONSOR or higher
+          ...(isRoleAtLeast(visibility, 'SPONSOR')
+            ? [
+                {
+                  User: {
+                    name: {
+                      contains: searchText,
+                    },
+                  },
+                },
+                {
+                  User: {
+                    username: {
+                      contains: searchText,
+                    },
+                  },
+                },
+              ]
+            : []),
+          {
+            listing: {
+              title: {
+                contains: searchText,
+              },
+            },
+          },
+        ],
+      }
+    : {};
+
   try {
     const logs = await prisma.eventLog.findMany({
       where: {
         ...visibilityToPrisma(visibility),
         ...(await getLogRef(refType, refId)),
+        ...(eventTypes ? { eventType: { in: eventTypes } } : {}),
+        ...searchTextWhere,
       },
       include: {
         submission: {

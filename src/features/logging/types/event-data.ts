@@ -513,11 +513,5 @@ export function isRoleAtLeast(
   ];
   const roleIndex = roles.indexOf(role);
   const requiredRoleIndex = roles.indexOf(requiredRole);
-  console.log({
-    role,
-    requiredRole,
-    roleIndex,
-    requiredRoleIndex,
-  });
   return roleIndex <= requiredRoleIndex;
 }
