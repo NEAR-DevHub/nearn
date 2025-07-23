@@ -2,16 +2,20 @@ import { Separator } from '@radix-ui/react-select';
 import { useQuery } from '@tanstack/react-query';
 import debounce from 'lodash.debounce';
 import { Search } from 'lucide-react';
-import { memo, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { LoadingSection } from '@/components/shared/LoadingSection';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SponsorLayout } from '@/layouts/Sponsor';
 import { useUser } from '@/store/user';
 
 import LogsTimeline from '@/features/logging/components/LogsTimeline';
-import { eventFilters, useGetLogs } from '@/features/logging/queries/logs';
+import {
+  eventFilters,
+  useGetLogsInfinite,
+} from '@/features/logging/queries/logs';
 import { Banner } from '@/features/sponsor-dashboard/components/Banner';
 import { sponsorStatsQuery } from '@/features/sponsor-dashboard/queries/sponsor-stats';
 
@@ -45,12 +49,47 @@ export default function ActivityHistory() {
     }
   }, [activeTab]);
 
-  const { data: logs, isLoading: isLogsLoading } = useGetLogs({
+  const {
+    data,
+    isLoading: isLogsLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useGetLogsInfinite({
     refType: 'sponsor',
     refId: user?.currentSponsorId ?? '',
     eventTypes,
     searchText,
   });
+
+  const logs = useMemo(() => {
+    if (!data?.pages) return [];
+    return data.pages.flatMap((page) => page.logs);
+  }, [data]);
+
+  // Intersection observer for infinite scroll
+  const observerRef = useRef<HTMLDivElement>(null);
+  const handleObserver = useCallback(
+    (entries: IntersectionObserverEntry[]) => {
+      const [target] = entries;
+      if (target?.isIntersecting && hasNextPage && !isFetchingNextPage) {
+        fetchNextPage();
+      }
+    },
+    [fetchNextPage, hasNextPage, isFetchingNextPage],
+  );
+
+  useEffect(() => {
+    const element = observerRef.current;
+    if (!element) return;
+
+    const observer = new IntersectionObserver(handleObserver, {
+      threshold: 0.5,
+    });
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [handleObserver]);
 
   return (
     <SponsorLayout>
@@ -95,7 +134,32 @@ export default function ActivityHistory() {
           {isLogsLoading ? (
             <LoadingSection />
           ) : (
-            <MemoizedLogsTimeline logs={logs} sponsorGlobalView />
+            <>
+              <MemoizedLogsTimeline logs={logs} sponsorGlobalView />
+
+              {/* Load more trigger */}
+              {hasNextPage && (
+                <div ref={observerRef} className="flex justify-center py-8">
+                  {isFetchingNextPage ? (
+                    <LoadingSection />
+                  ) : (
+                    <Button
+                      variant="outline"
+                      onClick={() => fetchNextPage()}
+                      disabled={isFetchingNextPage}
+                    >
+                      Load More
+                    </Button>
+                  )}
+                </div>
+              )}
+
+              {!hasNextPage && logs.length > 0 && (
+                <p className="py-4 text-center text-sm text-slate-500">
+                  No more activity to show
+                </p>
+              )}
+            </>
           )}
         </div>
       </Tabs>

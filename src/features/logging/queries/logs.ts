@@ -1,5 +1,5 @@
 import { type EventLog } from '@prisma/client';
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 
 import { api } from '@/lib/api';
 
@@ -10,6 +10,19 @@ interface GetLogsParams {
   refId: string;
   eventTypes?: EventType[];
   searchText?: string;
+  page?: number;
+  limit?: number;
+}
+
+interface PaginatedLogsResponse {
+  logs: Log[];
+  pagination: {
+    page: number;
+    limit: number;
+    totalCount: number;
+    totalPages: number;
+    hasNextPage: boolean;
+  };
 }
 
 export function eventFilters(
@@ -88,21 +101,31 @@ export type Log = EventLog & {
   };
 };
 
-const fetchLogs = async (params: GetLogsParams): Promise<Log[]> => {
+const fetchLogs = async (
+  params: GetLogsParams,
+): Promise<PaginatedLogsResponse> => {
   const searchText = (params.searchText ?? '').trim();
   const { data } = await api.get('/api/logging/get', {
     params: {
       ...params,
       searchText: searchText.length > 0 ? searchText : undefined,
+      page: params.page || 1,
+      limit: params.limit || 50,
     },
   });
   return data;
 };
 
-export const useGetLogs = (params: GetLogsParams) => {
-  return useQuery({
-    queryKey: ['logs', params],
-    queryFn: () => fetchLogs(params),
+export const useGetLogsInfinite = (params: Omit<GetLogsParams, 'page'>) => {
+  return useInfiniteQuery({
+    queryKey: ['logs-infinite', params],
+    queryFn: ({ pageParam = 1 }) => fetchLogs({ ...params, page: pageParam }),
     enabled: !!params.refId,
+    getNextPageParam: (lastPage) => {
+      return lastPage.pagination.hasNextPage
+        ? lastPage.pagination.page + 1
+        : undefined;
+    },
+    initialPageParam: 1,
   });
 };

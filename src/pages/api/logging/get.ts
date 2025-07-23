@@ -158,6 +158,8 @@ async function submission(
       : [eventTypesRaw]
     : undefined;
   const searchText = req.query.searchText as string | undefined;
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 50;
 
   if (!refId || !refType) {
     return res.status(400).json({
@@ -204,13 +206,21 @@ async function submission(
     : {};
 
   try {
+    const whereClause = {
+      ...visibilityToPrisma(visibility),
+      ...(await getLogRef(refType, refId)),
+      ...(eventTypes ? { eventType: { in: eventTypes } } : {}),
+      ...searchTextWhere,
+    };
+
+    // Get total count
+    const totalCount = await prisma.eventLog.count({
+      where: whereClause,
+    });
+
+    // Get paginated logs
     const logs = await prisma.eventLog.findMany({
-      where: {
-        ...visibilityToPrisma(visibility),
-        ...(await getLogRef(refType, refId)),
-        ...(eventTypes ? { eventType: { in: eventTypes } } : {}),
-        ...searchTextWhere,
-      },
+      where: whereClause,
       include: {
         submission: {
           select: {
@@ -248,29 +258,40 @@ async function submission(
       orderBy: {
         createdAt: 'desc',
       },
+      skip: (page - 1) * limit,
+      take: limit,
     });
 
-    return res.status(200).json(
-      logs.map((log) => {
-        const actorHidden =
-          log.actorType === ActorType.SPONSOR &&
-          !isRoleAtLeast(visibility, 'SPONSOR');
+    const processedLogs = logs.map((log) => {
+      const actorHidden =
+        log.actorType === ActorType.SPONSOR &&
+        !isRoleAtLeast(visibility, 'SPONSOR');
 
-        return {
-          ...log,
-          User:
-            log.User && !actorHidden
-              ? {
-                  ...log.User,
-                  name: log.User.private ? undefined : log.User.name,
-                  private: undefined,
-                }
-              : undefined,
-          // We don't want to expose who behind the scenes for sponsors
-          actorId: actorHidden ? undefined : log.actorId,
-        };
-      }),
-    );
+      return {
+        ...log,
+        User:
+          log.User && !actorHidden
+            ? {
+                ...log.User,
+                name: log.User.private ? undefined : log.User.name,
+                private: undefined,
+              }
+            : undefined,
+        // We don't want to expose who behind the scenes for sponsors
+        actorId: actorHidden ? undefined : log.actorId,
+      };
+    });
+
+    return res.status(200).json({
+      logs: processedLogs,
+      pagination: {
+        page,
+        limit,
+        totalCount,
+        totalPages: Math.ceil(totalCount / limit),
+        hasNextPage: page < Math.ceil(totalCount / limit),
+      },
+    });
   } catch (error: any) {
     logger.error(
       `Error fetching logs for refId=${refId} and refType=${refType}: ${error.message}`,
