@@ -183,7 +183,6 @@ function renderFieldChange(
   field: string,
   oldValue: any,
   newValue: any,
-  token?: string,
 ): React.ReactNode {
   const formattedOld = formatValue(field, oldValue);
   const formattedNew = formatValue(field, newValue);
@@ -224,48 +223,24 @@ function renderFieldChange(
       );
 
     case 'rewards':
-      if (token) {
-        const tokenObject = tokenList.find((t) => t.tokenSymbol === token);
-        const oldRewards = oldValue as Record<string, number>;
-        const newRewards = newValue as Record<string, number>;
-        const oldTotal = Object.values(oldRewards || {}).reduce(
-          (sum, v) => sum + v,
-          0,
-        );
-        const newTotal = Object.values(newRewards || {}).reduce(
-          (sum, v) => sum + v,
-          0,
-        );
+      const oldRewards = oldValue as Record<string, number>;
+      const newRewards = newValue as Record<string, number>;
+      const oldTotal = Object.values(oldRewards || {}).reduce(
+        (sum, v) => sum + v,
+        0,
+      );
+      const newTotal = Object.values(newRewards || {}).reduce(
+        (sum, v) => sum + v,
+        0,
+      );
 
-        return (
-          <span className="inline-flex flex-wrap items-center gap-1 text-slate-500">
-            The reward amount was changed from{' '}
-            {formatNumberWithSuffix(oldTotal, 1)}{' '}
-            {tokenObject && (
-              <>
-                <img
-                  src={tokenObject.icon}
-                  alt={tokenObject.tokenSymbol}
-                  className="h-4 w-4 rounded-full"
-                />
-                {token}
-              </>
-            )}{' '}
-            to {formatNumberWithSuffix(newTotal, 1)}{' '}
-            {tokenObject && (
-              <>
-                <img
-                  src={tokenObject.icon}
-                  alt={tokenObject.tokenSymbol}
-                  className="h-4 w-4 rounded-full"
-                />
-                {token}
-              </>
-            )}
-          </span>
-        );
-      }
-      return <span className="text-slate-500">Updated reward structure</span>;
+      return (
+        <span className="inline-flex flex-wrap items-center gap-1 text-slate-500">
+          The total reward amount was changed from{' '}
+          {formatNumberWithSuffix(oldTotal, 1)} to{' '}
+          {formatNumberWithSuffix(newTotal, 1)}{' '}
+        </span>
+      );
 
     case 'skills':
       return renderSkillChanges(oldValue as Skill[], newValue as Skill[]);
@@ -327,15 +302,6 @@ export default function ListingEdit({ event }: LogProperties) {
   }
 
   const changeElements: React.ReactNode[] = [];
-  let currentToken: string | undefined;
-
-  // Find the token for reward changes
-  const tokenChange = data.changes.find((c) => c.field === 'token');
-  if (tokenChange) {
-    currentToken =
-      (tokenChange.newValue as string) || (tokenChange.oldValue as string);
-  }
-
   data.changes.forEach((change, index) => {
     if (change.field === 'eligibility') {
       const eligibilityChanges = renderEligibilityChanges(
@@ -356,7 +322,6 @@ export default function ListingEdit({ event }: LogProperties) {
         change.field,
         change.oldValue,
         change.newValue,
-        change.field === 'rewards' ? currentToken : undefined,
       );
       if (fieldChange) {
         changeElements.push(<div key={index}>{fieldChange}</div>);

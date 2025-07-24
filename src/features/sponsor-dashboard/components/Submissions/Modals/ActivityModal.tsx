@@ -1,14 +1,7 @@
-import { ChevronDown, ChevronUp, Clock2, Loader2 } from 'lucide-react';
+import { Clock2, Loader2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import {
   Sheet,
   SheetContent,
@@ -17,8 +10,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { cn } from '@/utils/cn';
 
+import ActivityFilters from '@/features/logging/components/ActivityFilters';
 import LogsTimeline from '@/features/logging/components/LogsTimeline';
 import { eventFilters, useGetLogsInfinite } from '@/features/logging/queries';
 
@@ -80,9 +73,17 @@ export const ActivityModal = ({ listingId }: ActivityModalProps) => {
         </SheetHeader>
         <div className="mt-4 flex items-center gap-3">
           <p className="text-xs text-slate-500">Filter By</p>
-          <Select
+          <ActivityFilters
+            sort={sort}
             value={filter}
-            onValueChange={(value) =>
+            supportedValues={[
+              { label: 'Listing Edits', value: 'listing' },
+              { label: 'Submissions', value: 'submission' },
+              { label: 'Payments', value: 'payments' },
+              { label: 'Comments', value: 'comments' },
+              { label: 'All Activity', value: 'all' },
+            ]}
+            onValueChange={(value) => {
               setFilter(
                 value as
                   | 'all'
@@ -90,55 +91,10 @@ export const ActivityModal = ({ listingId }: ActivityModalProps) => {
                   | 'submission'
                   | 'payments'
                   | 'comments',
-              )
-            }
-          >
-            <SelectTrigger className="max-w-32 text-slate-500">
-              <SelectValue placeholder="Select an option..." />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="listing" className="text-slate-500">
-                Listing Edits
-              </SelectItem>
-              <SelectItem value="submission" className="text-slate-500">
-                Submissions
-              </SelectItem>
-              <SelectItem value="payments" className="text-slate-500">
-                Payment
-              </SelectItem>
-              <SelectItem value="comments" className="text-slate-500">
-                Comments
-              </SelectItem>
-              <SelectItem value="all" className="text-slate-500">
-                All Activity
-              </SelectItem>
-            </SelectContent>
-          </Select>
-          <Button
-            variant="outline"
-            size="icon"
-            className="size-8 text-slate-400"
-            onClick={() => setSort(sort === 'asc' ? 'desc' : 'asc')}
-          >
-            <div className="flex flex-col items-center justify-center">
-              <ChevronUp
-                className={cn(
-                  'mb-[-4px] h-3 w-3 transition-colors',
-                  sort === 'asc'
-                    ? 'text-slate-600'
-                    : 'text-slate-400 hover:text-slate-500',
-                )}
-              />
-              <ChevronDown
-                className={cn(
-                  'h-3 w-3 transition-colors',
-                  sort === 'desc'
-                    ? 'text-slate-700'
-                    : 'text-slate-400 hover:text-slate-500',
-                )}
-              />
-            </div>
-          </Button>
+              );
+            }}
+            onSortChange={setSort}
+          />
         </div>
         <div className="mt-5">
           {logs.length === 0 && (

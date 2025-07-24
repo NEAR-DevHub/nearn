@@ -25,6 +25,9 @@ export function renderSimpleFieldChange(
     ...options?.actionVerbs,
   };
 
+  if (wasEmpty && isNowEmpty) {
+    return null;
+  }
   if (wasEmpty && !isNowEmpty) {
     return (
       <span className="text-slate-500">

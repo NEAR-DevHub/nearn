@@ -169,6 +169,7 @@ model Comment {
   submission       Submission?       @relation(fields: [refId], references: [id], map: "Comment_Submission_fkey")
   pow              PoW?              @relation(fields: [refId], references: [id], map: "Comment_PoW_fkey")
   GrantApplication GrantApplication? @relation(fields: [refId], references: [id], map: "Comment_GrantApplication_fkey")
+  EventLog         EventLog[]
 
   @@index([id, refId])
   @@index([authorId])
@@ -674,9 +675,9 @@ model EventLog {
   listingId    String?
   submissionId String?
   sponsorId    String?
+  commentId    String?
 
-  eventType     String
-  eventCategory EventCategory
+  eventType String
 
   actorId   String?
   actorType ActorType
@@ -690,15 +691,16 @@ model EventLog {
   listing    Bounties?   @relation(fields: [listingId], references: [id])
   submission Submission? @relation(fields: [submissionId], references: [id])
   sponsor    Sponsors?   @relation(fields: [sponsorId], references: [id])
-  User       User?       @relation(fields: [actorId], references: [id])
+  actor      User?       @relation(fields: [actorId], references: [id])
+  comment    Comment?    @relation(fields: [commentId], references: [id])
 
   @@index([listingId, eventTime(sort: Desc)])
   @@index([submissionId, eventTime(sort: Desc)])
   @@index([sponsorId, eventTime(sort: Desc)])
+  @@index([commentId, eventTime(sort: Desc)])
   @@index([actorId, eventTime(sort: Desc)])
   @@index([eventType, eventTime(sort: Desc)])
   @@index([visibility, eventTime(sort: Desc)])
-  @@index([eventCategory, eventType, eventTime(sort: Desc)])
 }
 
 enum EventCategory {

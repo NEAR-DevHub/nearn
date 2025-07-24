@@ -254,14 +254,8 @@ export interface EventDataMap {
   };
 
   // Comment Events
-  [EventType.COMMENT_ADDED]: {
-    commentId: string;
-    repliedTo?: string;
-  };
-
-  [EventType.COMMENT_DELETED]: {
-    commentId: string;
-  };
+  [EventType.COMMENT_ADDED]: Record<string, never>;
+  [EventType.COMMENT_DELETED]: Record<string, never>;
 
   // Treasury Events
   [EventType.TREASURY_PROPOSAL_APPROVED]: {
@@ -470,7 +464,21 @@ export function detectSubmissionChanges(
     const newVal = newData[field] ?? null;
 
     // Special handling for eligibilityAnswers array
-    if (field === 'eligibilityAnswers') {
+    if (field === 'ask') {
+      const oldAsk = oldData.ask ?? 0;
+      const newAsk = newData.ask ?? 0;
+      if (oldAsk !== newAsk) {
+        changes.push({
+          field,
+          oldValue: oldAsk as
+            | SubmissionFieldValueMap[SubmissionEditableFields]
+            | null,
+          newValue: newAsk as
+            | SubmissionFieldValueMap[SubmissionEditableFields]
+            | null,
+        });
+      }
+    } else if (field === 'eligibilityAnswers') {
       const oldStr = JSON.stringify(oldVal);
       const newStr = JSON.stringify(newVal);
 
@@ -501,16 +509,17 @@ export function detectSubmissionChanges(
   return changes;
 }
 
+const roles: EventVisibility[] = [
+  'PLATFORM_ADMIN',
+  'SPONSOR',
+  'TALENT',
+  'PUBLIC',
+];
+
 export function isRoleAtLeast(
   role: EventVisibility,
   requiredRole: EventVisibility,
 ) {
-  const roles: EventVisibility[] = [
-    'PLATFORM_ADMIN',
-    'SPONSOR',
-    'TALENT',
-    'PUBLIC',
-  ];
   const roleIndex = roles.indexOf(role);
   const requiredRoleIndex = roles.indexOf(requiredRole);
   return roleIndex <= requiredRoleIndex;

@@ -1,6 +1,5 @@
 import {
   type ActorType,
-  type EventCategory,
   type EventLog,
   type EventVisibility,
   type Prisma,
@@ -18,6 +17,7 @@ export interface Log<T extends EventType> {
     listingId?: string;
     submissionId?: string;
     sponsorId?: string;
+    commentId?: string;
   };
   data: EventDataMap[T];
   visibility?: EventVisibility;
@@ -27,21 +27,6 @@ export interface Log<T extends EventType> {
 export interface EventLogger {
   log<T extends EventType>(params: Log<T>): Promise<EventLog>;
   bulkLog(events: Array<Log<EventType>>): Promise<EventLog[]>;
-}
-
-/**
- * Determine the event category based on event type
- */
-function getEventCategory(eventType: EventType): EventCategory {
-  if (eventType.startsWith('SPONSOR_')) return 'SPONSOR';
-  if (eventType.startsWith('LISTING_')) return 'LISTING';
-  if (eventType.startsWith('SUBMISSION_')) return 'SUBMISSION';
-  if (eventType.startsWith('COMMENT_')) return 'COMMENT';
-  if (eventType.startsWith('TREASURY_')) return 'TREASURY';
-  if (eventType.startsWith('SYSTEM_')) return 'SYSTEM';
-
-  // Default fallback
-  return 'SYSTEM';
 }
 
 /**
@@ -95,18 +80,21 @@ class EventLoggerService implements EventLogger {
   }
 
   async bulkLog(events: Array<Log<EventType>>): Promise<EventLog[]> {
-    const eventData = events.map((event) => ({
-      eventType: event.eventType,
-      eventCategory: getEventCategory(event.eventType),
-      actorId: event.actor.id,
-      actorType: event.actor.type,
-      listingId: event.entities?.listingId || null,
-      submissionId: event.entities?.submissionId || null,
-      sponsorId: event.entities?.sponsorId || null,
-      data: event.data as Prisma.JsonObject,
-      visibility: event.visibility || getDefaultVisibility(event.eventType),
-      eventTime: event.eventTime || new Date(),
-    }));
+    const eventData = events.map(
+      (event) =>
+        ({
+          eventType: event.eventType,
+          actorId: event.actor.id,
+          actorType: event.actor.type,
+          listingId: event.entities?.listingId || null,
+          submissionId: event.entities?.submissionId || null,
+          sponsorId: event.entities?.sponsorId || null,
+          commentId: event.entities?.commentId || null,
+          data: event.data as Prisma.JsonObject,
+          visibility: event.visibility || getDefaultVisibility(event.eventType),
+          eventTime: event.eventTime || new Date(),
+        }) as Prisma.EventLogCreateManyInput,
+    );
 
     try {
       const createdEvents = await this.prisma.eventLog.createMany({

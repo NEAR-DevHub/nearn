@@ -93,10 +93,19 @@ async function getLogRef(
   switch (refType) {
     case 'submission':
       const submission = await prisma.submission.findUnique({
+        select: {
+          listingId: true,
+        },
         where: {
           id: refId,
         },
       });
+
+      if (!submission) {
+        return {
+          submissionId: refId,
+        };
+      }
 
       return {
         OR: [
@@ -104,7 +113,7 @@ async function getLogRef(
             submissionId: refId,
           },
           {
-            listingId: submission?.listingId,
+            listingId: submission?.listingId ?? null,
             submissionId: null,
           },
         ],
@@ -173,6 +182,12 @@ async function submission(
     visibility = await getAuthorizedVisibility(req.userId, refType, refId);
   }
 
+  const maxVisibility = req.query.maxVisibility as EventVisibility | undefined;
+  // Reduce visibility if visibility is higher than maxVisibility
+  if (maxVisibility && isRoleAtLeast(visibility, maxVisibility)) {
+    visibility = maxVisibility;
+  }
+
   const searchTextWhere: Prisma.EventLogWhereInput = searchText
     ? {
         OR: [
@@ -180,14 +195,14 @@ async function submission(
           ...(isRoleAtLeast(visibility, 'SPONSOR')
             ? [
                 {
-                  User: {
+                  actor: {
                     name: {
                       contains: searchText,
                     },
                   },
                 },
                 {
-                  User: {
+                  actor: {
                     username: {
                       contains: searchText,
                     },
@@ -206,15 +221,33 @@ async function submission(
       }
     : {};
 
+  const hideLogEventsForRemoved = isRoleAtLeast(visibility, 'SPONSOR')
+    ? {}
+    : {
+        OR: [
+          {
+            comment: {
+              isActive: true,
+              isArchived: false,
+            },
+          },
+          {
+            comment: null,
+          },
+        ],
+      };
+
   try {
-    const whereClause = {
-      ...visibilityToPrisma(visibility),
-      ...(await getLogRef(refType, refId)),
-      ...(eventTypes ? { eventType: { in: eventTypes } } : {}),
-      ...searchTextWhere,
+    const whereClause: Prisma.EventLogWhereInput = {
+      AND: [
+        visibilityToPrisma(visibility),
+        await getLogRef(refType, refId),
+        eventTypes ? { eventType: { in: eventTypes } } : {},
+        hideLogEventsForRemoved,
+        searchTextWhere,
+      ],
     };
 
-    // Get total count
     const totalCount = await prisma.eventLog.count({
       where: whereClause,
     });
@@ -238,6 +271,11 @@ async function submission(
             sequentialId: true,
             type: true,
             title: true,
+            poc: {
+              select: {
+                username: true,
+              },
+            },
           },
         },
         sponsor: {
@@ -247,12 +285,36 @@ async function submission(
             logo: true,
           },
         },
-        User: {
+        actor: {
           select: {
             username: true,
             name: true,
             photo: true,
             private: true,
+          },
+        },
+        comment: {
+          select: {
+            id: true,
+            author: {
+              select: {
+                username: true,
+                name: true,
+                photo: true,
+                private: true,
+              },
+            },
+            message: true,
+            repliedTo: {
+              select: {
+                id: true,
+                author: {
+                  select: {
+                    username: true,
+                  },
+                },
+              },
+            },
           },
         },
       },
@@ -270,16 +332,28 @@ async function submission(
 
       return {
         ...log,
-        User:
-          log.User && !actorHidden
+        actor:
+          log.actor && !actorHidden
             ? {
-                ...log.User,
-                name: log.User.private ? undefined : log.User.name,
+                ...log.actor,
+                name: log.actor.private ? undefined : log.actor.name,
                 private: undefined,
               }
             : undefined,
         // We don't want to expose who behind the scenes for sponsors
         actorId: actorHidden ? undefined : log.actorId,
+        comment: log.comment
+          ? {
+              ...log.comment,
+              author: {
+                ...log.comment.author,
+                name: log.comment.author.private
+                  ? undefined
+                  : log.comment.author.name,
+                private: undefined,
+              },
+            }
+          : undefined,
       };
     });
 

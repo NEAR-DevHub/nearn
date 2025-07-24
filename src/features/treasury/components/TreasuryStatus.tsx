@@ -8,15 +8,14 @@ import { useSyncTreasuryStatus } from '@/features/sponsor-dashboard/mutations/us
 import { treasuryProposalStatusQuery } from '@/features/treasury/queries/treasuryProposalStatus';
 
 interface TreasuryStatusProps {
-  treasury:
-    | {
-        dao: string;
-        proposalId: number;
-      }
-    | undefined;
+  treasury?: {
+    dao?: string;
+    proposalId?: number;
+    synced?: boolean;
+  };
   submissionIsPaid: boolean;
   submissionId: string;
-  updateSubmission: () => void;
+  updateSubmission: (status: string) => void;
 }
 
 export default function TreasuryStatus({
@@ -31,9 +30,20 @@ export default function TreasuryStatus({
   const { mutate: syncTreasuryStatus } = useSyncTreasuryStatus();
 
   useEffect(() => {
-    if (proposalStatus === 'Approved' && !submissionIsPaid) {
-      syncTreasuryStatus({ id: submissionId });
-      updateSubmission();
+    if (
+      proposalStatus &&
+      proposalStatus !== 'InProgress' &&
+      !submissionIsPaid &&
+      !treasury?.synced
+    ) {
+      syncTreasuryStatus(
+        { id: submissionId },
+        {
+          onSuccess: () => {
+            updateSubmission(proposalStatus);
+          },
+        },
+      );
     }
   }, [proposalStatus, submissionIsPaid, syncTreasuryStatus]);
 

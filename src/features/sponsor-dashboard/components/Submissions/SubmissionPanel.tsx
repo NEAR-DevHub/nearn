@@ -78,9 +78,9 @@ interface Props {
 
 interface PaymentButtonProps {
   treasury?: {
-    link: string;
-    proposalId: number;
-    dao: string;
+    link?: string;
+    proposalId?: number;
+    dao?: string;
   };
   proposalStatus?: string;
   isLoadingProposalStatus: boolean;
@@ -501,14 +501,23 @@ export const SubmissionPanel = ({
                   treasury={treasury}
                   submissionId={selectedSubmission?.id ?? ''}
                   submissionIsPaid={selectedSubmission?.isPaid ?? false}
-                  updateSubmission={() => {
+                  updateSubmission={(status) => {
                     setSelectedSubmission((prev) =>
                       prev && prev.id === selectedSubmission?.id
                         ? {
                             ...prev,
                             isPaid: true,
                             paymentDetails: {
-                              link: prev.paymentDetails?.treasury?.link,
+                              ...(status === 'Approved'
+                                ? {
+                                    link: prev.paymentDetails?.treasury?.link,
+                                  }
+                                : {
+                                    treasury: {
+                                      ...prev.paymentDetails?.treasury,
+                                      synced: true,
+                                    },
+                                  }),
                             },
                           }
                         : prev,

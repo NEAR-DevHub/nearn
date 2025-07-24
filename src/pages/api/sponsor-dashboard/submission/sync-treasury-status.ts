@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 
 import logger from '@/lib/logger';
 import { prisma } from '@/prisma';
-import { getProposalStatus } from '@/utils/near';
+import { extractProposalStatusFromProposal, getProposal } from '@/utils/near';
 import { safeStringify } from '@/utils/safeStringify';
 
 import { eventLogger } from '@/features/logging/services/event-logger';
@@ -46,11 +46,31 @@ export default async function handler(
       });
     }
 
+    if (paymentDetails?.treasury?.synced) {
+      logger.debug(`Submission with ID: ${id} is already synced`);
+      return res.status(400).json({
+        error: 'Treasury status is already synced',
+        message: 'Treasury status is already synced for this submission',
+      });
+    }
+
     logger.debug(`Getting proposal status for submission ID: ${id}`);
-    const proposalStatus = await getProposalStatus(
+    const proposal = await getProposal(
       paymentDetails.treasury.dao,
       paymentDetails.treasury.proposalId,
     );
+
+    const proposalStatus = await extractProposalStatusFromProposal(
+      paymentDetails.treasury.dao,
+      proposal,
+    );
+
+    if (proposalStatus === 'InProgress') {
+      logger.debug(`Submission with ID: ${id} is still in progress`);
+      return res.status(400).json({
+        error: 'Treasury status is still in progress',
+      });
+    }
 
     if (proposalStatus === 'Approved' && !currentSubmission.isPaid) {
       logger.debug(`Updating submission with ID: ${id} to paid status`);
@@ -79,6 +99,38 @@ export default async function handler(
         },
       });
       logger.info(`Successfully updated submission ID: ${id} to paid status`);
+    } else if (proposalStatus === 'Rejected' || proposalStatus === 'Expired') {
+      logger.debug(`Updating submission with ID: ${id} to unpaid status`);
+      await prisma.submission.update({
+        where: { id },
+        data: {
+          paymentDetails: {
+            treasury: {
+              proposalId: paymentDetails.treasury.proposalId,
+              dao: paymentDetails.treasury.dao,
+              synced: true,
+            },
+          },
+        },
+      });
+
+      eventLogger.log({
+        eventType:
+          proposalStatus === 'Rejected'
+            ? EventType.TREASURY_PROPOSAL_REJECTED
+            : EventType.TREASURY_PROPOSAL_EXPIRED,
+        actor: {
+          type: 'SYSTEM',
+        },
+        data: {
+          proposalLink: paymentDetails.treasury.link,
+        },
+        entities: {
+          listingId: currentSubmission.listingId,
+          submissionId: id,
+          sponsorId: currentSubmission.listing.sponsor.id,
+        },
+      });
     }
 
     return res.status(200).json({

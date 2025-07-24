@@ -4,6 +4,7 @@ import dayjs from 'dayjs';
 import Image from 'next/image';
 
 import { Tooltip } from '@/components/ui/tooltip';
+import { PROJECT_NAME } from '@/constants/project';
 
 import { formatFromNow } from '@/features/comments/utils';
 
@@ -20,10 +21,30 @@ export default function User({ event, globalView = false }: Properties) {
     : dayjs(event.eventTime).format('HH:mm');
   const fullDate = dayjs(event.eventTime).format('MMM D, YYYY h:mm A');
 
-  const name = event.User
-    ? (event.User.name ?? event.User.username)
+  const name = event.actor
+    ? (event.actor.name ?? event.actor.username)
     : event.sponsor?.name;
-  const photo = event.User ? event.User.photo : event.sponsor?.logo;
+  const photo = event.actor ? event.actor.photo : event.sponsor?.logo;
+
+  if (event.actorType === 'SYSTEM') {
+    return (
+      <div className="flex items-center gap-2">
+        <Image
+          src={'/favicon.ico'}
+          alt={'System'}
+          className="size-6 rounded-full"
+          width={24}
+          height={24}
+        />
+        <span className="text-sm font-medium text-slate-900">
+          {PROJECT_NAME}
+        </span>
+        <Tooltip content={fullDate}>
+          <span className="text-sm font-medium text-slate-400">{date}</span>
+        </Tooltip>
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center gap-2">
@@ -48,7 +69,11 @@ export default function User({ event, globalView = false }: Properties) {
         </>
       )}
       {event.actorType === 'SPONSOR' && !globalView && (
-        <span className="text-sm font-medium text-blue-600">Sponsor</span>
+        <span className="text-sm font-medium text-blue-600">
+          {event.actor?.username === event.listing?.poc?.username
+            ? 'Creator'
+            : 'Sponsor'}
+        </span>
       )}
       <Tooltip content={fullDate}>
         <span className="text-sm font-medium text-slate-400">{date}</span>

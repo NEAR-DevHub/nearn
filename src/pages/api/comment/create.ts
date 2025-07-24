@@ -36,6 +36,16 @@ async function comment(req: NextApiRequestWithUser, res: NextApiResponse) {
         submissionId: submissionId as string | undefined,
       },
       include: {
+        repliedTo: {
+          select: {
+            authorId: true,
+            author: {
+              select: {
+                username: true,
+              },
+            },
+          },
+        },
         author: {
           select: {
             name: true,
@@ -84,11 +94,11 @@ async function comment(req: NextApiRequestWithUser, res: NextApiResponse) {
           id: userId,
           type: 'USER',
         },
-        data: {
+        data: {},
+        entities: {
+          ...entities,
           commentId: result.id,
-          repliedTo: replyToId as string | undefined,
         },
-        entities,
       });
     }
 

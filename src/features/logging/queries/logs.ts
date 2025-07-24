@@ -1,4 +1,4 @@
-import { type EventLog } from '@prisma/client';
+import { type EventLog, type EventVisibility } from '@prisma/client';
 import { useInfiniteQuery } from '@tanstack/react-query';
 
 import { api } from '@/lib/api';
@@ -13,6 +13,7 @@ interface GetLogsParams {
   page?: number;
   limit?: number;
   sort?: 'asc' | 'desc';
+  maxVisibility?: EventVisibility;
 }
 
 interface PaginatedLogsResponse {
@@ -86,7 +87,7 @@ export function eventFilters(
 }
 
 export type Log = EventLog & {
-  User?: {
+  actor?: {
     username: string;
     name?: string;
     photo: string;
@@ -101,6 +102,24 @@ export type Log = EventLog & {
     sequentialId: number;
     type: 'bounty' | 'sponsorship' | 'project' | 'hackathon';
     title: string;
+    poc: {
+      username: string;
+    };
+  };
+  comment?: {
+    id: string;
+    author: {
+      username: string;
+      name?: string;
+      photo: string;
+    };
+    message: string;
+    repliedTo?: {
+      id: string;
+      author: {
+        username: string;
+      };
+    };
   };
   sponsor?: {
     name: string;

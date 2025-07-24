@@ -276,15 +276,20 @@ export async function extractDaoFromTreasury(treasury: string) {
   return extractDaoIDSafely(config);
 }
 
-export async function getProposalStatus(dao: string, proposalId: number) {
+export async function getProposal(dao: string, proposalId: number) {
   const account = await near.account(NEAR_ACCOUNT);
 
-  const proposal = await account.viewFunction({
+  return account.viewFunction({
     contractId: dao,
     methodName: 'get_proposal',
     args: { id: Number(proposalId) },
   });
+}
 
+export async function extractProposalStatusFromProposal(
+  dao: string,
+  proposal: any,
+) {
   if (proposal.status === 'InProgress') {
     // check if deadline is in the past
     const submissionTime = proposal.submission_time;
@@ -298,4 +303,9 @@ export async function getProposalStatus(dao: string, proposalId: number) {
   }
 
   return proposal.status;
+}
+
+export async function getProposalStatus(dao: string, proposalId: number) {
+  const proposal = await getProposal(dao, proposalId);
+  return extractProposalStatusFromProposal(dao, proposal);
 }

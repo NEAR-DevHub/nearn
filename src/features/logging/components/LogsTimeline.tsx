@@ -132,6 +132,12 @@ export default function LogsTimeline({
                 logs.map((log, index) => {
                   const isLastLog = index === logs.length - 1;
                   const showLine = hasMultipleLogs && !isLastLog;
+                  if (
+                    log.eventType === EventType.SUBMISSION_TOGGLED_WINNER &&
+                    log.listing?.type !== 'bounty'
+                  ) {
+                    return null;
+                  }
 
                   return (
                     <div key={log.id} className="relative flex gap-3">

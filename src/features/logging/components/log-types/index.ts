@@ -1,8 +1,11 @@
 import { EventType } from '@/features/logging/types/event-data';
 
 import { type Log } from '../../queries/logs';
+import Comment from './Comment';
 import CreateListing from './ListingCreated';
 import ListingEdit from './ListingEdit';
+import Paid from './Paid';
+import PaymentDateEdited from './PaymentDateEdited';
 import PublishListing from './Publish';
 import SimpleLogMessage from './SimpleLogMessage';
 import SponsorEdit from './SponsorEdit';
@@ -14,6 +17,8 @@ import SubmissionEdit from './SubmissionEdit';
 import SubmissionLabelChange from './SubmissionLabelChange';
 import SubmissionNoteChanged from './SubmissionNoteChanged';
 import SubmissionToggledWinner from './SubmissionToggledWinner';
+import SystemStatusChanged from './SystemStatusChanged';
+import TreasuryProposal from './TreasuryProposal';
 
 export interface LogProperties {
   event: Log;
@@ -47,15 +52,15 @@ const LOG_IMPLEMENTATION_MAPPING: Record<
   [EventType.SUBMISSION_TOGGLED_WINNER]: SubmissionToggledWinner,
   [EventType.SUBMISSION_APPROVED]: SubmissionApproveReject,
   [EventType.SUBMISSION_REJECTED]: SubmissionApproveReject,
-  [EventType.SUBMISSION_TREASURY_CREATED]: null,
-  [EventType.SUBMISSION_PAYMENT_DATE_EDITED]: null,
-  [EventType.SUBMISSION_PAID]: null,
-  [EventType.COMMENT_ADDED]: null,
-  [EventType.COMMENT_DELETED]: null,
-  [EventType.TREASURY_PROPOSAL_APPROVED]: null,
-  [EventType.TREASURY_PROPOSAL_REJECTED]: null,
-  [EventType.TREASURY_PROPOSAL_EXPIRED]: null,
-  [EventType.SYSTEM_STATUS_CHANGED]: null,
+  [EventType.SUBMISSION_TREASURY_CREATED]: TreasuryProposal,
+  [EventType.SUBMISSION_PAYMENT_DATE_EDITED]: PaymentDateEdited,
+  [EventType.SUBMISSION_PAID]: Paid,
+  [EventType.COMMENT_ADDED]: Comment,
+  [EventType.COMMENT_DELETED]: Comment,
+  [EventType.TREASURY_PROPOSAL_APPROVED]: TreasuryProposal,
+  [EventType.TREASURY_PROPOSAL_REJECTED]: TreasuryProposal,
+  [EventType.TREASURY_PROPOSAL_EXPIRED]: TreasuryProposal,
+  [EventType.SYSTEM_STATUS_CHANGED]: SystemStatusChanged,
 };
 
 export default LOG_IMPLEMENTATION_MAPPING;

@@ -127,9 +127,15 @@ function renderFieldChange(
 
   // Handle empty/null cases
   const wasEmpty =
-    oldValue === null || oldValue === undefined || oldValue === '';
+    oldValue === null ||
+    oldValue === undefined ||
+    oldValue === '' ||
+    oldValue === 0;
   const isNowEmpty =
-    newValue === null || newValue === undefined || newValue === '';
+    newValue === null ||
+    newValue === undefined ||
+    newValue === '' ||
+    newValue === 0;
 
   switch (field) {
     case 'link':
@@ -144,11 +150,12 @@ function renderFieldChange(
       );
 
     case 'ask':
-      return (
-        <span className="text-slate-500">
-          Changed requested amount from {formattedOld} to{' '}
-          <span className="font-medium">{formattedNew}</span>
-        </span>
+      return renderSimpleFieldChange(
+        wasEmpty,
+        isNowEmpty,
+        'requested amount',
+        formattedNew,
+        formattedOld,
       );
 
     case 'token':
