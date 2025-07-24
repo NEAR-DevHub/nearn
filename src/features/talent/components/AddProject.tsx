@@ -265,10 +265,7 @@ export const AddProject = ({
                 <Input placeholder="https://example.com" />
               </FormFieldWrapper>
 
-              <Button
-                className="h-[50px] w-full bg-[rgb(101,98,255)] text-white"
-                type="submit"
-              >
+              <Button className="h-[50px] w-full text-white" type="submit">
                 Add Project
               </Button>
             </div>

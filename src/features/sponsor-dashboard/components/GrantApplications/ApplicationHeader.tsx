@@ -25,13 +25,13 @@ import { tokenList } from '@/constants/tokenList';
 import { useClipboard } from '@/hooks/use-clipboard';
 import { api } from '@/lib/api';
 import { cn } from '@/utils/cn';
+import { formatNumberWithSuffix } from '@/utils/formatNumberWithSuffix';
 import { getURL } from '@/utils/validUrl';
 
 import { type Grant } from '@/features/grants/types';
+import { type Listing } from '@/features/listings/types';
 import { getColorStyles } from '@/features/listings/utils/getColorStyles';
 import { getListingStatus } from '@/features/listings/utils/status';
-
-import { SponsorPrize } from '../SponsorPrize';
 
 interface GrantWithApplicationCount extends Grant {
   totalApplications: number;
@@ -44,7 +44,7 @@ interface Props {
 export const ApplicationHeader = ({ grant }: Props) => {
   const listingPath = `grants/${grant?.slug}`;
   const { hasCopied, onCopy } = useClipboard(`${getURL()}${listingPath}`);
-  const grantStatus = getListingStatus(grant, true);
+  const grantStatus = getListingStatus(grant as unknown as Listing, true);
 
   const exportMutation = useMutation({
     mutationFn: async () => {
@@ -161,12 +161,9 @@ export const ApplicationHeader = ({ grant }: Props) => {
                   ?.icon ?? '/assets/dollar.svg'
               }
             />
-            <SponsorPrize
-              compensationType={'range'}
-              maxRewardAsk={grant?.maxReward}
-              minRewardAsk={grant?.minReward ?? 0}
-              className="font-semibold text-slate-700"
-            />
+            <p className="font-semibold text-slate-700">
+              {`${formatNumberWithSuffix(grant?.minReward!)}-${formatNumberWithSuffix(grant?.maxReward!)}`}
+            </p>
             <p className="font-semibold text-slate-400">{grant?.token}</p>
           </div>
         </div>

@@ -1,7 +1,14 @@
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@radix-ui/react-tooltip';
 import { useQuery } from '@tanstack/react-query';
-import { ExternalLink, Info, Loader, TriangleAlert } from 'lucide-react';
+import { Copy, ExternalLink, Info, Loader, TriangleAlert } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { toast } from 'sonner';
 
 import { KYB_LINK, KYC_LINK, KYC_SPONSOR_WHITELIST } from '@/constants/kyc';
 import { cn } from '@/utils/cn';
@@ -14,7 +21,6 @@ import {
 import { VerifiedBadge } from '../shared/VerifiedBadge';
 import { Button } from './button';
 import { Popover, PopoverContent, PopoverTrigger } from './popover';
-import { Tooltip } from './tooltip';
 
 const FIREHOSE_ID = '68ef6576-d931-4405-82c4-6a8574ee0b3f';
 const INFRA_COMMITTEE_ID = 'c3b689b9-2551-4dda-8e8c-68037c25477c';
@@ -170,20 +176,42 @@ export function KycComponent({
     }
 
     const tooltipText =
-      kycData?.kyc_status === 'APPROVED'
-        ? "Your identity has been successfully verified. This helps keep your account secure, builds trust with others, and ensures you're fully compliant with legal requirements"
-        : 'To keep your account secure and meet legal requirements, we need to verify your identity (KYC) or your business (KYB). This helps prevent fraud, ensures trust between users.';
+      kycData?.kyc_status === 'APPROVED' ? (
+        "Your identity has been successfully verified. This helps keep your account secure, builds trust with others, and ensures you're fully compliant with legal requirements"
+      ) : (
+        <div>
+          To keep your account secure and meet legal requirements, we need to
+          verify your identity (KYC) or your business (KYB). This helps prevent
+          fraud, ensures trust between users. If you are a business or corporate
+          entity, please note that KYB verification is a manual process and may
+          take up to 24 hours to complete. For KYC/KYB related questions, please
+          contact{' '}
+          <span
+            className="inline-flex cursor-pointer items-center gap-1 rounded py-0.5 font-bold hover:bg-slate-100"
+            onClick={() => {
+              navigator.clipboard.writeText('kyc@near.foundation');
+              toast.success('Copied to clipboard!');
+            }}
+          >
+            kyc@near.foundation <Copy className="h-4 w-4" />
+          </span>
+        </div>
+      );
     return (
       <div className="flex items-center justify-between gap-2">
         <div className="flex flex-col gap-2">
           <h1 className="flex items-center gap-1 text-[0.85rem] font-medium text-slate-600 sm:text-[0.9rem]">
             Recipient Verification Status
-            <Tooltip
-              contentProps={{ className: 'z-[10000]' }}
-              content={tooltipText}
-            >
-              <Info className="h-4 w-4" />
-            </Tooltip>
+            <TooltipProvider delayDuration={0}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="h-4 w-4 hover:cursor-pointer" />
+                </TooltipTrigger>
+                <TooltipContent className="z-[1000] max-w-md overflow-hidden rounded-sm border bg-gray-50 px-3 py-1.5 text-xs text-slate-500 animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2">
+                  {tooltipText}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </h1>
           <div className="flex items-center justify-between gap-2">
             <div className={cn('flex items-center gap-2', className)}>

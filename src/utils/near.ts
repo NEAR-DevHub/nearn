@@ -213,7 +213,7 @@ export async function getProposalId(result: FinalExecutionOutcome) {
 
 type DaoPolicy = {
   roles: {
-    kind: { Everyone: unknown | undefined; Group: string[] | undefined };
+    kind: 'Everyone' | { Group?: string[] };
     permissions: string[];
   }[];
 };
@@ -232,8 +232,11 @@ export async function isNearnIoRequestor(dao: string) {
         role.permissions.includes('transfer:AddProposal')
       ) {
         const isGroupMember =
-          role.kind.Group && role.kind.Group.includes(NEAR_ACCOUNT);
-        return !!role.kind.Everyone || isGroupMember;
+          typeof role.kind === 'object' &&
+          role.kind.Group?.includes(NEAR_ACCOUNT);
+        if (role.kind === 'Everyone' || isGroupMember) {
+          return true;
+        }
       }
     }
   } catch (error) {}

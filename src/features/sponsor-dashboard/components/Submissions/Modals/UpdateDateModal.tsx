@@ -12,24 +12,20 @@ import {
 import { Input } from '@/components/ui/input';
 import { api } from '@/lib/api';
 
-type DateType = 'payment' | 'approved';
-
 interface UpdateDateModalProps {
   isOpen: boolean;
   onClose: () => void;
   submissionId: string;
   listingId: string;
-  dateType: DateType;
   currentDate?: string;
   onSuccess?: (date: string) => void;
 }
 
-export const UpdateDateModal = ({
+export const UpdatePaymentDateModal = ({
   isOpen,
   onClose,
   submissionId,
   listingId,
-  dateType,
   currentDate,
   onSuccess,
 }: UpdateDateModalProps) => {
@@ -52,16 +48,14 @@ export const UpdateDateModal = ({
       await api.post('/api/sponsor-dashboard/listings/update-date', {
         submissionId,
         listingId,
-        dateType,
+        dateType: 'payment',
         date: newDate,
       });
-      toast.success(
-        `${dateType === 'payment' ? 'Payment' : 'Approved'} date updated successfully`,
-      );
+      toast.success(`Payment date updated successfully`);
       onSuccess?.(newDate);
       onClose();
     } catch (error) {
-      toast.error(`Failed to update ${dateType} date`);
+      toast.error(`Failed to update payment date`);
       console.error(error);
     } finally {
       setIsLoading(false);
@@ -69,9 +63,7 @@ export const UpdateDateModal = ({
   };
 
   const getTitle = () => {
-    return dateType === 'payment'
-      ? 'Update Payment Date'
-      : 'Update Approved Date';
+    return 'Update Payment Date';
   };
 
   const getButtonText = () => {

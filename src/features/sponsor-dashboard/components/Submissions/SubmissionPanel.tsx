@@ -2,7 +2,6 @@ import { TooltipArrow } from '@radix-ui/react-tooltip';
 import { useQuery } from '@tanstack/react-query';
 import { useAtom } from 'jotai';
 import {
-  AlertTriangle,
   ArrowRight,
   Copy,
   DollarSign,
@@ -51,7 +50,8 @@ import { selectedSubmissionAtom } from '../../atoms';
 import { getUserQuery } from '../../queries/user';
 import { Details } from './Details';
 import NearTreasuryPaymentModal from './Modals/NearTreasuryPaymentModal';
-import { UpdateDateModal } from './Modals/UpdateDateModal';
+import { SelectWinnersGuide } from './Modals/SelectWinnersGuide';
+import { UpdatePaymentDateModal } from './Modals/UpdateDateModal';
 import { SelectLabel } from './SelectLabel';
 import { SelectWinner } from './SelectWinner';
 
@@ -250,17 +250,8 @@ export const SubmissionPanel = ({
     }
   };
   const [isUpdateDateModalOpen, setIsUpdateDateModalOpen] = useState(false);
-  const [dateModalType, setDateModalType] = useState<'payment' | 'approved'>(
-    'payment',
-  );
 
   const handleUpdatePaymentDate = () => {
-    setDateModalType('payment');
-    setIsUpdateDateModalOpen(true);
-  };
-
-  const handleUpdateApprovedDate = () => {
-    setDateModalType('approved');
     setIsUpdateDateModalOpen(true);
   };
 
@@ -434,66 +425,52 @@ export const SubmissionPanel = ({
                           isHackathonPage={isHackathonPage}
                         />
                         {!isProject && !isSponsorship && (
-                          <Tooltip
-                            content={
-                              <>
-                                You cannot change the winners once the results
-                                are published!
-                                <TooltipArrow />
-                              </>
-                            }
-                            disabled={!bounty?.isWinnersAnnounced}
-                            contentProps={{ sideOffset: 5 }}
-                          >
-                            <Button
-                              className={cn(
-                                'ml-4',
-                                'disabled:cursor-not-allowed disabled:bg-[#A1A1A1] disabled:hover:bg-[#A1A1A1]',
-                              )}
-                              disabled={
-                                !afterAnnounceDate ||
-                                isHackathonPage ||
-                                remainings?.podiums !== 0 ||
-                                remainings?.bonus !== 0
+                          <div className="flex items-center gap-2">
+                            <Tooltip
+                              content={
+                                !bounty?.isWinnersAnnounced ? (
+                                  <>
+                                    Allocate the whole prize pool or edit the
+                                    listing to shrink it before you can continue
+                                  </>
+                                ) : (
+                                  <>
+                                    You cannot change the winners once the
+                                    results are published!
+                                    <TooltipArrow />
+                                  </>
+                                )
                               }
-                              onClick={onWinnersAnnounceOpen}
-                              variant="default"
+                              contentProps={{
+                                side: 'bottom',
+                                align: 'center',
+                                className: 'w-[97%]',
+                              }}
                             >
-                              Announce Winners
-                            </Button>
-                          </Tooltip>
+                              <Button
+                                className={cn(
+                                  'bg-slate-900 hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-gray-500 disabled:hover:bg-gray-500',
+                                )}
+                                disabled={
+                                  !afterAnnounceDate ||
+                                  isHackathonPage ||
+                                  remainings?.podiums !== 0 ||
+                                  remainings?.bonus !== 0
+                                }
+                                onClick={onWinnersAnnounceOpen}
+                                variant="default"
+                              >
+                                Announce Winners
+                              </Button>
+                            </Tooltip>
+                            <SelectWinnersGuide />
+                          </div>
                         )}
                       </>
                     )}
                 </div>
               </div>
               <div className="ml-auto flex w-fit px-4 py-1 text-xs">
-                {!!remainings && !isProject && !isSponsorship && (
-                  <>
-                    {!!(remainings.bonus > 0 || remainings.podiums > 0) ? (
-                      <p className="flex items-center rounded-md bg-red-100 px-5 py-1 text-[#f55151]">
-                        <AlertTriangle className="mr-1 inline-block h-3 w-3" />
-                        {remainings.podiums > 0 && (
-                          <>
-                            {remainings.podiums}{' '}
-                            {remainings.podiums === 1 ? 'Winner' : 'Winners'}{' '}
-                          </>
-                        )}
-                        {remainings.bonus > 0 && (
-                          <>
-                            {remainings.bonus}{' '}
-                            {remainings.bonus === 1 ? 'Bonus' : 'Bonus'}{' '}
-                          </>
-                        )}
-                        Remaining
-                      </p>
-                    ) : (
-                      <p className="rounded-md bg-green-100 px-3 py-1 text-[#48CB6D]">
-                        All winners selected
-                      </p>
-                    )}
-                  </>
-                )}
                 <TreasuryStatus
                   treasury={treasury}
                   submissionId={selectedSubmission?.id ?? ''}
@@ -569,6 +546,12 @@ export const SubmissionPanel = ({
                     .filter((social) => social.isVisible)
                     .map((social) => social.icon)}
                 </div>
+                <div className="flex items-center">
+                  <p className="text-sm text-slate-400">
+                    Created on:{' '}
+                    {dayjs(selectedSubmission?.createdAt).format('MMM D, YYYY')}
+                  </p>
+                </div>
                 {selectedSubmission?.status === 'Approved' &&
                   selectedSubmission?.approveDate && (
                     <div className="flex items-center">
@@ -589,14 +572,6 @@ export const SubmissionPanel = ({
                           )}
                         </p>
                       </Tooltip>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="p-0 text-xs text-slate-500"
-                        onClick={handleUpdateApprovedDate}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
                     </div>
                   )}
                 {selectedSubmission?.isPaid &&
@@ -621,11 +596,10 @@ export const SubmissionPanel = ({
                       </Tooltip>
                       <Button
                         variant="ghost"
-                        size="icon"
-                        className="p-0 text-xs text-slate-500"
+                        className="h-4 w-4 p-0 hover:bg-transparent"
                         onClick={handleUpdatePaymentDate}
                       >
-                        <Pencil className="h-4 w-4" />
+                        <Pencil className="ml-3 h-4 w-4 text-slate-400" />
                       </Button>
                     </div>
                   )}
@@ -644,25 +618,16 @@ export const SubmissionPanel = ({
           </div>
         )}
       </div>
-      <UpdateDateModal
+      <UpdatePaymentDateModal
         isOpen={isUpdateDateModalOpen}
         onClose={() => setIsUpdateDateModalOpen(false)}
         submissionId={selectedSubmission?.id || ''}
         listingId={bounty?.id || ''}
-        dateType={dateModalType}
-        currentDate={
-          dateModalType === 'payment'
-            ? selectedSubmission?.paymentDate
-            : selectedSubmission?.approveDate
-        }
+        currentDate={selectedSubmission?.paymentDate}
         onSuccess={(date: string) => {
-          const update =
-            dateModalType === 'payment'
-              ? { paymentDate: date }
-              : { approveDate: date };
           setSelectedSubmission((prev) =>
             prev && prev.id === selectedSubmission?.id
-              ? { ...prev, ...update }
+              ? { ...prev, paymentDate: date }
               : prev,
           );
         }}

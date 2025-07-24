@@ -157,8 +157,8 @@ export default function SponsorListings() {
             return titleA.localeCompare(titleB) * factor;
 
           case 'submittedBy':
-            const authorA = a.user.username || '';
-            const authorB = b.user.username || '';
+            const authorA = a.user.name || '';
+            const authorB = b.user.name || '';
             return authorA.localeCompare(authorB) * factor;
 
           case 'status':

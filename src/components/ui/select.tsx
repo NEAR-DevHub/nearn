@@ -113,6 +113,16 @@ const SelectLabel = React.forwardRef<
 ));
 SelectLabel.displayName = SelectPrimitive.Label.displayName;
 
+const SelectItemWithoutIndicator = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Item>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>
+>(({ className, children, ...props }, ref) => (
+  <SelectPrimitive.Item ref={ref} className={cn(className)} {...props}>
+    {children}
+  </SelectPrimitive.Item>
+));
+SelectItemWithoutIndicator.displayName = SelectPrimitive.Item.displayName;
+
 const SelectItem = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>
@@ -152,6 +162,7 @@ export {
   SelectContent,
   SelectGroup,
   SelectItem,
+  SelectItemWithoutIndicator,
   SelectLabel,
   SelectScrollDownButton,
   SelectScrollUpButton,

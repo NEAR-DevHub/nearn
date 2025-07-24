@@ -54,7 +54,7 @@ export const getListingTypeLabel = (type: string) => {
 };
 
 export const getListingStatus = (
-  listing: Listing | ListingWithSubmissions | any,
+  listing: Listing | ListingWithSubmissions | undefined,
   isGrant?: boolean,
 ) => {
   if (!listing) return 'Draft';
@@ -81,19 +81,22 @@ export const getListingStatus = (
       if (!listing?.isWinnersAnnounced) return 'In Review';
       if (
         listing?.isWinnersAnnounced &&
-        listing?.totalPaymentsMade !== listing?.totalWinnersSelected &&
+        listing?.BountyCounts?.totalPaymentsMade !==
+          listing?.BountyCounts?.totalWinnersSelected &&
         listing?.isFndnPaying
       )
         return 'Fndn to Pay';
       if (
         listing?.isWinnersAnnounced &&
-        listing?.totalPaymentsMade !== listing?.totalWinnersSelected
+        listing?.BountyCounts?.totalPaymentsMade !==
+          listing?.BountyCounts?.totalWinnersSelected
       )
         return 'Payment Pending';
       if (
         listing?.isWinnersAnnounced &&
-        listing.totalPaymentsMade > 0 &&
-        listing?.totalPaymentsMade === listing?.totalWinnersSelected
+        listing?.BountyCounts?.totalPaymentsMade > 0 &&
+        listing?.BountyCounts?.totalPaymentsMade ===
+          listing?.BountyCounts?.totalWinnersSelected
       )
         return 'Completed';
       return 'In Review';

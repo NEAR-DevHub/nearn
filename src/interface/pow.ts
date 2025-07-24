@@ -8,4 +8,5 @@ export interface PoW {
   link: string;
   createdAt?: string;
   updatedAt?: string;
+  displayOrder?: number;
 }

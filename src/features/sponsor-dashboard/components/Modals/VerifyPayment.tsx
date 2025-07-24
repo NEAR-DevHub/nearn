@@ -28,7 +28,7 @@ import { api } from '@/lib/api';
 import { useUser } from '@/store/user';
 import { cn } from '@/utils/cn';
 import { formatNumberWithSuffix } from '@/utils/formatNumberWithSuffix';
-import { getRankLabels } from '@/utils/rank';
+import { nthLabelGenerator } from '@/utils/rank';
 
 import { BONUS_REWARD_POSITION } from '@/features/listing-builder/constants';
 import { listingSubmissionsQuery } from '@/features/listings/queries/submissions';
@@ -584,9 +584,10 @@ export const VerifyPaymentModal = ({
                               <div className="flex w-[40%] flex-col items-start gap-1">
                                 <div className="flex gap-1 text-xs font-semibold uppercase text-slate-500">
                                   <p>
-                                    {getRankLabels(
+                                    {nthLabelGenerator(
                                       submission.winnerPosition || 0,
-                                    )}{' '}
+                                      false,
+                                    ).toUpperCase()}{' '}
                                     PAYMENT
                                   </p>
                                   {(submission.winnerPosition ===
