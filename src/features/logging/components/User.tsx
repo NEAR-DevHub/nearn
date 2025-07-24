@@ -11,10 +11,15 @@ import { formatFromNow } from '@/features/comments/utils';
 import { type LogProperties } from './log-types';
 
 interface Properties extends LogProperties {
-  globalView?: boolean;
+  showExtraInfo?: 'listing' | 'submission' | 'both';
+  hideActorRole?: boolean;
 }
 
-export default function User({ event, globalView = false }: Properties) {
+export default function User({
+  event,
+  showExtraInfo,
+  hideActorRole = false,
+}: Properties) {
   const now = dayjs();
   const date = now.isSame(dayjs(event.eventTime), 'day')
     ? formatFromNow(dayjs(event.eventTime).fromNow())
@@ -25,6 +30,11 @@ export default function User({ event, globalView = false }: Properties) {
     ? (event.actor.name ?? event.actor.username)
     : event.sponsor?.name;
   const photo = event.actor ? event.actor.photo : event.sponsor?.logo;
+
+  const showListingExtraInfo =
+    showExtraInfo === 'listing' || showExtraInfo === 'both';
+  const showSubmissionExtraInfo =
+    showExtraInfo === 'submission' || showExtraInfo === 'both';
 
   if (event.actorType === 'SYSTEM') {
     return (
@@ -57,24 +67,41 @@ export default function User({ event, globalView = false }: Properties) {
       />
 
       <span className="font-medium text-slate-900">{name}</span>
-      {globalView && event.sponsor?.slug && event.listing?.sequentialId && (
-        <>
-          <span className="text-slate-500">in</span>
-          <a
-            href={`/${event.sponsor?.slug}/${event.listing?.sequentialId}`}
-            className="text-sm font-medium text-slate-900"
-          >
-            {event.listing.title}
-          </a>
-        </>
-      )}
-      {event.actorType === 'SPONSOR' && !globalView && (
+      {event.actorType === 'SPONSOR' && !hideActorRole && (
         <span className="text-sm font-medium text-blue-600">
           {event.actor?.username === event.listing?.poc?.username
             ? 'Creator'
             : 'Sponsor'}
         </span>
       )}
+      {showListingExtraInfo &&
+        event.sponsor?.slug &&
+        event.listing?.sequentialId && (
+          <>
+            <span className="text-slate-500">in</span>
+            <a
+              href={`/${event.sponsor?.slug}/${event.listing?.sequentialId}`}
+              className="text-sm font-medium text-slate-900"
+            >
+              {event.listing.title}
+            </a>
+          </>
+        )}
+      {showSubmissionExtraInfo &&
+        event.sponsor?.slug &&
+        event.listing?.sequentialId &&
+        event.submission?.sequentialId && (
+          <>
+            <span className="text-slate-500">in</span>
+            <a
+              href={`/${event.sponsor?.slug}/${event.listing?.sequentialId}/${event.submission?.sequentialId}`}
+              className="text-sm font-medium text-slate-900"
+            >
+              #{event.submission.sequentialId}
+            </a>
+          </>
+        )}
+
       <Tooltip content={fullDate}>
         <span className="text-sm font-medium text-slate-400">{date}</span>
       </Tooltip>

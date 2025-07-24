@@ -135,7 +135,11 @@ export default function ActivityHistory() {
             <LoadingSection />
           ) : (
             <>
-              <MemoizedLogsTimeline logs={logs} sponsorGlobalView />
+              <MemoizedLogsTimeline
+                logs={logs}
+                showExtraInfo="listing"
+                hideActorRole
+              />
 
               {/* Load more trigger */}
               {hasNextPage && (

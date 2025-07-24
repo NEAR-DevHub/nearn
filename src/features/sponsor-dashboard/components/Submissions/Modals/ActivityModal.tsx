@@ -109,7 +109,9 @@ export const ActivityModal = ({ listingId }: ActivityModalProps) => {
               </p>
             </div>
           )}
-          {logs.length > 0 && <LogsTimeline logs={logs} />}
+          {logs.length > 0 && (
+            <LogsTimeline logs={logs} showExtraInfo="submission" />
+          )}
           {hasNextPage && (
             <Button
               variant="ghost"

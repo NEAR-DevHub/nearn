@@ -31,7 +31,8 @@ import Log from './Log';
 
 interface Properties {
   logs?: LogType[];
-  sponsorGlobalView?: boolean;
+  showExtraInfo?: 'listing' | 'submission' | 'both';
+  hideActorRole?: boolean;
 }
 
 const eventIcons: Record<EventType, React.ReactNode> = {
@@ -70,7 +71,8 @@ const eventIcons: Record<EventType, React.ReactNode> = {
 
 export default function LogsTimeline({
   logs,
-  sponsorGlobalView = false,
+  showExtraInfo,
+  hideActorRole,
 }: Properties) {
   // Group logs by day
   const { groupedLogs, sortedDates } = useMemo(() => {
@@ -154,7 +156,8 @@ export default function LogsTimeline({
                       <div className="flex-1 pb-4">
                         <Log
                           event={log}
-                          sponsorGlobalView={sponsorGlobalView}
+                          showExtraInfo={showExtraInfo}
+                          hideActorRole={hideActorRole}
                         />
                       </div>
                     </div>
