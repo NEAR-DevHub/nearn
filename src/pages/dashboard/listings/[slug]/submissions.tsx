@@ -251,13 +251,22 @@ export default function BountySubmissions({ slug }: Props) {
   }, [bounty, submissions, user?.currentSponsorId, router]);
 
   useEffect(() => {
-    if (selectedSubmissionId) {
+    if (
+      !!selectedSubmissionId &&
+      selectedSubmissionId !== selectedSubmission?.id
+    ) {
       const submission = submissions?.find(
         (submission) => submission.id === selectedSubmissionId,
       );
       if (submission) {
         setSelectedSubmission(submission);
       }
+    } else if (
+      !selectedSubmissionId &&
+      submissions?.length &&
+      submissions.length > 0
+    ) {
+      setSelectedSubmission(submissions?.[0]);
     }
   }, [selectedSubmissionId, submissions]);
 

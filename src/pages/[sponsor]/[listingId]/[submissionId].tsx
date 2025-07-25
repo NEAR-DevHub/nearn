@@ -18,6 +18,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { KycComponent } from '@/components/ui/KycComponent';
 import { Tooltip } from '@/components/ui/tooltip';
+import { tokenList } from '@/constants/tokenList';
 import { useClipboard } from '@/hooks/use-clipboard';
 import type { SubmissionWithUser } from '@/interface/submission';
 import { type User } from '@/interface/user';
@@ -26,6 +27,7 @@ import { api } from '@/lib/api';
 import { authOptions } from '@/pages/api/auth/[...nextauth]';
 import { getBountyUrl, getSubmissionUrl } from '@/utils/bounty-urls';
 import { cn } from '@/utils/cn';
+import { formatNumberWithSuffix } from '@/utils/formatNumberWithSuffix';
 import { getURLSanitized } from '@/utils/getURLSanitized';
 import { truncatePublicKey } from '@/utils/truncatePublicKey';
 import { truncateString } from '@/utils/truncateString';
@@ -138,6 +140,15 @@ function Content({
     }
   };
 
+  const isUsdBased = bounty?.token === 'Any';
+  const tokenName = isUsdBased ? submission?.token : bounty?.token;
+  const token = tokenList.find((s) => s.tokenSymbol === tokenName);
+
+  let amount = bounty?.compensationType === 'fixed' ? 0 : submission?.ask;
+  if (submission?.isWinner && submission?.winnerPosition) {
+    amount = bounty?.rewards?.[submission?.winnerPosition] ?? 0;
+  }
+
   if (!submission) {
     return <div>Submission not found</div>;
   }
@@ -182,6 +193,9 @@ function Content({
                     <div className="flex items-center gap-2">
                       <p className="w-full whitespace-nowrap font-medium text-slate-900">
                         {`${(submission?.user?.name ?? submission?.user?.username)?.split(' ')[0]}'s Submission`}
+                        <span className="ml-1 text-slate-500">
+                          #{submission?.sequentialId}
+                        </span>
                       </p>
                       <span
                         className={cn(
@@ -277,6 +291,30 @@ function Content({
             )}
 
             <div className="flex flex-col gap-3 py-[1rem] md:flex-row md:items-center md:gap-5">
+              {!!amount && amount > 0 && (
+                <div className="flex items-center text-xs">
+                  <img
+                    src={token?.icon}
+                    alt={token?.tokenSymbol}
+                    className="h-3 w-3 rounded-full"
+                  />
+                  <span className="ml-1 truncate">
+                    {isUsdBased && '$'}
+                    {formatNumberWithSuffix(amount, 1)}
+                    <span className="text-slate-400">
+                      {isUsdBased && ' to be paid in'}
+                    </span>
+                    <span
+                      className={cn(
+                        'ml-1',
+                        !isUsdBased && 'font-semibold text-slate-400',
+                      )}
+                    >
+                      {token?.tokenSymbol}
+                    </span>
+                  </span>
+                </div>
+              )}
               {!submission?.user?.private && (
                 <>
                   {submission?.user?.email && (

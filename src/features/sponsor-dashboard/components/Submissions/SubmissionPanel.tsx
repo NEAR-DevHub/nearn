@@ -29,11 +29,13 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Tooltip } from '@/components/ui/tooltip';
+import { tokenList } from '@/constants/tokenList';
 import { useClipboard } from '@/hooks/use-clipboard';
 import type { SubmissionWithUser } from '@/interface/submission';
 import { getSubmissionUrl } from '@/utils/bounty-urls';
 import { cn } from '@/utils/cn';
 import { dayjs } from '@/utils/dayjs';
+import { formatNumberWithSuffix } from '@/utils/formatNumberWithSuffix';
 import { getURLSanitized } from '@/utils/getURLSanitized';
 import { truncatePublicKey } from '@/utils/truncatePublicKey';
 import { truncateString } from '@/utils/truncateString';
@@ -270,6 +272,7 @@ export const SubmissionPanel = ({
     {
       icon: (
         <Telegram
+          key="telegram"
           className="h-[0.9rem] w-[0.9rem] text-slate-600"
           link={selectedSubmission?.user?.telegram || ''}
         />
@@ -279,6 +282,7 @@ export const SubmissionPanel = ({
     {
       icon: (
         <Twitter
+          key="twitter"
           className="h-[0.9rem] w-[0.9rem] text-slate-600"
           link={selectedSubmission?.user?.twitter || ''}
         />
@@ -288,6 +292,7 @@ export const SubmissionPanel = ({
     {
       icon: (
         <Discord
+          key="discord"
           className="h-[0.9rem] w-[0.9rem] text-slate-600"
           link={selectedSubmission?.user?.discord || ''}
         />
@@ -297,6 +302,7 @@ export const SubmissionPanel = ({
     {
       icon: (
         <Linkedin
+          key="linkedin"
           className="h-[0.9rem] w-[0.9rem] text-slate-600"
           link={selectedSubmission?.user?.linkedin || ''}
         />
@@ -306,6 +312,7 @@ export const SubmissionPanel = ({
     {
       icon: (
         <GitHub
+          key="github"
           className="h-[0.9rem] w-[0.9rem] text-slate-600"
           link={selectedSubmission?.user?.github || ''}
         />
@@ -315,6 +322,7 @@ export const SubmissionPanel = ({
     {
       icon: (
         <Website
+          key="website"
           className="h-[0.9rem] w-[0.9rem] text-slate-600"
           link={selectedSubmission?.user?.website || ''}
         />
@@ -322,6 +330,16 @@ export const SubmissionPanel = ({
       isVisible: !!selectedSubmission?.user?.website,
     },
   ];
+
+  const isUsdBased = bounty?.token === 'Any';
+  const tokenName = isUsdBased ? selectedSubmission?.token : bounty?.token;
+  const token = tokenList.find((s) => s.tokenSymbol === tokenName);
+
+  let amount =
+    bounty?.compensationType === 'fixed' ? 0 : selectedSubmission?.ask;
+  if (selectedSubmission?.isWinner && selectedSubmission?.winnerPosition) {
+    amount = bounty?.rewards?.[selectedSubmission?.winnerPosition] ?? 0;
+  }
 
   return (
     <>
@@ -338,7 +356,10 @@ export const SubmissionPanel = ({
                   />
                   <div>
                     <p className="w-full whitespace-nowrap font-medium text-slate-900">
-                      {`${selectedSubmission?.user?.name}'s Submission`}
+                      {`${selectedSubmission?.user?.name}'s Submission `}
+                      <span className="text-slate-500">
+                        #{selectedSubmission?.sequentialId}
+                      </span>
                     </p>
                     <Link
                       className="flex w-full items-center whitespace-nowrap text-xs font-medium text-black"
@@ -497,6 +518,31 @@ export const SubmissionPanel = ({
               </div>
 
               <div className="flex items-center gap-5 px-5 py-2">
+                {!!amount && amount > 0 && (
+                  <div className="flex items-center text-xs">
+                    <img
+                      src={token?.icon}
+                      alt={token?.tokenSymbol}
+                      className="h-3 w-3 rounded-full"
+                    />
+                    <span className="ml-1 truncate">
+                      {isUsdBased && '$'}
+                      {formatNumberWithSuffix(amount, 1)}
+                      <span className="text-slate-400">
+                        {isUsdBased && ' to be paid in'}
+                      </span>
+                      <span
+                        className={cn(
+                          'ml-1',
+                          !isUsdBased && 'font-semibold text-slate-400',
+                        )}
+                      >
+                        {token?.tokenSymbol}
+                      </span>
+                    </span>
+                  </div>
+                )}
+
                 {selectedSubmission?.user?.email && (
                   <Tooltip
                     content={'Click to copy'}
