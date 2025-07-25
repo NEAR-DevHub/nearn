@@ -198,14 +198,14 @@ export default function BountySubmissions({ slug }: Props) {
 
       const matchesSearch =
         searchText === '' ||
+        submission.sequentialId?.toString().includes(searchLower) ||
         name.includes(searchLower) ||
         email.includes(searchLower) ||
         username.includes(searchLower) ||
         twitter.includes(searchLower) ||
         discord.includes(searchLower) ||
         link.includes(searchLower) ||
-        submission.notes?.toLowerCase().includes(searchLower) ||
-        submission.sequentialId?.toString().includes(searchLower);
+        submission.notes?.toLowerCase().includes(searchLower);
 
       let matchesLabel = false;
 
