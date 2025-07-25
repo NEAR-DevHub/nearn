@@ -1,10 +1,10 @@
-import { type SubmissionLabels } from '@prisma/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAtom } from 'jotai';
+import debounce from 'lodash.debounce';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { GetServerSideProps } from 'next';
-import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/router';
+import { parseAsString, useQueryState } from 'nuqs';
 import { usePostHog } from 'posthog-js/react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -38,7 +38,6 @@ import { sponsorDashboardListingQuery } from '@/features/sponsor-dashboard/queri
 import { scoutsQuery } from '@/features/sponsor-dashboard/queries/scouts';
 import { submissionsQuery } from '@/features/sponsor-dashboard/queries/submissions';
 import { type ScoutRowType } from '@/features/sponsor-dashboard/types';
-
 interface Props {
   slug: string;
 }
@@ -49,25 +48,41 @@ export default function BountySubmissions({ slug }: Props) {
   const router = useRouter();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { user } = useUser();
+
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedSubmissionQueryId] = useQueryState(
+    'submissionId',
+    parseAsString.withOptions({ clearOnDefault: true, shallow: true }),
+  );
+
+  const [selectedSubmissionId, setSelectedSubmissionId] = useState<
+    string | null
+  >(null);
 
   const [selectedSubmission, setSelectedSubmission] = useAtom(
     selectedSubmissionAtom,
   );
-
-  const [searchText, setSearchText] = useState('');
 
   const [remainings, setRemainings] = useState<{
     podiums: number;
     bonus: number;
   } | null>(null);
   const [filterLabel, setFilterLabel] = useState<
-    SubmissionLabels | 'Paid' | 'Approved' | 'Rejected' | undefined
-  >(undefined);
+    | 'New'
+    | 'Reviewed'
+    | 'Shortlisted'
+    | 'Spam'
+    | 'Paid'
+    | 'Approved'
+    | 'Rejected'
+    | 'All'
+  >('All');
 
-  const searchParams = useSearchParams();
-  const posthog = usePostHog();
+  const [searchText, setSearchText] = useState('');
+  const debouncedSearchText = debounce(setSearchText, 300);
+
   const queryClient = useQueryClient();
+  const posthog = usePostHog();
 
   const [selectedSubmissionIds, setSelectedSubmissionIds] = useAtom(
     selectedSubmissionIdsAtom,
@@ -179,45 +194,37 @@ export default function BountySubmissions({ slug }: Props) {
       const discord = submission.user.discord?.toLowerCase() || '';
       const link = submission.link?.toLowerCase() || '';
 
-      const searchLower = searchText.toLowerCase();
+      const searchLower = searchText?.toLowerCase() || '';
 
       const matchesSearch =
         searchText === '' ||
+        submission.sequentialId?.toString().includes(searchLower) ||
         name.includes(searchLower) ||
         email.includes(searchLower) ||
         username.includes(searchLower) ||
         twitter.includes(searchLower) ||
         discord.includes(searchLower) ||
-        link.includes(searchLower);
+        link.includes(searchLower) ||
+        submission.notes?.toLowerCase().includes(searchLower);
 
       let matchesLabel = false;
 
-      if (!filterLabel) {
+      if (filterLabel === 'All') {
         matchesLabel = true;
       } else if (filterLabel === 'Paid') {
         matchesLabel = submission.isPaid;
       } else if (filterLabel === 'Approved') {
-        matchesLabel = submission.status === 'Approved';
+        matchesLabel = submission.status === 'Approved' && !submission.isPaid;
       } else if (filterLabel === 'Rejected') {
         matchesLabel = submission.status === 'Rejected';
       } else {
-        matchesLabel = submission.label === filterLabel;
+        matchesLabel =
+          submission.label === filterLabel && submission.status === 'Pending';
       }
 
       return matchesSearch && matchesLabel;
     });
   }, [submissions, searchText, filterLabel]);
-
-  useEffect(() => {
-    if (filteredSubmissions && filteredSubmissions.length > 0) {
-      setSelectedSubmission((selectedSubmission) => {
-        if (filteredSubmissions.find((f) => f.id === selectedSubmission?.id)) {
-          return selectedSubmission;
-        }
-        return filteredSubmissions[0];
-      });
-    }
-  }, [filteredSubmissions]);
 
   useEffect(() => {
     if (bounty && user?.currentSponsorId) {
@@ -244,8 +251,21 @@ export default function BountySubmissions({ slug }: Props) {
   }, [bounty, submissions, user?.currentSponsorId, router]);
 
   useEffect(() => {
-    if (searchParams?.has('scout')) posthog.capture('scout tab_scout');
-  }, []);
+    if (selectedSubmissionId) {
+      const submission = submissions?.find(
+        (submission) => submission.id === selectedSubmissionId,
+      );
+      if (submission) {
+        setSelectedSubmission(submission);
+      }
+    }
+  }, [selectedSubmissionId, submissions]);
+
+  useEffect(() => {
+    if (selectedSubmissionQueryId) {
+      setSelectedSubmissionId(selectedSubmissionQueryId);
+    }
+  }, [selectedSubmissionQueryId]);
 
   const paginatedSubmissions = useMemo(() => {
     const startIndex = (currentPage - 1) * submissionsPerPage;
@@ -291,143 +311,6 @@ export default function BountySubmissions({ slug }: Props) {
 
   const isSponsorVerified = bounty?.sponsor?.isVerified;
 
-  const [pageSelections, setPageSelections] = useState<Record<number, string>>(
-    {},
-  );
-
-  useEffect(() => {
-    if (paginatedSubmissions.length > 0) {
-      const savedSelectionId = pageSelections[currentPage];
-      const submissionToSelect = paginatedSubmissions.find(
-        (sub) => sub.id === savedSelectionId,
-      );
-
-      if (
-        submissionToSelect &&
-        submissionToSelect.id !== selectedSubmission?.id
-      ) {
-        setSelectedSubmission(submissionToSelect);
-        setPageSelections((prev) => ({
-          ...prev,
-          [currentPage]: submissionToSelect.id,
-        }));
-      } else if (
-        !submissionToSelect &&
-        (!selectedSubmission ||
-          !paginatedSubmissions.some((sub) => sub.id === selectedSubmission.id))
-      ) {
-        setSelectedSubmission(paginatedSubmissions[0]);
-      }
-    }
-  }, [currentPage, paginatedSubmissions, pageSelections]);
-
-  const changePage = useCallback(
-    async (newPage: number, selectIndex: number) => {
-      if (newPage < 1 || newPage > totalPages) return;
-
-      setCurrentPage(newPage);
-      await new Promise((resolve) => setTimeout(resolve, 0));
-
-      const newPaginatedSubmissions = filteredSubmissions.slice(
-        (newPage - 1) * submissionsPerPage,
-        newPage * submissionsPerPage,
-      );
-
-      const submissionToSelect = newPaginatedSubmissions[selectIndex];
-      if (submissionToSelect) {
-        setSelectedSubmission(submissionToSelect);
-      }
-    },
-    [
-      filteredSubmissions,
-      submissionsPerPage,
-      totalPages,
-      setSelectedSubmission,
-    ],
-  );
-
-  useEffect(() => {
-    const handleKeyDown = async (e: KeyboardEvent) => {
-      if (!filteredSubmissions.length) return;
-
-      const currentIndex = paginatedSubmissions.findIndex(
-        (sub) => sub.id === selectedSubmission?.id,
-      );
-
-      switch (e.key) {
-        case 'ArrowUp':
-          e.preventDefault();
-          if (currentIndex > 0) {
-            setSelectedSubmission(paginatedSubmissions[currentIndex - 1]);
-          } else if (currentPage > 1) {
-            await changePage(currentPage - 1, submissionsPerPage - 1);
-          }
-          break;
-        case 'ArrowDown':
-          e.preventDefault();
-          if (currentIndex < paginatedSubmissions.length - 1) {
-            setSelectedSubmission(paginatedSubmissions[currentIndex + 1]);
-          } else if (currentPage < totalPages) {
-            await changePage(currentPage + 1, 0);
-          }
-          break;
-        case 'ArrowLeft':
-          e.preventDefault();
-          if (currentPage > 1) {
-            const savedSelectionIndex = pageSelections[currentPage - 1]
-              ? paginatedSubmissions.findIndex(
-                  (sub) => sub.id === pageSelections[currentPage - 1],
-                )
-              : 0;
-            await changePage(currentPage - 1, savedSelectionIndex);
-          }
-          break;
-        case 'ArrowRight':
-          e.preventDefault();
-          if (currentPage < totalPages) {
-            const savedSelectionIndex = pageSelections[currentPage + 1]
-              ? paginatedSubmissions.findIndex(
-                  (sub) => sub.id === pageSelections[currentPage + 1],
-                )
-              : 0;
-            await changePage(currentPage + 1, savedSelectionIndex);
-          }
-          break;
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [
-    filteredSubmissions,
-    paginatedSubmissions,
-    selectedSubmission,
-    currentPage,
-    totalPages,
-    pageSelections,
-    setSelectedSubmission,
-    changePage,
-    submissionsPerPage,
-  ]);
-
-  useEffect(() => {
-    if (searchParams?.has('submissionId')) {
-      const submissionId = searchParams.get('submissionId');
-      const submissionIndex = filteredSubmissions.findIndex(
-        (sub) => sub.id === submissionId,
-      );
-
-      if (submissionIndex !== -1) {
-        const submissionPage = Math.floor(submissionIndex / submissionsPerPage);
-        setCurrentPage(submissionPage + 1);
-        setPageSelections((prev) => ({
-          ...prev,
-          [submissionPage + 1]: submissionId || '',
-        }));
-      }
-    }
-  }, [searchParams]);
-
   return (
     <SponsorLayout isCollapsible>
       {isBountyLoading || isSubmissionsLoading ? (
@@ -459,9 +342,7 @@ export default function BountySubmissions({ slug }: Props) {
             }
             onVerifyPayments={onVerifyPayments}
           />
-          <Tabs
-            defaultValue={searchParams?.has('scout') ? 'scout' : 'submissions'}
-          >
+          <Tabs defaultValue={'submissions'}>
             {bounty?.isPublished &&
               !bounty?.isWinnersAnnounced &&
               !isExpired && (
@@ -494,22 +375,29 @@ export default function BountySubmissions({ slug }: Props) {
                       listing={bounty}
                       selectedSubmission={selectedSubmission}
                       setSelectedSubmission={(submission) => {
-                        if (submission?.id) {
-                          setPageSelections((prev) => ({
-                            ...prev,
-                            [currentPage]: submission.id,
-                          }));
-                        }
+                        setSelectedSubmissionId(submission.id);
                       }}
-                      filterLabel={filterLabel}
-                      setFilterLabel={(e) => {
-                        setFilterLabel(e);
-                        setCurrentPage(1);
+                      filterLabel={
+                        filterLabel === 'All' ? undefined : filterLabel
+                      }
+                      setFilterLabel={async (e) => {
+                        setFilterLabel(
+                          e === undefined
+                            ? 'All'
+                            : (e as
+                                | 'New'
+                                | 'Reviewed'
+                                | 'Shortlisted'
+                                | 'Spam'
+                                | 'Paid'
+                                | 'Approved'
+                                | 'Rejected'),
+                        );
+                        await setCurrentPage(1);
                       }}
                       submissions={paginatedSubmissions}
                       setSearchText={(e) => {
-                        setSearchText(e);
-                        setCurrentPage(1);
+                        debouncedSearchText(e || '');
                       }}
                       type={bounty?.type}
                       isToggled={isToggled}
@@ -518,7 +406,6 @@ export default function BountySubmissions({ slug }: Props) {
                       toggleAllSubmissions={toggleAllSubmissions}
                       refetchSubmissions={() => {
                         refetchSubmissions();
-                        setSelectedSubmission(undefined);
                       }}
                     />
                   </div>
@@ -526,7 +413,13 @@ export default function BountySubmissions({ slug }: Props) {
                   {verifyPaymentIsOpen && (
                     <VerifyPaymentModal
                       listing={bounty}
-                      setSelectedSubmission={setSelectedSubmission}
+                      setSelectedSubmission={(submission) => {
+                        refetchSubmissions().then(() => {
+                          if (submission?.id) {
+                            setSelectedSubmissionId(submission.id);
+                          }
+                        });
+                      }}
                       setListing={() => {}}
                       isOpen={verifyPaymentIsOpen}
                       onClose={() => {
@@ -584,8 +477,8 @@ export default function BountySubmissions({ slug }: Props) {
                 <>
                   <Button
                     disabled={currentPage <= 1}
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    onClick={async () =>
+                      await setCurrentPage(Math.max(currentPage - 1, 1))
                     }
                     size="sm"
                     variant="outline"
@@ -614,8 +507,10 @@ export default function BountySubmissions({ slug }: Props) {
 
                   <Button
                     disabled={currentPage >= totalPages}
-                    onClick={() =>
-                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                    onClick={async () =>
+                      await setCurrentPage(
+                        Math.min(currentPage + 1, totalPages),
+                      )
                     }
                     size="sm"
                     variant="outline"

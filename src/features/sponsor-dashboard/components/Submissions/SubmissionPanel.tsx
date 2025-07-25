@@ -11,7 +11,12 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import React, { type Dispatch, type SetStateAction, useState } from 'react';
+import React, {
+  type Dispatch,
+  Fragment,
+  type SetStateAction,
+  useState,
+} from 'react';
 import { FaSpinner } from 'react-icons/fa';
 import { MdOutlineAccountBalanceWallet, MdOutlineMail } from 'react-icons/md';
 import { toast } from 'sonner';
@@ -544,7 +549,9 @@ export const SubmissionPanel = ({
                 <div className="flex gap-2">
                   {socials
                     .filter((social) => social.isVisible)
-                    .map((social) => social.icon)}
+                    .map((social) => (
+                      <Fragment key={social.icon.key}>{social.icon}</Fragment>
+                    ))}
                 </div>
                 <div className="flex items-center">
                   <p className="text-sm text-slate-400">
