@@ -12,6 +12,7 @@ import {
   Trash,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import React from 'react';
 import { FaXTwitter } from 'react-icons/fa6';
@@ -68,6 +69,7 @@ export const SubmissionHeader = ({
   refetchBounty,
 }: Props) => {
   const { data: session } = useSession();
+  const router = useRouter();
   const completeSponsorship = useCompleteSponsorship(bounty?.id ?? '');
 
   const {
@@ -167,17 +169,13 @@ ${socialListingLink('twitter')}
           <BreadcrumbList>
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
-                <Link
-                  href={
-                    bounty?.type === 'hackathon'
-                      ? `/dashboard/hackathon/`
-                      : '/dashboard/listings'
-                  }
-                  className="flex items-center"
+                <button
+                  onClick={() => router.back()}
+                  className="flex items-center hover:text-slate-600"
                 >
                   <ChevronLeft className="mr-1 h-6 w-6" />
-                  All Listings
-                </Link>
+                  Back
+                </button>
               </BreadcrumbLink>
             </BreadcrumbItem>
           </BreadcrumbList>

@@ -79,7 +79,8 @@ type ColumnKey =
   | 'status'
   | 'submissionDate'
   | 'approvedDate'
-  | 'paymentDate';
+  | 'paymentDate'
+  | 'notes';
 
 const columnLabels: Record<ColumnKey, string> = {
   contributor: 'Contributor',
@@ -89,6 +90,7 @@ const columnLabels: Record<ColumnKey, string> = {
   submissionDate: 'Submission Date',
   approvedDate: 'Approved Date',
   paymentDate: 'Payment Date',
+  notes: 'Notes',
 };
 
 export const SubmissionTh = ({
@@ -150,6 +152,7 @@ export const SubmissionTable = ({
     submissionDate: true,
     approvedDate: false,
     paymentDate: true,
+    notes: false,
   };
 
   const { visibleColumns, toggleColumn } = useColumnVisibility<ColumnKey>(
@@ -251,6 +254,9 @@ export const SubmissionTable = ({
               )}
               {visibleColumns.paymentDate && (
                 <ListingTh className="text-nowrap">Payment Date</ListingTh>
+              )}
+              {visibleColumns.notes && (
+                <ListingTh className="text-nowrap">Notes</ListingTh>
               )}
               <ListingTh className="pl-6">Actions</ListingTh>
               <TableHead className="sticky right-0 z-50 flex items-center bg-slate-100 group-hover:bg-muted">
@@ -450,6 +456,13 @@ export const SubmissionTable = ({
                           {paymentDate}
                         </p>
                       </Tooltip>
+                    </TableCell>
+                  )}
+                  {visibleColumns.notes && (
+                    <TableCell className="items-center py-2">
+                      <p className="whitespace-pre-wrap text-sm font-medium text-slate-500">
+                        {submission?.notes}
+                      </p>
                     </TableCell>
                   )}
                   <TableCell>
