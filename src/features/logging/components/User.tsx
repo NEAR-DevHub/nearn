@@ -92,7 +92,7 @@ export default function User({
         event.listing?.sequentialId &&
         event.submission?.sequentialId && (
           <>
-            <span className="text-slate-500">in</span>
+            <span className="text-slate-500">for</span>
             <a
               href={`/${event.sponsor?.slug}/${event.listing?.sequentialId}/${event.submission?.sequentialId}`}
               className="text-sm font-medium text-slate-900"

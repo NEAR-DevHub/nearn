@@ -137,7 +137,7 @@ export default function ActivityHistory() {
             <>
               <MemoizedLogsTimeline
                 logs={logs}
-                showExtraInfo="listing"
+                showExtraInfo="both"
                 hideActorRole
               />
 
