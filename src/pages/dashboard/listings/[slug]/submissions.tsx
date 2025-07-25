@@ -204,7 +204,8 @@ export default function BountySubmissions({ slug }: Props) {
         twitter.includes(searchLower) ||
         discord.includes(searchLower) ||
         link.includes(searchLower) ||
-        submission.notes?.toLowerCase().includes(searchLower);
+        submission.notes?.toLowerCase().includes(searchLower) ||
+        submission.sequentialId?.toString().includes(searchLower);
 
       let matchesLabel = false;
 

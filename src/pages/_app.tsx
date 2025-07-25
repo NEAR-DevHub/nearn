@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import { SessionProvider } from 'next-auth/react';
 import { PagesTopLoader } from 'nextjs-toploader';
+import { NuqsAdapter } from 'nuqs/adapters/next/pages';
 import posthog from 'posthog-js';
 import { PostHogProvider, usePostHog } from 'posthog-js/react';
 import React, { useCallback, useEffect, useRef } from 'react';
@@ -124,7 +125,9 @@ function MyApp({ Component, pageProps }: any) {
   return (
     <>
       <PagesTopLoader color="#6366F1" showSpinner={false} />
-      <Component {...pageProps} key={router.asPath} />
+      <NuqsAdapter>
+        <Component {...pageProps} key={router.asPath} />
+      </NuqsAdapter>
       <Toaster position="bottom-right" richColors />
     </>
   );
