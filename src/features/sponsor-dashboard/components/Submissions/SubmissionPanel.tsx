@@ -270,6 +270,7 @@ export const SubmissionPanel = ({
     {
       icon: (
         <Telegram
+          key="telegram"
           className="h-[0.9rem] w-[0.9rem] text-slate-600"
           link={selectedSubmission?.user?.telegram || ''}
         />
@@ -279,6 +280,7 @@ export const SubmissionPanel = ({
     {
       icon: (
         <Twitter
+          key="twitter"
           className="h-[0.9rem] w-[0.9rem] text-slate-600"
           link={selectedSubmission?.user?.twitter || ''}
         />
@@ -288,6 +290,7 @@ export const SubmissionPanel = ({
     {
       icon: (
         <Discord
+          key="discord"
           className="h-[0.9rem] w-[0.9rem] text-slate-600"
           link={selectedSubmission?.user?.discord || ''}
         />
@@ -297,6 +300,7 @@ export const SubmissionPanel = ({
     {
       icon: (
         <Linkedin
+          key="linkedin"
           className="h-[0.9rem] w-[0.9rem] text-slate-600"
           link={selectedSubmission?.user?.linkedin || ''}
         />
@@ -306,6 +310,7 @@ export const SubmissionPanel = ({
     {
       icon: (
         <GitHub
+          key="github"
           className="h-[0.9rem] w-[0.9rem] text-slate-600"
           link={selectedSubmission?.user?.github || ''}
         />
@@ -315,6 +320,7 @@ export const SubmissionPanel = ({
     {
       icon: (
         <Website
+          key="website"
           className="h-[0.9rem] w-[0.9rem] text-slate-600"
           link={selectedSubmission?.user?.website || ''}
         />
