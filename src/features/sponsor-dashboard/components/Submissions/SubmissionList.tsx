@@ -31,7 +31,6 @@ import { EditSubmissionStatusModal } from './Modals/EditSubmissionStatusModal';
 interface Props {
   listing?: Listing;
   submissions: SubmissionWithUser[];
-  searchText: string;
   setSearchText: (text: string) => void;
   type?: string;
   filterLabel: SubmissionLabels | 'Paid' | 'Approved' | 'Rejected' | undefined;
@@ -53,7 +52,6 @@ export const SubmissionList = ({
   listing,
   submissions,
   setSearchText,
-  searchText,
   type,
   filterLabel,
   setFilterLabel,
@@ -167,7 +165,6 @@ export const SubmissionList = ({
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <Input
               className="placeholder:text-md h-12 border-slate-200 bg-white pl-9 placeholder:font-medium placeholder:text-slate-400 focus-visible:ring-black"
-              value={searchText || ''}
               key={'text-search'}
               onChange={(e) => setSearchText(e.target.value)}
               placeholder="Search Submissions"
@@ -306,14 +303,14 @@ export const SubmissionList = ({
                   }
                 />
               )}
-              <p className="mr-2 text-sm font-medium text-slate-500">
+              <p className="mr-2 w-10 text-sm font-medium text-slate-500">
                 #{submission.sequentialId}
               </p>
               <EarnAvatar
                 id={submission?.user?.id}
                 avatar={submission?.user?.photo || undefined}
               />
-              <div className="ml-2 w-40">
+              <div className="ml-2 w-28">
                 <div className="flex items-center gap-2">
                   <p className="overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium text-slate-700">
                     {submission?.user?.name}

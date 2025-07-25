@@ -1,4 +1,5 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
+import debounce from 'lodash.debounce';
 import {
   ChevronDown,
   ChevronLeft,
@@ -9,7 +10,7 @@ import {
 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import { LoadingSection } from '@/components/shared/LoadingSection';
@@ -51,7 +52,6 @@ export default function SponsorListings() {
 
   const [queryParams, setQueryParams] = useQueryStates(
     {
-      search: parseAsString.withDefault(''),
       page: parseAsInteger.withDefault(0),
       tab: parseAsString.withDefault('all'),
       status: parseAsString,
@@ -64,13 +64,15 @@ export default function SponsorListings() {
   );
 
   const {
-    search: searchText,
     page: currentPage,
     tab: selectedTab,
     status: selectedStatus,
     sortColumn,
     sortDirection,
   } = queryParams;
+
+  const [searchText, setSearchText] = useState('');
+  const debouncedSearchText = debounce(setSearchText, 300);
 
   const currentSort = {
     column: sortColumn,
@@ -371,9 +373,8 @@ export default function SponsorListings() {
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <Input
               className="placeholder:text-md border-slate-300 bg-white pl-9 placeholder:font-medium placeholder:text-slate-400 focus-visible:ring-black"
-              value={searchText || ''}
               onChange={async (e) => {
-                setQueryParams({ search: e.target.value });
+                debouncedSearchText(e.target.value);
               }}
               placeholder="Search listing..."
               type="text"

@@ -1,14 +1,10 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAtom } from 'jotai';
+import debounce from 'lodash.debounce';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
-import {
-  parseAsInteger,
-  parseAsString,
-  parseAsStringEnum,
-  useQueryState,
-} from 'nuqs';
+import { parseAsString, useQueryState } from 'nuqs';
 import { usePostHog } from 'posthog-js/react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -53,15 +49,15 @@ export default function BountySubmissions({ slug }: Props) {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { user } = useUser();
 
-  const [currentPage, setCurrentPage] = useQueryState(
-    'page',
-    parseAsInteger.withOptions({ shallow: false }).withDefault(1),
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedSubmissionQueryId] = useQueryState(
+    'submissionId',
+    parseAsString.withOptions({ clearOnDefault: true, shallow: true }),
   );
 
-  const [selectedSubmissionId, setSelectedSubmissionId] = useQueryState(
-    'submissionId',
-    parseAsString.withOptions({ clearOnDefault: true, shallow: false }),
-  );
+  const [selectedSubmissionId, setSelectedSubmissionId] = useState<
+    string | null
+  >(null);
 
   const [selectedSubmission, setSelectedSubmission] = useAtom(
     selectedSubmissionAtom,
@@ -71,25 +67,19 @@ export default function BountySubmissions({ slug }: Props) {
     podiums: number;
     bonus: number;
   } | null>(null);
-  const [filterLabel, setFilterLabel] = useQueryState(
-    'filterLabel',
-    parseAsStringEnum([
-      'New',
-      'Reviewed',
-      'Shortlisted',
-      'Spam',
-      'Paid',
-      'Approved',
-      'Rejected',
-      'All',
-    ])
-      .withOptions({ shallow: false })
-      .withDefault('All'),
-  );
-  const [searchText, setSearchText] = useQueryState(
-    'searchText',
-    parseAsString.withOptions({ shallow: false }),
-  );
+  const [filterLabel, setFilterLabel] = useState<
+    | 'New'
+    | 'Reviewed'
+    | 'Shortlisted'
+    | 'Spam'
+    | 'Paid'
+    | 'Approved'
+    | 'Rejected'
+    | 'All'
+  >('All');
+
+  const [searchText, setSearchText] = useState('');
+  const debouncedSearchText = debounce(setSearchText, 300);
 
   const queryClient = useQueryClient();
   const posthog = usePostHog();
@@ -270,6 +260,12 @@ export default function BountySubmissions({ slug }: Props) {
     }
   }, [selectedSubmissionId, submissions]);
 
+  useEffect(() => {
+    if (selectedSubmissionQueryId) {
+      setSelectedSubmissionId(selectedSubmissionQueryId);
+    }
+  }, [selectedSubmissionQueryId]);
+
   const paginatedSubmissions = useMemo(() => {
     const startIndex = (currentPage - 1) * submissionsPerPage;
     return filteredSubmissions.slice(
@@ -377,11 +373,8 @@ export default function BountySubmissions({ slug }: Props) {
                     <SubmissionList
                       listing={bounty}
                       selectedSubmission={selectedSubmission}
-                      searchText={searchText || ''}
                       setSelectedSubmission={(submission) => {
-                        if (submission?.id) {
-                          setSelectedSubmissionId(submission.id);
-                        }
+                        setSelectedSubmissionId(submission.id);
                       }}
                       filterLabel={
                         filterLabel === 'All' ? undefined : filterLabel
@@ -402,9 +395,8 @@ export default function BountySubmissions({ slug }: Props) {
                         await setCurrentPage(1);
                       }}
                       submissions={paginatedSubmissions}
-                      setSearchText={async (e) => {
-                        setSearchText(e || '');
-                        await setCurrentPage(1);
+                      setSearchText={(e) => {
+                        debouncedSearchText(e || '');
                       }}
                       type={bounty?.type}
                       isToggled={isToggled}
