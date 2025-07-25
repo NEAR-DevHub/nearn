@@ -260,8 +260,6 @@ export default function BountySubmissions({ slug }: Props) {
       );
       if (submission) {
         setSelectedSubmission(submission);
-      } else {
-        setSelectedSubmission(submissions?.[0]);
       }
     } else if (
       !selectedSubmissionId &&
