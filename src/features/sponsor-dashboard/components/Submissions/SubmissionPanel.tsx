@@ -344,7 +344,10 @@ export const SubmissionPanel = ({
                   />
                   <div>
                     <p className="w-full whitespace-nowrap font-medium text-slate-900">
-                      {`${selectedSubmission?.user?.name}'s Submission`}
+                      {`${selectedSubmission?.user?.name}'s Submission `}
+                      <span className="text-slate-500">
+                        #{selectedSubmission?.sequentialId}
+                      </span>
                     </p>
                     <Link
                       className="flex w-full items-center whitespace-nowrap text-xs font-medium text-black"

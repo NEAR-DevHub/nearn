@@ -182,6 +182,9 @@ function Content({
                     <div className="flex items-center gap-2">
                       <p className="w-full whitespace-nowrap font-medium text-slate-900">
                         {`${(submission?.user?.name ?? submission?.user?.username)?.split(' ')[0]}'s Submission`}
+                        <span className="ml-1 text-slate-500">
+                          #{submission?.sequentialId}
+                        </span>
                       </p>
                       <span
                         className={cn(
