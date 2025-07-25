@@ -29,11 +29,13 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Tooltip } from '@/components/ui/tooltip';
+import { tokenList } from '@/constants/tokenList';
 import { useClipboard } from '@/hooks/use-clipboard';
 import type { SubmissionWithUser } from '@/interface/submission';
 import { getSubmissionUrl } from '@/utils/bounty-urls';
 import { cn } from '@/utils/cn';
 import { dayjs } from '@/utils/dayjs';
+import { formatNumberWithSuffix } from '@/utils/formatNumberWithSuffix';
 import { getURLSanitized } from '@/utils/getURLSanitized';
 import { truncatePublicKey } from '@/utils/truncatePublicKey';
 import { truncateString } from '@/utils/truncateString';
@@ -329,6 +331,16 @@ export const SubmissionPanel = ({
     },
   ];
 
+  const isUsdBased = bounty?.token === 'Any';
+  const tokenName = isUsdBased ? selectedSubmission?.token : bounty?.token;
+  const token = tokenList.find((s) => s.tokenSymbol === tokenName);
+
+  let amount =
+    bounty?.compensationType === 'fixed' ? 0 : selectedSubmission?.ask;
+  if (selectedSubmission?.isWinner && selectedSubmission?.winnerPosition) {
+    amount = bounty?.rewards?.[selectedSubmission?.winnerPosition] ?? 0;
+  }
+
   return (
     <>
       <div className="sticky top-[3rem] w-full">
@@ -506,6 +518,31 @@ export const SubmissionPanel = ({
               </div>
 
               <div className="flex items-center gap-5 px-5 py-2">
+                {!!amount && amount > 0 && (
+                  <div className="flex items-center text-xs">
+                    <img
+                      src={token?.icon}
+                      alt={token?.tokenSymbol}
+                      className="h-3 w-3 rounded-full"
+                    />
+                    <span className="ml-1 truncate">
+                      {isUsdBased && '$'}
+                      {formatNumberWithSuffix(amount, 1)}
+                      <span className="text-slate-400">
+                        {isUsdBased && ' to be paid in'}
+                      </span>
+                      <span
+                        className={cn(
+                          'ml-1',
+                          !isUsdBased && 'font-semibold text-slate-400',
+                        )}
+                      >
+                        {token?.tokenSymbol}
+                      </span>
+                    </span>
+                  </div>
+                )}
+
                 {selectedSubmission?.user?.email && (
                   <Tooltip
                     content={'Click to copy'}

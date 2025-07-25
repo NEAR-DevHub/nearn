@@ -6,7 +6,6 @@ import React, { useEffect, useState } from 'react';
 
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tooltip } from '@/components/ui/tooltip';
-import { tokenList } from '@/constants/tokenList';
 import { type SubmissionWithUser } from '@/interface/submission';
 import { type User } from '@/interface/user';
 import { api } from '@/lib/api';
@@ -34,9 +33,6 @@ export const Details = ({ bounty, externalView, atom }: Props) => {
   const selectedSubmission = useAtomValue(atom ?? selectedSubmissionAtom);
   const isProject = bounty?.type === 'project';
   const isSponsorship = bounty?.type === 'sponsorship';
-  const isUsdBased = bounty?.token === 'Any';
-  const token = isUsdBased ? selectedSubmission?.token : bounty?.token;
-  const tokenObject = tokenList.find((t) => t.tokenSymbol === token);
   const [commentCount, setCommentCount] = useState(0);
   const [activeTab, setActiveTab] = useState<ActionTab>('notes');
 
@@ -80,35 +76,6 @@ export const Details = ({ bounty, externalView, atom }: Props) => {
         <div className="mb-4">
           <SubmissionStatusExplanation submission={selectedSubmission} />
         </div>
-        {bounty?.compensationType !== 'fixed' && (
-          <div className="mb-4">
-            <p className="mt-1 text-xs font-semibold uppercase text-slate-400">
-              Ask
-            </p>
-            <div className="flex w-full items-center overflow-visible">
-              <img
-                src={tokenObject?.icon}
-                alt={tokenObject?.tokenSymbol}
-                className="h-4 w-4 rounded-full"
-              />
-              <span className="ml-1 text-sm">
-                {isUsdBased && '$'}
-                {selectedSubmission?.ask?.toLocaleString('en-us')}
-                <span className="text-slate-400">
-                  {isUsdBased && ' to be paid in'}
-                </span>
-                <span
-                  className={cn(
-                    'ml-1',
-                    !isUsdBased && 'font-semibold text-slate-400',
-                  )}
-                >
-                  {token}
-                </span>
-              </span>
-            </div>
-          </div>
-        )}
 
         {selectedSubmission?.otherTokenDetails && (
           <InfoBox
