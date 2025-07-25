@@ -1,14 +1,7 @@
 import { type SubmissionLabels } from '@prisma/client';
-import debounce from 'lodash.debounce';
 import { ChevronDown, Pencil, RefreshCw, Search, Trash } from 'lucide-react';
 import { useSession } from 'next-auth/react';
-import React, {
-  type Dispatch,
-  type SetStateAction,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import React, { type Dispatch, type SetStateAction, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -38,7 +31,8 @@ import { EditSubmissionStatusModal } from './Modals/EditSubmissionStatusModal';
 interface Props {
   listing?: Listing;
   submissions: SubmissionWithUser[];
-  setSearchText: Dispatch<SetStateAction<string>>;
+  searchText: string;
+  setSearchText: (text: string) => void;
   type?: string;
   filterLabel: SubmissionLabels | 'Paid' | 'Approved' | 'Rejected' | undefined;
   setFilterLabel: Dispatch<
@@ -59,6 +53,7 @@ export const SubmissionList = ({
   listing,
   submissions,
   setSearchText,
+  searchText,
   type,
   filterLabel,
   setFilterLabel,
@@ -70,7 +65,6 @@ export const SubmissionList = ({
   isAllToggled,
   refetchSubmissions,
 }: Props) => {
-  const debouncedSetSearchText = useRef(debounce(setSearchText, 300)).current;
   const { data: session } = useSession();
   const isGodUser = session?.user?.role === 'GOD';
   const {
@@ -102,12 +96,6 @@ export const SubmissionList = ({
     onEditModalClose();
     onSubmissionDrawerOpen();
   };
-
-  useEffect(() => {
-    return () => {
-      debouncedSetSearchText.cancel();
-    };
-  }, [debouncedSetSearchText]);
 
   let bg, color;
 
@@ -179,7 +167,9 @@ export const SubmissionList = ({
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <Input
               className="placeholder:text-md h-12 border-slate-200 bg-white pl-9 placeholder:font-medium placeholder:text-slate-400 focus-visible:ring-black"
-              onChange={(e) => debouncedSetSearchText(e.target.value)}
+              value={searchText || ''}
+              key={'text-search'}
+              onChange={(e) => setSearchText(e.target.value)}
               placeholder="Search Submissions"
               type="text"
             />
@@ -316,6 +306,9 @@ export const SubmissionList = ({
                   }
                 />
               )}
+              <p className="mr-2 text-sm font-medium text-slate-500">
+                #{submission.sequentialId}
+              </p>
               <EarnAvatar
                 id={submission?.user?.id}
                 avatar={submission?.user?.photo || undefined}

@@ -1,5 +1,4 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
-import debounce from 'lodash.debounce';
 import {
   ChevronDown,
   ChevronLeft,
@@ -9,13 +8,8 @@ import {
   Search,
 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
+import React, { useCallback, useMemo } from 'react';
 import { toast } from 'sonner';
 
 import { LoadingSection } from '@/components/shared/LoadingSection';
@@ -54,14 +48,35 @@ const MemoizedSubmissionTable = React.memo(SubmissionTable);
 export default function SponsorListings() {
   const { data: session } = useSession();
   const { user } = useUser();
-  const [searchText, setSearchText] = useState('');
-  const [currentPage, setCurrentPage] = useState(0);
-  const [selectedTab, setSelectedTab] = useState('all');
-  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
-  const [currentSort, setCurrentSort] = useState<{
-    column: string;
-    direction: 'asc' | 'desc' | null;
-  }>({ column: 'createdAt', direction: 'desc' });
+
+  const [queryParams, setQueryParams] = useQueryStates(
+    {
+      search: parseAsString.withDefault(''),
+      page: parseAsInteger.withDefault(0),
+      tab: parseAsString.withDefault('all'),
+      status: parseAsString,
+      sortColumn: parseAsString.withDefault('createdAt'),
+      sortDirection: parseAsString.withDefault('desc'),
+    },
+    {
+      shallow: false,
+    },
+  );
+
+  const {
+    search: searchText,
+    page: currentPage,
+    tab: selectedTab,
+    status: selectedStatus,
+    sortColumn,
+    sortDirection,
+  } = queryParams;
+
+  const currentSort = {
+    column: sortColumn,
+    direction: sortDirection as 'asc' | 'desc' | null,
+  };
+
   const listingsPerPage = 15;
 
   const { data: sponsorStats, isLoading: isStatsLoading } = useQuery(
@@ -73,24 +88,6 @@ export default function SponsorListings() {
     isLoading: isSubmissionsLoading,
     refetch: refetchSubmissions,
   } = useQuery(sponsorshipSubmissionsQuery(user?.currentSponsorId));
-
-  const debouncedSetSearchText = useRef(debounce(setSearchText, 300)).current;
-
-  useEffect(() => {
-    return () => {
-      debouncedSetSearchText.cancel();
-    };
-  }, [debouncedSetSearchText]);
-
-  useEffect(() => {
-    if (user?.currentSponsorId) {
-      setSearchText('');
-      setCurrentPage(0);
-      setSelectedTab('all');
-      setSelectedStatus(null);
-    }
-  }, [user?.currentSponsorId]);
-
   const {
     isOpen: isOpenCreateListing,
     onOpen: onOpenCreateListing,
@@ -131,11 +128,18 @@ export default function SponsorListings() {
             .includes(searchText.toLowerCase()) ||
           submission.user.name
             ?.toLowerCase()
-            .includes(searchText.toLowerCase());
-
-        if (!result) {
-          return submission.id.toString().includes(searchText);
-        }
+            .includes(searchText.toLowerCase()) ||
+          submission.user.email
+            ?.toLowerCase()
+            .includes(searchText.toLowerCase()) ||
+          submission.user.publicKey
+            ?.toLowerCase()
+            .includes(searchText.toLowerCase()) ||
+          submission.user.username
+            ?.toLowerCase()
+            .includes(searchText.toLowerCase()) ||
+          submission.notes?.toLowerCase().includes(searchText.toLowerCase()) ||
+          submission.sequentialId?.toString().includes(searchText);
 
         return result;
       });
@@ -244,27 +248,31 @@ export default function SponsorListings() {
       filters.unshift('Deleted');
     }
     return filters;
-  }, [user?.role]);
+  }, [session?.user.role]);
 
-  const handleStatusFilterChange = useCallback((status: string | null) => {
-    setSelectedStatus(status);
-    setCurrentPage(0);
-  }, []);
+  const handleStatusFilterChange = useCallback(
+    (status: string | null) => {
+      setQueryParams({ status, page: 0 });
+    },
+    [setQueryParams],
+  );
 
-  const handleTabChange = useCallback((value: string) => {
-    const valueToType = {
-      all: 'all',
-      bounties: 'bounty',
-      projects: 'project',
-      sponsorships: 'sponsorship',
-      grants: 'grant',
-      hackathons: 'hackathon',
-    };
+  const handleTabChange = useCallback(
+    (value: string) => {
+      const valueToType = {
+        all: 'all',
+        bounties: 'bounty',
+        projects: 'project',
+        sponsorships: 'sponsorship',
+        grants: 'grant',
+        hackathons: 'hackathon',
+      };
 
-    const tabType = valueToType[value as keyof typeof valueToType] || 'all';
-    setSelectedTab(tabType);
-    setCurrentPage(0);
-  }, []);
+      const tabType = valueToType[value as keyof typeof valueToType] || 'all';
+      setQueryParams({ tab: tabType, page: 0 });
+    },
+    [setQueryParams],
+  );
 
   const handleExportCSV = () => {
     exportMutation.mutate();
@@ -363,7 +371,10 @@ export default function SponsorListings() {
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <Input
               className="placeholder:text-md border-slate-300 bg-white pl-9 placeholder:font-medium placeholder:text-slate-400 focus-visible:ring-black"
-              onChange={(e) => debouncedSetSearchText(e.target.value)}
+              value={searchText || ''}
+              onChange={async (e) => {
+                setQueryParams({ search: e.target.value });
+              }}
               placeholder="Search listing..."
               type="text"
             />
@@ -374,7 +385,19 @@ export default function SponsorListings() {
       {isSubmissionsLoading && <LoadingSection />}
       {!isSubmissionsLoading && (
         <>
-          <Tabs onValueChange={handleTabChange} defaultValue="all">
+          <Tabs
+            onValueChange={handleTabChange}
+            value={
+              {
+                all: 'all',
+                bounty: 'bounties',
+                project: 'projects',
+                sponsorship: 'sponsorships',
+                grant: 'grants',
+                hackathon: 'hackathons',
+              }[selectedTab] || 'all'
+            }
+          >
             <TabsList>
               <TabsTrigger value="all">All</TabsTrigger>
               <TabsTrigger value="bounties">Bounties</TabsTrigger>
@@ -391,7 +414,10 @@ export default function SponsorListings() {
                 submissions={paginatedListings}
                 currentSort={currentSort}
                 onSort={(column, direction) =>
-                  setCurrentSort({ column, direction })
+                  setQueryParams({
+                    sortColumn: column,
+                    sortDirection: direction || 'desc',
+                  })
                 }
                 refetchSubmissions={refetchSubmissions}
               />
@@ -401,7 +427,10 @@ export default function SponsorListings() {
                 submissions={paginatedListings}
                 currentSort={currentSort}
                 onSort={(column, direction) =>
-                  setCurrentSort({ column, direction })
+                  setQueryParams({
+                    sortColumn: column,
+                    sortDirection: direction || 'desc',
+                  })
                 }
                 refetchSubmissions={refetchSubmissions}
               />
@@ -411,7 +440,10 @@ export default function SponsorListings() {
                 submissions={paginatedListings}
                 currentSort={currentSort}
                 onSort={(column, direction) =>
-                  setCurrentSort({ column, direction })
+                  setQueryParams({
+                    sortColumn: column,
+                    sortDirection: direction || 'desc',
+                  })
                 }
                 refetchSubmissions={refetchSubmissions}
               />
@@ -421,7 +453,10 @@ export default function SponsorListings() {
                 submissions={paginatedListings}
                 currentSort={currentSort}
                 onSort={(column, direction) =>
-                  setCurrentSort({ column, direction })
+                  setQueryParams({
+                    sortColumn: column,
+                    sortDirection: direction || 'desc',
+                  })
                 }
                 refetchSubmissions={refetchSubmissions}
               />
@@ -432,7 +467,10 @@ export default function SponsorListings() {
                   submissions={paginatedListings}
                   currentSort={currentSort}
                   onSort={(column, direction) =>
-                    setCurrentSort({ column, direction })
+                    setQueryParams({
+                      sortColumn: column,
+                      sortDirection: direction || 'desc',
+                    })
                   }
                   refetchSubmissions={refetchSubmissions}
                 />
@@ -444,7 +482,10 @@ export default function SponsorListings() {
                   submissions={paginatedListings}
                   currentSort={currentSort}
                   onSort={(column, direction) =>
-                    setCurrentSort({ column, direction })
+                    setQueryParams({
+                      sortColumn: column,
+                      sortDirection: direction || 'desc',
+                    })
                   }
                   refetchSubmissions={refetchSubmissions}
                 />
@@ -475,7 +516,7 @@ export default function SponsorListings() {
               <div className="flex gap-4">
                 <Button
                   disabled={currentPage <= 0}
-                  onClick={() => setCurrentPage(currentPage - 1)}
+                  onClick={() => setQueryParams({ page: currentPage - 1 })}
                   size="sm"
                   variant="outline"
                 >
@@ -488,7 +529,7 @@ export default function SponsorListings() {
                     (currentPage + 1) * listingsPerPage >=
                     filteredSubmissions.length
                   }
-                  onClick={() => setCurrentPage(currentPage + 1)}
+                  onClick={() => setQueryParams({ page: currentPage + 1 })}
                   size="sm"
                   variant="outline"
                 >

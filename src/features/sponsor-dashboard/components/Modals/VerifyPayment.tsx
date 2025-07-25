@@ -2,12 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Check, ExternalLink, X } from 'lucide-react';
 import Link from 'next/link';
-import React, {
-  type Dispatch,
-  type SetStateAction,
-  useEffect,
-  useState,
-} from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -48,9 +43,7 @@ interface VerifyPaymentModalProps {
   setListing: (listing: ListingWithSubmissions) => void;
   listingType: string | undefined;
   selectedSubmission: SubmissionWithUser | undefined;
-  setSelectedSubmission: Dispatch<
-    SetStateAction<SubmissionWithUser | undefined>
-  >;
+  setSelectedSubmission: (submission?: SubmissionWithUser) => void;
 }
 
 export const VerifyPaymentModal = ({
@@ -236,15 +229,7 @@ export const VerifyPaymentModal = ({
         });
 
         if (selectedSubmission && successfulResults.length > 0) {
-          setSelectedSubmission((prev: SubmissionWithUser | undefined) => {
-            return prev?.id === selectedSubmission.id
-              ? {
-                  ...prev,
-                  isPaid: true,
-                  paymentDetails: { link: successfulResults[0]?.link ?? '' },
-                }
-              : prev;
-          });
+          setSelectedSubmission(selectedSubmission);
         }
       },
       onError: () => {
@@ -306,15 +291,7 @@ export const VerifyPaymentModal = ({
         }
 
         if (selectedSubmission) {
-          setSelectedSubmission((prev: SubmissionWithUser | undefined) => {
-            return prev?.id === selectedSubmission.id
-              ? {
-                  ...selectedSubmission,
-                  isPaid: true,
-                  paymentDetails: { link: successfulResults[0]?.link ?? '' },
-                }
-              : prev;
-          });
+          setSelectedSubmission(selectedSubmission);
         }
 
         setStatus('success');

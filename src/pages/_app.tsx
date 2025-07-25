@@ -1,4 +1,4 @@
-import { GoogleTagManager } from '@next/third-parties/google';
+import { GoogleAnalytics } from '@next/third-parties/google';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Gleap from 'gleap';
 import type { AppProps } from 'next/app';
@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import { SessionProvider } from 'next-auth/react';
 import { PagesTopLoader } from 'nextjs-toploader';
+import { NuqsAdapter } from 'nuqs/adapters/next/pages';
 import posthog from 'posthog-js';
 import { PostHogProvider, usePostHog } from 'posthog-js/react';
 import React, { useCallback, useEffect, useRef } from 'react';
@@ -16,12 +17,6 @@ import { fontFKGrotesk, fontSans } from '@/theme/fonts';
 
 import '../styles/globals.scss';
 import '@/components/tiptap/styles/index.css';
-
-const SolanaWalletProvider = dynamic(
-  () =>
-    import('@/context/SolanaWallet').then((mod) => mod.SolanaWalletProvider),
-  { ssr: false },
-);
 
 const Toaster = dynamic(() => import('sonner').then((mod) => mod.Toaster), {
   ssr: false,
@@ -127,19 +122,12 @@ function MyApp({ Component, pageProps }: any) {
     loadRedirect();
   }, [user?.id]);
 
-  const isDashboardRoute = router.pathname.startsWith('/dashboard');
-  const walletListingRoute = router.pathname.startsWith('/listing');
-
   return (
     <>
       <PagesTopLoader color="#6366F1" showSpinner={false} />
-      {isDashboardRoute || walletListingRoute ? (
-        <SolanaWalletProvider>
-          <Component {...pageProps} key={router.asPath} />
-        </SolanaWalletProvider>
-      ) : (
+      <NuqsAdapter>
         <Component {...pageProps} key={router.asPath} />
-      )}
+      </NuqsAdapter>
       <Toaster position="bottom-right" richColors />
     </>
   );
@@ -162,7 +150,7 @@ function App({ Component, pageProps: { session, ...pageProps } }: AppProps) {
         <SessionProvider session={session}>
           <MyApp Component={Component} pageProps={pageProps} />
         </SessionProvider>
-        <GoogleTagManager gtmId={process.env.NEXT_PUBLIC_GA_TRACKING_ID!} />
+        <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_TRACKING_ID!} />
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
     </PostHogProvider>

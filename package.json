@@ -109,6 +109,7 @@
     "next-seo": "^6.5.0",
     "nextjs-toploader": "^2.6.12",
     "nodemailer": "^6.9.11",
+    "nuqs": "^2.4.3",
     "papaparse": "^5.5.2",
     "posthog-js": "^1.215.4",
     "prosemirror-model": "^1.24.1",

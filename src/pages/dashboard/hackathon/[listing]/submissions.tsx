@@ -234,6 +234,7 @@ export default function BountySubmissions({ listing }: Props) {
                 <div className="grid min-h-[600px] w-full grid-cols-[23rem_1fr] bg-white">
                   <div className="h-full w-full">
                     <SubmissionList
+                      searchText={searchText}
                       listing={bounty}
                       filterLabel={filterLabel}
                       setFilterLabel={setFilterLabel}
