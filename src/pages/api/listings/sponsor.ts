@@ -64,6 +64,12 @@ export default async function handler(
             },
           },
         },
+        BountyCounts: {
+          select: {
+            totalPaymentsMade: true,
+            totalWinnersSelected: true,
+          },
+        },
         sponsor: {
           select: {
             name: true,
