@@ -130,8 +130,10 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       ...item,
       submissionCount: Number(item.submissionCount),
       sequentialId: Number(item.sequentialId),
-      totalWinnersSelected: Number(item.totalWinnersSelected),
-      totalPaymentsMade: Number(item.totalPaymentsMade),
+      BountyCounts: {
+        totalWinnersSelected: Number(item.totalWinnersSelected),
+        totalPaymentsMade: Number(item.totalPaymentsMade),
+      },
     }));
 
     logger.info(
