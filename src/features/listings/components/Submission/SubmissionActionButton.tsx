@@ -17,6 +17,7 @@ import { AuthWrapper } from '@/features/auth/components/AuthWrapper';
 
 import { userSubmissionQuery } from '../../queries/user-submission-status';
 import { type Listing } from '../../types';
+import { isDeadlineOver } from '../../utils/deadline';
 import {
   getRegionTooltipLabel,
   userRegionEligibilty,
@@ -184,11 +185,12 @@ export const SubmissionActionButton = ({
       buttonText = isProject ? 'Apply Now' : 'Submit Now';
       buttonBG = 'bg-black';
       isBtnDisabled = Boolean(
-        user?.id &&
-          user?.isTalentFilled &&
-          ((bountyDraftStatus !== 'PUBLISHED' && !query['preview']) ||
-            !hasHackathonStarted ||
-            !isUserEligibleByRegion),
+        isDeadlineOver(listing.deadline ?? undefined) ||
+          (user?.id &&
+            user?.isTalentFilled &&
+            ((bountyDraftStatus !== 'PUBLISHED' && !query['preview']) ||
+              !hasHackathonStarted ||
+              !isUserEligibleByRegion)),
       );
       btnLoadingText = 'Checking Submission..';
   }
