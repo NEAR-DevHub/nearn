@@ -128,6 +128,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
         Status: status,
         'Payment Status': paymentStatus,
         'Created At': submission.createdAt,
+        Notes: submission.notes,
         Tx: txLink,
       };
     });

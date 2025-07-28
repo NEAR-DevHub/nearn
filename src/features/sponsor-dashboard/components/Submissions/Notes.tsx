@@ -61,34 +61,16 @@ export const Notes = ({ submissionId, initialNotes = '', slug }: Props) => {
   }, [notes, debouncedUpdateNotes]);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    let value = e.target.value;
-    if (value !== '' && notes === '') {
-      value = '• ' + value;
-    }
-    if (value.length <= MAX_CHARACTERS) {
+    const transformedValue = e.target.value.replace(/^\* /gm, '• ');
+
+    if (transformedValue.length <= MAX_CHARACTERS) {
       if (selectedSubmission) {
         setSelectedSubmission({
           ...selectedSubmission,
-          notes: value,
+          notes: transformedValue,
         });
       }
-      setNotes(value);
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      const cursorPosition = e.currentTarget.selectionStart;
-      const textBeforeCursor = notes.slice(0, cursorPosition);
-      const textAfterCursor = notes.slice(cursorPosition);
-      setNotes(`${textBeforeCursor}\n• ${textAfterCursor}`);
-    } else if (e.key === 'Backspace') {
-      const lines = notes.split('\n');
-      if (lines[lines.length - 1] === '• ' && lines.length > 1) {
-        e.preventDefault();
-        setNotes(notes.slice(0, -3));
-      }
+      setNotes(transformedValue);
     }
   };
 
@@ -111,8 +93,7 @@ export const Notes = ({ submissionId, initialNotes = '', slug }: Props) => {
         className="whitespace-pre-wrap border border-slate-200 text-sm text-slate-600 placeholder:text-slate-400"
         key={submissionId}
         onChange={handleChange}
-        onKeyDown={handleKeyDown}
-        placeholder="• Start typing notes here"
+        placeholder="Start typing notes here. Use '* ' for bullet points."
         rows={20}
         value={notes}
       />
