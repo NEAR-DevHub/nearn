@@ -95,6 +95,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
             : submission.winnerPosition
           : '',
         'Account Age': `${accountAge} day${accountAge > 1 ? 's' : ''} ago`,
+        Notes: submission.notes,
       };
     });
 
