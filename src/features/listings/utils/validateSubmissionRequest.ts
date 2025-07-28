@@ -1,6 +1,5 @@
 import { prisma } from '@/prisma';
 
-import { isDeadlineOver } from './deadline';
 import { userRegionEligibilty } from './region';
 
 export async function validateSubmissionRequest(
@@ -29,8 +28,6 @@ export async function validateSubmissionRequest(
     !isGodMode
   )
     throw new Error('Region not eligible');
-  if (isDeadlineOver(listing.deadline || '') && !isGodMode)
-    throw new Error('Submissions closed');
 
   return { user, listing };
 }
