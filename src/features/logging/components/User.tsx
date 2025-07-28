@@ -76,22 +76,22 @@ export default function User({
             : 'Sponsor'}
         </span>
       )}
-      {showListingExtraInfo && event.listing && (
+      {showListingExtraInfo && event.listing && onListingClick && (
         <>
           <span className="text-slate-500">in</span>
           <button
-            onClick={() => onListingClick?.(event)}
+            onClick={() => onListingClick(event)}
             className="text-sm font-medium text-slate-900"
           >
             {event.listing.title}
           </button>
         </>
       )}
-      {showSubmissionExtraInfo && event.submission && (
+      {showSubmissionExtraInfo && event.submission && onSubmissionClick && (
         <>
           <span className="text-slate-500">for</span>
           <button
-            onClick={() => onSubmissionClick?.(event)}
+            onClick={() => onSubmissionClick(event)}
             className="text-sm font-medium text-slate-900"
           >
             #{event.submission.sequentialId}

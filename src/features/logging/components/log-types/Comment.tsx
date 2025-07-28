@@ -16,7 +16,7 @@ export default function Comment(props: LogProperties) {
 
   return (
     <div className="flex flex-col gap-1">
-      <p className="inline-flex items-center gap-1 text-slate-500">
+      <p className="items-center gap-1 text-slate-500">
         {/* Handle reply case */}
         {repliedToUsername && !isDeleted && (
           <>
@@ -35,12 +35,16 @@ export default function Comment(props: LogProperties) {
             <a href={`/t/${submissionUsername}`} className="font-medium">
               @{submissionUsername}
             </a>{' '}
-            <button
-              className="font-medium"
-              onClick={() => props.onSubmissionClick?.(event)}
-            >
-              submission
-            </button>
+            {props.onSubmissionClick ? (
+              <button
+                className="font-medium"
+                onClick={() => props.onSubmissionClick!(event)}
+              >
+                submission
+              </button>
+            ) : (
+              <span>submission</span>
+            )}
           </>
         )}
 
@@ -48,12 +52,16 @@ export default function Comment(props: LogProperties) {
         {!repliedToUsername && !submissionUsername && !isDeleted && (
           <>
             Commented on{' '}
-            <button
-              className="font-medium"
-              onClick={() => props.onListingClick?.(event)}
-            >
-              listing
-            </button>
+            {props.onListingClick ? (
+              <button
+                className="font-medium"
+                onClick={() => props.onListingClick!(event)}
+              >
+                listing
+              </button>
+            ) : (
+              <span>listing</span>
+            )}
           </>
         )}
 

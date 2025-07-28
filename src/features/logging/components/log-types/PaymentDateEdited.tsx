@@ -21,12 +21,16 @@ export default function ListingEdit({
   return (
     <p className="text-slate-500">
       Changed{' '}
-      <button
-        className="font-medium"
-        onClick={() => onSubmissionClick?.(event)}
-      >
-        submission
-      </button>{' '}
+      {onSubmissionClick ? (
+        <button
+          className="font-medium"
+          onClick={() => onSubmissionClick(event)}
+        >
+          submission
+        </button>
+      ) : (
+        <span>submission</span>
+      )}{' '}
       payout date from {oldDate} to{' '}
       <span className="font-medium">{newDate}</span>
     </p>

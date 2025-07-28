@@ -7,12 +7,16 @@ export default function SubmissionCreated({
   return (
     <p className="inline-flex items-center gap-1 text-slate-500">
       Send{' '}
-      <button
-        className="font-medium"
-        onClick={() => onSubmissionClick?.(event)}
-      >
-        submission
-      </button>
+      {onSubmissionClick ? (
+        <button
+          className="font-medium"
+          onClick={() => onSubmissionClick(event)}
+        >
+          submission
+        </button>
+      ) : (
+        <span>submission</span>
+      )}
     </p>
   );
 }
