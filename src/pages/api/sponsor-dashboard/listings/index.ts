@@ -126,15 +126,24 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       GrantStatus.OPEN,
     );
 
-    const serializedData = data.map((item) => ({
-      ...item,
-      submissionCount: Number(item.submissionCount),
-      sequentialId: Number(item.sequentialId),
-      BountyCounts: {
-        totalWinnersSelected: Number(item.totalWinnersSelected),
-        totalPaymentsMade: Number(item.totalPaymentsMade),
-      },
-    }));
+    const serializedData = data.map((item) => {
+      const {
+        submissionCount,
+        sequentialId,
+        totalWinnersSelected,
+        totalPaymentsMade,
+        ...rest
+      } = item;
+      return {
+        ...rest,
+        submissionCount: Number(submissionCount),
+        sequentialId: Number(sequentialId),
+        BountyCounts: {
+          totalWinnersSelected: Number(totalWinnersSelected),
+          totalPaymentsMade: Number(totalPaymentsMade),
+        },
+      };
+    });
 
     logger.info(
       `Successfully fetched bounties and grants for sponsor ${userSponsorId}`,
