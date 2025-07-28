@@ -193,7 +193,7 @@ export default function BountySubmissions({ slug }: Props) {
       const twitter = submission.user.twitter?.toLowerCase() || '';
       const discord = submission.user.discord?.toLowerCase() || '';
       const link = submission.link?.toLowerCase() || '';
-
+      const publicKey = submission.user.publicKey?.toLowerCase() || '';
       const searchLower = searchText?.toLowerCase() || '';
 
       const matchesSearch =
@@ -202,6 +202,7 @@ export default function BountySubmissions({ slug }: Props) {
         name.includes(searchLower) ||
         email.includes(searchLower) ||
         username.includes(searchLower) ||
+        publicKey.includes(searchLower) ||
         twitter.includes(searchLower) ||
         discord.includes(searchLower) ||
         link.includes(searchLower) ||

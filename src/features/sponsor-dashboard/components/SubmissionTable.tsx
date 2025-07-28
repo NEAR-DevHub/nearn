@@ -282,11 +282,11 @@ export const SubmissionTable = ({
                   ? dayjs(submission?.approveDate).format("DD MMM'YY")
                   : '';
               const listingStatus = sponsorshipSubmissionStatus(submission);
-              const isUsdBased = submission?.listing?.token === 'Any';
               const submissionLink = getSubmissionUrl(
                 submission,
                 submission?.listing,
               );
+              const isUsdBased = submission?.listing?.token === 'Any';
               const token = isUsdBased
                 ? submission.token
                 : submission?.listing?.token;
@@ -470,13 +470,14 @@ export const SubmissionTable = ({
                       variant="ghost"
                       size="sm"
                       className="ph-no-capture text-[13px] font-medium text-black"
-                      onClick={() => {
-                        posthog.capture('sponsor_submission_view');
-                        router.push(listingSubmissionLink);
-                      }}
                     >
-                      <Eye className="h-4 w-4" />
-                      View Submission
+                      <Link
+                        href={listingSubmissionLink}
+                        className="flex items-center gap-1"
+                      >
+                        <Eye className="h-4 w-4" />
+                        View Submission
+                      </Link>
                     </Button>
                   </TableCell>
                   <TableCell className="px-0 py-2">

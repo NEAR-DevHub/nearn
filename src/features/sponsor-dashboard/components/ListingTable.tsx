@@ -423,11 +423,16 @@ export const ListingTable = ({
                           router.push(listingSubmissionLink);
                         }}
                       >
-                        <Eye className="h-4 w-4" />
-                        View{' '}
-                        {listing?.type === 'grant'
-                          ? ' Applications'
-                          : ' Submissions'}
+                        <Link
+                          href={listingSubmissionLink}
+                          className="flex items-center gap-1"
+                        >
+                          <Eye className="h-4 w-4" />
+                          View{' '}
+                          {listing?.type === 'grant'
+                            ? ' Applications'
+                            : ' Submissions'}
+                        </Link>
                       </Button>
                     ) : (session?.user?.role === 'GOD' &&
                         listing.type !== 'grant' &&

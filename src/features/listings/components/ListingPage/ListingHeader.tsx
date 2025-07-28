@@ -14,7 +14,7 @@ import { Tooltip } from '@/components/ui/tooltip';
 import { ASSET_URL } from '@/constants/ASSET_URL';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { type SubmissionWithUser } from '@/interface/submission';
-import { useUser } from '@/store/user';
+import { useUpdateUser, useUser } from '@/store/user';
 import { PulseIcon } from '@/svg/pulse-icon';
 import { getBountyUrl } from '@/utils/bounty-urls';
 import { cn } from '@/utils/cn';
@@ -58,6 +58,7 @@ export function ListingHeader({
     isPrivate,
   } = listing;
   const { user } = useUser();
+  const updateUser = useUpdateUser();
   const router = useRouter();
   const posthog = usePostHog();
   const isMD = useMediaQuery('(min-width: 768px)');
@@ -174,8 +175,18 @@ export function ListingHeader({
     );
   };
 
-  const isSubmissionActive =
-    !isTemplate && router.asPath.split('/').length === 5;
+  const segments = router.asPath.split('/');
+  const isSubmissionActive = !isTemplate && segments.length === 5;
+  const submissionId = isSubmissionActive
+    ? submissions.find(
+        (submission) =>
+          submission.sequentialId === Number(segments[segments.length - 2]),
+      )?.id
+    : null;
+  const dashboardPath = `/dashboard/${isHackathon ? 'hackathon' : 'listings'}/${listing.slug}`;
+  const manageListingLink = isSubmissionActive
+    ? `${dashboardPath}/submissions?submissionId=${submissionId}`
+    : `${dashboardPath}/submissions`;
 
   const HeaderSub = () => {
     return (
@@ -267,39 +278,41 @@ export function ListingHeader({
           <div className="flex items-center gap-2">
             <SubscribeListing isTemplate={isTemplate} id={listing.id} />
             <AuthWrapper sponsorId={listing.sponsorId}>
-              <Link
-                className="hover:no-underline"
-                href={
-                  listing
-                    ? `/dashboard/${isHackathon ? 'hackathon' : 'listings'}/${listing.slug}/submissions`
-                    : ''
+              <Button
+                variant="outline"
+                className="ph-no-capture gap-2 border-slate-300 font-medium text-slate-500"
+                onClick={() =>
+                  updateUser.mutate(
+                    { currentSponsorId: listing.sponsorId },
+                    {
+                      onSuccess: () => {
+                        router.push(manageListingLink);
+                      },
+                    },
+                  )
                 }
               >
-                <Button
-                  variant="outline"
-                  className="ph-no-capture gap-2 border-slate-300 font-medium text-slate-500"
-                >
-                  Manage Listing
-                </Button>
-              </Link>
+                Manage Listing
+              </Button>
             </AuthWrapper>
             <AuthWrapper sponsorId={listing.sponsorId}>
-              <Link
-                className="hover:no-underline"
-                href={
-                  listing
-                    ? `/dashboard/${isHackathon ? 'hackathon' : 'listings'}/${listing.slug}/edit`
-                    : ''
+              <Button
+                variant="outline"
+                className="p h-no-capture gap-2 border-slate-300 font-medium text-slate-500"
+                onClick={() =>
+                  updateUser.mutate(
+                    { currentSponsorId: listing.sponsorId },
+                    {
+                      onSuccess: () => {
+                        router.push(`${dashboardPath}/edit`);
+                      },
+                    },
+                  )
                 }
               >
-                <Button
-                  variant="outline"
-                  className="ph-no-capture gap-2 border-slate-300 font-medium text-slate-500"
-                >
-                  <Pencil className="h-4 w-4" />
-                  Edit
-                </Button>
-              </Link>
+                <Pencil className="h-4 w-4" />
+                Edit
+              </Button>
             </AuthWrapper>
             <div className="hidden md:block">
               <ShareListing source="listing" listing={listing} />

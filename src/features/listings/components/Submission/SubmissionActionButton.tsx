@@ -17,7 +17,6 @@ import { AuthWrapper } from '@/features/auth/components/AuthWrapper';
 
 import { userSubmissionQuery } from '../../queries/user-submission-status';
 import { type Listing } from '../../types';
-import { isDeadlineOver } from '../../utils/deadline';
 import {
   getRegionTooltipLabel,
   userRegionEligibilty,
@@ -38,18 +37,16 @@ const InfoWrapper = ({
   hasHackathonStarted,
   regionTooltipLabel,
   hackathonStartDate,
-  pastDeadline,
 }: {
   children: React.ReactNode;
   isUserEligibleByRegion: boolean;
   hasHackathonStarted: boolean;
   regionTooltipLabel: string;
   hackathonStartDate: dayjs.Dayjs | null;
-  pastDeadline: boolean;
 }) => {
   return (
     <Tooltip
-      disabled={hasHackathonStarted && (isUserEligibleByRegion || pastDeadline)}
+      disabled={hasHackathonStarted && isUserEligibleByRegion}
       content={
         !isUserEligibleByRegion
           ? regionTooltipLabel
@@ -73,7 +70,6 @@ export const SubmissionActionButton = ({
     id,
     status,
     isPublished,
-    deadline,
     region,
     type,
     isWinnersAnnounced,
@@ -113,7 +109,6 @@ export const SubmissionActionButton = ({
   const isSponsorship = type === 'sponsorship';
   const isProject = type === 'project';
 
-  const pastDeadline = isDeadlineOver(deadline) || isWinnersAnnounced;
   const buttonState = getButtonState();
 
   const handleSubmit = () => {
@@ -140,22 +135,11 @@ export const SubmissionActionButton = ({
 
   function getButtonState() {
     if (isSubmitted && submission?.label === 'Spam') return 'spam';
-    if (isSubmitted && pastDeadline) return 'submitted';
-    if (
-      isSubmitted &&
-      !pastDeadline &&
-      submissionStatus === 'Rejected' &&
-      !isSponsorship
-    )
+    if (isSubmitted && submissionStatus === 'Rejected' && !isSponsorship)
       return 'rejected';
-    if (
-      isSubmitted &&
-      !pastDeadline &&
-      submissionStatus === 'Rejected' &&
-      isSponsorship
-    )
+    if (isSubmitted && submissionStatus === 'Rejected' && isSponsorship)
       return 'submit';
-    if (isSubmitted && !pastDeadline) {
+    if (isSubmitted) {
       if (
         isSponsorship &&
         (submission?.isPaid || submission?.status === 'Approved')
@@ -196,32 +180,19 @@ export const SubmissionActionButton = ({
       btnLoadingText = null;
       break;
 
-    case 'submitted':
-      buttonText = isProject
-        ? 'Applied Successfully'
-        : 'Submitted Successfully';
-      buttonBG = 'bg-green-600';
-      isBtnDisabled = true;
-      btnLoadingText = null;
-      break;
-
     default:
       buttonText = isProject ? 'Apply Now' : 'Submit Now';
       buttonBG = 'bg-black';
       isBtnDisabled = Boolean(
-        pastDeadline ||
-          (user?.id &&
-            user?.isTalentFilled &&
-            ((bountyDraftStatus !== 'PUBLISHED' && !query['preview']) ||
-              !hasHackathonStarted ||
-              !isUserEligibleByRegion)),
+        user?.id &&
+          user?.isTalentFilled &&
+          ((bountyDraftStatus !== 'PUBLISHED' && !query['preview']) ||
+            !hasHackathonStarted ||
+            !isUserEligibleByRegion),
       );
       btnLoadingText = 'Checking Submission..';
   }
-  if (isDeadlineOver(deadline) && !isWinnersAnnounced) {
-    buttonText = 'Submissions in Review';
-    buttonBG = 'bg-gray-500';
-  } else if (isWinnersAnnounced) {
+  if (isWinnersAnnounced) {
     buttonText = 'Winners Announced';
     buttonBG = 'bg-gray-500';
   }
@@ -273,7 +244,6 @@ export const SubmissionActionButton = ({
           hasHackathonStarted={hasHackathonStarted}
           regionTooltipLabel={regionTooltipLabel}
           hackathonStartDate={hackathonStartDate}
-          pastDeadline={pastDeadline!}
         >
           <AuthWrapper className="w-full">
             <div className="w-full">
