@@ -7,6 +7,7 @@ import { safeStringify } from '@/utils/safeStringify';
 import { type NextApiRequestWithUser } from '@/features/auth/types';
 import { withAuth } from '@/features/auth/utils/withAuth';
 import { sendEmailNotification } from '@/features/emails/utils/sendEmailNotification';
+import { isDeadlineOver } from '@/features/listings/utils/deadline';
 import { submissionSchema } from '@/features/listings/utils/submissionFormSchema';
 import { validateSubmissionRequest } from '@/features/listings/utils/validateSubmissionRequest';
 
@@ -116,6 +117,13 @@ async function submission(req: NextApiRequestWithUser, res: NextApiResponse) {
       listingId,
       false,
     );
+
+    if (isDeadlineOver(listing.deadline ?? undefined)) {
+      return res.status(400).json({
+        error: 'Deadline has passed',
+        message: 'Deadline has passed',
+      });
+    }
 
     const result = await createSubmission(
       userId as string,
