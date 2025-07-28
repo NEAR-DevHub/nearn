@@ -3,13 +3,12 @@ import { usePostHog } from 'posthog-js/react';
 import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
-import { ASSET_URL } from '@/constants/ASSET_URL';
 import { PROJECT_NAME } from '@/constants/project';
 import { useUser } from '@/store/user';
 
 import { AuthWrapper } from '@/features/auth/components/AuthWrapper';
 
-const bannerPrefix = ASSET_URL + '/category_assets/banners/';
+const bannerPrefix = '/icons/category_assets/banners/';
 
 type CategoryTypes = 'content' | 'development' | 'design' | 'other';
 

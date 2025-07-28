@@ -2,12 +2,10 @@ import { useQuery } from '@tanstack/react-query';
 import type { NextPageContext } from 'next';
 import { useMemo } from 'react';
 
-import { ASSET_URL } from '@/constants/ASSET_URL';
 import { PROJECT_NAME } from '@/constants/project';
 import { Home } from '@/layouts/Home';
 import { Meta } from '@/layouts/Meta';
 import { dayjs } from '@/utils/dayjs';
-import { getURL } from '@/utils/validUrl';
 
 import { CategoryPop } from '@/features/conversion-popups/components/CategoryPop';
 import { ListingTabs } from '@/features/listings/components/ListingTabs';
@@ -51,7 +49,7 @@ function ListingCategoryPage({ slug }: { slug: SlugKeys }) {
     slug.charAt(0).toUpperCase() + slug.slice(1).toLowerCase();
 
   const metaDescription = `Find the latest ${slug.toLowerCase()} projects and sponsorships for professionals on ${PROJECT_NAME}.`;
-  const canonicalURL = `${getURL()}/category/${slug}/`;
+  const canonicalURL = `/icons/category/${slug}/`;
 
   return (
     <Home type="category">
@@ -59,7 +57,7 @@ function ListingCategoryPage({ slug }: { slug: SlugKeys }) {
         title={title}
         description={metaDescription}
         canonical={canonicalURL}
-        og={ASSET_URL + `/og/categories/${slug}.png`}
+        og={`/icons/og/categories/${slug}.png`}
       />
       <div className="w-full">
         {slug !== 'other' && <CategoryPop category={slug} />}
