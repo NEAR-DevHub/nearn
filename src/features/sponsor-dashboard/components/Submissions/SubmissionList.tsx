@@ -289,10 +289,10 @@ export const SubmissionList = ({
               setSelectedSubmission(submission);
             }}
           >
-            <div className="flex items-center">
+            <div className="flex items-center gap-2">
               {listing?.type === 'project' && (
                 <Checkbox
-                  className="mr-2 data-[state=checked]:border-brand-green data-[state=checked]:bg-brand-green"
+                  className="data-[state=checked]:border-brand-green data-[state=checked]:bg-brand-green"
                   checked={isToggled && isToggled(submission.id)}
                   disabled={
                     listing?.isWinnersAnnounced ||
@@ -303,14 +303,15 @@ export const SubmissionList = ({
                   }
                 />
               )}
-              <p className="mr-2 w-10 text-sm font-medium text-slate-500">
-                #{submission.sequentialId}
+              <p className="w-6 shrink-0 text-xs text-slate-500">
+                {submission.sequentialId}
               </p>
               <EarnAvatar
+                className="h-8 w-8 shrink-0"
                 id={submission?.user?.id}
                 avatar={submission?.user?.photo || undefined}
               />
-              <div className="ml-2 w-28">
+              <div className="w-28">
                 <div className="flex items-center gap-2">
                   <p className="overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium text-slate-700">
                     {submission?.user?.name}
