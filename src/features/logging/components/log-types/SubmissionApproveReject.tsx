@@ -32,7 +32,7 @@ export default function SubmissionLabelChange(props: LogProperties) {
       has been
       <span
         className={cn(
-          'inline-flex rounded-full px-3 py-0.5 text-center text-sm font-medium',
+          'ml-1 inline-flex rounded-full px-3 py-0.5 text-center text-sm font-medium',
           labelStyle.bg,
           labelStyle.color,
         )}

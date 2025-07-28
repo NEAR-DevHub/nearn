@@ -1,6 +1,5 @@
 import { EventVisibility } from '@prisma/client';
 import { History } from 'lucide-react';
-import { useRouter } from 'next/router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { type SubmissionWithUser } from '@/interface/submission';
@@ -10,7 +9,6 @@ import { Comments } from '@/features/comments/components/Comments';
 import { type ListingWithSubmissions } from '@/features/listings/types';
 import {
   eventFilters,
-  type Log,
   useGetLogsInfinite,
 } from '@/features/logging/queries/logs';
 
@@ -28,26 +26,12 @@ export default function PublicLoggingWithComments({
   submission,
   isTemplate,
 }: Props) {
-  const router = useRouter();
   const [commentCount, setCommentCount] = useState(0);
   const [tab, setTab] = useState<'comments' | 'activity'>('comments');
   const [sort, setSort] = useState<'asc' | 'desc'>('desc');
 
   const refType = submission ? 'submission' : 'listing';
   const refId = submission ? submission.id : listing.id;
-
-  const onListingClick = useCallback((event: Log) => {
-    router.push(`/${event.sponsor?.slug}/${event.listing?.sequentialId}`);
-  }, []);
-
-  const onSubmissionClick = useCallback(
-    (event: Log) => {
-      router.push(
-        `/${event.sponsor?.slug}/${event.listing?.sequentialId}/${event.submission?.sequentialId}`,
-      );
-    },
-    [router],
-  );
 
   const {
     data: logsData,
@@ -143,11 +127,7 @@ export default function PublicLoggingWithComments({
       )}
       {tab === 'activity' && (
         <>
-          <LogsTimeline
-            logs={logs}
-            onListingClick={onListingClick}
-            onSubmissionClick={onSubmissionClick}
-          />
+          <LogsTimeline logs={logs} />
 
           {/* Load more trigger */}
           {hasNextPage && (

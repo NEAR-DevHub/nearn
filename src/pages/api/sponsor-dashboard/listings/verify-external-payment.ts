@@ -207,6 +207,36 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       });
     }
 
+    const bounty = await prisma.bounties.findUnique({
+      where: {
+        id: listingId,
+      },
+      include: {
+        BountyCounts: true,
+      },
+    });
+    if (
+      bounty &&
+      bounty.isWinnersAnnounced &&
+      bounty?.BountyCounts.totalPaymentsMade ===
+        bounty.BountyCounts.totalWinnersSelected
+    ) {
+      eventLogger.log({
+        eventType: EventType.SYSTEM_STATUS_CHANGED,
+        actor: {
+          type: 'SYSTEM',
+        },
+        data: {
+          oldStatus: 'Payment Pending',
+          newStatus: 'Completed',
+        },
+        entities: {
+          listingId: listingId,
+          sponsorId: userSponsorId,
+        },
+      });
+    }
+
     logger.debug(
       `Updating listing with ID: ${listingId} with new totalPaymentsMade`,
     );

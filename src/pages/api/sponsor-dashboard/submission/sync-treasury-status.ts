@@ -74,12 +74,19 @@ export default async function handler(
 
     if (proposalStatus === 'Approved' && !currentSubmission.isPaid) {
       logger.debug(`Updating submission with ID: ${id} to paid status`);
-      await prisma.submission.update({
+      const result = await prisma.submission.update({
         where: { id },
         data: {
           isPaid: true,
           paymentDetails: {
             link: paymentDetails.treasury.link,
+          },
+        },
+        include: {
+          listing: {
+            include: {
+              BountyCounts: true,
+            },
           },
         },
       });
@@ -98,6 +105,30 @@ export default async function handler(
           sponsorId: currentSubmission.listing.sponsor.id,
         },
       });
+
+      const bounty = result.listing;
+      if (
+        bounty &&
+        bounty.isWinnersAnnounced &&
+        bounty.BountyCounts.totalPaymentsMade ===
+          bounty.BountyCounts.totalWinnersSelected
+      ) {
+        eventLogger.log({
+          eventType: EventType.SYSTEM_STATUS_CHANGED,
+          actor: {
+            type: 'SYSTEM',
+          },
+          data: {
+            oldStatus: 'Payment Pending',
+            newStatus: 'Completed',
+          },
+          entities: {
+            listingId: currentSubmission.listingId,
+            sponsorId: currentSubmission.listing.sponsor.id,
+          },
+        });
+      }
+
       logger.info(`Successfully updated submission ID: ${id} to paid status`);
     } else if (proposalStatus === 'Rejected' || proposalStatus === 'Expired') {
       logger.debug(`Updating submission with ID: ${id} to unpaid status`);

@@ -143,6 +143,11 @@ export default function LogsTimeline({
                     log.listing?.type !== 'bounty'
                   ) {
                     return null;
+                  } else if (
+                    log.eventType === EventType.SUBMISSION_APPROVED &&
+                    log.listing?.type !== 'sponsorship'
+                  ) {
+                    return null;
                   }
 
                   return (

@@ -34,7 +34,7 @@ export default function Paid({ event, onSubmissionClick }: LogProperties) {
         <span>submission</span>
       )}{' '}
       and status changed to{' '}
-      <span className="inline-block rounded-xl bg-emerald-100 px-3 py-0.5 text-emerald-800">
+      <span className="inline-block rounded-xl bg-emerald-100 px-3 py-0.5 text-sm text-emerald-800">
         Paid
       </span>
     </p>

@@ -14,6 +14,7 @@ import { getSponsorSession } from '@/features/auth/utils/getSponsorSession';
 import { sendEmailNotification } from '@/features/emails/utils/sendEmailNotification';
 import { BONUS_REWARD_POSITION } from '@/features/listing-builder/constants';
 import { type Rewards } from '@/features/listings/types';
+import { isDeadlineOver } from '@/features/listings/utils/deadline';
 import { eventLogger } from '@/features/logging/services/event-logger';
 import { EventType } from '@/features/logging/types/event-data';
 
@@ -190,7 +191,7 @@ export async function POST(
 
     await Promise.all(promises);
     if (listing.type !== 'sponsorship') {
-      eventLogger.log({
+      await eventLogger.log({
         eventType: EventType.LISTING_WINNERS_ANNOUNCED,
         actor: {
           id: userId as string,
@@ -201,6 +202,22 @@ export async function POST(
             submissionId: winner.id,
             position: winner.winnerPosition ?? 0,
           })),
+        },
+        entities: {
+          listingId: id,
+          sponsorId: userSponsorId,
+        },
+      });
+      eventLogger.log({
+        eventType: EventType.SYSTEM_STATUS_CHANGED,
+        actor: {
+          type: 'SYSTEM',
+        },
+        data: {
+          oldStatus: !isDeadlineOver(listing.deadline ?? undefined)
+            ? 'In Progress'
+            : 'In Review',
+          newStatus: 'Payment Pending',
         },
         entities: {
           listingId: id,

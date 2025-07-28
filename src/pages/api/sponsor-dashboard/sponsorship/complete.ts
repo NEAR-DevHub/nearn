@@ -49,7 +49,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       : dayjs().subtract(2, 'minute').toISOString();
 
     logger.debug('Updating sponsorship details with winner announcement');
-    await prisma.bounties.update({
+    const bounty = await prisma.bounties.update({
       where: { id: listingId },
       data: {
         isWinnersAnnounced: true,
@@ -57,7 +57,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
         winnersAnnouncedAt: new Date().toISOString(),
       },
       include: {
-        sponsor: true,
+        BountyCounts: true,
       },
     });
 
@@ -72,6 +72,25 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
         sponsorId: userSponsorId,
       },
       data: {},
+    });
+
+    eventLogger.log({
+      eventType: EventType.SYSTEM_STATUS_CHANGED,
+      actor: {
+        type: 'SPONSOR',
+      },
+      data: {
+        oldStatus: 'In Review',
+        newStatus:
+          bounty.BountyCounts.totalPaymentsMade !==
+          bounty.BountyCounts.totalWinnersSelected
+            ? 'Payment Pending'
+            : 'Completed',
+      },
+      entities: {
+        sponsorId: userSponsorId,
+        listingId: listingId,
+      },
     });
 
     return res.status(200).json({ message: 'Listing closed' });
