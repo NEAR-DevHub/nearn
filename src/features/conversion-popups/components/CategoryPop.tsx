@@ -21,7 +21,6 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from '@/components/ui/drawer';
-import { ASSET_URL } from '@/constants/ASSET_URL';
 import { PROJECT_NAME } from '@/constants/project';
 import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { useTimeout } from '@/hooks/use-timeout';
@@ -119,7 +118,7 @@ export const CategoryPop = ({ category }: { category: CategoryKeys }) => {
     setVariant({
       title: '',
       description: '',
-      icon: ASSET_URL + `/category_assets/icons/${category}.png`,
+      icon: `/icons/category_assets/icons/${category}.png`,
       ...currentCategoryInfo[newVariant],
     });
 

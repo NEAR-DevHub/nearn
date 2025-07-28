@@ -73,7 +73,14 @@ export default function SubmissionStatusExplanation({
               </li>
             )}
             {explanation.editable && (
-              <li>The submission can be edited by the submitter</li>
+              <>
+                <li>The submission can be edited by the submitter</li>
+                <li>
+                  Submissions remain editable while in the &apos;NEW&apos;
+                  status, even after the listing deadline. Once the status
+                  changes, submissions become locked.
+                </li>
+              </>
             )}
             {explanation.locked && (
               <li>The submission is locked and cannot be edited</li>
