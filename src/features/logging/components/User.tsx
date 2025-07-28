@@ -79,23 +79,23 @@ export default function User({
       {showListingExtraInfo && event.listing && (
         <>
           <span className="text-slate-500">in</span>
-          <a
+          <button
             onClick={() => onListingClick?.(event)}
             className="text-sm font-medium text-slate-900"
           >
             {event.listing.title}
-          </a>
+          </button>
         </>
       )}
       {showSubmissionExtraInfo && event.submission && (
         <>
           <span className="text-slate-500">for</span>
-          <a
+          <button
             onClick={() => onSubmissionClick?.(event)}
             className="text-sm font-medium text-slate-900"
           >
             #{event.submission.sequentialId}
-          </a>
+          </button>
         </>
       )}
 
