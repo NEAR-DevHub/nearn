@@ -26,7 +26,12 @@ if (NEAR_ACCOUNT_PRIVATE_KEY !== '') {
 
 const jsonProviders = [
   new nearApi.providers.JsonRpcProvider(
-    { url: 'https://free.rpc.fastnear.com' },
+    {
+      url: 'https://archival-rpc.mainnet.fastnear.com',
+      headers: {
+        Authorization: `Bearer ${process.env.FASTNEAR_API_KEY || ''}`,
+      },
+    },
     {
       retries: 3,
       backoff: 2,
