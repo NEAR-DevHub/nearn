@@ -344,6 +344,10 @@ export default function BountySubmissions({ slug }: Props) {
             bounty={bounty}
             refetchBounty={refetchBounty}
             totalSubmissions={submissions?.length || 0}
+            setSelectedSubmission={(submissionId) => {
+              setSelectedSubmissionId(submissionId);
+              console.log('submissionId', submissionId);
+            }}
             allTransactionsVerified={
               submissions?.every(
                 (submission) =>

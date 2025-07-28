@@ -15,16 +15,16 @@ export default function SubmissionLabelChange(props: LogProperties) {
   const username = event.submission?.user.username;
 
   return (
-    <p className="inline-flex items-center gap-1 text-slate-500">
+    <p className="items-center text-slate-500">
       <a href={`/t/${username}`} className="font-medium">
         @{username}
       </a>{' '}
       <a
-        href={`/${event.sponsor?.slug}/${event.listing?.sequentialId}/${event.submission?.sequentialId}`}
         className="font-medium"
+        onClick={() => props.onSubmissionClick?.(event)}
       >
         submission
-      </a>
+      </a>{' '}
       has been
       <span
         className={cn(

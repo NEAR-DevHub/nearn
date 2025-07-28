@@ -21,8 +21,8 @@ export default function SubmissionLabelChange(props: LogProperties) {
         @{username}
       </a>{' '}
       <a
-        href={`/${event.sponsor?.slug}/${event.listing?.sequentialId}/${event.submission?.sequentialId}`}
         className="font-medium"
+        onClick={() => props.onSubmissionClick?.(event)}
       >
         submission
       </a>{' '}

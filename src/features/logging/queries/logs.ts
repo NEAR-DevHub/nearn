@@ -94,7 +94,6 @@ export type Log = EventLog & {
   };
   submission?: {
     sequentialId: number;
-    id?: string;
     user: {
       username: string;
     };

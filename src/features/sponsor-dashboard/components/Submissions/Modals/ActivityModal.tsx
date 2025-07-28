@@ -1,5 +1,5 @@
 import { Clock2, Loader2 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -13,18 +13,34 @@ import {
 
 import ActivityFilters from '@/features/logging/components/ActivityFilters';
 import LogsTimeline from '@/features/logging/components/LogsTimeline';
-import { eventFilters, useGetLogsInfinite } from '@/features/logging/queries';
+import {
+  eventFilters,
+  type Log,
+  useGetLogsInfinite,
+} from '@/features/logging/queries';
 
 interface ActivityModalProps {
   listingId?: string;
+  setSelectedSubmission: (submissionId: string) => void;
 }
 
-export const ActivityModal = ({ listingId }: ActivityModalProps) => {
+export const ActivityModal = ({
+  listingId,
+  setSelectedSubmission,
+}: ActivityModalProps) => {
   const [filter, setFilter] = useState<
     'all' | 'listing' | 'submission' | 'payments' | 'comments'
   >('all');
   const [sort, setSort] = useState<'asc' | 'desc'>('desc');
   const [isOpen, setIsOpen] = useState(false);
+
+  const handleSubmissionClick = useCallback(
+    (event: Log) => {
+      setSelectedSubmission(event.submissionId ?? '');
+      setIsOpen(false);
+    },
+    [setSelectedSubmission, setIsOpen],
+  );
 
   const {
     data: logsData,
@@ -110,7 +126,11 @@ export const ActivityModal = ({ listingId }: ActivityModalProps) => {
             </div>
           )}
           {logs.length > 0 && (
-            <LogsTimeline logs={logs} showExtraInfo="submission" />
+            <LogsTimeline
+              logs={logs}
+              showExtraInfo="submission"
+              onSubmissionClick={handleSubmissionClick}
+            />
           )}
           {hasNextPage && (
             <Button

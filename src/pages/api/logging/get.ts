@@ -217,6 +217,17 @@ async function submission(
               },
             },
           },
+          ...(parseInt(searchText)
+            ? [
+                {
+                  submission: {
+                    sequentialId: {
+                      equals: parseInt(searchText),
+                    },
+                  },
+                },
+              ]
+            : []),
         ],
       }
     : {};
@@ -258,7 +269,6 @@ async function submission(
       include: {
         submission: {
           select: {
-            id: true,
             sequentialId: true,
             user: {
               select: {
@@ -342,13 +352,9 @@ async function submission(
                 private: undefined,
               }
             : undefined,
+        submissionId: !isAtLeastSponsor ? undefined : log.submissionId,
         // We don't want to expose who behind the scenes for sponsors
         actorId: actorHidden ? undefined : log.actorId,
-        submission: {
-          ...log.submission,
-          id:
-            isAtLeastSponsor && log.submission ? log.submission.id : undefined,
-        },
         comment: log.comment
           ? {
               ...log.comment,

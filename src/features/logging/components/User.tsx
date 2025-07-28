@@ -19,6 +19,8 @@ export default function User({
   event,
   showExtraInfo,
   hideActorRole = false,
+  onListingClick,
+  onSubmissionClick,
 }: Properties) {
   const now = dayjs();
   const date = now.isSame(dayjs(event.eventTime), 'day')
@@ -74,31 +76,28 @@ export default function User({
             : 'Sponsor'}
         </span>
       )}
-      {showListingExtraInfo && event.listing?.slug && (
+      {showListingExtraInfo && event.listing && (
         <>
           <span className="text-slate-500">in</span>
           <a
-            href={`/dashboard/listings/${event.listing.slug}/submissions/`}
+            onClick={() => onListingClick?.(event)}
             className="text-sm font-medium text-slate-900"
           >
             {event.listing.title}
           </a>
         </>
       )}
-      {showSubmissionExtraInfo &&
-        event.sponsor?.slug &&
-        event.listing?.slug &&
-        event.submission?.id && (
-          <>
-            <span className="text-slate-500">for</span>
-            <a
-              href={`/dashboard/listings/${event.listing.slug}/submissions/?submissionId=${event.submission.id}`}
-              className="text-sm font-medium text-slate-900"
-            >
-              #{event.submission.sequentialId}
-            </a>
-          </>
-        )}
+      {showSubmissionExtraInfo && event.submission && (
+        <>
+          <span className="text-slate-500">for</span>
+          <a
+            onClick={() => onSubmissionClick?.(event)}
+            className="text-sm font-medium text-slate-900"
+          >
+            #{event.submission.sequentialId}
+          </a>
+        </>
+      )}
 
       <Tooltip content={fullDate}>
         <span className="text-sm font-medium text-slate-400">{date}</span>

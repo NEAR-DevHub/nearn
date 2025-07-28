@@ -2,6 +2,7 @@ import { Separator } from '@radix-ui/react-select';
 import { useQuery } from '@tanstack/react-query';
 import debounce from 'lodash.debounce';
 import { Search } from 'lucide-react';
+import router from 'next/router';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { LoadingSection } from '@/components/shared/LoadingSection';
@@ -14,6 +15,7 @@ import { useUser } from '@/store/user';
 import LogsTimeline from '@/features/logging/components/LogsTimeline';
 import {
   eventFilters,
+  type Log,
   useGetLogsInfinite,
 } from '@/features/logging/queries/logs';
 import { Banner } from '@/features/sponsor-dashboard/components/Banner';
@@ -66,6 +68,22 @@ export default function ActivityHistory() {
     if (!data?.pages) return [];
     return data.pages.flatMap((page) => page.logs);
   }, [data]);
+
+  const onSubmissionClick = useCallback(
+    (event: Log) => {
+      router.push(
+        `/dashboard/listings/${event.listing?.slug}/submissions?submissionId=${event.submissionId}`,
+      );
+    },
+    [router],
+  );
+
+  const onListingClick = useCallback(
+    (event: Log) => {
+      router.push(`/dashboard/listings/${event.listing?.slug}/submissions`);
+    },
+    [router],
+  );
 
   // Intersection observer for infinite scroll
   const observerRef = useRef<HTMLDivElement>(null);
@@ -139,6 +157,8 @@ export default function ActivityHistory() {
                 logs={logs}
                 showExtraInfo="both"
                 hideActorRole
+                onListingClick={onListingClick}
+                onSubmissionClick={onSubmissionClick}
               />
 
               {/* Load more trigger */}

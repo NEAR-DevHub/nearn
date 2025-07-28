@@ -13,17 +13,6 @@ export default function Comment(props: LogProperties) {
 
   // Get submission and listing data
   const submissionUsername = event.submission?.user?.username;
-  const submissionId = event.submission?.sequentialId;
-  const listingId = event.listing?.sequentialId;
-  const sponsorSlug = event.sponsor?.slug;
-
-  // Build links
-  const submissionLink =
-    sponsorSlug && listingId && submissionId
-      ? `/${sponsorSlug}/${listingId}/${submissionId}`
-      : null;
-  const listingLink =
-    sponsorSlug && listingId ? `/${sponsorSlug}/${listingId}` : null;
 
   return (
     <div className="flex flex-col gap-1">
@@ -46,28 +35,27 @@ export default function Comment(props: LogProperties) {
             <a href={`/t/${submissionUsername}`} className="font-medium">
               @{submissionUsername}
             </a>{' '}
-            {submissionLink ? (
-              <a href={submissionLink} className="font-medium">
-                submission
-              </a>
-            ) : (
-              'submission'
-            )}
+            <a
+              className="font-medium"
+              onClick={() => props.onSubmissionClick?.(event)}
+            >
+              submission
+            </a>
           </>
         )}
 
         {/* Handle comment on listing */}
-        {!repliedToUsername &&
-          !submissionUsername &&
-          listingLink &&
-          !isDeleted && (
-            <>
-              Commented on{' '}
-              <a href={listingLink} className="font-medium">
-                listing
-              </a>
-            </>
-          )}
+        {!repliedToUsername && !submissionUsername && !isDeleted && (
+          <>
+            Commented on{' '}
+            <a
+              className="font-medium"
+              onClick={() => props.onListingClick?.(event)}
+            >
+              listing
+            </a>
+          </>
+        )}
 
         {/* Handle deleted comment */}
         {isDeleted && <>Deleted comment</>}

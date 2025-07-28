@@ -22,6 +22,8 @@ import TreasuryProposal from './TreasuryProposal';
 
 export interface LogProperties {
   event: Log;
+  onSubmissionClick?: (event: Log) => void;
+  onListingClick?: (event: Log) => void;
 }
 
 const LOG_IMPLEMENTATION_MAPPING: Record<

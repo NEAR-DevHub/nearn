@@ -228,7 +228,7 @@ export default function SubmissionEdit({ event }: LogProperties) {
   return (
     <div className="flex flex-col gap-1">
       {changeElements.map((element, index) => (
-        <p key={index}>{element}</p>
+        <div key={index}>{element}</div>
       ))}
     </div>
   );

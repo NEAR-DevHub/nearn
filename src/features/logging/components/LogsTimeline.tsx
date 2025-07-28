@@ -31,6 +31,8 @@ import Log from './Log';
 
 interface Properties {
   logs?: LogType[];
+  onListingClick?: (event: LogType) => void;
+  onSubmissionClick?: (event: LogType) => void;
   showExtraInfo?: 'listing' | 'submission' | 'both';
   hideActorRole?: boolean;
 }
@@ -71,6 +73,8 @@ const eventIcons: Record<EventType, React.ReactNode> = {
 
 export default function LogsTimeline({
   logs,
+  onListingClick,
+  onSubmissionClick,
   showExtraInfo,
   hideActorRole,
 }: Properties) {
@@ -158,6 +162,8 @@ export default function LogsTimeline({
                           event={log}
                           showExtraInfo={showExtraInfo}
                           hideActorRole={hideActorRole}
+                          onListingClick={onListingClick}
+                          onSubmissionClick={onSubmissionClick}
                         />
                       </div>
                     </div>
