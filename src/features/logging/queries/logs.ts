@@ -94,6 +94,7 @@ export type Log = EventLog & {
   };
   submission?: {
     sequentialId: number;
+    id?: string;
     user: {
       username: string;
     };
@@ -102,6 +103,7 @@ export type Log = EventLog & {
     sequentialId: number;
     type: 'bounty' | 'sponsorship' | 'project' | 'hackathon';
     title: string;
+    slug: string;
     poc: {
       username: string;
     };

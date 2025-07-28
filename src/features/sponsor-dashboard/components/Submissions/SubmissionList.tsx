@@ -303,17 +303,9 @@ export const SubmissionList = ({
                   }
                 />
               )}
-<<<<<<< HEAD
               <p className="w-6 shrink-0 text-xs text-slate-500">
                 {submission.sequentialId}
               </p>
-=======
-              {submission?.sequentialId && (
-                <p className="mr-2 text-sm font-medium text-slate-500">
-                  #{submission?.sequentialId}
-                </p>
-              )}
->>>>>>> 09755f9de (improved a bit clarity for which submission the note is)
               <EarnAvatar
                 className="h-8 w-8 shrink-0"
                 id={submission?.user?.id}

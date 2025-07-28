@@ -74,27 +74,25 @@ export default function User({
             : 'Sponsor'}
         </span>
       )}
-      {showListingExtraInfo &&
-        event.sponsor?.slug &&
-        event.listing?.sequentialId && (
-          <>
-            <span className="text-slate-500">in</span>
-            <a
-              href={`/${event.sponsor?.slug}/${event.listing?.sequentialId}`}
-              className="text-sm font-medium text-slate-900"
-            >
-              {event.listing.title}
-            </a>
-          </>
-        )}
+      {showListingExtraInfo && event.listing?.slug && (
+        <>
+          <span className="text-slate-500">in</span>
+          <a
+            href={`/dashboard/listings/${event.listing.slug}/submissions/`}
+            className="text-sm font-medium text-slate-900"
+          >
+            {event.listing.title}
+          </a>
+        </>
+      )}
       {showSubmissionExtraInfo &&
         event.sponsor?.slug &&
-        event.listing?.sequentialId &&
-        event.submission?.sequentialId && (
+        event.listing?.slug &&
+        event.submission?.id && (
           <>
             <span className="text-slate-500">for</span>
             <a
-              href={`/${event.sponsor?.slug}/${event.listing?.sequentialId}/${event.submission?.sequentialId}`}
+              href={`/dashboard/listings/${event.listing.slug}/submissions/?submissionId=${event.submission.id}`}
               className="text-sm font-medium text-slate-900"
             >
               #{event.submission.sequentialId}

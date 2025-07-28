@@ -258,6 +258,7 @@ async function submission(
       include: {
         submission: {
           select: {
+            id: true,
             sequentialId: true,
             user: {
               select: {
@@ -269,6 +270,7 @@ async function submission(
         listing: {
           select: {
             sequentialId: true,
+            slug: true,
             type: true,
             title: true,
             poc: {
@@ -326,9 +328,9 @@ async function submission(
     });
 
     const processedLogs = logs.map((log) => {
+      const isAtLeastSponsor = isRoleAtLeast(visibility, 'SPONSOR');
       const actorHidden =
-        log.actorType === ActorType.SPONSOR &&
-        !isRoleAtLeast(visibility, 'SPONSOR');
+        log.actorType === ActorType.SPONSOR && !isAtLeastSponsor;
 
       return {
         ...log,
@@ -342,6 +344,11 @@ async function submission(
             : undefined,
         // We don't want to expose who behind the scenes for sponsors
         actorId: actorHidden ? undefined : log.actorId,
+        submission: {
+          ...log.submission,
+          id:
+            isAtLeastSponsor && log.submission ? log.submission.id : undefined,
+        },
         comment: log.comment
           ? {
               ...log.comment,
