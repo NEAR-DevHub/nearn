@@ -8,13 +8,8 @@ import {
   Search,
 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { LoadingSection } from '@/components/shared/LoadingSection';
 import { Button } from '@/components/ui/button';
@@ -47,14 +42,36 @@ const MemoizedListingTable = React.memo(ListingTable);
 export default function SponsorListings() {
   const { user } = useUser();
   const { data: session } = useSession();
+
+  const [queryParams, setQueryParams] = useQueryStates(
+    {
+      page: parseAsInteger.withDefault(0),
+      tab: parseAsString.withDefault('all'),
+      status: parseAsString,
+      sortColumn: parseAsString.withDefault('createdAt'),
+      sortDirection: parseAsString.withDefault('desc'),
+    },
+    {
+      shallow: false,
+    },
+  );
+
+  const {
+    page: currentPage,
+    tab: selectedTab,
+    status: selectedStatus,
+    sortColumn,
+    sortDirection,
+  } = queryParams;
+
   const [searchText, setSearchText] = useState('');
-  const [currentPage, setCurrentPage] = useState(0);
-  const [selectedTab, setSelectedTab] = useState('all');
-  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
-  const [currentSort, setCurrentSort] = useState<{
-    column: string;
-    direction: 'asc' | 'desc' | null;
-  }>({ column: '', direction: null });
+  const debouncedSearchText = debounce(setSearchText, 300);
+
+  const currentSort = {
+    column: sortColumn,
+    direction: sortDirection as 'asc' | 'desc' | null,
+  };
+
   const listingsPerPage = 15;
 
   const { data: sponsorStats, isLoading: isStatsLoading } = useQuery(
@@ -66,23 +83,11 @@ export default function SponsorListings() {
     isLoading: isListingsLoading,
     refetch: refetchListings,
   } = useQuery(dashboardQuery(user?.currentSponsorId));
-
-  const debouncedSetSearchText = useRef(debounce(setSearchText, 300)).current;
-
   useEffect(() => {
     return () => {
-      debouncedSetSearchText.cancel();
+      debouncedSearchText.cancel();
     };
-  }, [debouncedSetSearchText]);
-
-  useEffect(() => {
-    if (user?.currentSponsorId) {
-      setSearchText('');
-      setCurrentPage(0);
-      setSelectedTab('all');
-      setSelectedStatus(null);
-    }
-  }, [user?.currentSponsorId]);
+  }, [debouncedSearchText]);
 
   const {
     isOpen: isOpenCreateListing,
@@ -119,31 +124,31 @@ export default function SponsorListings() {
       );
     }
 
-    const statusOrder = [
-      'Draft',
-      'Ongoing',
-      'In Progress',
-      'In Review',
-      'Payment Pending',
-      'Completed',
-    ];
-
     if (currentSort.direction && currentSort.column) {
       return [...filtered].sort((a, b) => {
-        const factor = currentSort.direction === 'asc' ? 1 : -1;
+        const factor = currentSort.direction === 'desc' ? 1 : -1;
 
         switch (currentSort.column) {
           case 'id':
             const idA = a.sequentialId || 0;
             const idB = b.sequentialId || 0;
             return (idB - idA) * factor;
+
           case 'status':
             const statusA = getListingStatus(a);
             const statusB = getListingStatus(b);
+            const statusOrder = [
+              'Draft',
+              'Ongoing',
+              'In Progress',
+              'In Review',
+              'Payment Pending',
+              'Completed',
+            ];
             const indexA = statusOrder.indexOf(statusA);
             const indexB = statusOrder.indexOf(statusB);
-
             return (indexB - indexA) * factor;
+
           case 'title':
             const titleA = a.title || '';
             const titleB = b.title || '';
@@ -158,6 +163,15 @@ export default function SponsorListings() {
             const deadlineA = a.deadline ? new Date(a.deadline).getTime() : 0;
             const deadlineB = b.deadline ? new Date(b.deadline).getTime() : 0;
             return (deadlineB - deadlineA) * factor;
+
+          case 'createdAt':
+            const createdAtA = a.publishedAt
+              ? new Date(a.publishedAt).getTime()
+              : 0;
+            const createdAtB = b.publishedAt
+              ? new Date(b.publishedAt).getTime()
+              : 0;
+            return (createdAtB - createdAtA) * factor;
 
           default:
             return 0;
@@ -200,25 +214,29 @@ export default function SponsorListings() {
     return filters;
   }, [hasGrants, session?.user?.role]);
 
-  const handleStatusFilterChange = useCallback((status: string | null) => {
-    setSelectedStatus(status);
-    setCurrentPage(0);
-  }, []);
+  const handleStatusFilterChange = useCallback(
+    (status: string | null) => {
+      setQueryParams({ status, page: 0 });
+    },
+    [setQueryParams],
+  );
 
-  const handleTabChange = useCallback((value: string) => {
-    const valueToType = {
-      all: 'all',
-      bounties: 'bounty',
-      projects: 'project',
-      sponsorships: 'sponsorship',
-      grants: 'grant',
-      hackathons: 'hackathon',
-    };
+  const handleTabChange = useCallback(
+    (value: string) => {
+      const valueToType = {
+        all: 'all',
+        bounties: 'bounty',
+        projects: 'project',
+        sponsorships: 'sponsorship',
+        grants: 'grant',
+        hackathons: 'hackathon',
+      };
 
-    const tabType = valueToType[value as keyof typeof valueToType] || 'all';
-    setSelectedTab(tabType);
-    setCurrentPage(0);
-  }, []);
+      const tabType = valueToType[value as keyof typeof valueToType] || 'all';
+      setQueryParams({ tab: tabType, page: 0 });
+    },
+    [setQueryParams],
+  );
 
   return (
     <SponsorLayout>
@@ -295,7 +313,9 @@ export default function SponsorListings() {
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <Input
               className="placeholder:text-md border-slate-300 bg-white pl-9 placeholder:font-medium placeholder:text-slate-400 focus-visible:ring-black"
-              onChange={(e) => debouncedSetSearchText(e.target.value)}
+              onChange={async (e) => {
+                debouncedSearchText(e.target.value);
+              }}
               placeholder="Search listing..."
               type="text"
             />
@@ -306,7 +326,19 @@ export default function SponsorListings() {
       {isListingsLoading && <LoadingSection />}
       {!isListingsLoading && (
         <>
-          <Tabs onValueChange={handleTabChange} defaultValue="all">
+          <Tabs
+            onValueChange={handleTabChange}
+            value={
+              {
+                all: 'all',
+                bounty: 'bounties',
+                project: 'projects',
+                sponsorship: 'sponsorships',
+                grant: 'grants',
+                hackathon: 'hackathons',
+              }[selectedTab] || 'all'
+            }
+          >
             <TabsList>
               <TabsTrigger value="all">All</TabsTrigger>
               <TabsTrigger value="bounties">Bounties</TabsTrigger>
@@ -325,7 +357,10 @@ export default function SponsorListings() {
                 refreshListings={refetchListings}
                 currentSort={currentSort}
                 onSort={(column, direction) =>
-                  setCurrentSort({ column, direction })
+                  setQueryParams({
+                    sortColumn: column,
+                    sortDirection: direction || 'desc',
+                  })
                 }
               />
             </TabsContent>
@@ -336,7 +371,10 @@ export default function SponsorListings() {
                 refreshListings={refetchListings}
                 currentSort={currentSort}
                 onSort={(column, direction) =>
-                  setCurrentSort({ column, direction })
+                  setQueryParams({
+                    sortColumn: column,
+                    sortDirection: direction || 'desc',
+                  })
                 }
               />
             </TabsContent>
@@ -347,7 +385,10 @@ export default function SponsorListings() {
                 refreshListings={refetchListings}
                 currentSort={currentSort}
                 onSort={(column, direction) =>
-                  setCurrentSort({ column, direction })
+                  setQueryParams({
+                    sortColumn: column,
+                    sortDirection: direction || 'desc',
+                  })
                 }
               />
             </TabsContent>
@@ -358,7 +399,10 @@ export default function SponsorListings() {
                 refreshListings={refetchListings}
                 currentSort={currentSort}
                 onSort={(column, direction) =>
-                  setCurrentSort({ column, direction })
+                  setQueryParams({
+                    sortColumn: column,
+                    sortDirection: direction || 'desc',
+                  })
                 }
               />
             </TabsContent>
@@ -370,7 +414,10 @@ export default function SponsorListings() {
                   refreshListings={refetchListings}
                   currentSort={currentSort}
                   onSort={(column, direction) =>
-                    setCurrentSort({ column, direction })
+                    setQueryParams({
+                      sortColumn: column,
+                      sortDirection: direction || 'desc',
+                    })
                   }
                 />
               </TabsContent>
@@ -383,7 +430,10 @@ export default function SponsorListings() {
                   refreshListings={refetchListings}
                   currentSort={currentSort}
                   onSort={(column, direction) =>
-                    setCurrentSort({ column, direction })
+                    setQueryParams({
+                      sortColumn: column,
+                      sortDirection: direction || 'desc',
+                    })
                   }
                 />
               </TabsContent>
@@ -412,7 +462,7 @@ export default function SponsorListings() {
               <div className="flex gap-4">
                 <Button
                   disabled={currentPage <= 0}
-                  onClick={() => setCurrentPage(currentPage - 1)}
+                  onClick={() => setQueryParams({ page: currentPage - 1 })}
                   size="sm"
                   variant="outline"
                 >
@@ -425,7 +475,7 @@ export default function SponsorListings() {
                     (currentPage + 1) * listingsPerPage >=
                     filteredListings.length
                   }
-                  onClick={() => setCurrentPage(currentPage + 1)}
+                  onClick={() => setQueryParams({ page: currentPage + 1 })}
                   size="sm"
                   variant="outline"
                 >
