@@ -1,11 +1,11 @@
 import {
   type ActorType,
-  type EventLog,
   type EventVisibility,
   type Prisma,
   type PrismaClient,
 } from '@prisma/client';
 
+import logger from '@/lib/logger';
 import { prisma } from '@/prisma';
 
 import { type EventDataMap, EventType } from '../types/event-data';
@@ -25,8 +25,8 @@ export interface Log<T extends EventType> {
 }
 
 export interface EventLogger {
-  log<T extends EventType>(params: Log<T>): Promise<EventLog>;
-  bulkLog(events: Array<Log<EventType>>): Promise<EventLog[]>;
+  log<T extends EventType>(params: Log<T>): Promise<void>;
+  bulkLog(events: Array<Log<EventType>>): Promise<void>;
 }
 
 /**
@@ -76,11 +76,11 @@ class EventLoggerService implements EventLogger {
     this.prisma = prismaClient;
   }
 
-  async log<T extends EventType>(params: Log<T>): Promise<EventLog> {
-    return (await this.bulkLog([params]))[0]!;
+  async log<T extends EventType>(params: Log<T>): Promise<void> {
+    await this.bulkLog([params]);
   }
 
-  async bulkLog(events: Array<Log<EventType>>): Promise<EventLog[]> {
+  async bulkLog(events: Array<Log<EventType>>): Promise<void> {
     const eventData = events.map(
       (event) =>
         ({
@@ -98,18 +98,11 @@ class EventLoggerService implements EventLogger {
     );
 
     try {
-      const createdEvents = await this.prisma.eventLog.createMany({
+      await this.prisma.eventLog.createMany({
         data: eventData,
         skipDuplicates: true,
       });
-
-      // Fetch and return the created events
-      const lastEvents = await this.prisma.eventLog.findMany({
-        take: createdEvents.count,
-        orderBy: { createdAt: 'desc' },
-      });
-
-      return lastEvents;
+      logger.info(`Successfully logged ${events.length} events`);
     } catch (error) {
       console.error('Failed to bulk log events:', error);
       throw new Error(
