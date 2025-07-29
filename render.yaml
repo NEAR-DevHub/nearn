@@ -287,6 +287,7 @@ services:
   - type: cron
     name: check-listing-status-staging
     runtime: node
+    region: frankfurt
     schedule: '*/10 * * * *' # Every 5 minutes for staging
     buildCommand: 'true'
     startCommand: |
@@ -302,6 +303,7 @@ services:
     runtime: node
     schedule: '30 2 * * *' # Daily at 2:30 UTC
     buildCommand: 'true'
+    region: frankfurt
     startCommand: |
       curl -X GET https://nearn-app-staging.onrender.com/api/cron/sync-treasury-payments -H "Authorization: Bearer $CRON_SECRET"
     envVars:
