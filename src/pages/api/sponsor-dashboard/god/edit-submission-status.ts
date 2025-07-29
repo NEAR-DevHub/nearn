@@ -74,6 +74,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       updateData.paidBy = null;
       updateData.approvedBy = null;
       updateData.winnerPosition = null;
+      updateData.isWinner = false;
     }
 
     const isApproving =
@@ -82,6 +83,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
     if (isApproving) {
       updateData.approveDate = new Date();
       updateData.approvedBy = userId;
+      updateData.isWinner = true;
     }
 
     const result = await prisma.submission.update({
@@ -119,10 +121,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
           });
         }
       }
-    } else if (
-      status === 'Approved' &&
-      currentSubmission.status !== 'Approved'
-    ) {
+    } else if (isApproving) {
       if (currentSubmission.listing.compensationType !== 'fixed') {
         logger.debug('Fetching token USD value for variable compensation');
         const tokenUSDValue =
@@ -154,6 +153,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
           where: { id },
           data: {
             winnerPosition: maxPosition + 1,
+            isWinner: true,
             updatedAt: new Date(),
           },
         });
