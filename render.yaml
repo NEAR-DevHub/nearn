@@ -291,7 +291,7 @@ services:
     schedule: '*/10 * * * *' # Every 5 minutes for staging
     buildCommand: 'true'
     startCommand: |
-      curl -X GET https://nearn-app-staging.onrender.com/api/cron/check-listing-status -H "Authorization: Bearer $CRON_SECRET"
+      bash ./scripts/cron-wrapper.sh https://nearn-app-staging.onrender.com/api/cron/check-listing-status
     envVars:
       - key: CRON_SECRET
         fromService:
@@ -305,7 +305,7 @@ services:
     buildCommand: 'true'
     region: frankfurt
     startCommand: |
-      curl -X GET https://nearn-app-staging.onrender.com/api/cron/sync-treasury-payments -H "Authorization: Bearer $CRON_SECRET"
+      bash ./scripts/cron-wrapper.sh https://nearn-app-staging.onrender.com/api/cron/sync-treasury-payments
     envVars:
       - key: CRON_SECRET
         fromService:
