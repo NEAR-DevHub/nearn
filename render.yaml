@@ -307,7 +307,7 @@ services:
     envVars:
       - key: CRON_SECRET
         fromService:
-          name: nearn-app-staging
+          name: nearn-app
           type: web
           envVarKey: CRON_SECRET
 

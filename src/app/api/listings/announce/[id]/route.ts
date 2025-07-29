@@ -154,6 +154,8 @@ export async function POST(
         }),
       );
 
+      currentIndex += 1;
+
       if (listing.type === 'sponsorship') {
         const existingEventLog = await prisma.eventLog.findFirst({
           where: {
@@ -185,8 +187,6 @@ export async function POST(
           },
         }),
       );
-
-      currentIndex += 1;
     }
 
     await Promise.all(promises);
@@ -208,7 +208,7 @@ export async function POST(
           sponsorId: userSponsorId,
         },
       });
-      eventLogger.log({
+      await eventLogger.log({
         eventType: EventType.SYSTEM_STATUS_CHANGED,
         actor: {
           type: 'SYSTEM',
