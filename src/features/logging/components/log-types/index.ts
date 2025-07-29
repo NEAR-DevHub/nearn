@@ -62,6 +62,7 @@ const LOG_IMPLEMENTATION_MAPPING: Record<
   [EventType.TREASURY_PROPOSAL_APPROVED]: TreasuryProposal,
   [EventType.TREASURY_PROPOSAL_REJECTED]: TreasuryProposal,
   [EventType.TREASURY_PROPOSAL_EXPIRED]: TreasuryProposal,
+  [EventType.SYSTEM_STATUS_IN_REVIEW]: SystemStatusChanged,
   [EventType.SYSTEM_STATUS_CHANGED]: SystemStatusChanged,
 };
 

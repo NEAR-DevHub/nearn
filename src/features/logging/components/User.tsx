@@ -51,7 +51,7 @@ export default function User({
         <span className="text-sm font-medium text-slate-900">
           {PROJECT_NAME}
         </span>
-        <Tooltip content={fullDate}>
+        <Tooltip content={fullDate} contentProps={{ className: 'z-[1000]' }}>
           <span className="text-sm font-medium text-slate-400">{date}</span>
         </Tooltip>
       </div>

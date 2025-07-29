@@ -38,6 +38,7 @@ export enum EventType {
   TREASURY_PROPOSAL_REJECTED = 'TREASURY_PROPOSAL_REJECTED',
   TREASURY_PROPOSAL_EXPIRED = 'TREASURY_PROPOSAL_EXPIRED',
   SYSTEM_STATUS_CHANGED = 'SYSTEM_STATUS_CHANGED',
+  SYSTEM_STATUS_IN_REVIEW = 'SYSTEM_STATUS_IN_REVIEW',
 }
 
 /**
@@ -277,6 +278,10 @@ export interface EventDataMap {
     // TODO:
     oldStatus: string;
     newStatus: string;
+  };
+
+  [EventType.SYSTEM_STATUS_IN_REVIEW]: {
+    deadline: Date;
   };
 }
 

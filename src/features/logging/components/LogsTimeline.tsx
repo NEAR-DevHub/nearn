@@ -69,6 +69,7 @@ const eventIcons: Record<EventType, React.ReactNode> = {
   [EventType.TREASURY_PROPOSAL_REJECTED]: <RefreshCcw className="h-4 w-4" />,
   [EventType.TREASURY_PROPOSAL_EXPIRED]: <RefreshCcw className="h-4 w-4" />,
   [EventType.SYSTEM_STATUS_CHANGED]: <RefreshCcw className="h-4 w-4" />,
+  [EventType.SYSTEM_STATUS_IN_REVIEW]: <RefreshCcw className="h-4 w-4" />,
 };
 
 export default function LogsTimeline({
@@ -84,7 +85,7 @@ export default function LogsTimeline({
 
     const groups = logs.reduce(
       (acc, log) => {
-        const date = new Date(log.createdAt);
+        const date = new Date(log.eventTime);
         const dateKey = format(date, 'yyyy-MM-dd');
 
         if (!acc[dateKey]) {

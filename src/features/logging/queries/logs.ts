@@ -45,6 +45,7 @@ export function eventFilters(
       EventType.LISTING_UNPUBLISHED,
       EventType.LISTING_WINNERS_ANNOUNCED,
       EventType.SYSTEM_STATUS_CHANGED,
+      EventType.SYSTEM_STATUS_IN_REVIEW,
     ],
     submission: [
       EventType.SUBMISSION_CREATED,

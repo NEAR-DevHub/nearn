@@ -2,12 +2,15 @@ import { cn } from '@/utils/cn';
 
 import { getColorStyles } from '@/features/listings/utils/getColorStyles';
 
-import { type EventDataMap, type EventType } from '../../types/event-data';
+import { type EventDataMap, EventType } from '../../types/event-data';
 import { type LogProperties } from '.';
 
 export default function SystemStatusChanged(props: LogProperties) {
   const { event } = props;
-  const data = event.data as EventDataMap[EventType.SYSTEM_STATUS_CHANGED];
+  const data =
+    event.eventType === EventType.SYSTEM_STATUS_IN_REVIEW
+      ? { newStatus: 'In Review', oldStatus: 'In Progress' }
+      : (event.data as EventDataMap[EventType.SYSTEM_STATUS_CHANGED]);
   const listingStatus = getColorStyles(data.newStatus);
 
   return (

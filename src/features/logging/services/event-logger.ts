@@ -63,6 +63,7 @@ function getDefaultVisibility(eventType: EventType): EventVisibility {
     [EventType.SPONSOR_PROFILE_EDITED]: 'SPONSOR',
     [EventType.SUBMISSION_NOTE_CHANGED]: 'SPONSOR',
     [EventType.SUBMISSION_PAYMENT_DATE_EDITED]: 'SPONSOR',
+    [EventType.SYSTEM_STATUS_IN_REVIEW]: 'PUBLIC',
   };
 
   return mapping[eventType];
