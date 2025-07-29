@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { PROJECT_NAME } from '@/constants/project';
+import { getURLSanitized } from '@/utils/getURLSanitized';
 
 import { styles } from '../utils/styles';
 
@@ -21,7 +22,7 @@ export const InviteMemberTemplate = ({
       <p style={styles.textWithMargin}>
         You have been invited by {senderName} to join{' '}
         <strong>{sponsorName}</strong> {''} on {PROJECT_NAME}!{' '}
-        <a href={link} style={styles.link}>
+        <a href={getURLSanitized(link)} style={styles.link}>
           Click here
         </a>{' '}
         to accept the invite.

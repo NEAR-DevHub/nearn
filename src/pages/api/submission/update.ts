@@ -9,6 +9,11 @@ import { type NextApiRequestWithUser } from '@/features/auth/types';
 import { withAuth } from '@/features/auth/utils/withAuth';
 import { submissionSchema } from '@/features/listings/utils/submissionFormSchema';
 import { validateSubmissionRequest } from '@/features/listings/utils/validateSubmissionRequest';
+import { eventLogger } from '@/features/logging/services/event-logger';
+import {
+  detectSubmissionChanges,
+  EventType,
+} from '@/features/logging/types/event-data';
 
 async function updateSubmission(
   user: User,
@@ -79,10 +84,26 @@ async function updateSubmission(
     otherTokenDetails: validatedData.otherTokenDetails || null,
   };
 
-  return prisma.submission.update({
+  const result = await prisma.submission.update({
     where: { id: existingSubmission.id },
     data: formattedData,
   });
+  eventLogger.log({
+    eventType: EventType.SUBMISSION_EDITED,
+    actor: {
+      id: user.id,
+      type: 'TALENT',
+    },
+    entities: {
+      listingId: listing.id,
+      submissionId: result.id,
+      sponsorId: listing.sponsorId,
+    },
+    data: {
+      changes: detectSubmissionChanges(existingSubmission, result),
+    },
+  });
+  return result;
 }
 
 async function submission(req: NextApiRequestWithUser, res: NextApiResponse) {

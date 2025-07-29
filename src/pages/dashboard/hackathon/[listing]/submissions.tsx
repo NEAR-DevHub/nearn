@@ -182,6 +182,14 @@ export default function BountySubmissions({ listing }: Props) {
           <SubmissionHeader
             bounty={bounty}
             totalSubmissions={submissions?.length || 0}
+            setSelectedSubmission={(submissionId) => {
+              const submission = submissions?.find(
+                (submission) => submission.id === submissionId,
+              );
+              if (submission) {
+                setSelectedSubmission(submission);
+              }
+            }}
             allTransactionsVerified={
               submissions?.every(
                 (submission) =>

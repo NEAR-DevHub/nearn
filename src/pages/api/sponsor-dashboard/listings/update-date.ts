@@ -7,6 +7,8 @@ import { safeStringify } from '@/utils/safeStringify';
 import { type NextApiRequestWithSponsor } from '@/features/auth/types';
 import { checkListingSponsorAuth } from '@/features/auth/utils/checkListingSponsorAuth';
 import { withSponsorAuth } from '@/features/auth/utils/withSponsorAuth';
+import { eventLogger } from '@/features/logging/services/event-logger';
+import { EventType } from '@/features/logging/types/event-data';
 
 type DateType = 'payment' | 'approved';
 
@@ -55,20 +57,30 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
         .json({ error: 'Submission is not marked as paid' });
     }
 
-    if (dateType === 'approved' && submission.status !== 'Approved') {
-      return res.status(400).json({ error: 'Submission is not approved' });
-    }
-
-    const updateData =
-      dateType === 'payment'
-        ? { paymentDate: new Date(date) }
-        : { approveDate: new Date(date) };
-
     const updatedSubmission = await prisma.submission.update({
       where: {
         id: submissionId,
       },
-      data: updateData,
+      data: {
+        paymentDate: new Date(date),
+      },
+    });
+
+    eventLogger.log({
+      eventType: EventType.SUBMISSION_PAYMENT_DATE_EDITED,
+      actor: {
+        id: req.userId as string,
+        type: 'SPONSOR',
+      },
+      data: {
+        before: submission.paymentDate,
+        after: new Date(date),
+      },
+      entities: {
+        listingId: listingId,
+        submissionId: submissionId,
+        sponsorId: userSponsorId,
+      },
     });
 
     logger.info(

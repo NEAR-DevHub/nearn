@@ -12,6 +12,8 @@ import { withSponsorAuth } from '@/features/auth/utils/withSponsorAuth';
 import { InviteMemberTemplate } from '@/features/emails/components/inviteMemberTemplate';
 import { fromEmail, replyToEmail } from '@/features/emails/utils/fromEmails';
 import { resend } from '@/features/emails/utils/resend';
+import { eventLogger } from '@/features/logging/services/event-logger';
+import { EventType } from '@/features/logging/types/event-data';
 
 async function sendInvites(
   req: NextApiRequestWithSponsor,
@@ -85,6 +87,28 @@ async function sendInvites(
         memberType,
         token,
         expires,
+      },
+    });
+
+    const invitedUser = await prisma.user.findUnique({
+      where: {
+        email: email,
+      },
+    });
+
+    eventLogger.log({
+      eventType: EventType.SPONSOR_MEMBER_INVITED,
+      actor: {
+        id: userId as string,
+        type: 'SPONSOR',
+      },
+      data: {
+        invitedEmail: email,
+        invitedUserId: invitedUser?.id ?? undefined,
+        role: memberType,
+      },
+      entities: {
+        sponsorId: user.currentSponsor.id,
       },
     });
 

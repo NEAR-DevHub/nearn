@@ -1,5 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
-import { FileInput, Lock, MessageSquare, Plus, Users } from 'lucide-react';
+import {
+  Clock2,
+  FileInput,
+  Lock,
+  MessageSquare,
+  Plus,
+  Users,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
@@ -167,6 +174,11 @@ export function SponsorLayout({
               },
             ]
           : []),
+        {
+          name: 'Activity History',
+          link: '/activity-history',
+          icon: Clock2,
+        },
         {
           name: 'Get Help',
           link: HELP_URL,

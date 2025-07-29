@@ -7,6 +7,8 @@ import { safeStringify } from '@/utils/safeStringify';
 import { type NextApiRequestWithSponsor } from '@/features/auth/types';
 import { checkListingSponsorAuth } from '@/features/auth/utils/checkListingSponsorAuth';
 import { withSponsorAuth } from '@/features/auth/utils/withSponsorAuth';
+import { eventLogger } from '@/features/logging/services/event-logger';
+import { EventType } from '@/features/logging/types/event-data';
 
 async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
   const userId = req.userId;
@@ -52,6 +54,48 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       where: { id },
       data: { notes },
     });
+
+    const log = await prisma.eventLog.findFirst({
+      where: {
+        eventType: EventType.SUBMISSION_NOTE_CHANGED,
+        listingId: currentSubmission.listingId,
+        submissionId: id,
+        actorId: userId as string,
+        actorType: 'SPONSOR',
+        // Last 60 minutes
+        createdAt: {
+          gte: new Date(Date.now() - 60 * 60 * 1000),
+        },
+      },
+    });
+    if (log) {
+      await prisma.eventLog.update({
+        where: { id: log.id },
+        data: {
+          data: {
+            before: (log.data as any)?.before,
+            after: notes,
+          },
+        },
+      });
+    } else if ((currentSubmission.notes ?? '') !== (notes ?? '')) {
+      await eventLogger.log({
+        eventType: EventType.SUBMISSION_NOTE_CHANGED,
+        actor: {
+          id: userId as string,
+          type: 'SPONSOR',
+        },
+        data: {
+          before: currentSubmission.notes ?? undefined,
+          after: notes,
+        },
+        entities: {
+          listingId: currentSubmission.listingId,
+          submissionId: id,
+          sponsorId: userSponsorId,
+        },
+      });
+    }
 
     logger.info(`Successfully updated submission with ID: ${id} with notes`);
     return res.status(200).json(result);

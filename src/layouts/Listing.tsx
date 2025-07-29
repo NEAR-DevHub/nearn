@@ -5,25 +5,25 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { usePostHog } from 'posthog-js/react';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 import { ErrorSection } from '@/components/shared/ErrorSection';
 import { PROJECT_NAME } from '@/constants/project';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { type SubmissionWithUser } from '@/interface/submission';
-import { type User } from '@/interface/user';
-import { Default } from '@/layouts/Default';
 import { cn } from '@/utils/cn';
 import { getURLSanitized } from '@/utils/getURLSanitized';
 import { getURL } from '@/utils/validUrl';
 
-import { Comments } from '@/features/comments/components/Comments';
 import { ListingHeader } from '@/features/listings/components/ListingPage/ListingHeader';
 import { RightSideBar } from '@/features/listings/components/ListingPage/RightSideBar';
 import { submissionCountQuery } from '@/features/listings/queries/submission-count';
 import { type Listing } from '@/features/listings/types';
 import { getListingTypeLabel } from '@/features/listings/utils/status';
+import PublicLoggingWithComments from '@/features/logging/components/PublicLoggingWithComments';
 import { bountySnackbarAtom } from '@/features/navbar/components/BountySnackbar';
+
+import { Default } from './Default';
 
 interface ListingPageProps {
   bounty: Listing | null;
@@ -48,7 +48,6 @@ export function ListingPageLayout({
   const { data: submissionNumber = 0 } = useQuery(
     submissionCountQuery(initialBounty?.id ?? ''),
   );
-  const [commentCount, setCommentCount] = useState(0);
   const iterableSkills = initialBounty?.skills?.map((e) => e.skills) ?? [];
 
   useEffect(() => {
@@ -164,7 +163,6 @@ export function ListingPageLayout({
             <div className="mx-auto w-full max-w-7xl">
               <ListingHeader
                 isTemplate={isTemplate}
-                commentCount={commentCount}
                 listing={initialBounty}
                 submissions={submissions}
               />
@@ -223,23 +221,9 @@ export function ListingPageLayout({
                   )}
 
                   {!isSubmissionsPage && (
-                    <Comments
+                    <PublicLoggingWithComments
+                      listing={initialBounty}
                       isTemplate={isTemplate}
-                      isAnnounced={initialBounty?.isWinnersAnnounced ?? false}
-                      listingSlug={initialBounty?.slug ?? ''}
-                      listingType={initialBounty?.type ?? ''}
-                      poc={initialBounty?.poc as User}
-                      sponsorId={initialBounty?.sponsorId}
-                      isVerified={initialBounty?.sponsor?.isVerified}
-                      refId={initialBounty?.id ?? ''}
-                      refType="BOUNTY"
-                      count={commentCount}
-                      setCount={setCommentCount}
-                      submissionAuthor={undefined}
-                      isDisabled={
-                        !initialBounty.isPublished &&
-                        initialBounty.status === 'OPEN'
-                      }
                     />
                   )}
                 </div>
@@ -252,7 +236,6 @@ export function ListingPageLayout({
             <div className="mx-auto w-full max-w-7xl">
               <ListingHeader
                 isTemplate={isTemplate}
-                commentCount={commentCount}
                 listing={initialBounty}
                 submissions={submissions}
               />

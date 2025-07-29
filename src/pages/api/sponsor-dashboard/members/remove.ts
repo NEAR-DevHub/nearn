@@ -6,6 +6,8 @@ import { safeStringify } from '@/utils/safeStringify';
 
 import { type NextApiRequestWithSponsor } from '@/features/auth/types';
 import { withSponsorAuth } from '@/features/auth/utils/withSponsorAuth';
+import { eventLogger } from '@/features/logging/services/event-logger';
+import { EventType } from '@/features/logging/types/event-data';
 
 async function removeMember(
   req: NextApiRequestWithSponsor,
@@ -84,6 +86,21 @@ async function removeMember(
       },
       data: {
         currentSponsorId: null,
+      },
+    });
+
+    eventLogger.log({
+      eventType: EventType.SPONSOR_MEMBER_REMOVED,
+      actor: {
+        id: userId,
+        type: 'SPONSOR',
+      },
+      data: {
+        removedUserId: id,
+        previousRole: memberSponsor.role,
+      },
+      entities: {
+        sponsorId: userSponsorId,
       },
     });
 

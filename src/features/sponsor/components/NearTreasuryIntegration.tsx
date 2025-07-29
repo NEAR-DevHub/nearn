@@ -157,9 +157,7 @@ function NearTreasuryForm({
             disabled={isLoading}
             size="lg"
             variant="default"
-            onClick={() => {
-              form.handleSubmit(onSubmit)();
-            }}
+            type="submit"
           >
             {isLoading ? (
               <>

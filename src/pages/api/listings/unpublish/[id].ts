@@ -8,6 +8,8 @@ import { safeStringify } from '@/utils/safeStringify';
 import { type NextApiRequestWithSponsor } from '@/features/auth/types';
 import { checkListingSponsorAuth } from '@/features/auth/utils/checkListingSponsorAuth';
 import { withSponsorAuth } from '@/features/auth/utils/withSponsorAuth';
+import { eventLogger } from '@/features/logging/services/event-logger';
+import { EventType } from '@/features/logging/types/event-data';
 
 async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
   const id = req.query.id as string;
@@ -71,6 +73,18 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       data: {
         isPublished: false,
       },
+    });
+    eventLogger.log({
+      eventType: EventType.LISTING_UNPUBLISHED,
+      actor: {
+        id: userId,
+        type: 'SPONSOR',
+      },
+      entities: {
+        listingId: result.id,
+        sponsorId: result.sponsorId,
+      },
+      data: {},
     });
     await prisma.submission.updateMany({
       where: {

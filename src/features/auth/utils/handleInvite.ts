@@ -2,6 +2,8 @@ import logger from '@/lib/logger';
 import { prisma } from '@/prisma';
 import { safeStringify } from '@/utils/safeStringify';
 
+import { eventLogger } from '@/features/logging/services/event-logger';
+import { EventType } from '@/features/logging/types/event-data';
 import { createSponsorEmailSettings } from '@/features/sponsor-dashboard/utils/createSponsorEmailSettings';
 
 interface InviteAcceptanceResult {
@@ -82,6 +84,20 @@ export async function handleInviteAcceptance(
 
       await prisma.userInvites.delete({
         where: { id: invite.id },
+      });
+
+      eventLogger.log({
+        eventType: EventType.SPONSOR_MEMBER_ACCEPTED,
+        actor: {
+          id: userId,
+          type: 'SPONSOR',
+        },
+        data: {
+          role: invite.memberType,
+        },
+        entities: {
+          sponsorId: invite.sponsorId,
+        },
       });
     });
 

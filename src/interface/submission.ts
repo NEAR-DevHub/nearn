@@ -24,9 +24,10 @@ interface SubmissionWithUser {
     txId?: string;
     link?: string;
     treasury?: {
-      link: string;
-      proposalId: number;
-      dao: string;
+      link?: string;
+      proposalId?: number;
+      dao?: string;
+      synced?: boolean;
     };
   };
   rewardInUSD: number;
