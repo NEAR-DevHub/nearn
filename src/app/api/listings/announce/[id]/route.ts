@@ -154,8 +154,6 @@ export async function POST(
         }),
       );
 
-      currentIndex += 1;
-
       if (listing.type === 'sponsorship') {
         const existingEventLog = await prisma.eventLog.findFirst({
           where: {
@@ -166,6 +164,7 @@ export async function POST(
         });
 
         if (existingEventLog) {
+          currentIndex += 1;
           continue;
         }
       }
@@ -187,6 +186,7 @@ export async function POST(
           },
         }),
       );
+      currentIndex += 1;
     }
 
     await Promise.all(promises);
