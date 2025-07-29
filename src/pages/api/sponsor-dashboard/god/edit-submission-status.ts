@@ -141,7 +141,8 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
           data: {
             rewards: {
               ...(oldRewards as Rewards),
-              [maxPosition + 1]: currentSubmission.ask,
+              // We already put him as a winner so we don't need to add + 1
+              [maxPosition]: currentSubmission.ask,
             },
             rewardAmount: currentSubmission.ask,
             usdValue: { increment: usdValue },
