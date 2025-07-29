@@ -286,7 +286,7 @@ services:
     plan: starter
   - type: cron
     name: check-listing-status-staging
-    runtime: curl
+    runtime: node
     schedule: '*/10 * * * *' # Every 5 minutes for staging
     buildCommand: 'true'
     startCommand: |
@@ -299,7 +299,7 @@ services:
           envVarKey: CRON_SECRET
   - type: cron
     name: sync-treasury-status-staging
-    runtime: curl
+    runtime: node
     schedule: '30 2 * * *' # Daily at 2:30 UTC
     buildCommand: 'true'
     startCommand: |
