@@ -286,30 +286,30 @@ services:
     plan: starter
 
   # Cron Jobs
-  - type: cron
-    name: check-listing-status
-    runtime: curl
-    schedule: '*/10 * * * *' # Every 5 minutes
-    command: |
-      curl -X GET https://nearn.io/api/cron/check-listing-status -H "Authorization: Bearer $CRON_SECRET"
-    envVars:
-      - key: CRON_SECRET
-        fromService:
-          name: nearn-app
-          type: web
-          envVarKey: CRON_SECRET
-  - type: cron
-    name: sync-treasury-status
-    runtime: curl
-    schedule: '30 2 * * *' # Daily at 2:30 UTC
-    command: |
-      curl -X GET https://nearn.io/api/cron/sync-treasury-payments -H "Authorization: Bearer $CRON_SECRET"
-    envVars:
-      - key: CRON_SECRET
-        fromService:
-          name: nearn-app
-          type: web
-          envVarKey: CRON_SECRET
+  # - type: cron
+  #   name: check-listing-status
+  #   runtime: curl
+  #   schedule: '*/10 * * * *' # Every 5 minutes
+  #   command: |
+  #     curl -X GET https://nearn.io/api/cron/check-listing-status -H "Authorization: Bearer $CRON_SECRET"
+  #   envVars:
+  #     - key: CRON_SECRET
+  #       fromService:
+  #         name: nearn-app
+  #         type: web
+  #         envVarKey: CRON_SECRET
+  # - type: cron
+  #   name: sync-treasury-status
+  #   runtime: curl
+  #   schedule: '30 2 * * *' # Daily at 2:30 UTC
+  #   command: |
+  #     curl -X GET https://nearn.io/api/cron/sync-treasury-payments -H "Authorization: Bearer $CRON_SECRET"
+  #   envVars:
+  #     - key: CRON_SECRET
+  #       fromService:
+  #         name: nearn-app
+  #         type: web
+  #         envVarKey: CRON_SECRET
 
   # Staging cron jobs
   - type: cron
