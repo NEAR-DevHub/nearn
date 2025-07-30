@@ -17,14 +17,24 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         slug: slug as string,
       },
     },
-    orderBy: {
-      sequentialId: 'asc',
-    },
+    orderBy: [
+      {
+        winnerPosition: 'asc',
+      },
+      {
+        sequentialId: 'asc',
+      },
+    ],
   });
+
+  const submissionWithAWinner = submissions.find(
+    (submission) => submission.isWinner,
+  );
+  const submission = submissionWithAWinner ?? submissions[0];
 
   return {
     redirect: {
-      destination: `/dashboard/listings/${slug}/submissions/${submissions[0]?.sequentialId}`,
+      destination: `/dashboard/listings/${slug}/submissions/${submission?.sequentialId}`,
       permanent: false,
     },
   };
