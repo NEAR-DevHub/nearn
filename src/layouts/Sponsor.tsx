@@ -350,7 +350,7 @@ export function SponsorLayout({
           {/* Content Area */}
           <div
             className={cn(
-              'ml-20 w-full bg-slate-50',
+              'w-full bg-slate-50',
               isCollapsible ? 'ml-20' : 'ml-0',
               className,
             )}
