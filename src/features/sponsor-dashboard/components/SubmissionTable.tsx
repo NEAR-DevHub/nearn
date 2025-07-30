@@ -307,8 +307,7 @@ export const SubmissionTable = ({
                 submission?.listing?.type === 'grant'
                   ? `/dashboard/grants/${submission?.listing?.slug}/applications`
                   : `/dashboard/listings/${submission?.listing?.slug}/submissions`;
-
-              const listingSubmissionLink = `${listingLink}?submissionId=${submission.id}`;
+              const listingSubmissionLink = `${listingLink}/${submission.sequentialId}`;
 
               const textColor = getColorStyles(listingStatus).color;
               const bgColor = getColorStyles(listingStatus).bg;

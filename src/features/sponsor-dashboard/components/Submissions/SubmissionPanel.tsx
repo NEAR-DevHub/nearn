@@ -403,7 +403,7 @@ export const SubmissionPanel = ({
                       </Link>
                     </p>
                     <Link
-                      className="flex w-full items-center whitespace-nowrap text-xs font-medium text-black"
+                      className="flex w-full items-center whitespace-nowrap text-xs font-medium text-slate-500"
                       href={`/t/${selectedSubmission?.user?.username}`}
                     >
                       View Profile{' '}

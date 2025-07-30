@@ -49,9 +49,11 @@ interface LinkItemProps {
 export function SponsorLayout({
   children,
   isCollapsible = false,
+  className,
 }: {
   children: ReactNode;
   isCollapsible?: boolean;
+  className?: string;
 }) {
   const { user } = useUser();
   const { data: session, status } = useSession();
@@ -348,14 +350,21 @@ export function SponsorLayout({
           {/* Content Area */}
           <div
             className={cn(
-              'w-full flex-1 bg-white py-5 pl-4 pr-8 transition-[margin-left] duration-300 ease-in-out',
+              'w-full bg-slate-50',
               isCollapsible ? 'ml-20' : 'ml-0',
+              className,
             )}
           >
-            <>
-              {showLoading && <LoadingSection />}
-              {showContent && children}
-            </>
+            <div
+              className={cn(
+                'w-full flex-1 py-5 pl-4 pr-8 transition-[margin-left] duration-300 ease-in-out',
+              )}
+            >
+              <>
+                {showLoading && <LoadingSection />}
+                {showContent && children}
+              </>
+            </div>
           </div>
         </div>
       )}

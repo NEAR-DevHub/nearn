@@ -4,7 +4,6 @@ import debounce from 'lodash.debounce';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
-import { parseAsString, useQueryState } from 'nuqs';
 import { usePostHog } from 'posthog-js/react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -38,31 +37,24 @@ import { sponsorDashboardListingQuery } from '@/features/sponsor-dashboard/queri
 import { scoutsQuery } from '@/features/sponsor-dashboard/queries/scouts';
 import { submissionsQuery } from '@/features/sponsor-dashboard/queries/submissions';
 import { type ScoutRowType } from '@/features/sponsor-dashboard/types';
+
 interface Props {
   slug: string;
+  sequentialId: number;
 }
 
 const submissionsPerPage = 10;
 
-export default function BountySubmissions({ slug }: Props) {
+export default function BountySubmissions({ slug, sequentialId }: Props) {
   const router = useRouter();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { user } = useUser();
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const [selectedSubmissionQueryId] = useQueryState(
-    'submissionId',
-    parseAsString.withOptions({ clearOnDefault: true, shallow: true }),
-  );
-
-  const [selectedSubmissionId, setSelectedSubmissionId] = useState<
-    string | null
-  >(null);
 
   const [selectedSubmission, setSelectedSubmission] = useAtom(
     selectedSubmissionAtom,
   );
 
+  const [currentPage, setCurrentPage] = useState(1);
   const [remainings, setRemainings] = useState<{
     podiums: number;
     bonus: number;
@@ -124,6 +116,17 @@ export default function BountySubmissions({ slug }: Props) {
     setVerifyAllPayments(true);
     verifyPaymentOnOpen();
   };
+  useEffect(() => {
+    if (submissions) {
+      const submission = submissions?.find(
+        (submission) => submission.sequentialId === sequentialId,
+      );
+
+      if (submission) {
+        setSelectedSubmission(submission);
+      }
+    }
+  }, [sequentialId, submissions]);
 
   useEffect(() => {
     selectedSubmissionIds.size > 0 ? onTogglerOpen() : onTogglerClose();
@@ -252,30 +255,18 @@ export default function BountySubmissions({ slug }: Props) {
   }, [bounty, submissions, user?.currentSponsorId, router]);
 
   useEffect(() => {
-    if (
-      !!selectedSubmissionId &&
-      selectedSubmissionId !== selectedSubmission?.id
-    ) {
-      const submission = submissions?.find(
-        (submission) => submission.id === selectedSubmissionId,
+    if (sequentialId && filteredSubmissions.length > 0) {
+      const submissionIndex = filteredSubmissions.findIndex(
+        (sub) => sub.sequentialId === Number(sequentialId),
       );
-      if (submission) {
-        setSelectedSubmission(submission);
+      if (submissionIndex !== -1) {
+        const targetPage = Math.floor(submissionIndex / submissionsPerPage) + 1;
+        if (targetPage !== currentPage) {
+          setCurrentPage(targetPage);
+        }
       }
-    } else if (
-      !selectedSubmissionId &&
-      submissions?.length &&
-      submissions.length > 0
-    ) {
-      setSelectedSubmission(submissions?.[0]);
     }
-  }, [selectedSubmissionId, submissions]);
-
-  useEffect(() => {
-    if (selectedSubmissionQueryId) {
-      setSelectedSubmissionId(selectedSubmissionQueryId);
-    }
-  }, [selectedSubmissionQueryId]);
+  }, [sequentialId, filteredSubmissions]);
 
   const paginatedSubmissions = useMemo(() => {
     const startIndex = (currentPage - 1) * submissionsPerPage;
@@ -378,14 +369,16 @@ export default function BountySubmissions({ slug }: Props) {
               )}
 
             <TabsContent value="submissions" className="w-full px-0">
-              <div className="flex w-full items-start bg-white">
-                <div className="grid min-h-[600px] w-full grid-cols-[23rem_1fr] bg-white">
+              <div className="flex w-full items-start rounded-xl bg-white">
+                <div className="grid min-h-[600px] w-full grid-cols-[23rem_1fr] rounded-xl bg-white">
                   <div className="h-full w-full">
                     <SubmissionList
                       listing={bounty}
                       selectedSubmission={selectedSubmission}
                       setSelectedSubmission={(submission) => {
-                        setSelectedSubmissionId(submission.id);
+                        router.replace(
+                          `/dashboard/listings/${slug}/submissions/${submission?.sequentialId}`,
+                        );
                       }}
                       filterLabel={
                         filterLabel === 'All' ? undefined : filterLabel
@@ -424,11 +417,9 @@ export default function BountySubmissions({ slug }: Props) {
                     <VerifyPaymentModal
                       listing={bounty}
                       setSelectedSubmission={(submission) => {
-                        refetchSubmissions().then(() => {
-                          if (submission?.id) {
-                            setSelectedSubmissionId(submission.id);
-                          }
-                        });
+                        router.replace(
+                          `/dashboard/listings/${slug}/submissions/${submission?.sequentialId}`,
+                        );
                       }}
                       setListing={() => {}}
                       isOpen={verifyPaymentIsOpen}
@@ -445,7 +436,7 @@ export default function BountySubmissions({ slug }: Props) {
                     />
                   )}
 
-                  <div className="h-full w-full rounded-r-xl border-b border-r border-t border-slate-200 bg-white">
+                  <div className="h-full w-full rounded-xl border-b border-r border-t border-slate-200 bg-white">
                     {!paginatedSubmissions?.length &&
                     !searchText &&
                     !isSubmissionsLoading ? (
@@ -639,8 +630,9 @@ export default function BountySubmissions({ slug }: Props) {
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  const { slug } = context.query;
+  const { slug, sequentialId } = context.query;
+
   return {
-    props: { slug },
+    props: { slug, sequentialId: Number(sequentialId) },
   };
 };
