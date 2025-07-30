@@ -1,11 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
-import dayjs from 'dayjs';
 import { useAtom } from 'jotai';
 import { ArrowRight, ChevronLeft, Copy, ExternalLink } from 'lucide-react';
 import type { GetServerSideProps } from 'next';
 import Link from 'next/link';
 import { getServerSession } from 'next-auth';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { Fragment, useEffect, useRef, useState } from 'react';
 import { MdOutlineAccountBalanceWallet, MdOutlineMail } from 'react-icons/md';
 import { toast } from 'sonner';
 
@@ -27,7 +26,6 @@ import { api } from '@/lib/api';
 import { authOptions } from '@/pages/api/auth/[...nextauth]';
 import { getBountyUrl, getSubmissionUrl } from '@/utils/bounty-urls';
 import { cn } from '@/utils/cn';
-import { formatNumberWithSuffix } from '@/utils/formatNumberWithSuffix';
 import { getURLSanitized } from '@/utils/getURLSanitized';
 import { truncatePublicKey } from '@/utils/truncatePublicKey';
 import { truncateString } from '@/utils/truncateString';
@@ -37,17 +35,18 @@ import { Comments } from '@/features/comments/components/Comments';
 import {
   LikeAndComment,
   selectedSubmissionAtom,
-  sponsorshipSubmissionStatus,
 } from '@/features/listings/components/SubmissionsPage/SubmissionTable';
 import { listingSubmissionsQuery } from '@/features/listings/queries/submissions';
 import { type Listing } from '@/features/listings/types';
 import {
+  Discord,
+  GitHub,
+  Linkedin,
   Telegram,
   Twitter,
   Website,
 } from '@/features/social/components/SocialIcons';
 import { Details } from '@/features/sponsor-dashboard/components/Submissions/Details';
-import { colorMap } from '@/features/sponsor-dashboard/utils/statusColorMap';
 import { EarnAvatar } from '@/features/talent/components/EarnAvatar';
 import TreasuryStatus from '@/features/treasury/components/TreasuryStatus';
 
@@ -153,7 +152,69 @@ function Content({
     return <div>Submission not found</div>;
   }
 
-  const status = sponsorshipSubmissionStatus(submission);
+  const socials = [
+    {
+      icon: (
+        <Telegram
+          key="telegram"
+          className="h-[0.9rem] w-[0.9rem] text-slate-600"
+          link={submission?.user?.telegram || ''}
+        />
+      ),
+      isVisible: !!submission?.user?.telegram,
+    },
+    {
+      icon: (
+        <Twitter
+          key="twitter"
+          className="h-[0.9rem] w-[0.9rem] text-slate-600"
+          link={submission?.user?.twitter || ''}
+        />
+      ),
+      isVisible: !!submission?.user?.twitter,
+    },
+    {
+      icon: (
+        <Discord
+          key="discord"
+          className="h-[0.9rem] w-[0.9rem] text-slate-600"
+          link={submission?.user?.discord || ''}
+        />
+      ),
+      isVisible: !!submission?.user?.discord,
+    },
+    {
+      icon: (
+        <Linkedin
+          key="linkedin"
+          className="h-[0.9rem] w-[0.9rem] text-slate-600"
+          link={submission?.user?.linkedin || ''}
+        />
+      ),
+      isVisible: !!submission?.user?.linkedin,
+    },
+    {
+      icon: (
+        <GitHub
+          key="github"
+          className="h-[0.9rem] w-[0.9rem] text-slate-600"
+          link={submission?.user?.github || ''}
+        />
+      ),
+      isVisible: !!submission?.user?.github,
+    },
+    {
+      icon: (
+        <Website
+          key="website"
+          className="h-[0.9rem] w-[0.9rem] text-slate-600"
+          link={submission?.user?.website || ''}
+        />
+      ),
+      isVisible: !!submission?.user?.website,
+    },
+  ];
+
   const showBack =
     (bounty.isWinnersAnnounced && bounty.type === 'bounty') ||
     bounty.type === 'sponsorship';
@@ -197,15 +258,6 @@ function Content({
                           #{submission?.sequentialId}
                         </span>
                       </p>
-                      <span
-                        className={cn(
-                          'inline-flex whitespace-nowrap rounded-full px-3 py-1 text-center text-[10px] capitalize',
-                          colorMap[status as keyof typeof colorMap].bg,
-                          colorMap[status as keyof typeof colorMap].color,
-                        )}
-                      >
-                        {status}
-                      </span>
                     </div>
                   </div>
 
@@ -290,111 +342,99 @@ function Content({
               </div>
             )}
 
-            <div className="flex flex-col gap-3 py-[1rem] md:flex-row md:items-center md:gap-5">
-              {!!amount && amount > 0 && (
-                <div className="flex items-center text-xs">
-                  <img
-                    src={token?.icon}
-                    alt={token?.tokenSymbol}
-                    className="h-3 w-3 rounded-full"
-                  />
-                  <span className="ml-1 truncate">
-                    {isUsdBased && '$'}
-                    {formatNumberWithSuffix(amount, 1)}
-                    <span className="text-slate-400">
-                      {isUsdBased && ' to be paid in'}
+            <div className="flex items-center justify-between py-2">
+              <div className="flex gap-5">
+                {!!amount && amount > 0 && (
+                  <div className="flex items-start text-sm font-medium text-slate-950">
+                    <img
+                      src={token?.icon}
+                      alt={token?.tokenSymbol}
+                      className="h-4 w-4 rounded-full"
+                    />
+                    <span className="ml-1">
+                      {isUsdBased && '$'}
+                      {amount.toLocaleString('en-us')}
+                      <span className="text-slate-400">
+                        {isUsdBased && ' to be paid in'}
+                      </span>
+                      <span
+                        className={cn(
+                          'ml-1',
+                          !isUsdBased && 'font-semibold text-slate-400',
+                        )}
+                      >
+                        {token?.tokenSymbol}
+                      </span>
                     </span>
-                    <span
-                      className={cn(
-                        'ml-1',
-                        !isUsdBased && 'font-semibold text-slate-400',
-                      )}
-                    >
-                      {token?.tokenSymbol}
-                    </span>
-                  </span>
-                </div>
-              )}
-              {!submission?.user?.private && (
-                <>
-                  {submission?.user?.email && (
+                  </div>
+                )}
+
+                {submission?.user?.publicKey && (
+                  <div className="flex items-center gap-1">
                     <Tooltip
                       content={'Click to copy'}
                       contentProps={{ side: 'right' }}
                       triggerClassName="flex items-center hover:underline underline-offset-1"
                     >
                       <div
-                        className="flex cursor-pointer items-center justify-start gap-1 text-sm text-slate-400 hover:text-slate-500"
-                        onClick={handleCopyEmail}
+                        className="flex cursor-pointer items-center justify-start gap-1 whitespace-nowrap text-sm text-slate-400 hover:text-slate-500"
+                        onClick={handleCopyPublicKey}
                         role="button"
                         tabIndex={0}
-                        aria-label={`Copy email: ${submission.user.email}`}
+                        aria-label={`Copy public key: ${truncatePublicKey(submission.user.publicKey, 20)}`}
                       >
-                        <MdOutlineMail />
-                        {truncateString(submission.user.email, 36)}
+                        <MdOutlineAccountBalanceWallet />
+                        <p>
+                          {truncatePublicKey(submission.user.publicKey, 20)}
+                        </p>
                       </div>
                     </Tooltip>
-                  )}
-
-                  {submission?.user?.publicKey && (
-                    <div className="flex items-center gap-2">
-                      <Tooltip
-                        content={'Click to copy'}
-                        contentProps={{ side: 'right' }}
-                        triggerClassName="flex items-center hover:underline underline-offset-1"
-                      >
-                        <div
-                          className="flex cursor-pointer items-center justify-start gap-1 whitespace-nowrap text-sm text-slate-400 hover:text-slate-500"
-                          onClick={handleCopyPublicKey}
-                          role="button"
-                          tabIndex={0}
-                          aria-label={`Copy public key: ${truncatePublicKey(submission.user.publicKey, 20)}`}
-                        >
-                          <MdOutlineAccountBalanceWallet />
-                          <p>
-                            {truncatePublicKey(submission.user.publicKey, 20)}
-                          </p>
-                        </div>
-                      </Tooltip>
+                    <div className="mb-0.5">
                       <KycComponent
-                        address={submission.user.publicKey}
-                        variant="xs"
-                        hideCustom
-                        listingSponsorId={bounty.sponsorId}
+                        address={submission?.user?.publicKey}
+                        imageOnly
+                        listingSponsorId={bounty?.sponsorId}
                       />
                     </div>
-                  )}
-                  <div className="flex gap-2">
-                    <Telegram
-                      className="h-[0.9rem] w-[0.9rem] text-slate-600"
-                      link={submission?.user?.telegram || ''}
-                    />
-                    <Twitter
-                      className="h-[0.9rem] w-[0.9rem] text-slate-600"
-                      link={submission?.user?.twitter || ''}
-                    />
-                    <Website
-                      className="h-[0.9rem] w-[0.9rem] text-slate-600"
-                      link={submission?.user?.website || ''}
-                    />
                   </div>
-                  {submission?.isPaid && submission?.paymentDate && (
-                    <div className="flex items-center">
-                      <p className="text-sm text-slate-400">
-                        Paid on:{' '}
-                        {dayjs(submission.paymentDate).format('MMM D, YYYY')}
-                      </p>
+                )}
+              </div>
+
+              <div className="flex items-start gap-5">
+                {submission?.user?.email && (
+                  <Tooltip
+                    content={'Click to copy'}
+                    contentProps={{ side: 'right' }}
+                    triggerClassName="flex items-center hover:underline underline-offset-1"
+                  >
+                    <div
+                      className="flex cursor-pointer items-center justify-start gap-1 text-sm text-slate-400 hover:text-slate-500"
+                      onClick={handleCopyEmail}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Copy email: ${submission.user.email}`}
+                    >
+                      <MdOutlineMail />
+                      {truncateString(submission.user.email, 36)}
                     </div>
-                  )}
-                </>
-              )}
+                  </Tooltip>
+                )}
+
+                <div className="flex gap-2">
+                  {socials
+                    .filter((social) => social.isVisible)
+                    .map((social) => (
+                      <Fragment key={social.icon.key}>{social.icon}</Fragment>
+                    ))}
+                </div>
+              </div>
             </div>
           </div>
           <div className="flex w-full border-t border-slate-200">
             <Details
               bounty={bounty}
-              atom={selectedSubmissionAtom}
-              externalView={true}
+              selectedSubmission={submission}
+              externalView
             />
           </div>
         </div>

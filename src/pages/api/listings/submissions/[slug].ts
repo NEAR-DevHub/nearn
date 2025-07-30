@@ -64,9 +64,11 @@ async function handler(
     let limitations = {};
     if (result.isWinnersAnnounced === false && result.type !== 'sponsorship') {
       if (req.authorized) {
-        limitations = {
-          userId: req.userId,
-        };
+        if (req.role !== 'GOD' && !req.sponsorIds?.includes(result.sponsorId)) {
+          limitations = {
+            userId: req.userId,
+          };
+        }
       } else {
         logger.info('Winners have not been announced yet');
         return res.status(200).json({

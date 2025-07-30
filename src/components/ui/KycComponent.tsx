@@ -21,6 +21,7 @@ import {
 import { VerifiedBadge } from '../shared/VerifiedBadge';
 import { Button } from './button';
 import { Popover, PopoverContent, PopoverTrigger } from './popover';
+import { Tooltip as TooltipUI } from './tooltip';
 
 const FIREHOSE_ID = '68ef6576-d931-4405-82c4-6a8574ee0b3f';
 const INFRA_COMMITTEE_ID = 'c3b689b9-2551-4dda-8e8c-68037c25477c';
@@ -266,7 +267,9 @@ export function KycComponent({
   }
 
   const content = imageOnly ? (
-    image
+    <TooltipUI content={text} contentProps={{ className }}>
+      {image}
+    </TooltipUI>
   ) : (
     <>
       {image}

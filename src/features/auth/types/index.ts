@@ -14,4 +14,5 @@ export interface NextApiRequestWithSponsor extends NextApiRequest {
 export interface NextApiRequestWithPotentialSponsor
   extends NextApiRequestWithSponsor {
   authorized?: boolean;
+  sponsorIds?: string[];
 }
