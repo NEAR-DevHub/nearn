@@ -177,15 +177,9 @@ export function ListingHeader({
 
   const segments = router.asPath.split('/');
   const isSubmissionActive = !isTemplate && segments.length === 5;
-  const submissionId = isSubmissionActive
-    ? submissions.find(
-        (submission) =>
-          submission.sequentialId === Number(segments[segments.length - 2]),
-      )?.id
-    : null;
   const dashboardPath = `/dashboard/${isHackathon ? 'hackathon' : 'listings'}/${listing.slug}`;
   const manageListingLink = isSubmissionActive
-    ? `${dashboardPath}/submissions?submissionId=${submissionId}`
+    ? `${dashboardPath}/submissions/${segments[segments.length - 2]}`
     : `${dashboardPath}/submissions`;
 
   const HeaderSub = () => {
