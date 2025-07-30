@@ -17,6 +17,9 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         slug: slug as string,
       },
     },
+    orderBy: {
+      sequentialId: 'asc',
+    },
   });
 
   return {
