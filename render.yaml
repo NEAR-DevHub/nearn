@@ -6,6 +6,8 @@ services:
     plan: standard
     buildCommand: pnpm install && pnpm prisma generate && pnpm build
     preDeployCommand: pnpm prisma migrate deploy
+    repo: https://github.com/NEAR-DevHub/nearn
+    branch: prod
     domains:
       - nearn.io
     startCommand: pnpm start
