@@ -13,7 +13,7 @@ fi
 URL="$1"
 
 # Make the HTTP request and capture both response and status code
-response=$(curl -s -w "\n%{http_code}" -X GET "$URL" -H "Authorization: Bearer $CRON_SECRET")
+response=$(curl -L -s -w "\n%{http_code}" -X GET "$URL" -H "Authorization: Bearer $CRON_SECRET")
 
 # Extract the HTTP status code (last line)
 http_code=$(echo "$response" | tail -n1)
