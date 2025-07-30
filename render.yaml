@@ -293,7 +293,7 @@ services:
     repo: https://github.com/NEAR-DevHub/nearn
     branch: staging
     startCommand: |
-      bash CRON_SECRET=$CRON_SECRET ./scripts/cron-wrapper.sh https://nearn-app-staging.onrender.com/api/cron/check-listing-status
+      CRON_SECRET=$CRON_SECRET ./scripts/cron-wrapper.sh https://nearn-app-staging.onrender.com/api/cron/check-listing-status
     envVars:
       - key: CRON_SECRET
         fromService:
@@ -309,7 +309,7 @@ services:
     repo: https://github.com/NEAR-DevHub/nearn
     branch: staging
     startCommand: |
-      bash CRON_SECRET=$CRON_SECRET ./scripts/cron-wrapper.sh https://nearn-app-staging.onrender.com/api/cron/sync-treasury-payments
+      CRON_SECRET=$CRON_SECRET ./scripts/cron-wrapper.sh https://nearn-app-staging.onrender.com/api/cron/sync-treasury-payments
     envVars:
       - key: CRON_SECRET
         fromService:
