@@ -343,20 +343,24 @@ async function listing(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       where: { id: id as string },
       data: dataToUpdate,
     });
-    eventLogger.log({
-      eventType: EventType.LISTING_EDITED,
-      actor: {
-        id: userId as string,
-        type: 'SPONSOR',
-      },
-      entities: {
-        listingId: result.id,
-        sponsorId: result.sponsorId,
-      },
-      data: {
-        changes: detectListingChanges(listing, result),
-      },
-    });
+
+    const changes = detectListingChanges(listing, result);
+    if (changes.length > 0) {
+      eventLogger.log({
+        eventType: EventType.LISTING_EDITED,
+        actor: {
+          id: userId as string,
+          type: 'SPONSOR',
+        },
+        entities: {
+          listingId: result.id,
+          sponsorId: result.sponsorId,
+        },
+        data: {
+          changes,
+        },
+      });
+    }
     logger.debug(`Update Listing Successful`, { id });
 
     try {

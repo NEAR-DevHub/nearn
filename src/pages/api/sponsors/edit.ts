@@ -122,19 +122,22 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       },
     });
 
-    eventLogger.log({
-      eventType: EventType.SPONSOR_PROFILE_EDITED,
-      actor: {
-        id: userId as string,
-        type: 'SPONSOR',
-      },
-      data: {
-        changes: detectSponsorChanges(preSponsor!, result),
-      },
-      entities: {
-        sponsorId: userSponsorId,
-      },
-    });
+    const changes = detectSponsorChanges(preSponsor!, result);
+    if (changes.length > 0) {
+      eventLogger.log({
+        eventType: EventType.SPONSOR_PROFILE_EDITED,
+        actor: {
+          id: userId as string,
+          type: 'SPONSOR',
+        },
+        data: {
+          changes: detectSponsorChanges(preSponsor!, result),
+        },
+        entities: {
+          sponsorId: userSponsorId,
+        },
+      });
+    }
 
     if (preSponsor && preSponsor.name !== name) {
       try {

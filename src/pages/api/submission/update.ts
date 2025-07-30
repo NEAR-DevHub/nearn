@@ -88,21 +88,25 @@ async function updateSubmission(
     where: { id: existingSubmission.id },
     data: formattedData,
   });
-  eventLogger.log({
-    eventType: EventType.SUBMISSION_EDITED,
-    actor: {
-      id: user.id,
-      type: isGod ? 'PLATFORM_ADMIN' : 'TALENT',
-    },
-    entities: {
-      listingId: listing.id,
-      submissionId: result.id,
-      sponsorId: listing.sponsorId,
-    },
-    data: {
-      changes: detectSubmissionChanges(existingSubmission, result),
-    },
-  });
+
+  const changes = detectSubmissionChanges(existingSubmission, result);
+  if (changes.length > 0) {
+    eventLogger.log({
+      eventType: EventType.SUBMISSION_EDITED,
+      actor: {
+        id: user.id,
+        type: isGod ? 'PLATFORM_ADMIN' : 'TALENT',
+      },
+      entities: {
+        listingId: listing.id,
+        submissionId: result.id,
+        sponsorId: listing.sponsorId,
+      },
+      data: {
+        changes,
+      },
+    });
+  }
   return result;
 }
 
