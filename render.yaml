@@ -288,7 +288,7 @@ services:
     name: check-listing-status-staging
     runtime: node
     region: frankfurt
-    schedule: '*/10 * * * *' # Every 5 minutes for staging
+    schedule: '*/5 * * * *' # Every 5 minutes for staging
     buildCommand: 'true'
     repo: https://github.com/NEAR-DevHub/nearn
     branch: staging
@@ -303,7 +303,7 @@ services:
   - type: cron
     name: sync-treasury-status-staging
     runtime: node
-    schedule: '*/10 * * * *' # Every 5 minutes for staging
+    schedule: '*/5 * * * *' # Every 5 minutes for staging
     buildCommand: 'true'
     region: frankfurt
     repo: https://github.com/NEAR-DevHub/nearn
