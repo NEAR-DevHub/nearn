@@ -188,7 +188,7 @@ ${socialListingLink('twitter')}
         </div>
         <div className="flex items-center gap-2">
           <Button
-            className="text-slate-400"
+            className="text-slate-500"
             disabled={exportMutation.isPending}
             onClick={() => exportSubmissionsCsv()}
             variant="ghost"
@@ -207,7 +207,7 @@ ${socialListingLink('twitter')}
           </Button>
 
           <Button
-            className="text-slate-400"
+            className="text-slate-500"
             onClick={() => window.open(`${listingPath}`, '_blank')}
             variant="ghost"
           >
@@ -227,7 +227,7 @@ ${socialListingLink('twitter')}
                     : ''
                 }
               >
-                <Button variant="ghost" className="text-slate-400">
+                <Button variant="ghost" className="text-slate-500">
                   <Pencil className="h-4 w-4" />
                   Edit
                 </Button>
@@ -235,7 +235,7 @@ ${socialListingLink('twitter')}
               {session?.user?.role === 'GOD' && (
                 <Button
                   variant="ghost"
-                  className="text-slate-400"
+                  className="text-slate-500"
                   onClick={deleteModalOnOpen}
                 >
                   {bounty?.isArchived || !bounty?.isActive ? (

@@ -369,8 +369,8 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
               )}
 
             <TabsContent value="submissions" className="w-full px-0">
-              <div className="flex w-full items-start bg-white">
-                <div className="grid min-h-[600px] w-full grid-cols-[23rem_1fr] bg-white">
+              <div className="flex w-full items-start rounded-xl bg-white">
+                <div className="grid min-h-[600px] w-full grid-cols-[23rem_1fr] rounded-xl bg-white">
                   <div className="h-full w-full">
                     <SubmissionList
                       listing={bounty}
@@ -436,7 +436,7 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
                     />
                   )}
 
-                  <div className="h-full w-full rounded-r-xl border-b border-r border-t border-slate-200 bg-white">
+                  <div className="h-full w-full rounded-xl border-b border-r border-t border-slate-200 bg-white">
                     {!paginatedSubmissions?.length &&
                     !searchText &&
                     !isSubmissionsLoading ? (
