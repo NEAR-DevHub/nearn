@@ -331,7 +331,7 @@ async function submission(
         },
       },
       orderBy: {
-        createdAt: sort,
+        eventTime: sort,
       },
       skip: (page - 1) * limit,
       take: limit,

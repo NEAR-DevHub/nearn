@@ -38,37 +38,25 @@ export default function User({
   const showSubmissionExtraInfo =
     showExtraInfo === 'submission' || showExtraInfo === 'both';
 
+  let username = name;
+  let icon = photo;
+
   if (event.actorType === 'SYSTEM') {
-    return (
-      <div className="flex items-center gap-2">
-        <Image
-          src={'/favicon.ico'}
-          alt={'System'}
-          className="size-6 rounded-full"
-          width={24}
-          height={24}
-        />
-        <span className="text-sm font-medium text-slate-900">
-          {PROJECT_NAME}
-        </span>
-        <Tooltip content={fullDate} contentProps={{ className: 'z-[1000]' }}>
-          <span className="text-sm font-medium text-slate-400">{date}</span>
-        </Tooltip>
-      </div>
-    );
+    icon = '/favicon.ico';
+    username = PROJECT_NAME;
   }
 
   return (
     <div className="flex items-center gap-2">
       <Image
-        src={photo ?? ''}
-        alt={name ?? ''}
+        src={icon ?? ''}
+        alt={username ?? ''}
         className="size-6 rounded-full"
         width={24}
         height={24}
       />
 
-      <span className="font-medium text-slate-900">{name}</span>
+      <span className="font-medium text-slate-900">{username}</span>
       {event.actorType === 'SPONSOR' && !hideActorRole && (
         <span className="text-sm font-medium text-blue-600">
           {event.actor?.username === event.listing?.poc?.username
