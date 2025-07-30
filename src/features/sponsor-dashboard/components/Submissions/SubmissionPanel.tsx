@@ -1,3 +1,4 @@
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@radix-ui/react-tabs';
 import { TooltipArrow } from '@radix-ui/react-tooltip';
 import { useQuery } from '@tanstack/react-query';
 import { useAtom } from 'jotai';
@@ -6,6 +7,7 @@ import {
   Copy,
   DollarSign,
   ExternalLink,
+  Info,
   Link2,
   Pencil,
 } from 'lucide-react';
@@ -15,6 +17,7 @@ import React, {
   type Dispatch,
   Fragment,
   type SetStateAction,
+  useEffect,
   useState,
 } from 'react';
 import { FaSpinner } from 'react-icons/fa';
@@ -32,14 +35,16 @@ import { Tooltip } from '@/components/ui/tooltip';
 import { tokenList } from '@/constants/tokenList';
 import { useClipboard } from '@/hooks/use-clipboard';
 import type { SubmissionWithUser } from '@/interface/submission';
+import type { User } from '@/interface/user';
+import { api } from '@/lib/api';
 import { getSubmissionUrl } from '@/utils/bounty-urls';
 import { cn } from '@/utils/cn';
 import { dayjs } from '@/utils/dayjs';
-import { formatNumberWithSuffix } from '@/utils/formatNumberWithSuffix';
 import { getURLSanitized } from '@/utils/getURLSanitized';
 import { truncatePublicKey } from '@/utils/truncatePublicKey';
 import { truncateString } from '@/utils/truncateString';
 
+import { Comments } from '@/features/comments/components/Comments';
 import type { Listing } from '@/features/listings/types';
 import {
   Discord,
@@ -59,6 +64,7 @@ import { Details } from './Details';
 import NearTreasuryPaymentModal from './Modals/NearTreasuryPaymentModal';
 import { SelectWinnersGuide } from './Modals/SelectWinnersGuide';
 import { UpdatePaymentDateModal } from './Modals/UpdateDateModal';
+import { Notes } from './Notes';
 import { SelectLabel } from './SelectLabel';
 import { SelectWinner } from './SelectWinner';
 
@@ -194,6 +200,8 @@ export const DoneBy = ({
   );
 };
 
+type ActionTab = 'notes' | 'comments';
+
 export const SubmissionPanel = ({
   bounty,
   submissions,
@@ -215,6 +223,8 @@ export const SubmissionPanel = ({
   const [selectedSubmission, setSelectedSubmission] = useAtom(
     selectedSubmissionAtom,
   );
+  const [commentCount, setCommentCount] = useState(0);
+  const [activeTab, setActiveTab] = useState<ActionTab>('notes');
 
   const { onCopy: onCopyEmail } = useClipboard(
     selectedSubmission?.user?.email || '',
@@ -230,6 +240,29 @@ export const SubmissionPanel = ({
 
   const [isNearTreasuryPaymentModalOpen, setIsNearTreasuryPaymentModalOpen] =
     useState(false);
+
+  useEffect(() => {
+    const fetchCommentCount = async () => {
+      if (selectedSubmission?.id) {
+        try {
+          const response = await api.get(
+            `/api/comment/${selectedSubmission.id}`,
+            {
+              params: {
+                skip: 0,
+                take: 1,
+              },
+            },
+          );
+          setCommentCount(response.data.count);
+        } catch (error) {
+          console.error('Error fetching comment count:', error);
+        }
+      }
+    };
+
+    fetchCommentCount();
+  }, [selectedSubmission?.id]);
 
   const handleCopySubmissionLink = () => {
     if (selectedSubmission?.id) {
@@ -355,11 +388,19 @@ export const SubmissionPanel = ({
                     avatar={selectedSubmission?.user?.photo || undefined}
                   />
                   <div>
-                    <p className="w-full whitespace-nowrap font-medium text-slate-900">
-                      {`${selectedSubmission?.user?.name}'s Submission `}
+                    <p className="flex w-full items-center whitespace-nowrap font-medium text-slate-900">
+                      {selectedSubmission?.user?.name}
                       <span className="text-slate-500">
-                        #{selectedSubmission?.sequentialId}
+                        {`'s Submission #${selectedSubmission?.sequentialId}`}
                       </span>
+                      <Link
+                        href={getURLSanitized(
+                          getSubmissionUrl(selectedSubmission, bounty),
+                        )}
+                        target="_blank"
+                      >
+                        <ExternalLink className="mb-1 ml-2 h-4 w-4 text-slate-500" />
+                      </Link>
                     </p>
                     <Link
                       className="flex w-full items-center whitespace-nowrap text-xs font-medium text-black"
@@ -517,148 +558,232 @@ export const SubmissionPanel = ({
                 />
               </div>
 
-              <div className="flex items-center gap-5 px-5 py-2">
-                {!!amount && amount > 0 && (
-                  <div className="flex items-center text-xs">
-                    <img
-                      src={token?.icon}
-                      alt={token?.tokenSymbol}
-                      className="h-3 w-3 rounded-full"
-                    />
-                    <span className="ml-1 truncate">
-                      {isUsdBased && '$'}
-                      {formatNumberWithSuffix(amount, 1)}
-                      <span className="text-slate-400">
-                        {isUsdBased && ' to be paid in'}
+              <div className="flex items-center justify-between px-4 py-2">
+                <div className="flex gap-5">
+                  {!!amount && amount > 0 && (
+                    <div className="flex items-start text-sm font-medium text-slate-950">
+                      <img
+                        src={token?.icon}
+                        alt={token?.tokenSymbol}
+                        className="h-4 w-4 rounded-full"
+                      />
+                      <span className="ml-1">
+                        {isUsdBased && '$'}
+                        {amount.toLocaleString('en-us')}
+                        <span className="text-slate-400">
+                          {isUsdBased && ' to be paid in'}
+                        </span>
+                        <span
+                          className={cn(
+                            'ml-1',
+                            !isUsdBased && 'font-semibold text-slate-400',
+                          )}
+                        >
+                          {token?.tokenSymbol}
+                        </span>
                       </span>
-                      <span
-                        className={cn(
-                          'ml-1',
-                          !isUsdBased && 'font-semibold text-slate-400',
-                        )}
-                      >
-                        {token?.tokenSymbol}
-                      </span>
-                    </span>
-                  </div>
-                )}
-
-                {selectedSubmission?.user?.email && (
-                  <Tooltip
-                    content={'Click to copy'}
-                    contentProps={{ side: 'right' }}
-                    triggerClassName="flex items-center hover:underline underline-offset-1"
-                  >
-                    <div
-                      className="flex cursor-pointer items-center justify-start gap-1 text-sm text-slate-400 hover:text-slate-500"
-                      onClick={handleCopyEmail}
-                      role="button"
-                      tabIndex={0}
-                      aria-label={`Copy email: ${selectedSubmission.user.email}`}
-                    >
-                      <MdOutlineMail />
-                      {truncateString(selectedSubmission.user.email, 36)}
                     </div>
-                  </Tooltip>
-                )}
+                  )}
 
-                {selectedSubmission?.user?.publicKey && (
-                  <>
+                  {selectedSubmission?.user?.publicKey && (
+                    <div className="flex items-center gap-1">
+                      <Tooltip
+                        content={'Click to copy'}
+                        contentProps={{ side: 'right' }}
+                        triggerClassName="flex items-center hover:underline underline-offset-1"
+                      >
+                        <div
+                          className="flex cursor-pointer items-center justify-start gap-1 whitespace-nowrap text-sm text-slate-400 hover:text-slate-500"
+                          onClick={handleCopyPublicKey}
+                          role="button"
+                          tabIndex={0}
+                          aria-label={`Copy public key: ${truncatePublicKey(selectedSubmission.user.publicKey, 20)}`}
+                        >
+                          <MdOutlineAccountBalanceWallet />
+                          <p>
+                            {truncatePublicKey(
+                              selectedSubmission.user.publicKey,
+                              20,
+                            )}
+                          </p>
+                        </div>
+                      </Tooltip>
+                      <div className="mb-0.5">
+                        <KycComponent
+                          address={selectedSubmission?.user?.publicKey}
+                          imageOnly
+                          listingSponsorId={bounty?.sponsorId}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-start gap-5">
+                  {selectedSubmission?.user?.email && (
                     <Tooltip
                       content={'Click to copy'}
                       contentProps={{ side: 'right' }}
                       triggerClassName="flex items-center hover:underline underline-offset-1"
                     >
                       <div
-                        className="flex cursor-pointer items-center justify-start gap-1 whitespace-nowrap text-sm text-slate-400 hover:text-slate-500"
-                        onClick={handleCopyPublicKey}
+                        className="flex cursor-pointer items-center justify-start gap-1 text-sm text-slate-400 hover:text-slate-500"
+                        onClick={handleCopyEmail}
                         role="button"
                         tabIndex={0}
-                        aria-label={`Copy public key: ${truncatePublicKey(selectedSubmission.user.publicKey, 20)}`}
+                        aria-label={`Copy email: ${selectedSubmission.user.email}`}
                       >
-                        <MdOutlineAccountBalanceWallet />
-                        <p>
-                          {truncatePublicKey(
-                            selectedSubmission.user.publicKey,
-                            20,
-                          )}
-                        </p>
+                        <MdOutlineMail />
+                        {truncateString(selectedSubmission.user.email, 36)}
                       </div>
                     </Tooltip>
-                    <KycComponent
-                      address={selectedSubmission?.user?.publicKey}
-                      variant="xs"
-                      listingSponsorId={bounty?.sponsorId}
-                    />
-                  </>
-                )}
-                <div className="flex gap-2">
-                  {socials
-                    .filter((social) => social.isVisible)
-                    .map((social) => (
-                      <Fragment key={social.icon.key}>{social.icon}</Fragment>
-                    ))}
-                </div>
-                <div className="flex items-center">
-                  <p className="text-sm text-slate-400">
-                    Created on:{' '}
-                    {dayjs(selectedSubmission?.createdAt).format('MMM D, YYYY')}
-                  </p>
-                </div>
-                {selectedSubmission?.status === 'Approved' &&
-                  selectedSubmission?.approveDate && (
-                    <div className="flex items-center">
-                      <Tooltip
-                        content={
-                          <DoneBy
-                            doneBy={selectedSubmission?.approvedBy || ''}
-                            doneByType="approved"
-                          />
-                        }
-                        contentProps={{ side: 'top' }}
-                        disabled={!selectedSubmission?.approvedBy}
-                      >
-                        <p className="text-sm text-slate-400">
-                          Approved on:{' '}
-                          {dayjs(selectedSubmission.approveDate).format(
-                            'MMM D, YYYY',
-                          )}
-                        </p>
-                      </Tooltip>
-                    </div>
                   )}
-                {selectedSubmission?.isPaid &&
-                  selectedSubmission?.paymentDate && (
-                    <div className="flex items-center">
-                      <Tooltip
-                        content={
-                          <DoneBy
-                            doneBy={selectedSubmission?.paidBy || ''}
-                            doneByType="paid"
-                          />
-                        }
-                        contentProps={{ side: 'top' }}
-                        disabled={!selectedSubmission?.paidBy}
-                      >
-                        <p className="text-sm text-slate-400">
-                          Paid on:{' '}
-                          {dayjs(selectedSubmission.paymentDate).format(
-                            'MMM D, YYYY',
-                          )}
-                        </p>
-                      </Tooltip>
-                      <Button
-                        variant="ghost"
-                        className="h-4 w-4 p-0 hover:bg-transparent"
-                        onClick={handleUpdatePaymentDate}
-                      >
-                        <Pencil className="ml-3 h-4 w-4 text-slate-400" />
-                      </Button>
-                    </div>
-                  )}
+
+                  <div className="flex gap-2">
+                    {socials
+                      .filter((social) => social.isVisible)
+                      .map((social) => (
+                        <Fragment key={social.icon.key}>{social.icon}</Fragment>
+                      ))}
+                  </div>
+                </div>
               </div>
             </div>
-            <Details bounty={bounty} />
+
+            <div className="flex w-full">
+              <div className="w-2/3">
+                <div className="flex gap-4 px-4 pt-4">
+                  <div className="flex items-center">
+                    <p className="text-sm text-slate-400">
+                      Created on:{' '}
+                      {dayjs(selectedSubmission?.createdAt).format(
+                        'MMM D, YYYY',
+                      )}
+                    </p>
+                  </div>
+                  {selectedSubmission?.status === 'Approved' &&
+                    selectedSubmission?.approveDate && (
+                      <div className="flex items-center">
+                        <Tooltip
+                          content={
+                            <DoneBy
+                              doneBy={selectedSubmission?.approvedBy || ''}
+                              doneByType="approved"
+                            />
+                          }
+                          contentProps={{ side: 'top' }}
+                          disabled={!selectedSubmission?.approvedBy}
+                        >
+                          <p className="text-sm text-slate-400">
+                            Approved on:{' '}
+                            {dayjs(selectedSubmission.approveDate).format(
+                              'MMM D, YYYY',
+                            )}
+                          </p>
+                        </Tooltip>
+                      </div>
+                    )}
+                  {selectedSubmission?.isPaid &&
+                    selectedSubmission?.paymentDate && (
+                      <div className="flex items-center">
+                        <Tooltip
+                          content={
+                            <DoneBy
+                              doneBy={selectedSubmission?.paidBy || ''}
+                              doneByType="paid"
+                            />
+                          }
+                          contentProps={{ side: 'top' }}
+                          disabled={!selectedSubmission?.paidBy}
+                        >
+                          <p className="text-sm text-slate-400">
+                            Paid on:{' '}
+                            {dayjs(selectedSubmission.paymentDate).format(
+                              'MMM D, YYYY',
+                            )}
+                          </p>
+                        </Tooltip>
+                        <Button
+                          variant="ghost"
+                          className="h-4 w-4 p-0 hover:bg-transparent"
+                          onClick={handleUpdatePaymentDate}
+                        >
+                          <Pencil className="ml-3 h-4 w-4 text-slate-400" />
+                        </Button>
+                      </div>
+                    )}
+                </div>
+                <Details
+                  bounty={bounty}
+                  selectedSubmission={selectedSubmission}
+                />
+              </div>
+              <div className="w-1/3 border-l">
+                <Tabs
+                  defaultValue="notes"
+                  value={activeTab}
+                  onValueChange={(tab) => setActiveTab(tab as ActionTab)}
+                  className="w-full"
+                >
+                  <TabsList className="grid h-auto w-full grid-cols-2 rounded-none">
+                    <TabsTrigger
+                      value="notes"
+                      className={cn(
+                        'h-auto rounded-none border-b-2 px-4 py-2 text-muted-foreground data-[state=active]:border-brand-green',
+                      )}
+                    >
+                      Notes
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="comments"
+                      className={cn(
+                        'h-auto rounded-none border-b-2 px-4 py-2 text-muted-foreground data-[state=active]:border-brand-green',
+                      )}
+                    >
+                      Comments: {commentCount}
+                    </TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="notes" className="p-0">
+                    <div className="max-h-[32rem] overflow-y-auto px-4 py-4 scrollbar-thin scrollbar-track-slate-100 scrollbar-thumb-slate-300">
+                      <Notes
+                        key={selectedSubmission?.id}
+                        submissionId={selectedSubmission?.id ?? ''}
+                        initialNotes={selectedSubmission?.notes}
+                        slug={bounty?.slug}
+                      />
+                    </div>
+                  </TabsContent>
+                  <TabsContent value="comments" className="p-0">
+                    <div className="max-h-[30rem] overflow-y-auto px-4 py-4 scrollbar-thin scrollbar-track-slate-100 scrollbar-thumb-slate-300">
+                      <div className="flex items-center gap-2 text-slate-500">
+                        <span className="font-semibold">Public Comments</span>
+                        <Tooltip content="Comments visible to the contributor and other users. Great for leaving public feedback, asking questions, or acknowledging work.">
+                          <Info className="size-4 text-slate-300 hover:text-slate-400" />
+                        </Tooltip>
+                      </div>
+                      <div className="mb-6 mt-4 border-b border-slate-200" />
+                      <Comments
+                        key={selectedSubmission?.id ?? ''}
+                        hideCount
+                        isAnnounced={false}
+                        listingSlug={bounty?.slug ?? ''}
+                        listingType={bounty?.type ?? ''}
+                        poc={bounty?.poc as User}
+                        sponsorId={bounty?.sponsorId}
+                        isVerified={bounty?.sponsor?.isVerified}
+                        submissionAuthor={selectedSubmission?.user as User}
+                        refId={selectedSubmission?.id ?? ''}
+                        refType={'SUBMISSION'}
+                        count={commentCount}
+                        setCount={setCommentCount}
+                        take={2}
+                      />
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </div>
+            </div>
           </>
         ) : (
           <div className="p-3">

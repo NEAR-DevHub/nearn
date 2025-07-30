@@ -21,7 +21,6 @@ import {
   createListingFormSchema,
   createListingRefinements,
 } from '@/features/listing-builder/types/schema';
-import { isDeadlineOver } from '@/features/listings/utils/deadline';
 
 const allowedFields = [
   'type',
@@ -162,20 +161,6 @@ async function listing(req: NextApiRequestWithSponsor, res: NextApiResponse) {
     let { maxBonusSpots } = validatedData;
     const { status } = listing;
     const { isPublished } = listing;
-
-    // Check if listing is editable
-    const pastDeadline = isDeadlineOver(listing?.deadline || undefined);
-    logger.info('Check for past deadline of listing', {
-      id,
-      pastDeadline,
-      deadline: listing?.deadline,
-    });
-    if (pastDeadline && user?.role !== 'GOD') {
-      logger.warn(`Listing is past deadline, hence cannot be edited`, { id });
-      return res.status(400).json({
-        message: `Listing is past deadline, hence cannot be edited`,
-      });
-    }
 
     if (!listing.isPublished && req.role !== 'GOD') {
       logger.warn(`Listing is not published, hence cannot be edited`, { id });

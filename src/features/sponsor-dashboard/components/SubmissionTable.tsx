@@ -43,7 +43,6 @@ import { useDisclosure } from '@/hooks/use-disclosure';
 import { type SubmissionWithUser } from '@/interface/submission';
 import { getSubmissionUrl } from '@/utils/bounty-urls';
 import { cn } from '@/utils/cn';
-import { formatNumberWithSuffix } from '@/utils/formatNumberWithSuffix';
 import { truncatePublicKey } from '@/utils/truncatePublicKey';
 
 import { SubmissionDrawer } from '@/features/listings/components/Submission/SubmissionDrawer';
@@ -388,7 +387,7 @@ export const SubmissionTable = ({
                         />
                         <span className="ml-1 truncate text-sm">
                           {isUsdBased && '$'}
-                          {ask ? formatNumberWithSuffix(ask, 1) : '0'}
+                          {ask ? ask.toLocaleString('en-us') : '0'}
                           <span className="text-slate-400">
                             {isUsdBased && ' to be paid in'}
                           </span>

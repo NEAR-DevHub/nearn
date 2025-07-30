@@ -18,7 +18,6 @@ import {
 import { useDisclosure } from '@/hooks/use-disclosure';
 import { type SubmissionWithUser } from '@/interface/submission';
 import { cn } from '@/utils/cn';
-import { formatNumberWithSuffix } from '@/utils/formatNumberWithSuffix';
 import { cleanRewards, nthLabelGenerator, sortRank } from '@/utils/rank';
 
 import { BONUS_REWARD_POSITION } from '@/features/listing-builder/constants';
@@ -169,11 +168,9 @@ export const SelectWinner = ({
                     false,
                   )}{' '}
                   |{' '}
-                  {formatNumberWithSuffix(
-                    bounty?.rewards?.[selectedSubmission.winnerPosition]!,
-                    2,
-                    true,
-                  )}{' '}
+                  {bounty?.rewards?.[
+                    selectedSubmission.winnerPosition
+                  ]!.toLocaleString('en-us')}{' '}
                   {bounty?.token}
                 </p>
               ) : (
@@ -215,11 +212,7 @@ export const SelectWinner = ({
                         </span>
                         <span className="flex items-center gap-1 font-semibold text-slate-900">
                           <span>
-                            {formatNumberWithSuffix(
-                              bounty?.rewards?.[reward]!,
-                              2,
-                              true,
-                            )}
+                            {bounty?.rewards?.[reward]!.toLocaleString('en-us')}
                           </span>
                           <span className="text-slate-500">
                             {bounty?.token}
@@ -260,11 +253,9 @@ export const SelectWinner = ({
                     </span>
                     <span className="flex items-center gap-1 font-semibold text-slate-900">
                       <span>
-                        {formatNumberWithSuffix(
-                          bounty?.rewards?.[BONUS_REWARD_POSITION]!,
-                          2,
-                          true,
-                        )}
+                        {bounty?.rewards?.[
+                          BONUS_REWARD_POSITION
+                        ]!.toLocaleString('en-us')}
                       </span>
                       <span className="text-slate-500">{bounty?.token}</span>
                     </span>

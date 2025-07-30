@@ -37,7 +37,16 @@ export const withPotentialSponsorAuth = (handler: Handler): NextApiHandler => {
       logger.debug(`Fetching user with ID: ${userId}`);
       const user = await prisma.user.findUnique({
         where: { id: userId as string },
-        select: { currentSponsorId: true, role: true, hackathonId: true },
+        select: {
+          currentSponsorId: true,
+          role: true,
+          hackathonId: true,
+          UserSponsors: {
+            select: {
+              sponsorId: true,
+            },
+          },
+        },
       });
       logger.info(`User with ID: ${userId} found`, {
         userId,
@@ -52,6 +61,7 @@ export const withPotentialSponsorAuth = (handler: Handler): NextApiHandler => {
       req.userSponsorId = user.currentSponsorId;
       req.role = user.role;
       req.hackathonId = user.hackathonId || undefined;
+      req.sponsorIds = user.UserSponsors.map((sponsor) => sponsor.sponsorId);
       req.authorized = true;
       return handler(req, res);
     } catch (error) {

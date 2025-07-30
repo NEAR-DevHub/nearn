@@ -1,64 +1,32 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@radix-ui/react-tabs';
 import dayjs from 'dayjs';
-import { type Atom, useAtomValue } from 'jotai';
 import { Info } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tooltip } from '@/components/ui/tooltip';
 import { type SubmissionWithUser } from '@/interface/submission';
-import { type User } from '@/interface/user';
-import { api } from '@/lib/api';
 import { cn } from '@/utils/cn';
 import { getURLSanitized } from '@/utils/getURLSanitized';
 
-import { Comments } from '@/features/comments/components/Comments';
 import { DescriptionUI } from '@/features/listings/components/ListingPage/DescriptionUI';
 import { type Listing } from '@/features/listings/types';
 
-import { selectedSubmissionAtom } from '../../atoms';
 import { InfoBox, parseHtml } from '../InfoBox';
-import { Notes } from './Notes';
 import SubmissionStatusExplanation from './SubmissionStatusExplainer';
 
 interface Props {
   bounty: Listing | undefined;
   externalView?: boolean;
-  atom?: Atom<SubmissionWithUser | undefined>;
+  selectedSubmission: SubmissionWithUser | undefined;
 }
 
-type ActionTab = 'notes' | 'comments';
-
-export const Details = ({ bounty, externalView, atom }: Props) => {
-  const selectedSubmission = useAtomValue(atom ?? selectedSubmissionAtom);
+export const Details = ({
+  bounty,
+  externalView,
+  selectedSubmission,
+}: Props) => {
   const isProject = bounty?.type === 'project';
   const isSponsorship = bounty?.type === 'sponsorship';
-  const [commentCount, setCommentCount] = useState(0);
-  const [activeTab, setActiveTab] = useState<ActionTab>('notes');
-
-  useEffect(() => {
-    if (externalView) return;
-    const fetchCommentCount = async () => {
-      if (selectedSubmission?.id) {
-        try {
-          const response = await api.get(
-            `/api/comment/${selectedSubmission.id}`,
-            {
-              params: {
-                skip: 0,
-                take: 1,
-              },
-            },
-          );
-          setCommentCount(response.data.count);
-        } catch (error) {
-          console.error('Error fetching comment count:', error);
-        }
-      }
-    };
-
-    fetchCommentCount();
-  }, [selectedSubmission?.id]);
 
   return (
     <div
@@ -173,73 +141,6 @@ export const Details = ({ bounty, externalView, atom }: Props) => {
           isHtml
         />
       </div>
-      {!externalView && selectedSubmission && (
-        <div className="w-1/3 border-l">
-          <Tabs
-            defaultValue="notes"
-            value={activeTab}
-            onValueChange={(tab) => setActiveTab(tab as ActionTab)}
-            className="w-full"
-          >
-            <TabsList className="grid h-auto w-full grid-cols-2 rounded-none">
-              <TabsTrigger
-                value="notes"
-                className={cn(
-                  'h-auto rounded-none border-b-2 px-4 py-2 text-muted-foreground data-[state=active]:border-brand-green',
-                )}
-              >
-                Notes
-              </TabsTrigger>
-              <TabsTrigger
-                value="comments"
-                className={cn(
-                  'h-auto rounded-none border-b-2 px-4 py-2 text-muted-foreground data-[state=active]:border-brand-green',
-                )}
-              >
-                Comments: {commentCount}
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="notes" className="p-0">
-              <div className="max-h-[32rem] overflow-y-auto px-4 py-4 scrollbar-thin scrollbar-track-slate-100 scrollbar-thumb-slate-300">
-                <Notes
-                  key={selectedSubmission?.id}
-                  submissionId={selectedSubmission?.id}
-                  initialNotes={selectedSubmission?.notes}
-                  slug={bounty?.slug}
-                />
-              </div>
-            </TabsContent>
-            <TabsContent value="comments" className="p-0">
-              <div className="max-h-[30rem] overflow-y-auto px-4 py-4 scrollbar-thin scrollbar-track-slate-100 scrollbar-thumb-slate-300">
-                <div className="flex items-center gap-2 text-slate-500">
-                  <span className="font-semibold">Public Comments</span>
-                  <Tooltip content="Comments visible to the contributor and other users. Great for leaving public feedback, asking questions, or acknowledging work.">
-                    <Info className="size-4 text-slate-300 hover:text-slate-400" />
-                  </Tooltip>
-                </div>
-                <div className="mb-6 mt-4 border-b border-slate-200" />
-                <Comments
-                  key={selectedSubmission.id}
-                  hideCount
-                  isAnnounced={false}
-                  listingSlug={bounty?.slug ?? ''}
-                  listingType={bounty?.type ?? ''}
-                  poc={bounty?.poc as User}
-                  sponsorId={bounty?.sponsorId}
-                  isVerified={bounty?.sponsor?.isVerified}
-                  submissionAuthor={selectedSubmission.user as User}
-                  refId={selectedSubmission.id}
-                  refType={'SUBMISSION'}
-                  count={commentCount}
-                  setCount={setCommentCount}
-                  take={2}
-                />
-              </div>
-            </TabsContent>
-          </Tabs>
-        </div>
-      )}
     </div>
   );
 };
