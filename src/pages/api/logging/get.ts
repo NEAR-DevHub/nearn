@@ -339,8 +339,13 @@ async function submission(
 
     const processedLogs = logs.map((log) => {
       const isAtLeastSponsor = isRoleAtLeast(visibility, 'SPONSOR');
+      const isAtLeastPlatformAdmin = isRoleAtLeast(
+        visibility,
+        'PLATFORM_ADMIN',
+      );
       const actorHidden =
-        log.actorType === ActorType.SPONSOR && !isAtLeastSponsor;
+        (log.actorType === ActorType.SPONSOR && !isAtLeastSponsor) ||
+        (log.actorType === ActorType.PLATFORM_ADMIN && !isAtLeastPlatformAdmin);
 
       return {
         ...log,
@@ -353,7 +358,7 @@ async function submission(
               }
             : undefined,
         submissionId: !isAtLeastSponsor ? undefined : log.submissionId,
-        // We don't want to expose who behind the scenes for sponsors
+        // We don't want to expose who behind the scenes for sponsors and platform admins
         actorId: actorHidden ? undefined : log.actorId,
         comment: log.comment
           ? {

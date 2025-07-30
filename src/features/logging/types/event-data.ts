@@ -37,6 +37,8 @@ export enum EventType {
   TREASURY_PROPOSAL_APPROVED = 'TREASURY_PROPOSAL_APPROVED',
   TREASURY_PROPOSAL_REJECTED = 'TREASURY_PROPOSAL_REJECTED',
   TREASURY_PROPOSAL_EXPIRED = 'TREASURY_PROPOSAL_EXPIRED',
+  PLATFORM_ADMIN_ARCHIVED_OR_UNARCHIVED = 'PLATFORM_ADMIN_ARCHIVED_OR_UNARCHIVED',
+  PLATFORM_ADMIN_SUBMISSION_STATUS_EDITED = 'PLATFORM_ADMIN_SUBMISSION_STATUS_EDITED',
   SYSTEM_STATUS_CHANGED = 'SYSTEM_STATUS_CHANGED',
   SYSTEM_STATUS_IN_REVIEW = 'SYSTEM_STATUS_IN_REVIEW',
 }
@@ -132,6 +134,11 @@ export type SubmissionEditableFields =
   | 'otherTokenDetails';
 
 /**
+ * Fields that can be edited by platform admin in a submission
+ */
+export type PlatformAdminEditableSubmissionFields = 'status' | 'paymentDetails';
+
+/**
  * Type mapping for submission field values
  */
 export interface SubmissionFieldValueMap {
@@ -142,6 +149,14 @@ export interface SubmissionFieldValueMap {
   ask: number | null;
   token: string | null;
   otherTokenDetails: string | null;
+}
+
+/**
+ * Type mapping for platform admin submission field values
+ */
+export interface PlatformAdminSubmissionFieldValueMap {
+  paymentDetails: JsonValue | null;
+  status: string;
 }
 
 /**
@@ -282,6 +297,22 @@ export interface EventDataMap {
 
   [EventType.SYSTEM_STATUS_IN_REVIEW]: {
     deadline: Date;
+  };
+
+  [EventType.PLATFORM_ADMIN_ARCHIVED_OR_UNARCHIVED]: {
+    isArchived: boolean;
+  };
+
+  [EventType.PLATFORM_ADMIN_SUBMISSION_STATUS_EDITED]: {
+    changes: Array<{
+      field: PlatformAdminEditableSubmissionFields;
+      oldValue:
+        | PlatformAdminSubmissionFieldValueMap[PlatformAdminEditableSubmissionFields]
+        | null;
+      newValue:
+        | PlatformAdminSubmissionFieldValueMap[PlatformAdminEditableSubmissionFields]
+        | null;
+    }>;
   };
 }
 

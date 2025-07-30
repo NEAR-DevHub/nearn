@@ -92,7 +92,7 @@ async function updateSubmission(
     eventType: EventType.SUBMISSION_EDITED,
     actor: {
       id: user.id,
-      type: 'TALENT',
+      type: isGod ? 'PLATFORM_ADMIN' : 'TALENT',
     },
     entities: {
       listingId: listing.id,

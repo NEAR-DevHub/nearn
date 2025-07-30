@@ -63,6 +63,8 @@ function getDefaultVisibility(eventType: EventType): EventVisibility {
     [EventType.SPONSOR_PROFILE_EDITED]: 'SPONSOR',
     [EventType.SUBMISSION_NOTE_CHANGED]: 'SPONSOR',
     [EventType.SUBMISSION_PAYMENT_DATE_EDITED]: 'SPONSOR',
+    [EventType.PLATFORM_ADMIN_ARCHIVED_OR_UNARCHIVED]: 'SPONSOR',
+    [EventType.PLATFORM_ADMIN_SUBMISSION_STATUS_EDITED]: 'TALENT',
     [EventType.SYSTEM_STATUS_IN_REVIEW]: 'PUBLIC',
   };
 
@@ -81,12 +83,60 @@ class EventLoggerService implements EventLogger {
   }
 
   async bulkLog(events: Array<Log<EventType>>): Promise<void> {
-    const eventData = events.map(
-      (event) =>
-        ({
+    // Process events and check for GOD role when actorType is SPONSOR
+    const processedEvents = await Promise.all(
+      events.map(async (event) => {
+        let finalActorType = event.actor.type;
+
+        if (
+          event.actor.type === 'SPONSOR' &&
+          event.actor.id &&
+          event.entities?.sponsorId
+        ) {
+          // Check if user has GOD role and is not part of the sponsor
+          const user = await this.prisma.user.findUnique({
+            where: {
+              id: event.actor.id,
+              role: 'GOD',
+              UserSponsors: {
+                none: {
+                  sponsorId: event.entities?.sponsorId,
+                },
+              },
+            },
+            select: { role: true },
+          });
+
+          if (user) {
+            finalActorType = 'PLATFORM_ADMIN';
+          }
+        } else if (
+          event.actor.type === 'TALENT' &&
+          event.entities?.submissionId
+        ) {
+          // Check if user has GOD role and is not creator of the submission
+          const user = await this.prisma.user.findUnique({
+            where: {
+              id: event.actor.id,
+              role: 'GOD',
+              Submission: {
+                none: {
+                  id: event.entities?.submissionId,
+                },
+              },
+            },
+            select: { role: true },
+          });
+
+          if (user?.role === 'GOD') {
+            finalActorType = 'PLATFORM_ADMIN';
+          }
+        }
+
+        return {
           eventType: event.eventType,
           actorId: event.actor.id,
-          actorType: event.actor.type,
+          actorType: finalActorType,
           listingId: event.entities?.listingId || null,
           submissionId: event.entities?.submissionId || null,
           sponsorId: event.entities?.sponsorId || null,
@@ -94,12 +144,13 @@ class EventLoggerService implements EventLogger {
           data: event.data as Prisma.JsonObject,
           visibility: event.visibility || getDefaultVisibility(event.eventType),
           eventTime: event.eventTime || new Date(),
-        }) as Prisma.EventLogCreateManyInput,
+        } as Prisma.EventLogCreateManyInput;
+      }),
     );
 
     try {
       await this.prisma.eventLog.createMany({
-        data: eventData,
+        data: processedEvents,
         skipDuplicates: true,
       });
       logger.info(`Successfully logged ${events.length} events`);

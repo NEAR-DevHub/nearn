@@ -1,6 +1,6 @@
 import { type EventType } from '../types/event-data';
 import LOG_IMPLEMENTATION_MAPPING, { type LogProperties } from './log-types';
-import User from './User';
+import LogUser from './LogUser';
 
 interface Properties extends LogProperties {
   showExtraInfo?: 'listing' | 'submission' | 'both';
@@ -10,6 +10,7 @@ interface Properties extends LogProperties {
 export default function Log({
   event,
   showExtraInfo,
+  hideActorRole,
   onListingClick,
   onSubmissionClick,
 }: Properties) {
@@ -17,9 +18,10 @@ export default function Log({
 
   return (
     <div className="flex flex-col gap-1">
-      <User
+      <LogUser
         event={event}
         showExtraInfo={showExtraInfo}
+        hideActorRole={hideActorRole}
         onListingClick={onListingClick}
         onSubmissionClick={onSubmissionClick}
       />

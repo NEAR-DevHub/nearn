@@ -6,6 +6,8 @@ import CreateListing from './ListingCreated';
 import ListingEdit from './ListingEdit';
 import Paid from './Paid';
 import PaymentDateEdited from './PaymentDateEdited';
+import PlatformAdminSubmissionStatusEdited from './PlatformAdminSubmissionStatusEdited';
+import ArchivedOrUnarchived from './PlatformArchivedOrUnarchived';
 import PublishListing from './Publish';
 import SimpleLogMessage from './SimpleLogMessage';
 import SponsorEdit from './SponsorEdit';
@@ -63,6 +65,9 @@ const LOG_IMPLEMENTATION_MAPPING: Record<
   [EventType.TREASURY_PROPOSAL_REJECTED]: TreasuryProposal,
   [EventType.TREASURY_PROPOSAL_EXPIRED]: TreasuryProposal,
   [EventType.SYSTEM_STATUS_IN_REVIEW]: SystemStatusChanged,
+  [EventType.PLATFORM_ADMIN_ARCHIVED_OR_UNARCHIVED]: ArchivedOrUnarchived,
+  [EventType.PLATFORM_ADMIN_SUBMISSION_STATUS_EDITED]:
+    PlatformAdminSubmissionStatusEdited,
   [EventType.SYSTEM_STATUS_CHANGED]: SystemStatusChanged,
 };
 

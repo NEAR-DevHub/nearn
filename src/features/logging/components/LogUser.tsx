@@ -15,7 +15,7 @@ interface Properties extends LogProperties {
   hideActorRole?: boolean;
 }
 
-export default function User({
+export default function LogUser({
   event,
   showExtraInfo,
   hideActorRole = false,
@@ -41,9 +41,13 @@ export default function User({
   let username = name;
   let icon = photo;
 
-  if (event.actorType === 'SYSTEM') {
+  if (
+    event.actorType === 'SYSTEM' ||
+    (event.actorType === 'PLATFORM_ADMIN' && !event.actor)
+  ) {
     icon = '/favicon.ico';
-    username = PROJECT_NAME;
+    username =
+      event.actorType === 'SYSTEM' ? PROJECT_NAME : `${PROJECT_NAME} Admin`;
   }
 
   return (
@@ -62,6 +66,11 @@ export default function User({
           {event.actor?.username === event.listing?.poc?.username
             ? 'Creator'
             : 'Sponsor'}
+        </span>
+      )}
+      {event.actorType === 'PLATFORM_ADMIN' && event.actor && (
+        <span className="text-sm font-medium text-blue-600">
+          Platform Admin
         </span>
       )}
       {showListingExtraInfo && event.listing && onListingClick && (

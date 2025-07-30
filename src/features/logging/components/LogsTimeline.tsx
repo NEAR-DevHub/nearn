@@ -3,6 +3,7 @@
 import { format, isToday } from 'date-fns';
 import {
   Activity,
+  Archive,
   Award,
   Check,
   CircleMinus,
@@ -70,6 +71,12 @@ const eventIcons: Record<EventType, React.ReactNode> = {
   [EventType.TREASURY_PROPOSAL_EXPIRED]: <RefreshCcw className="h-4 w-4" />,
   [EventType.SYSTEM_STATUS_CHANGED]: <RefreshCcw className="h-4 w-4" />,
   [EventType.SYSTEM_STATUS_IN_REVIEW]: <RefreshCcw className="h-4 w-4" />,
+  [EventType.PLATFORM_ADMIN_ARCHIVED_OR_UNARCHIVED]: (
+    <Archive className="h-4 w-4" />
+  ),
+  [EventType.PLATFORM_ADMIN_SUBMISSION_STATUS_EDITED]: (
+    <Pencil className="h-4 w-4" />
+  ),
 };
 
 export default function LogsTimeline({
