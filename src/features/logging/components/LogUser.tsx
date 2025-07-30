@@ -7,6 +7,7 @@ import { Tooltip } from '@/components/ui/tooltip';
 import { PROJECT_NAME } from '@/constants/project';
 
 import { formatFromNow } from '@/features/comments/utils';
+import { getListingIcon } from '@/features/listings/utils/getListingIcon';
 
 import { type LogProperties } from './log-types';
 
@@ -78,8 +79,23 @@ export default function LogUser({
           <span className="text-slate-500">in</span>
           <button
             onClick={() => onListingClick(event)}
-            className="text-sm font-medium text-slate-900"
+            className="flex items-center gap-1 text-sm font-medium text-slate-900"
           >
+            <Tooltip
+              content={
+                <p>
+                  {event.listing.type.charAt(0).toUpperCase() +
+                    event.listing.type.slice(1)}
+                </p>
+              }
+            >
+              <img
+                className="h-4 min-h-4 w-4 min-w-4 flex-shrink-0 rounded-full"
+                alt={`New ${event.listing.type}`}
+                src={getListingIcon(event.listing.type!)}
+                title={event.listing.type}
+              />
+            </Tooltip>
             {event.listing.title}
           </button>
         </>
