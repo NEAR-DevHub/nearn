@@ -293,8 +293,8 @@ function Content({
                           window.open(
                             getURLSanitized(
                               submission?.paymentDetails?.link ??
-                              submission.paymentDetails?.treasury?.link ??
-                              '',
+                                submission.paymentDetails?.treasury?.link ??
+                                '',
                             ),
                             '_blank',
                           );

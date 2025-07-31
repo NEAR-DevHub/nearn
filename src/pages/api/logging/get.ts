@@ -170,6 +170,8 @@ async function submission(
   const page = parseInt(req.query.page as string) || 1;
   const limit = parseInt(req.query.limit as string) || 50;
   const sort = (req.query.sort as 'asc' | 'desc' | undefined) || 'desc';
+  const startDate = req.query.startDate as string | undefined;
+  const endDate = req.query.endDate as string | undefined;
 
   if (!refId || !refType) {
     return res.status(400).json({
@@ -248,6 +250,17 @@ async function submission(
         ],
       };
 
+  const dateFilter: Prisma.EventLogWhereInput = {};
+  if (startDate || endDate) {
+    dateFilter.eventTime = {};
+    if (startDate) {
+      dateFilter.eventTime.gte = new Date(startDate);
+    }
+    if (endDate) {
+      dateFilter.eventTime.lte = new Date(endDate);
+    }
+  }
+
   try {
     const whereClause: Prisma.EventLogWhereInput = {
       AND: [
@@ -256,6 +269,7 @@ async function submission(
         eventTypes ? { eventType: { in: eventTypes } } : {},
         hideLogEventsForRemoved,
         searchTextWhere,
+        dateFilter,
       ],
     };
 

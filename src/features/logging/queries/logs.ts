@@ -14,6 +14,8 @@ interface GetLogsParams {
   limit?: number;
   sort?: 'asc' | 'desc';
   maxVisibility?: EventVisibility;
+  startDate?: Date;
+  endDate?: Date;
 }
 
 interface PaginatedLogsResponse {
@@ -140,6 +142,8 @@ const fetchLogs = async (
       searchText: searchText.length > 0 ? searchText : undefined,
       page: params.page || 1,
       limit: params.limit || 50,
+      startDate: params.startDate?.toISOString(),
+      endDate: params.endDate?.toISOString(),
     },
   });
   return data;
