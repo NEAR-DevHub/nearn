@@ -170,8 +170,15 @@ async function submission(
   const page = parseInt(req.query.page as string) || 1;
   const limit = parseInt(req.query.limit as string) || 50;
   const sort = (req.query.sort as 'asc' | 'desc' | undefined) || 'desc';
-  const startDate = req.query.startDate as string | undefined;
-  const endDate = req.query.endDate as string | undefined;
+  const startDate = (req.query.startDate as string | undefined)
+    ? new Date(req.query.startDate as string)
+    : undefined;
+  const endDate = (req.query.endDate as string | undefined)
+    ? new Date(req.query.endDate as string)
+    : undefined;
+
+  startDate?.setHours(0, 0, 0, 0);
+  endDate?.setHours(23, 59, 59, 999);
 
   if (!refId || !refType) {
     return res.status(400).json({
@@ -252,13 +259,10 @@ async function submission(
 
   const dateFilter: Prisma.EventLogWhereInput = {};
   if (startDate || endDate) {
-    dateFilter.eventTime = {};
-    if (startDate) {
-      dateFilter.eventTime.gte = new Date(startDate);
-    }
-    if (endDate) {
-      dateFilter.eventTime.lte = new Date(endDate);
-    }
+    dateFilter.eventTime = {
+      gte: startDate,
+      lte: endDate,
+    };
   }
 
   try {

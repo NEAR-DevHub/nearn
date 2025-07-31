@@ -12,6 +12,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Input } from '@/components/ui/input';
 import {
   Popover,
+  PopoverClose,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
@@ -30,6 +31,18 @@ import { Banner } from '@/features/sponsor-dashboard/components/Banner';
 import { sponsorStatsQuery } from '@/features/sponsor-dashboard/queries/sponsor-stats';
 
 const MemoizedLogsTimeline = memo(LogsTimeline);
+
+const startOfDay = (date: Date, numDays: number = 0) => {
+  date.setDate(date.getDate() - numDays);
+  date.setHours(0, 0, 0, 0);
+  return date;
+};
+
+const endOfDay = (date: Date, numDays: number = 0) => {
+  date.setDate(date.getDate() - numDays);
+  date.setHours(23, 59, 59, 999);
+  return date;
+};
 
 export default function ActivityHistory() {
   const { user } = useUser();
@@ -74,8 +87,8 @@ export default function ActivityHistory() {
     refId: user?.currentSponsorId ?? '',
     eventTypes,
     searchText,
-    startDate: dateRange.from,
-    endDate: dateRange.to,
+    startDate: dateRange.from ? startOfDay(dateRange.from) : undefined,
+    endDate: dateRange.to ? endOfDay(dateRange.to) : undefined,
   });
 
   const logs = useMemo(() => {
@@ -123,61 +136,48 @@ export default function ActivityHistory() {
     return () => observer.disconnect();
   }, [handleObserver]);
 
-  const startOfDay = (numDays: number) => {
-    const date = new Date();
-    date.setDate(date.getDate() - numDays);
-    date.setHours(0, 0, 0, 0);
-    return date;
-  };
-
-  const endOfDay = (numDays: number) => {
-    const date = new Date();
-    date.setDate(date.getDate() - numDays);
-    date.setHours(23, 59, 59, 999);
-    return date;
-  };
   const commonTimeFilters = useMemo(
     () => [
       {
         label: 'Today',
         value: {
-          from: startOfDay(0),
-          to: endOfDay(0),
+          from: startOfDay(new Date()),
+          to: endOfDay(new Date()),
         },
       },
       {
         label: 'Yesterday',
         value: {
-          from: startOfDay(1),
-          to: endOfDay(0),
+          from: startOfDay(new Date(), 1),
+          to: endOfDay(new Date()),
         },
       },
       {
         label: 'Last 3 days',
         value: {
-          from: startOfDay(3),
-          to: endOfDay(0),
+          from: startOfDay(new Date(), 3),
+          to: endOfDay(new Date()),
         },
       },
       {
         label: 'Last 7 days',
         value: {
-          from: startOfDay(7),
-          to: endOfDay(0),
+          from: startOfDay(new Date(), 7),
+          to: endOfDay(new Date()),
         },
       },
       {
         label: 'Last 14 days',
         value: {
-          from: startOfDay(14),
-          to: endOfDay(0),
+          from: startOfDay(new Date(), 14),
+          to: endOfDay(new Date()),
         },
       },
       {
         label: 'Last month',
         value: {
-          from: startOfDay(30),
-          to: endOfDay(0),
+          from: startOfDay(new Date(), 30),
+          to: endOfDay(new Date()),
         },
       },
     ],
@@ -215,7 +215,9 @@ export default function ActivityHistory() {
               >
                 <CalendarIcon className="h-4 w-4" />
                 {dateRange.from ? (
-                  dateRange.to ? (
+                  dateRange.to &&
+                  dateRange.from.toDateString() !==
+                    dateRange.to.toDateString() ? (
                     <>
                       {format(dateRange.from, 'LLL dd')} -{' '}
                       {format(dateRange.to, 'LLL dd')}
@@ -279,13 +281,16 @@ export default function ActivityHistory() {
                     >
                       Clear All
                     </Button>
-                    <Button
-                      variant="default"
-                      size="sm"
-                      className="bg-slate-900 text-sm font-medium"
-                    >
-                      Apply
-                    </Button>
+                    <PopoverClose asChild>
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="bg-slate-900 text-sm font-medium"
+                        onClick={() => {}}
+                      >
+                        Apply
+                      </Button>
+                    </PopoverClose>
                   </div>
                 </div>
               </div>
