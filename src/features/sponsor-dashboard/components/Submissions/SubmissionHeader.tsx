@@ -59,7 +59,7 @@ interface Props {
   isHackathonPage?: boolean;
   onVerifyPayments: () => void;
   refetchBounty: () => void;
-  setSelectedSubmission: (submissionId: string) => void;
+  setSelectedSubmission: (sequentialId: number) => void;
 }
 
 export const SubmissionHeader = ({

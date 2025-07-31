@@ -21,7 +21,7 @@ import {
 
 interface ActivityModalProps {
   listingId?: string;
-  setSelectedSubmission: (submissionId: string) => void;
+  setSelectedSubmission: (sequentialId: number) => void;
 }
 
 export const ActivityModal = ({
@@ -36,7 +36,7 @@ export const ActivityModal = ({
 
   const handleSubmissionClick = useCallback(
     (event: Log) => {
-      setSelectedSubmission(event.submissionId ?? '');
+      setSelectedSubmission(event.submission?.sequentialId!);
       setIsOpen(false);
     },
     [setSelectedSubmission, setIsOpen],
@@ -69,7 +69,7 @@ export const ActivityModal = ({
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" className="text-slate-400">
+        <Button variant="ghost" className="text-slate-500">
           <Clock2 className="h-4 w-4" />
           Listing Activity
         </Button>

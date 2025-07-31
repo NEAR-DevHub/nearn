@@ -72,7 +72,7 @@ export default function ActivityHistory() {
   const onSubmissionClick = useCallback(
     (event: Log) => {
       router.push(
-        `/dashboard/listings/${event.listing?.slug}/submissions?submissionId=${event.submissionId}`,
+        `/dashboard/listings/${event.listing?.slug}/submissions/${event.submission?.sequentialId}`,
       );
     },
     [router],

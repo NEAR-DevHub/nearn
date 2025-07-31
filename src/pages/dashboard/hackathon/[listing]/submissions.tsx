@@ -182,9 +182,9 @@ export default function BountySubmissions({ listing }: Props) {
           <SubmissionHeader
             bounty={bounty}
             totalSubmissions={submissions?.length || 0}
-            setSelectedSubmission={(submissionId) => {
+            setSelectedSubmission={(sequentialId) => {
               const submission = submissions?.find(
-                (submission) => submission.id === submissionId,
+                (submission) => submission.sequentialId === sequentialId,
               );
               if (submission) {
                 setSelectedSubmission(submission);
