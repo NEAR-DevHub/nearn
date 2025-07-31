@@ -149,7 +149,7 @@ export default function ActivityHistory() {
         label: 'Yesterday',
         value: {
           from: startOfDay(new Date(), 1),
-          to: endOfDay(new Date()),
+          to: endOfDay(new Date(), 1),
         },
       },
       {
