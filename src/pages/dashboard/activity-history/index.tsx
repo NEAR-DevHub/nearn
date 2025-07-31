@@ -267,7 +267,8 @@ export default function ActivityHistory() {
                         'text-slate-600 flex h-[--cell-size] w-full items-center justify-center px-[--cell-size]',
                       disabled: 'text-slate-400 ',
                       day: 'text-slate-600 group/day relative aspect-square h-full w-full select-none p-0 text-center [&:first-child[data-selected=true]_button]:rounded-l-md [&:last-child[data-selected=true]_button]:rounded-r-md',
-                      today: 'text-slate-600',
+                      today:
+                        'text-slate-600 border-slate-200 border rounded-md',
                     }}
                   />
                   <div className="flex items-center justify-end gap-2.5 p-1.5">
