@@ -9,6 +9,7 @@ import {
   ExternalLink,
   Info,
   Link2,
+  Loader2,
   Pencil,
 } from 'lucide-react';
 import Image from 'next/image';
@@ -17,7 +18,6 @@ import React, {
   type Dispatch,
   Fragment,
   type SetStateAction,
-  useEffect,
   useState,
 } from 'react';
 import { FaSpinner } from 'react-icons/fa';
@@ -36,7 +36,6 @@ import { tokenList } from '@/constants/tokenList';
 import { useClipboard } from '@/hooks/use-clipboard';
 import type { SubmissionWithUser } from '@/interface/submission';
 import type { User } from '@/interface/user';
-import { api } from '@/lib/api';
 import { getSubmissionUrl } from '@/utils/bounty-urls';
 import { cn } from '@/utils/cn';
 import { dayjs } from '@/utils/dayjs';
@@ -45,6 +44,7 @@ import { truncatePublicKey } from '@/utils/truncatePublicKey';
 import { truncateString } from '@/utils/truncateString';
 
 import { Comments } from '@/features/comments/components/Comments';
+import { useCommentCount } from '@/features/comments/queries/comment-count';
 import type { Listing } from '@/features/listings/types';
 import {
   Discord,
@@ -223,7 +223,9 @@ export const SubmissionPanel = ({
   const [selectedSubmission, setSelectedSubmission] = useAtom(
     selectedSubmissionAtom,
   );
-  const [commentCount, setCommentCount] = useState(0);
+  const { data: commentData, refetch: refetchCommentCount } = useCommentCount(
+    selectedSubmission?.id,
+  );
   const [activeTab, setActiveTab] = useState<ActionTab>('notes');
 
   const { onCopy: onCopyEmail } = useClipboard(
@@ -240,29 +242,6 @@ export const SubmissionPanel = ({
 
   const [isNearTreasuryPaymentModalOpen, setIsNearTreasuryPaymentModalOpen] =
     useState(false);
-
-  useEffect(() => {
-    const fetchCommentCount = async () => {
-      if (selectedSubmission?.id) {
-        try {
-          const response = await api.get(
-            `/api/comment/${selectedSubmission.id}`,
-            {
-              params: {
-                skip: 0,
-                take: 1,
-              },
-            },
-          );
-          setCommentCount(response.data.count);
-        } catch (error) {
-          console.error('Error fetching comment count:', error);
-        }
-      }
-    };
-
-    fetchCommentCount();
-  }, [selectedSubmission?.id]);
 
   const handleCopySubmissionLink = () => {
     if (selectedSubmission?.id) {
@@ -734,10 +713,15 @@ export const SubmissionPanel = ({
                     <TabsTrigger
                       value="comments"
                       className={cn(
-                        'h-auto rounded-none border-b-2 px-4 py-2 text-muted-foreground data-[state=active]:border-brand-green',
+                        'flex h-auto items-center justify-center gap-2 rounded-none border-b-2 px-4 py-2 text-muted-foreground data-[state=active]:border-brand-green',
                       )}
                     >
-                      Comments: {commentCount}
+                      Comments:{' '}
+                      {commentData?.count !== undefined ? (
+                        commentData.count
+                      ) : (
+                        <Loader2 className="size-4 animate-spin" />
+                      )}
                     </TabsTrigger>
                   </TabsList>
 
@@ -772,8 +756,10 @@ export const SubmissionPanel = ({
                         submissionAuthor={selectedSubmission?.user as User}
                         refId={selectedSubmission?.id ?? ''}
                         refType={'SUBMISSION'}
-                        count={commentCount}
-                        setCount={setCommentCount}
+                        count={commentData?.count ?? 0}
+                        setCount={() => {
+                          refetchCommentCount();
+                        }}
                         take={2}
                       />
                     </div>
