@@ -313,7 +313,7 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
   const isSponsorVerified = bounty?.sponsor?.isVerified;
 
   return (
-    <SponsorLayout isCollapsible>
+    <SponsorLayout isCollapsible className="bg-slate-50">
       {isBountyLoading || isSubmissionsLoading ? (
         <LoadingSection />
       ) : (

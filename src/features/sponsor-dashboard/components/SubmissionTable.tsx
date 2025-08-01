@@ -41,7 +41,7 @@ import { Tooltip } from '@/components/ui/tooltip';
 import { tokenList } from '@/constants/tokenList';
 import { useDisclosure } from '@/hooks/use-disclosure';
 import { type SubmissionWithUser } from '@/interface/submission';
-import { getSubmissionUrl } from '@/utils/bounty-urls';
+import { getBountyUrl, getSubmissionUrl } from '@/utils/bounty-urls';
 import { cn } from '@/utils/cn';
 import { truncatePublicKey } from '@/utils/truncatePublicKey';
 
@@ -188,6 +188,15 @@ export const SubmissionTable = ({
     );
   };
 
+  function handleClick(e: React.MouseEvent, href: string) {
+    if (e.button === 1 || e.ctrlKey || e.metaKey) {
+      window.open(href, '_blank');
+      return;
+    }
+
+    router.push(href);
+  }
+
   if (!submissions.length) return;
 
   return (
@@ -308,6 +317,7 @@ export const SubmissionTable = ({
                   ? `/dashboard/grants/${submission?.listing?.slug}/applications`
                   : `/dashboard/listings/${submission?.listing?.slug}/submissions`;
               const listingSubmissionLink = `${listingLink}/${submission.sequentialId}`;
+              const publicListingLink = getBountyUrl(submission?.listing);
 
               const textColor = getColorStyles(listingStatus).color;
               const bgColor = getColorStyles(listingStatus).bg;
@@ -317,7 +327,11 @@ export const SubmissionTable = ({
 
               return (
                 <TableRow key={submission?.id}>
-                  <TableCell>
+                  <TableCell
+                    className="cursor-pointer"
+                    onClick={(e) => handleClick(e, listingSubmissionLink)}
+                    onAuxClick={(e) => handleClick(e, listingSubmissionLink)}
+                  >
                     <p className="whitespace-nowrap text-sm font-medium text-slate-500">
                       {submission.sequentialId}
                     </p>
@@ -325,7 +339,7 @@ export const SubmissionTable = ({
                   {visibleColumns.contributor && (
                     <TableCell className="max-w-80 whitespace-normal break-words font-medium text-slate-700">
                       <Link
-                        href={listingSubmissionLink}
+                        href={`/t/${submission?.user?.username}`}
                         className="flex items-center"
                       >
                         <EarnAvatar
@@ -359,17 +373,22 @@ export const SubmissionTable = ({
                     <>
                       <TableCell className="pr-0">
                         <Tooltip content={<p>{listingType}</p>}>
-                          <img
-                            className="mt-1.5 h-5 min-h-5 w-5 min-w-5 flex-shrink-0 rounded-full"
-                            alt={`New ${listingType}`}
-                            src={getListingIcon(submission?.listing?.type!)}
-                            title={listingType}
-                          />
+                          <Link href={publicListingLink}>
+                            <img
+                              className="mt-1.5 h-5 min-h-5 w-5 min-w-5 flex-shrink-0 rounded-full"
+                              alt={`New ${listingType}`}
+                              src={getListingIcon(submission?.listing?.type!)}
+                              title={listingType}
+                            />
+                          </Link>
                         </Tooltip>
                       </TableCell>
                       <TableCell className="py-2">
-                        <Link href={listingLink}>
-                          <p className="max-w-80 whitespace-normal break-words font-medium text-slate-700">
+                        <Link
+                          href={publicListingLink}
+                          className="h-full max-w-80 whitespace-normal break-words font-medium text-slate-700"
+                        >
+                          <p className="h-full w-full">
                             {submission?.listing?.title}
                           </p>
                         </Link>
@@ -377,7 +396,11 @@ export const SubmissionTable = ({
                     </>
                   )}
                   {visibleColumns.ask && (
-                    <TableCell className="min-w-[225px] font-medium text-slate-700">
+                    <TableCell
+                      className="min-w-[225px] cursor-pointer font-medium text-slate-700"
+                      onClick={(e) => handleClick(e, listingSubmissionLink)}
+                      onAuxClick={(e) => handleClick(e, listingSubmissionLink)}
+                    >
                       <div className="flex w-full items-center overflow-visible">
                         <img
                           src={tokenObject?.icon}
@@ -403,7 +426,11 @@ export const SubmissionTable = ({
                     </TableCell>
                   )}
                   {visibleColumns.status && (
-                    <TableCell className="items-center py-2">
+                    <TableCell
+                      className="cursor-pointer items-center py-2"
+                      onClick={(e) => handleClick(e, listingSubmissionLink)}
+                      onAuxClick={(e) => handleClick(e, listingSubmissionLink)}
+                    >
                       <p
                         className={cn(
                           'inline-flex items-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium',
@@ -416,14 +443,22 @@ export const SubmissionTable = ({
                     </TableCell>
                   )}
                   {visibleColumns.submissionDate && (
-                    <TableCell className="items-center py-2">
+                    <TableCell
+                      className="cursor-pointer items-center py-2"
+                      onClick={(e) => handleClick(e, listingSubmissionLink)}
+                      onAuxClick={(e) => handleClick(e, listingSubmissionLink)}
+                    >
                       <p className="whitespace-nowrap text-sm font-medium text-slate-500">
                         {submissionDate}
                       </p>
                     </TableCell>
                   )}
                   {visibleColumns.approvedDate && (
-                    <TableCell className="items-center py-2">
+                    <TableCell
+                      className="cursor-pointer items-center py-2"
+                      onClick={(e) => handleClick(e, listingSubmissionLink)}
+                      onAuxClick={(e) => handleClick(e, listingSubmissionLink)}
+                    >
                       <Tooltip
                         disabled={!submission?.approvedBy}
                         content={
@@ -440,7 +475,11 @@ export const SubmissionTable = ({
                     </TableCell>
                   )}
                   {visibleColumns.paymentDate && (
-                    <TableCell>
+                    <TableCell
+                      className="cursor-pointer"
+                      onClick={(e) => handleClick(e, listingSubmissionLink)}
+                      onAuxClick={(e) => handleClick(e, listingSubmissionLink)}
+                    >
                       <Tooltip
                         disabled={!submission?.paidBy}
                         content={
@@ -457,7 +496,11 @@ export const SubmissionTable = ({
                     </TableCell>
                   )}
                   {visibleColumns.notes && (
-                    <TableCell className="items-center py-2">
+                    <TableCell
+                      className="cursor-pointer items-center py-2"
+                      onClick={(e) => handleClick(e, listingSubmissionLink)}
+                      onAuxClick={(e) => handleClick(e, listingSubmissionLink)}
+                    >
                       <p className="whitespace-pre-wrap text-sm font-medium text-slate-500">
                         {submission?.notes}
                       </p>
@@ -520,7 +563,9 @@ export const SubmissionTable = ({
 
                             <DropdownMenuItem
                               className="cursor-pointer text-sm font-medium text-slate-500"
-                              onClick={() => copyToClipboard(submissionLink)}
+                              onClick={() => {
+                                copyToClipboard(submissionLink);
+                              }}
                             >
                               <Copy className="mr-2 h-4 w-4" />
                               Copy Link
@@ -531,11 +576,11 @@ export const SubmissionTable = ({
                           submission.paymentDetails?.link && (
                             <DropdownMenuItem
                               className="cursor-pointer text-sm font-medium text-slate-500"
-                              onClick={() =>
+                              onClick={() => {
                                 copyToClipboard(
                                   submission.paymentDetails?.link || '',
-                                )
-                              }
+                                );
+                              }}
                             >
                               <Copy className="mr-2 h-4 w-4" />
                               Copy Payment Link

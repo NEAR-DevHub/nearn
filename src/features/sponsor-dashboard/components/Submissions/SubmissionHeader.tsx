@@ -170,7 +170,13 @@ ${socialListingLink('twitter')}
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
                 <button
-                  onClick={() => router.back()}
+                  onClick={() => {
+                    if (window.history.length > 1) {
+                      router.back();
+                    } else {
+                      router.push('/dashboard/submissions');
+                    }
+                  }}
                   className="flex items-center hover:text-slate-600"
                 >
                   <ChevronLeft className="mr-1 h-6 w-6" />
