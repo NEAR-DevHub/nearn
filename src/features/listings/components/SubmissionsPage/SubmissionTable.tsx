@@ -40,7 +40,6 @@ import { useUser } from '@/store/user';
 import { getSubmissionUrl } from '@/utils/bounty-urls';
 import { cn } from '@/utils/cn';
 import { dayjs } from '@/utils/dayjs';
-import { formatNumberWithSuffix } from '@/utils/formatNumberWithSuffix';
 
 import {
   parseHtml,
@@ -488,7 +487,7 @@ export const SubmissionTable = ({
                               />
                               <span className="ml-1 truncate text-sm">
                                 {isUsdBased && '$'}
-                                {ask ? formatNumberWithSuffix(ask, 1) : '0'}
+                                {ask ? ask.toLocaleString('en-US') : '0'}
                                 <span className="text-slate-400">
                                   {isUsdBased && ' to be paid in'}
                                 </span>

@@ -393,6 +393,13 @@ export const SubmissionPanel = ({
                       <span className="text-slate-500">
                         {`'s Submission #${selectedSubmission?.sequentialId}`}
                       </span>
+                      <Button
+                        variant="ghost"
+                        className="mb-1 ml-2 h-4 w-4 p-0 text-slate-500 hover:text-slate-500"
+                        onClick={handleCopySubmissionLink}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
                       <Link
                         href={getURLSanitized(
                           getSubmissionUrl(selectedSubmission, bounty),
@@ -416,16 +423,6 @@ export const SubmissionPanel = ({
                     'ph-no-capture flex w-full items-center justify-end gap-2'
                   }
                 >
-                  {isSponsorship && (
-                    <Button
-                      variant="ghost"
-                      className="ph-no-capture text-slate-500 disabled:cursor-not-allowed"
-                      onClick={handleCopySubmissionLink}
-                    >
-                      <Copy className="mr-1 h-4 w-4" />
-                      Copy Submission Link
-                    </Button>
-                  )}
                   {selectedSubmission?.isWinner &&
                     selectedSubmission?.winnerPosition &&
                     !selectedSubmission?.isPaid &&

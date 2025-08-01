@@ -62,7 +62,10 @@ async function handler(
     }
 
     let limitations = {};
-    if (result.isWinnersAnnounced === false && result.type !== 'sponsorship') {
+    const isResultsPublic =
+      result.type === 'sponsorship' ||
+      (result.isWinnersAnnounced && result.type === 'bounty');
+    if (!isResultsPublic) {
       if (req.authorized) {
         if (req.role !== 'GOD' && !req.sponsorIds?.includes(result.sponsorId)) {
           limitations = {
