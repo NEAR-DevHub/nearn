@@ -2,6 +2,7 @@ import axios from 'axios';
 import { atom } from 'jotai';
 import { Copy, Eye, Heart, MessageCircle, MoreVertical } from 'lucide-react';
 import Link from 'next/link';
+import router from 'next/router';
 import React, {
   type Dispatch,
   type SetStateAction,
@@ -355,6 +356,15 @@ export const SubmissionTable = ({
     });
   };
 
+  function handleClick(e: React.MouseEvent, href: string) {
+    if (e.button === 1 || e.ctrlKey || e.metaKey) {
+      window.open(href, '_blank');
+      return;
+    }
+
+    router.push(href);
+  }
+
   return (
     <>
       <div className="mt-10 flex min-h-screen w-full flex-col items-center md:items-start">
@@ -440,14 +450,21 @@ export const SubmissionTable = ({
 
                     return (
                       <TableRow key={submission.id}>
-                        <TableCell>
+                        <TableCell
+                          className="cursor-pointer"
+                          onClick={(e) => handleClick(e, submissionLink)}
+                          onAuxClick={(e) => handleClick(e, submissionLink)}
+                        >
                           <p className="whitespace-nowrap text-sm font-medium text-slate-500">
                             {submission.sequentialId}
                           </p>
                         </TableCell>
                         {visibleColumns.submission && (
                           <TableCell className="min-w-[225px] pr-0">
-                            <div className="flex items-center">
+                            <Link
+                              className="flex items-center"
+                              href={`/t/${submission?.user?.username}`}
+                            >
                               <EarnAvatar
                                 id={submission?.user?.id}
                                 avatar={submission?.user?.photo || undefined}
@@ -474,11 +491,15 @@ export const SubmissionTable = ({
                                   )}
                                 </p>
                               </div>
-                            </div>
+                            </Link>
                           </TableCell>
                         )}
                         {visibleColumns.ask && (
-                          <TableCell className="min-w-[225px] font-medium text-slate-700">
+                          <TableCell
+                            className="min-w-[225px] cursor-pointer font-medium text-slate-700"
+                            onClick={(e) => handleClick(e, submissionLink)}
+                            onAuxClick={(e) => handleClick(e, submissionLink)}
+                          >
                             <div className="flex w-full items-center overflow-visible">
                               <img
                                 src={tokenObject?.icon}
@@ -505,7 +526,11 @@ export const SubmissionTable = ({
                           </TableCell>
                         )}
                         {visibleColumns.status && (
-                          <TableCell className="py-2">
+                          <TableCell
+                            className="cursor-pointer py-2"
+                            onClick={(e) => handleClick(e, submissionLink)}
+                            onAuxClick={(e) => handleClick(e, submissionLink)}
+                          >
                             <span
                               className={cn(
                                 'inline-flex whitespace-nowrap rounded-full px-3 py-1 text-center text-[10px] capitalize',
@@ -531,7 +556,9 @@ export const SubmissionTable = ({
                           return (
                             <TableCell
                               key={`${submission.id}-${colKey}`}
-                              className="py-2"
+                              className="cursor-pointer py-2"
+                              onClick={(e) => handleClick(e, submissionLink)}
+                              onAuxClick={(e) => handleClick(e, submissionLink)}
                             >
                               <Tooltip
                                 content={answer}

@@ -189,6 +189,15 @@ export const ListingTable = ({
     );
   };
 
+  function handleRowClick(e: React.MouseEvent, href: string) {
+    if (e.button === 1 || e.ctrlKey || e.metaKey) {
+      window.open(href, '_blank');
+      return;
+    }
+
+    router.push(href);
+  }
+
   if (!listings.length) return;
 
   return (
@@ -344,7 +353,22 @@ export const ListingTable = ({
               const bgColor = getColorStyles(listingStatus).bgColor;
 
               return (
-                <TableRow key={listing?.id}>
+                <TableRow
+                  key={listing?.id}
+                  className="cursor-pointer"
+                  onClick={(e) =>
+                    handleRowClick(
+                      e,
+                      listing.isPublished ? listingSubmissionLink : editLink,
+                    )
+                  }
+                  onAuxClick={(e) =>
+                    handleRowClick(
+                      e,
+                      listing.isPublished ? listingSubmissionLink : editLink,
+                    )
+                  }
+                >
                   <TableCell className="pr-0">
                     <p className="whitespace-nowrap text-sm font-medium text-slate-500">
                       {listing.sequentialId !== 0 ? listing.sequentialId : '—'}
@@ -460,6 +484,8 @@ export const ListingTable = ({
                           className="hover:bg-slate-100"
                           size="icon"
                           variant="ghost"
+                          onClick={(e) => e.stopPropagation()}
+                          onAuxClick={(e) => e.stopPropagation()}
                         >
                           <MoreVertical className="h-4 w-4" />
                         </Button>
@@ -467,7 +493,11 @@ export const ListingTable = ({
                       <DropdownMenuContent align="end" className="max-w-60">
                         <DropdownMenuItem
                           className="cursor-pointer text-sm font-medium text-slate-500"
-                          onClick={() => window.open(listingLink, '_blank')}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.open(listingLink, '_blank');
+                          }}
+                          onAuxClick={(e) => e.stopPropagation()}
                         >
                           <ExternalLink className="mr-2 h-4 w-4" />
                           View {listingLabel}
@@ -476,7 +506,11 @@ export const ListingTable = ({
                         {!!listing.isPublished && (
                           <DropdownMenuItem
                             className="cursor-pointer text-sm font-medium text-slate-500"
-                            onClick={() => copyToClipboard(listingLink)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              copyToClipboard(listingLink);
+                            }}
+                            onAuxClick={(e) => e.stopPropagation()}
                           >
                             <Copy className="mr-2 h-4 w-4" />
                             Copy Link
@@ -489,7 +523,12 @@ export const ListingTable = ({
                           (listing.type !== 'grant' &&
                             listing.status === 'OPEN')
                         ) && (
-                          <Link className="block" href={editLink}>
+                          <Link
+                            className="block"
+                            href={editLink}
+                            onClick={(e) => e.stopPropagation()}
+                            onAuxClick={(e) => e.stopPropagation()}
+                          >
                             <DropdownMenuItem className="cursor-pointer text-sm font-medium text-slate-500">
                               <PencilLine className="mr-2 h-4 w-4" />
                               Edit {listingLabel}
@@ -502,13 +541,15 @@ export const ListingTable = ({
                           listing.type === 'sponsorship') && (
                           <DropdownMenuItem
                             className="ph-no-capture cursor-pointer text-sm font-medium text-slate-500"
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.stopPropagation();
                               posthog.capture('duplicate listing_sponsor');
                               window.open(
                                 `${router.basePath}/dashboard/listings/${listing.slug}/duplicate`,
                                 '_blank',
                               );
                             }}
+                            onAuxClick={(e) => e.stopPropagation()}
                           >
                             <IoDuplicateOutline className="mr-2 h-4 w-4" />
                             Duplicate
@@ -519,7 +560,11 @@ export const ListingTable = ({
                           listing?.type !== 'grant' && (
                             <DropdownMenuItem
                               className="cursor-pointer text-sm font-medium text-slate-500"
-                              onClick={() => handleDeleteDraft(listing)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteDraft(listing);
+                              }}
+                              onAuxClick={(e) => e.stopPropagation()}
                             >
                               <Trash className="mr-2 h-4 w-4" />
                               Delete Draft
@@ -534,10 +579,12 @@ export const ListingTable = ({
                                 'cursor-pointer text-sm font-medium text-slate-500',
                                 listing.isArchived && 'hover:text-brand-green',
                               )}
-                              onClick={() => {
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 setSelectedListing(listing);
                                 deleteModalOnOpen();
                               }}
+                              onAuxClick={(e) => e.stopPropagation()}
                             >
                               {listing.isArchived || !listing.isActive ? (
                                 <>
@@ -558,7 +605,11 @@ export const ListingTable = ({
                           listing?.type !== 'grant' && (
                             <DropdownMenuItem
                               className="cursor-pointer whitespace-nowrap text-sm font-medium text-slate-500"
-                              onClick={() => handleVerifyPayment(listing)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleVerifyPayment(listing);
+                              }}
+                              onAuxClick={(e) => e.stopPropagation()}
                             >
                               <DollarSign className="mr-2 h-4 w-4" />
                               Update Payment Status
@@ -570,7 +621,11 @@ export const ListingTable = ({
                           !listing.isWinnersAnnounced && (
                             <DropdownMenuItem
                               className="cursor-pointer text-sm font-medium text-slate-500"
-                              onClick={() => handleUnpublish(listing)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleUnpublish(listing);
+                              }}
+                              onAuxClick={(e) => e.stopPropagation()}
                             >
                               <EyeOff className="mr-2 h-4 w-4" />
                               Unpublish
