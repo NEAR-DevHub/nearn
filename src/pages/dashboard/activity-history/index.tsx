@@ -12,7 +12,6 @@ import { Calendar } from '@/components/ui/calendar';
 import { Input } from '@/components/ui/input';
 import {
   Popover,
-  PopoverClose,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
@@ -185,6 +184,9 @@ export default function ActivityHistory() {
   );
 
   const defaultMonth = useMemo(() => {
+    if (dateRange.from) {
+      return dateRange.from;
+    }
     const date = new Date();
     date.setDate(1);
     date.setMonth(date.getMonth() - 1);
@@ -262,11 +264,17 @@ export default function ActivityHistory() {
                     classNames={{
                       range_start: 'text-white bg-slate-900 rounded-l-md',
                       range_end: 'text-white bg-slate-900 rounded-r-md',
-                      range_middle: 'text-slate-600 bg-slate-100',
+                      range_middle:
+                        'text-slate-600 bg-slate-100 data-[outside=true]:bg-transparent',
                       month_caption:
                         'text-slate-600 flex h-[--cell-size] w-full items-center justify-center px-[--cell-size]',
-                      disabled: 'text-slate-400 ',
-                      day: 'text-slate-600 group/day relative aspect-square h-full w-full select-none p-0 text-center [&:first-child[data-selected=true]_button]:rounded-l-md [&:last-child[data-selected=true]_button]:rounded-r-md',
+                      disabled: 'text-slate-400 bg-transparent',
+                      outside: 'text-slate-500 bg-transparent',
+                      day: cn(
+                        'group/day relative aspect-square h-full w-full select-none p-0 text-center',
+                        '[&:not([data-outside=true]):where(:first-child,[data-outside=true]+&)]:rounded-l-md',
+                        '[&:not([data-outside=true]):has(+td[data-outside=true])]:rounded-r-md',
+                      ),
                       today:
                         'text-slate-600 border-slate-200 border rounded-md',
                     }}
@@ -282,16 +290,6 @@ export default function ActivityHistory() {
                     >
                       Clear All
                     </Button>
-                    <PopoverClose asChild>
-                      <Button
-                        variant="default"
-                        size="sm"
-                        className="bg-slate-900 text-sm font-medium"
-                        onClick={() => {}}
-                      >
-                        Apply
-                      </Button>
-                    </PopoverClose>
                   </div>
                 </div>
               </div>
