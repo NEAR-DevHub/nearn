@@ -16,12 +16,12 @@ export default function SubmissionLabelChange(props: LogProperties) {
 
   return (
     <p className="items-center text-slate-500">
-      <a href={`/t/${username}`} className="font-medium">
+      <a href={`/t/${username}`} className="text-slate-900">
         @{username}
       </a>{' '}
       {props.onSubmissionClick ? (
         <button
-          className="font-medium"
+          className="text-slate-900"
           onClick={() => props.onSubmissionClick!(event)}
         >
           submission

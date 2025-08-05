@@ -24,7 +24,7 @@ export default function SponsorTreasury({ event }: LogProperties) {
           />
           Connected to{' '}
           <a
-            className="font-medium"
+            className="text-slate-900"
             href={getURLSanitized(data.url!)}
             rel="noopener noreferrer"
             target="_blank"
@@ -47,7 +47,7 @@ export default function SponsorTreasury({ event }: LogProperties) {
           />
           Disconnected from{' '}
           <a
-            className="font-medium"
+            className="text-slate-900"
             href={getURLSanitized(data.old_url!)}
             rel="noopener noreferrer"
             target="_blank"

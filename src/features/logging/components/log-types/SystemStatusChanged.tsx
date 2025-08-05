@@ -18,7 +18,7 @@ export default function SystemStatusChanged(props: LogProperties) {
       Changed{' '}
       {props.onListingClick ? (
         <button
-          className="font-medium"
+          className="text-slate-900"
           onClick={() => props.onListingClick?.(event)}
         >
           listing

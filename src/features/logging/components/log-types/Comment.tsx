@@ -21,7 +21,7 @@ export default function Comment(props: LogProperties) {
         {repliedToUsername && !isDeleted && (
           <>
             Replied to{' '}
-            <a href={`/t/${repliedToUsername}`} className="font-medium">
+            <a href={`/t/${repliedToUsername}`} className="text-slate-900">
               @{repliedToUsername}
             </a>{' '}
             comment
@@ -32,12 +32,12 @@ export default function Comment(props: LogProperties) {
         {!repliedToUsername && submissionUsername && !isDeleted && (
           <>
             Commented on{' '}
-            <a href={`/t/${submissionUsername}`} className="font-medium">
+            <a href={`/t/${submissionUsername}`} className="text-slate-900">
               @{submissionUsername}
             </a>{' '}
             {props.onSubmissionClick ? (
               <button
-                className="font-medium"
+                className="text-slate-900"
                 onClick={() => props.onSubmissionClick!(event)}
               >
                 submission
@@ -54,7 +54,7 @@ export default function Comment(props: LogProperties) {
             Commented on{' '}
             {props.onListingClick ? (
               <button
-                className="font-medium"
+                className="text-slate-900"
                 onClick={() => props.onListingClick!(event)}
               >
                 listing

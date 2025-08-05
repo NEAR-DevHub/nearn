@@ -15,7 +15,7 @@ export default function SubmissionToggledWinner(props: LogProperties) {
   return (
     <p className="inline-flex items-center gap-1 text-slate-500">
       Assigned{' '}
-      <a href={`/t/${username}`} className="font-medium">
+      <a href={`/t/${username}`} className="text-slate-900">
         @{username}
       </a>{' '}
       <span className="font-medium">{placeString}</span> place

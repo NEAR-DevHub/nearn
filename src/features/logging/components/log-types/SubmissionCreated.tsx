@@ -9,7 +9,7 @@ export default function SubmissionCreated({
       Send{' '}
       {onSubmissionClick ? (
         <button
-          className="font-medium"
+          className="text-slate-900"
           onClick={() => onSubmissionClick(event)}
         >
           submission

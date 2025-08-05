@@ -61,7 +61,7 @@ export default function TreasuryProposal(props: LogProperties) {
             Payment request for{' '}
             {username && (
               <>
-                <a href={`/t/${username}`} className="font-medium">
+                <a href={`/t/${username}`} className="text-slate-900">
                   @{username}
                 </a>{' '}
               </>
@@ -93,7 +93,7 @@ export default function TreasuryProposal(props: LogProperties) {
           Processed payment for{' '}
           {username && (
             <>
-              <a href={`/t/${username}`} className="font-medium">
+              <a href={`/t/${username}`} className="font-medium text-slate-900">
                 @{username}
               </a>{' '}
             </>

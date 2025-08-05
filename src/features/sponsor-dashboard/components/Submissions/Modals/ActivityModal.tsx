@@ -30,7 +30,7 @@ export const ActivityModal = ({
 }: ActivityModalProps) => {
   const [filter, setFilter] = useState<
     'all' | 'listing' | 'submission' | 'payments' | 'comments'
-  >('all');
+  >('listing');
   const [sort, setSort] = useState<'asc' | 'desc'>('desc');
   const [isOpen, setIsOpen] = useState(false);
 

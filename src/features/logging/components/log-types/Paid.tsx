@@ -20,12 +20,12 @@ export default function Paid({ event, onSubmissionClick }: LogProperties) {
         <ExternalLink className="h-4 w-4" />
       </Link>{' '}
       for{' '}
-      <Link href={`/t/${username}`} className="font-medium">
+      <Link href={`/t/${username}`} className="text-slate-900">
         @{username}
       </Link>{' '}
       {onSubmissionClick ? (
         <button
-          className="font-medium"
+          className="text-slate-900"
           onClick={() => onSubmissionClick(event)}
         >
           submission

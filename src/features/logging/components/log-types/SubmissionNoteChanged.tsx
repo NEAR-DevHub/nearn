@@ -16,7 +16,7 @@ export default function SubmissionNoteChanged(props: LogProperties) {
         {!removed ? (
           <>
             {positiveAction} note to{' '}
-            <a href={`/t/${username}`} className="font-medium">
+            <a href={`/t/${username}`} className="text-slate-900">
               @{username}
             </a>{' '}
             submission:
@@ -24,7 +24,7 @@ export default function SubmissionNoteChanged(props: LogProperties) {
         ) : (
           <>
             Removed note for{' '}
-            <a href={`/t/${username}`} className="font-medium">
+            <a href={`/t/${username}`} className="text-slate-900">
               @{username}
             </a>{' '}
             submission
