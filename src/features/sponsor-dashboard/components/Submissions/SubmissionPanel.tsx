@@ -533,21 +533,21 @@ export const SubmissionPanel = ({
                     setSelectedSubmission((prev) =>
                       prev && prev.id === selectedSubmission?.id
                         ? {
-                          ...prev,
-                          isPaid: true,
-                          paymentDetails: {
-                            ...(status === 'Approved'
-                              ? {
-                                link: prev.paymentDetails?.treasury?.link,
-                              }
-                              : {
-                                treasury: {
-                                  ...prev.paymentDetails?.treasury,
-                                  synced: true,
-                                },
-                              }),
-                          },
-                        }
+                            ...prev,
+                            isPaid: true,
+                            paymentDetails: {
+                              ...(status === 'Approved'
+                                ? {
+                                    link: prev.paymentDetails?.treasury?.link,
+                                  }
+                                : {
+                                    treasury: {
+                                      ...prev.paymentDetails?.treasury,
+                                      synced: true,
+                                    },
+                                  }),
+                            },
+                          }
                         : prev,
                     );
                   }}
@@ -860,11 +860,11 @@ export const SubmissionPanel = ({
             setSelectedSubmission((prev) =>
               prev && prev.id === selectedSubmission?.id
                 ? {
-                  ...prev,
-                  paymentDetails: {
-                    treasury: { link: treasuryLink, proposalId, dao },
-                  },
-                }
+                    ...prev,
+                    paymentDetails: {
+                      treasury: { link: treasuryLink, proposalId, dao },
+                    },
+                  }
                 : prev,
             );
           }}

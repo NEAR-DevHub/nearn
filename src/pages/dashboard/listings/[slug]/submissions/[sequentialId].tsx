@@ -361,7 +361,7 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
                         className={cn(
                           'ph-no-capture',
                           !isSponsorVerified &&
-                          'cursor-not-allowed text-slate-400',
+                            'cursor-not-allowed text-slate-400',
                         )}
                         onClick={() => posthog.capture('scout tab_scout')}
                       >
@@ -393,13 +393,13 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
                           e === undefined
                             ? 'All'
                             : (e as
-                              | 'New'
-                              | 'Reviewed'
-                              | 'Shortlisted'
-                              | 'Spam'
-                              | 'Paid'
-                              | 'Approved'
-                              | 'Rejected'),
+                                | 'New'
+                                | 'Reviewed'
+                                | 'Shortlisted'
+                                | 'Spam'
+                                | 'Paid'
+                                | 'Approved'
+                                | 'Rejected'),
                         );
                         await setCurrentPage(1);
                       }}
@@ -426,7 +426,7 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
                           `/dashboard/listings/${slug}/submissions/${submission?.sequentialId}`,
                         );
                       }}
-                      setListing={() => { }}
+                      setListing={() => {}}
                       isOpen={verifyPaymentIsOpen}
                       onClose={() => {
                         verifyPaymentOnClose();
@@ -443,8 +443,8 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
 
                   <div className="h-full w-full rounded-r-xl border-b border-r border-t border-slate-200 bg-white">
                     {!paginatedSubmissions?.length &&
-                      !searchText &&
-                      !isSubmissionsLoading ? (
+                    !searchText &&
+                    !isSubmissionsLoading ? (
                       <>
                         <ExternalImage
                           className="mx-auto mt-32 w-32"

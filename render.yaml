@@ -318,3 +318,35 @@ services:
           name: nearn-app-staging
           type: web
           envVarKey: CRON_SECRET
+  - type: cron
+    name: check-listing-status
+    runtime: node
+    region: frankfurt
+    schedule: '*/5 * * * *' # Every 5 minutes for staging
+    buildCommand: 'true'
+    repo: https://github.com/NEAR-DevHub/nearn
+    branch: prod
+    startCommand: |
+      CRON_SECRET=$CRON_SECRET ./scripts/cron-wrapper.sh https://nearn.io/api/cron/check-listing-status
+    envVars:
+      - key: CRON_SECRET
+        fromService:
+          name: nearn-app
+          type: web
+          envVarKey: CRON_SECRET
+  - type: cron
+    name: sync-treasury-status
+    runtime: node
+    schedule: '*/5 * * * *' # Every 5 minutes for staging
+    buildCommand: 'true'
+    region: frankfurt
+    repo: https://github.com/NEAR-DevHub/nearn
+    branch: prod
+    startCommand: |
+      CRON_SECRET=$CRON_SECRET ./scripts/cron-wrapper.sh https://nearn.io/api/cron/sync-treasury-payments
+    envVars:
+      - key: CRON_SECRET
+        fromService:
+          name: nearn-app
+          type: web
+          envVarKey: CRON_SECRET
