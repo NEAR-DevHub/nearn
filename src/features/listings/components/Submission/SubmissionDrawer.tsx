@@ -94,6 +94,7 @@ export const SubmissionDrawer = ({
 
   const { loadDraft, clearDraft } = useSubmissionDraft(
     id || null,
+    listing,
     form,
     editMode,
   );

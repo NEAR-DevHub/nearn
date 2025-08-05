@@ -2,6 +2,7 @@ import { useCallback, useEffect } from 'react';
 import { type UseFormReturn } from 'react-hook-form';
 import { type z } from 'zod';
 
+import { type Listing } from '../types';
 import { type submissionSchema } from '../utils/submissionFormSchema';
 
 type FormData = z.infer<ReturnType<typeof submissionSchema>>;
@@ -17,6 +18,7 @@ interface StoredDraft {
 
 export const useSubmissionDraft = (
   listingId: string | null,
+  listing: Listing | null,
   form: UseFormReturn<FormData>,
   isEditMode: boolean,
 ) => {
@@ -43,12 +45,15 @@ export const useSubmissionDraft = (
         ...currentValues,
         ...draft.data,
         // Preserve eligibility structure from current form
-        eligibilityAnswers: currentValues.eligibilityAnswers?.map(
-          (q, index) => ({
-            question: q.question,
-            answer: draft.data.eligibilityAnswers?.[index]?.answer || '',
-          }),
-        ),
+        eligibilityAnswers: listing?.eligibility?.map((e) => {
+          const answer = draft.data.eligibilityAnswers?.find(
+            (a: { question: string }) => a.question === e.question,
+          )?.answer;
+          return {
+            question: e.question,
+            answer: answer ?? '',
+          };
+        }),
       });
     } catch (error) {
       console.error('Error loading draft:', error);
