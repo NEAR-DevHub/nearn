@@ -4,7 +4,7 @@ import { ArrowRight, ChevronLeft, Copy, ExternalLink } from 'lucide-react';
 import type { GetServerSideProps } from 'next';
 import Link from 'next/link';
 import { getServerSession } from 'next-auth';
-import React, { Fragment, useEffect, useRef, useState } from 'react';
+import React, { Fragment, useEffect, useRef } from 'react';
 import { MdOutlineAccountBalanceWallet, MdOutlineMail } from 'react-icons/md';
 import { toast } from 'sonner';
 
@@ -20,7 +20,6 @@ import { Tooltip } from '@/components/ui/tooltip';
 import { tokenList } from '@/constants/tokenList';
 import { useClipboard } from '@/hooks/use-clipboard';
 import type { SubmissionWithUser } from '@/interface/submission';
-import { type User } from '@/interface/user';
 import { ListingPageLayout } from '@/layouts/Listing';
 import { api } from '@/lib/api';
 import { authOptions } from '@/pages/api/auth/[...nextauth]';
@@ -31,13 +30,13 @@ import { truncatePublicKey } from '@/utils/truncatePublicKey';
 import { truncateString } from '@/utils/truncateString';
 import { getURL } from '@/utils/validUrl';
 
-import { Comments } from '@/features/comments/components/Comments';
 import {
   LikeAndComment,
   selectedSubmissionAtom,
 } from '@/features/listings/components/SubmissionsPage/SubmissionTable';
 import { listingSubmissionsQuery } from '@/features/listings/queries/submissions';
 import { type Listing } from '@/features/listings/types';
+import PublicLoggingWithComments from '@/features/logging/components/PublicLoggingWithComments';
 import {
   Discord,
   GitHub,
@@ -102,8 +101,6 @@ function Content({
   const { onCopy: onCopyPublicKey } = useClipboard(
     submission?.user?.publicKey || '',
   );
-
-  const [commentCount, setCommentCount] = useState(0);
 
   const { onCopy: onCopySubmissionLink } = useClipboard(
     getSubmissionUrl(submission, bounty),
@@ -439,20 +436,7 @@ function Content({
           </div>
         </div>
         <div className="md:px-2" ref={commentsRef}>
-          <Comments
-            isAnnounced={false}
-            listingSlug={bounty.slug ?? ''}
-            listingType={bounty.type ?? ''}
-            poc={bounty.poc as User}
-            sponsorId={bounty.sponsorId}
-            submissionAuthor={submission.user as User}
-            isVerified={false}
-            refId={submission.id}
-            refType={'SUBMISSION'}
-            count={commentCount}
-            setCount={setCommentCount}
-            take={2}
-          />
+          <PublicLoggingWithComments listing={bounty} submission={submission} />
         </div>
       </div>
       <div className="ph-no-capture fixed bottom-0 left-1/2 z-50 flex w-full -translate-x-1/2 bg-white px-3 pb-4 pt-2 md:hidden">

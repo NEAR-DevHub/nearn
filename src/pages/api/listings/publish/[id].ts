@@ -19,6 +19,8 @@ import {
   createListingFormSchema,
   createListingRefinements,
 } from '@/features/listing-builder/types/schema';
+import { eventLogger } from '@/features/logging/services/event-logger';
+import { EventType } from '@/features/logging/types/event-data';
 
 async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
   const id = req.query.id as string;
@@ -361,6 +363,19 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
     const result = await prisma.bounties.update({
       where: { id },
       data,
+    });
+
+    eventLogger.log({
+      eventType: EventType.LISTING_PUBLISHED,
+      actor: {
+        id: userId,
+        type: 'SPONSOR',
+      },
+      entities: {
+        listingId: result.id,
+        sponsorId: result.sponsorId,
+      },
+      data: {},
     });
     logger.debug(`Publish Listing Successful`, { id });
 

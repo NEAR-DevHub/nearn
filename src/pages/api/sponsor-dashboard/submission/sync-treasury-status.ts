@@ -1,9 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 import logger from '@/lib/logger';
-import { prisma } from '@/prisma';
-import { getProposalStatus } from '@/utils/near';
 import { safeStringify } from '@/utils/safeStringify';
+import { syncSubmissionTreasuryStatus } from '@/utils/treasury-sync';
 
 export default async function handler(
   req: NextApiRequest,
@@ -13,59 +12,24 @@ export default async function handler(
   const { id } = req.body;
 
   try {
-    const currentSubmission = await prisma.submission.findUnique({
-      where: { id },
-      include: {
-        listing: {
-          include: {
-            sponsor: true,
-          },
-        },
-      },
-    });
+    const result = await syncSubmissionTreasuryStatus(id);
 
-    if (!currentSubmission) {
-      logger.warn(`Submission with ID ${id} not found`);
-      return res.status(404).json({
-        message: `Submission with ID ${id} not found.`,
+    if (!result.success) {
+      // Map different error types to appropriate status codes
+      let statusCode = 400;
+      if (result.error === 'Submission not found') {
+        statusCode = 404;
+      }
+
+      return res.status(statusCode).json({
+        error: result.error,
+        message: result.message,
       });
-    }
-
-    const paymentDetails = currentSubmission.paymentDetails as any;
-    if (
-      !paymentDetails?.treasury?.dao ||
-      !paymentDetails?.treasury?.proposalId
-    ) {
-      logger.warn('No treasury proposal found for submission');
-      return res.status(400).json({
-        error: 'No treasury proposal found',
-        message: 'No treasury proposal found for this submission',
-      });
-    }
-
-    logger.debug(`Getting proposal status for submission ID: ${id}`);
-    const proposalStatus = await getProposalStatus(
-      paymentDetails.treasury.dao,
-      paymentDetails.treasury.proposalId,
-    );
-
-    if (proposalStatus === 'Approved' && !currentSubmission.isPaid) {
-      logger.debug(`Updating submission with ID: ${id} to paid status`);
-      await prisma.submission.update({
-        where: { id },
-        data: {
-          isPaid: true,
-          paymentDetails: {
-            link: paymentDetails.treasury.link,
-          },
-        },
-      });
-      logger.info(`Successfully updated submission ID: ${id} to paid status`);
     }
 
     return res.status(200).json({
-      message: 'Treasury status synced successfully',
-      status: proposalStatus,
+      message: result.message,
+      status: result.status,
     });
   } catch (error: any) {
     logger.error(

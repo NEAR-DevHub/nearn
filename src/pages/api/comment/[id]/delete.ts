@@ -5,6 +5,9 @@ import logger from '@/lib/logger';
 import { prisma } from '@/prisma';
 import { safeStringify } from '@/utils/safeStringify';
 
+import { eventLogger } from '@/features/logging/services/event-logger';
+import { EventType } from '@/features/logging/types/event-data';
+
 export default async function comment(
   req: NextApiRequest,
   res: NextApiResponse,
@@ -43,14 +46,54 @@ export default async function comment(
     }
 
     logger.debug(`Deleting replies to comment with ID: ${commentId}`);
-    await prisma.comment.deleteMany({
+    await prisma.comment.updateMany({
       where: { replyToId: commentId },
+      data: {
+        isActive: false,
+        isArchived: true,
+      },
     });
 
     logger.debug(`Deleting comment with ID: ${commentId}`);
-    await prisma.comment.delete({
+    const updatedComment = await prisma.comment.update({
       where: { id: commentId },
+      data: {
+        isActive: false,
+        isArchived: true,
+      },
     });
+
+    if (
+      updatedComment.refType === 'SUBMISSION' ||
+      updatedComment.refType === 'BOUNTY'
+    ) {
+      const listingId =
+        updatedComment.refType === 'SUBMISSION'
+          ? (
+              await prisma.submission.findUnique({
+                where: { id: updatedComment.refId },
+                select: { listingId: true },
+              })
+            )?.listingId
+          : updatedComment.refId;
+
+      eventLogger.log({
+        eventType: EventType.COMMENT_DELETED,
+        actor: {
+          id: userId,
+          type: 'USER',
+        },
+        data: {},
+        entities: {
+          listingId,
+          submissionId:
+            updatedComment.refType === 'SUBMISSION'
+              ? updatedComment.refId
+              : undefined,
+          commentId,
+        },
+      });
+    }
 
     logger.info(`Comment deleted successfully by user ID: ${userId}`);
     return res.status(200).json({ message: 'Comment deleted successfully.' });

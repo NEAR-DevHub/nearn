@@ -14,6 +14,9 @@ import { getSponsorSession } from '@/features/auth/utils/getSponsorSession';
 import { sendEmailNotification } from '@/features/emails/utils/sendEmailNotification';
 import { BONUS_REWARD_POSITION } from '@/features/listing-builder/constants';
 import { type Rewards } from '@/features/listings/types';
+import { isDeadlineOver } from '@/features/listings/utils/deadline';
+import { eventLogger } from '@/features/logging/services/event-logger';
+import { EventType } from '@/features/logging/types/event-data';
 
 export async function POST(
   _request: NextRequest,
@@ -151,10 +154,77 @@ export async function POST(
         }),
       );
 
+      if (listing.type === 'sponsorship') {
+        const existingEventLog = await prisma.eventLog.findFirst({
+          where: {
+            eventType: EventType.SUBMISSION_APPROVED,
+            listingId: id,
+            submissionId: winners[currentIndex]?.id,
+          },
+        });
+
+        if (existingEventLog) {
+          currentIndex += 1;
+          continue;
+        }
+      }
+
+      promises.push(
+        eventLogger.log({
+          eventType: EventType.SUBMISSION_APPROVED,
+          actor: {
+            id: userId as string,
+            type: 'SPONSOR',
+          },
+          data: {
+            position: winnerPosition,
+          },
+          entities: {
+            listingId: id,
+            submissionId: winners[currentIndex]?.id,
+            sponsorId: userSponsorId,
+          },
+        }),
+      );
       currentIndex += 1;
     }
 
     await Promise.all(promises);
+    if (listing.type !== 'sponsorship') {
+      await eventLogger.log({
+        eventType: EventType.LISTING_WINNERS_ANNOUNCED,
+        actor: {
+          id: userId as string,
+          type: 'SPONSOR',
+        },
+        data: {
+          winners: winners.map((winner) => ({
+            submissionId: winner.id,
+            position: winner.winnerPosition ?? 0,
+          })),
+        },
+        entities: {
+          listingId: id,
+          sponsorId: userSponsorId,
+        },
+      });
+      await eventLogger.log({
+        eventType: EventType.SYSTEM_STATUS_CHANGED,
+        actor: {
+          type: 'SYSTEM',
+        },
+        data: {
+          oldStatus: !isDeadlineOver(listing.deadline ?? undefined)
+            ? 'In Progress'
+            : 'In Review',
+          newStatus: 'Payment Pending',
+        },
+        entities: {
+          listingId: id,
+          sponsorId: userSponsorId,
+        },
+      });
+    }
 
     waitUntil(
       (async () => {
@@ -164,77 +234,6 @@ export async function POST(
           });
         } catch (err) {
           logger.error('Discord Listing Update Message Error', err);
-        }
-
-        try {
-          logger.info(`Fetched ${winners.length} winners for bounty ID: ${id}`);
-
-          const sortSubmissions = (
-            a: (typeof winners)[0],
-            b: (typeof winners)[0],
-          ) => {
-            if (a.winnerPosition && b.winnerPosition) {
-              return (
-                (Number(a.winnerPosition) || Number.MAX_VALUE) -
-                (Number(b.winnerPosition) || Number.MAX_VALUE)
-              );
-            }
-
-            if (a.winnerPosition && !b.winnerPosition) {
-              return -1;
-            }
-
-            if (!a.winnerPosition && b.winnerPosition) {
-              return 1;
-            }
-            return (
-              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-            );
-          };
-
-          const sortedWinners = winners.sort(sortSubmissions);
-
-          const extractedTags = sortedWinners
-            .map((c, i) => {
-              if (i > 0 && i === sortedWinners.length - 1)
-                return `and @${c.user.username}`;
-              else return `@${c.user.username}`;
-            })
-            .join(sortedWinners.length > 2 ? ', ' : ' ');
-
-          let comment: string = 'Winners have been announced. ';
-          const random = Math.floor(Math.random() * (2 - 1 + 1)) + 1;
-          if (listing.type === 'sponsorship') {
-            comment = `Congratulations! @${sortedWinners[sortedWinners.length - 1]?.user?.username} submission has been approved!`;
-          } else {
-            switch (random) {
-              case 1:
-                comment =
-                  sortedWinners.length === 1
-                    ? `Congratulations! ${extractedTags} has been announced as the winner!`
-                    : `Congratulations! ${extractedTags} have been announced as the winners!`;
-                break;
-              case 2:
-                if (listing.type === 'bounty')
-                  comment = `Applaud ${extractedTags} for winning this Bounty`;
-                if (listing.type === 'project')
-                  comment = `Applaud ${extractedTags} for winning this Project`;
-                break;
-            }
-          }
-
-          logger.debug('Creating winner announcement comment');
-          await prisma.comment.create({
-            data: {
-              authorId: userId!,
-              refId: id,
-              refType: 'BOUNTY',
-              message: comment,
-              type: 'WINNER_ANNOUNCEMENT',
-            },
-          });
-        } catch (err) {
-          logger.error('Failed to create winner announcement comment', err);
         }
 
         if (listing.type !== 'sponsorship') {

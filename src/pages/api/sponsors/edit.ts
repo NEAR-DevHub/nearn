@@ -12,6 +12,11 @@ import { safeStringify } from '@/utils/safeStringify';
 
 import { type NextApiRequestWithSponsor } from '@/features/auth/types';
 import { withSponsorAuth } from '@/features/auth/utils/withSponsorAuth';
+import { eventLogger } from '@/features/logging/services/event-logger';
+import {
+  detectSponsorChanges,
+  EventType,
+} from '@/features/logging/types/event-data';
 import { extractSocialUsername } from '@/features/social/utils/extractUsername';
 import { sponsorBaseSchema } from '@/features/sponsor/utils/sponsorFormSchema';
 
@@ -92,7 +97,6 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       where: {
         id: userSponsorId,
       },
-      select: { name: true },
     });
 
     const result = await prisma.sponsors.update({
@@ -117,6 +121,23 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
         about: about && about !== '' ? about : null,
       },
     });
+
+    const changes = detectSponsorChanges(preSponsor!, result);
+    if (changes.length > 0) {
+      eventLogger.log({
+        eventType: EventType.SPONSOR_PROFILE_EDITED,
+        actor: {
+          id: userId as string,
+          type: 'SPONSOR',
+        },
+        data: {
+          changes: detectSponsorChanges(preSponsor!, result),
+        },
+        entities: {
+          sponsorId: userSponsorId,
+        },
+      });
+    }
 
     if (preSponsor && preSponsor.name !== name) {
       try {

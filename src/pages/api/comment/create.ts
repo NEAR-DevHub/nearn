@@ -8,12 +8,10 @@ import { safeStringify } from '@/utils/safeStringify';
 import { type NextApiRequestWithUser } from '@/features/auth/types';
 import { withAuth } from '@/features/auth/utils/withAuth';
 import { sendEmailNotification } from '@/features/emails/utils/sendEmailNotification';
+import { eventLogger } from '@/features/logging/services/event-logger';
+import { EventType } from '@/features/logging/types/event-data';
 
-type CommentType =
-  | 'NORMAL'
-  | 'SUBMISSION'
-  | 'DEADLINE_EXTENSION'
-  | 'WINNER_ANNOUNCEMENT';
+type CommentType = 'NORMAL' | 'SUBMISSION';
 
 async function comment(req: NextApiRequestWithUser, res: NextApiResponse) {
   const userId = req.userId;
@@ -38,6 +36,16 @@ async function comment(req: NextApiRequestWithUser, res: NextApiResponse) {
         submissionId: submissionId as string | undefined,
       },
       include: {
+        repliedTo: {
+          select: {
+            authorId: true,
+            author: {
+              select: {
+                username: true,
+              },
+            },
+          },
+        },
         author: {
           select: {
             name: true,
@@ -60,6 +68,39 @@ async function comment(req: NextApiRequestWithUser, res: NextApiResponse) {
         },
       },
     });
+    if (refType === 'SUBMISSION' || refType === 'BOUNTY') {
+      let entities;
+      if (refType === 'SUBMISSION') {
+        const submissionListingId = await prisma.submission.findUnique({
+          where: {
+            id: refId,
+          },
+          select: {
+            listingId: true,
+          },
+        });
+        entities = {
+          submissionId: refId,
+          listingId: submissionListingId?.listingId,
+        };
+      } else {
+        entities = {
+          listingId: refId,
+        };
+      }
+      eventLogger.log({
+        eventType: EventType.COMMENT_ADDED,
+        actor: {
+          id: userId,
+          type: 'USER',
+        },
+        data: {},
+        entities: {
+          ...entities,
+          commentId: result.id,
+        },
+      });
+    }
 
     logger.debug('Checking for tagged users in the comment');
     const taggedUsernames = (message as string)

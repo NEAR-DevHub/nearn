@@ -20,6 +20,7 @@ import { useUser } from '@/store/user';
 
 import { AuthWrapper } from '@/features/auth/components/AuthWrapper';
 
+import { useSubmissionDraft } from '../../hooks/useSubmissionDraft';
 import { submissionCountQuery } from '../../queries/submission-count';
 import { listingSubmissionsQuery } from '../../queries/submissions';
 import { userSubmissionQuery } from '../../queries/user-submission-status';
@@ -91,21 +92,14 @@ export const SubmissionDrawer = ({
   const router = useRouter();
   const { query } = router;
 
+  const { loadDraft, clearDraft } = useSubmissionDraft(
+    id || null,
+    listing,
+    form,
+    editMode,
+  );
+
   const handleClose = () => {
-    form.reset({
-      link: '',
-      tweet: '',
-      otherInfo: '',
-      ask: null,
-      token: token === 'Any' ? tokenList[0]?.tokenSymbol : undefined,
-      eligibilityAnswers: Array.isArray(listing.eligibility)
-        ? listing.eligibility.map((q) => ({
-            question: q.question,
-            answer: '',
-          }))
-        : [],
-      publicKey: user?.publicKey || '',
-    });
     setTermsAccepted(false);
     onClose();
   };
@@ -153,11 +147,14 @@ export const SubmissionDrawer = ({
           console.error('Failed to fetch submission data', error);
           toast.error('Failed to load submission data');
         }
+      } else if (!editMode && isOpen) {
+        // Load saved draft for new submissions
+        loadDraft();
       }
     };
 
     fetchData();
-  }, [id, editMode, form.reset]);
+  }, [id, editMode, form.reset, isOpen, loadDraft]);
 
   const onSubmit = async (data: FormData) => {
     posthog.capture('confirmed_submission');
@@ -211,6 +208,11 @@ export const SubmissionDrawer = ({
         await queryClient.invalidateQueries({
           queryKey: listingSubmissionsQuery({ slug: listing.slug! }).queryKey,
         });
+      }
+
+      // Clear the saved draft after successful submission
+      if (!editMode) {
+        clearDraft();
       }
 
       toast.success(

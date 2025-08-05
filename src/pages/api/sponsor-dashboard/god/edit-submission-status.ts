@@ -1,13 +1,20 @@
 import { Prisma } from '@prisma/client';
 import type { NextApiResponse } from 'next';
 
+import { type SubmissionWithUser } from '@/interface/submission';
 import logger from '@/lib/logger';
 import { prisma } from '@/prisma';
 import { fetchTokenUSDValue } from '@/utils/fetchTokenUSDValue';
 
 import { type NextApiRequestWithSponsor } from '@/features/auth/types';
 import { withSponsorAuth } from '@/features/auth/utils/withSponsorAuth';
+import { sponsorshipSubmissionStatus } from '@/features/listings/components/SubmissionsPage/SubmissionTable';
 import { type Rewards } from '@/features/listings/types';
+import { eventLogger } from '@/features/logging/services/event-logger';
+import {
+  EventType,
+  type PlatformAdminEditableSubmissionFields,
+} from '@/features/logging/types/event-data';
 
 async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
   const userId = req.userId;
@@ -30,7 +37,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
   try {
     const currentSubmission = await prisma.submission.findUnique({
       where: { id },
-      include: { listing: true },
+      include: { listing: true, user: true },
     });
 
     if (!currentSubmission) {
@@ -92,7 +99,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
         ...updateData,
         updatedAt: new Date(),
       },
-      include: { listing: true },
+      include: { listing: true, user: true },
     });
 
     const oldRewards = currentSubmission.listing.rewards as Record<
@@ -159,6 +166,51 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
           },
         });
       }
+    }
+
+    const changes: Array<{
+      field: PlatformAdminEditableSubmissionFields;
+      oldValue: any;
+      newValue: any;
+    }> = [];
+    const statusBefore = sponsorshipSubmissionStatus(
+      currentSubmission as unknown as SubmissionWithUser,
+    );
+    const statusAfter = sponsorshipSubmissionStatus(
+      result as unknown as SubmissionWithUser,
+    );
+    if (statusBefore !== statusAfter) {
+      changes.push({
+        field: 'status',
+        oldValue: statusBefore,
+        newValue: statusAfter,
+      });
+    }
+
+    if (currentSubmission.paymentDetails !== result.paymentDetails) {
+      changes.push({
+        field: 'paymentDetails',
+        oldValue: currentSubmission.paymentDetails,
+        newValue: result.paymentDetails,
+      });
+    }
+
+    if (changes.length > 0) {
+      await eventLogger.log({
+        eventType: EventType.PLATFORM_ADMIN_SUBMISSION_STATUS_EDITED,
+        actor: {
+          id: userId as string,
+          type: 'PLATFORM_ADMIN',
+        },
+        entities: {
+          submissionId: id,
+          listingId: currentSubmission.listingId,
+          sponsorId: currentSubmission.listing.sponsorId,
+        },
+        data: {
+          changes,
+        },
+      });
     }
 
     logger.info(`Successfully updated submission status with ID: ${id}`);

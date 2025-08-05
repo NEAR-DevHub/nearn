@@ -335,6 +335,11 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
             bounty={bounty}
             refetchBounty={refetchBounty}
             totalSubmissions={submissions?.length || 0}
+            setSelectedSubmission={(sequentialId) => {
+              router.replace(
+                `/dashboard/listings/${slug}/submissions/${sequentialId}`,
+              );
+            }}
             allTransactionsVerified={
               submissions?.every(
                 (submission) =>

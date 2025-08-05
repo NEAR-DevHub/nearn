@@ -5,6 +5,8 @@ import { prisma } from '@/prisma';
 
 import { type NextApiRequestWithSponsor } from '@/features/auth/types';
 import { withSponsorAuth } from '@/features/auth/utils/withSponsorAuth';
+import { eventLogger } from '@/features/logging/services/event-logger';
+import { EventType } from '@/features/logging/types/event-data';
 
 async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
   const userId = req.userId;
@@ -58,6 +60,21 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
         },
         listing: true,
       },
+    });
+
+    await eventLogger.log({
+      eventType: EventType.PLATFORM_ADMIN_ARCHIVED_OR_UNARCHIVED,
+      actor: {
+        id: userId,
+        type: 'PLATFORM_ADMIN',
+      },
+      entities: {
+        submissionId: id,
+        sponsorId: result.listing.sponsorId,
+        listingId: result.listing.id,
+      },
+      data: { isArchived },
+      visibility: 'TALENT',
     });
 
     const actionText = isArchived ? 'archived' : 'restored';

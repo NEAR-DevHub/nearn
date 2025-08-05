@@ -376,7 +376,7 @@ export default function SponsorListings() {
               onChange={async (e) => {
                 debouncedSearchText(e.target.value);
               }}
-              placeholder="Search listing..."
+              placeholder="Search submission..."
               type="text"
             />
           </div>

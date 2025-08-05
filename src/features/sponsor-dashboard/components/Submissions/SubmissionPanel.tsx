@@ -46,6 +46,8 @@ import { truncateString } from '@/utils/truncateString';
 import { Comments } from '@/features/comments/components/Comments';
 import { useCommentCount } from '@/features/comments/queries/comment-count';
 import type { Listing } from '@/features/listings/types';
+import LogsTimeline from '@/features/logging/components/LogsTimeline';
+import { useGetLogsInfinite } from '@/features/logging/queries';
 import {
   Discord,
   GitHub,
@@ -84,9 +86,9 @@ interface Props {
 
 interface PaymentButtonProps {
   treasury?: {
-    link: string;
-    proposalId: number;
-    dao: string;
+    link?: string;
+    proposalId?: number;
+    dao?: string;
   };
   proposalStatus?: string;
   isLoadingProposalStatus: boolean;
@@ -226,6 +228,15 @@ export const SubmissionPanel = ({
   const { data: commentData, refetch: refetchCommentCount } = useCommentCount(
     selectedSubmission?.id,
   );
+  const {
+    data: logs,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useGetLogsInfinite({
+    refType: 'submission',
+    refId: selectedSubmission?.id,
+  });
   const [activeTab, setActiveTab] = useState<ActionTab>('notes');
 
   const { onCopy: onCopyEmail } = useClipboard(
@@ -518,14 +529,23 @@ export const SubmissionPanel = ({
                   treasury={treasury}
                   submissionId={selectedSubmission?.id ?? ''}
                   submissionIsPaid={selectedSubmission?.isPaid ?? false}
-                  updateSubmission={() => {
+                  updateSubmission={(status) => {
                     setSelectedSubmission((prev) =>
                       prev && prev.id === selectedSubmission?.id
                         ? {
                             ...prev,
                             isPaid: true,
                             paymentDetails: {
-                              link: prev.paymentDetails?.treasury?.link,
+                              ...(status === 'Approved'
+                                ? {
+                                    link: prev.paymentDetails?.treasury?.link,
+                                  }
+                                : {
+                                    treasury: {
+                                      ...prev.paymentDetails?.treasury,
+                                      synced: true,
+                                    },
+                                  }),
                             },
                           }
                         : prev,
@@ -701,7 +721,7 @@ export const SubmissionPanel = ({
                   onValueChange={(tab) => setActiveTab(tab as ActionTab)}
                   className="w-full"
                 >
-                  <TabsList className="grid h-auto w-full grid-cols-2 rounded-none">
+                  <TabsList className="grid h-auto w-full grid-cols-3 rounded-none">
                     <TabsTrigger
                       value="notes"
                       className={cn(
@@ -722,6 +742,14 @@ export const SubmissionPanel = ({
                       ) : (
                         <Loader2 className="size-4 animate-spin" />
                       )}
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="activity"
+                      className={cn(
+                        'h-auto rounded-none border-b-2 px-4 py-2 text-muted-foreground data-[state=active]:border-brand-green',
+                      )}
+                    >
+                      Activity
                     </TabsTrigger>
                   </TabsList>
 
@@ -762,6 +790,31 @@ export const SubmissionPanel = ({
                         }}
                         take={2}
                       />
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="activity" className="p-0">
+                    <div className="flex max-h-[30rem] flex-col gap-4 overflow-y-auto px-4 py-4 scrollbar-thin scrollbar-track-slate-100 scrollbar-thumb-slate-300">
+                      <div className="flex items-center gap-2 font-semibold text-slate-500">
+                        Activity
+                        <Tooltip content="A contributor can only see their own changes to a submission. Changes made by other contributor are not visible.">
+                          <Info className="size-4 text-slate-400" />
+                        </Tooltip>
+                      </div>
+                      <LogsTimeline
+                        logs={logs?.pages.flatMap((page) => page.logs) ?? []}
+                      />
+                      {hasNextPage && (
+                        <div className="flex justify-center">
+                          <Button
+                            variant="outline"
+                            onClick={() => fetchNextPage()}
+                            disabled={isFetchingNextPage}
+                          >
+                            {isFetchingNextPage ? 'Loading...' : 'Load more'}
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </TabsContent>
                 </Tabs>

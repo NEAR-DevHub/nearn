@@ -46,6 +46,10 @@ export default async function comment(
           },
         },
         replies: {
+          where: {
+            isActive: true,
+            isArchived: false,
+          },
           include: {
             author: {
               select: {
