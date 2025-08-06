@@ -12,7 +12,7 @@ export const csvUpload = async (
   fileName: string,
   listingId: string,
 ) => {
-  const result = await cloudinary.uploader.upload(file.content, {
+  const result = await cloudinary.uploader.upload_large(file.content, {
     public_id: `${fileName}.csv`,
     folder: process.env.CLOUDINARY_SUBMISSIONS_FOLDER,
     resource_type: 'raw',
