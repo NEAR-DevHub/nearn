@@ -139,7 +139,7 @@ export async function convertToCSV(
           ? (kycStatuses.get(submission.user.publicKey) ?? 'Unknown')
           : 'Unknown',
       }),
-      'Account Age': `${accountAge} day${accountAge > 1 ? 's' : ''} ago`,
+      'Account Age': `${accountAge} day${accountAge > 1 ? 's' : ''}`,
       'Twitter Handle': submission.user.twitter ?? '',
       'Submission Created At': dayjs(submission.createdAt)
         .utc()
@@ -149,7 +149,9 @@ export async function convertToCSV(
           ? 'Bonus'
           : submission.winnerPosition
         : '',
-      'Approved By': submission.approvedBy ? submission.approvedBy : '',
+      'Approved By': submission.approvedByUser
+        ? submission.approvedByUser.name
+        : '',
       'Approved Date': submission.approveDate
         ? dayjs(submission.approveDate).utc().format('YYYY-MM-DD HH:mm UTC')
         : '',
@@ -163,7 +165,7 @@ export async function convertToCSV(
           ? dayjs(submission.paymentDate).utc().format('YYYY-MM-DD HH:mm UTC')
           : '',
       'Payment Link': submission.paymentDetails?.link ?? '',
-      'Paid By': submission.paidBy ?? '',
+      'Paid By': submission.paidByUser ? submission.paidByUser.name : '',
       'Requested in USD': isUSDBased ? displayAmount : '',
       'Requested in Token': isUSDBased ? '' : displayAmount,
       Token: token,

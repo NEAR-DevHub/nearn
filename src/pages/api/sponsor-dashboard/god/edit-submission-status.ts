@@ -65,7 +65,11 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
           link: paymentLink,
         };
         updateData.paymentDate = new Date();
-        updateData.paidBy = userId;
+        updateData.paidByUser = {
+          connect: {
+            id: userId,
+          },
+        };
       }
     }
 
@@ -78,8 +82,12 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       updateData.isPaid = false;
       updateData.paymentDetails = Prisma.JsonNull;
       updateData.paymentDate = null;
-      updateData.paidBy = null;
-      updateData.approvedBy = null;
+      updateData.paidByUser = {
+        disconnect: true,
+      };
+      updateData.approvedByUser = {
+        disconnect: true,
+      };
       updateData.winnerPosition = null;
       updateData.isWinner = false;
     }
@@ -89,7 +97,11 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
 
     if (isApproving) {
       updateData.approveDate = new Date();
-      updateData.approvedBy = userId;
+      updateData.approvedByUser = {
+        connect: {
+          id: userId,
+        },
+      };
       updateData.isWinner = true;
     }
 

@@ -16,7 +16,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useDisclosure } from '@/hooks/use-disclosure';
-import { type SubmissionWithUser } from '@/interface/submission';
 import { cn } from '@/utils/cn';
 import { cleanRewards, nthLabelGenerator, sortRank } from '@/utils/rank';
 
@@ -26,11 +25,12 @@ import { type Listing } from '@/features/listings/types';
 import { selectedSubmissionAtom } from '../../atoms';
 import { useRejectSubmissions } from '../../mutations/useRejectSubmissions';
 import { useToggleWinner } from '../../mutations/useToggleWinner';
+import { type SubmissionWithListingUser } from '../../queries/dashboard-submissions';
 import { RejectSubmissionModal } from './Modals/RejectModal';
 
 interface Props {
   bounty: Listing | undefined;
-  submissions: SubmissionWithUser[];
+  submissions: SubmissionWithListingUser[];
   usedPositions: number[];
   isHackathonPage?: boolean;
   setRemainings: Dispatch<

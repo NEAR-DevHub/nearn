@@ -9,10 +9,11 @@ import { BONUS_REWARD_POSITION } from '@/features/listing-builder/constants';
 import { type Listing, type Rewards } from '@/features/listings/types';
 
 import { selectedSubmissionAtom } from '../atoms';
+import { type SubmissionWithListingUser } from '../queries/dashboard-submissions';
 
 export const useToggleWinner = (
   bounty: Listing | undefined,
-  submissions: SubmissionWithUser[],
+  submissions: SubmissionWithListingUser[],
   setRemainings: React.Dispatch<
     React.SetStateAction<{ podiums: number; bonus: number } | null>
   >,
@@ -84,11 +85,11 @@ export const useToggleWinner = (
           }
         }
 
-        const updatedSubmission: SubmissionWithUser = {
+        const updatedSubmission: SubmissionWithListingUser = {
           ...submissions[submissionIndex],
           isWinner: variables.isWinner,
           winnerPosition: variables.winnerPosition as keyof Rewards | undefined,
-        } as SubmissionWithUser;
+        } as SubmissionWithListingUser;
 
         setSelectedSubmission(updatedSubmission);
 

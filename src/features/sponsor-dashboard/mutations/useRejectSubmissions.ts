@@ -7,6 +7,7 @@ import { type SubmissionWithUser } from '@/interface/submission';
 import { api } from '@/lib/api';
 
 import { selectedSubmissionAtom, selectedSubmissionIdsAtom } from '../atoms';
+import { type SubmissionWithListingUser } from '../queries/dashboard-submissions';
 
 export const useRejectSubmissions = (slug: string) => {
   const queryClient = useQueryClient();
@@ -37,7 +38,9 @@ export const useRejectSubmissions = (slug: string) => {
       });
 
       const updatedSubmission = queryClient
-        .getQueryData<SubmissionWithUser[]>(['sponsor-submissions', slug])
+        .getQueryData<
+          SubmissionWithListingUser[]
+        >(['sponsor-submissions', slug])
         ?.find((submission) => submissionIds.includes(submission.id));
 
       setSelectedSubmission(updatedSubmission);
@@ -62,7 +65,9 @@ export const useRejectSubmissions = (slug: string) => {
       });
 
       const updatedSubmission = queryClient
-        .getQueryData<SubmissionWithUser[]>(['sponsor-submissions', slug])
+        .getQueryData<
+          SubmissionWithListingUser[]
+        >(['sponsor-submissions', slug])
         ?.find((submission) => submissionIds.includes(submission.id));
 
       setSelectedSubmission(updatedSubmission);

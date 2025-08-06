@@ -55,6 +55,8 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
             sponsor: true,
           },
         },
+        approvedByUser: true,
+        paidByUser: true,
       },
       orderBy: {
         createdAt: 'asc',

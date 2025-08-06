@@ -1,4 +1,5 @@
 import { queryOptions } from '@tanstack/react-query';
+import { type User } from 'next-auth';
 
 import { type SubmissionWithUser } from '@/interface/submission';
 import { api } from '@/lib/api';
@@ -7,6 +8,8 @@ import { type Listing } from '@/features/listings/types';
 
 export type SubmissionWithListingUser = SubmissionWithUser & {
   listing: Listing;
+  approvedByUser: User;
+  paidByUser: User;
 };
 
 const fetchSubmissions = async (): Promise<SubmissionWithListingUser[]> => {
