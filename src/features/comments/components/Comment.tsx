@@ -1,8 +1,9 @@
 import type { CommentRefType } from '@prisma/client';
-import { AlertCircle, ChevronDown, Heart, Loader2 } from 'lucide-react';
+import { AlertCircle, ChevronDown, Copy, Heart, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { usePostHog } from 'posthog-js/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 
 import { VerifiedBadge } from '@/components/shared/VerifiedBadge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -23,6 +24,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Tooltip } from '@/components/ui/tooltip';
+import { useClipboard } from '@/hooks/use-clipboard';
 import { useDisclosure } from '@/hooks/use-disclosure';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import type { Comment as IComment } from '@/interface/comments';
@@ -178,6 +180,17 @@ export const Comment = ({
     } catch (error) {}
   };
 
+  const commentUrl = `${typeof window !== 'undefined' ? window.location.href.split('#')[0] : ''}#comment-${comment.id}`;
+
+  const { onCopy: onCopyCommentLink } = useClipboard(commentUrl);
+
+  const handleCopyLink = useCallback(() => {
+    onCopyCommentLink();
+    toast.success('Comment link copied', {
+      duration: 1500,
+    });
+  }, [onCopyCommentLink]);
+
   const handleSubmit = async () => {
     try {
       setNewReplyLoading(true);
@@ -217,8 +230,9 @@ export const Comment = ({
   return (
     <>
       <div
+        id={`comment-${comment.id}`}
         key={comment.id}
-        className="flex w-full items-start gap-3 overflow-visible"
+        className="flex w-full items-start gap-3 overflow-visible transition-colors duration-300"
         onMouseEnter={() => {
           if (!isMobile) setShowOptions(true);
         }}
@@ -406,9 +420,7 @@ export const Comment = ({
         <div
           className={cn(
             'transition-opacity duration-200',
-            (showOptions || isMobile) && comment.authorId === user?.id
-              ? 'opacity-100'
-              : 'opacity-0',
+            showOptions || isMobile ? 'opacity-100' : 'opacity-0',
           )}
         >
           <DropdownMenu>
@@ -438,11 +450,21 @@ export const Comment = ({
             <DropdownMenuContent className="min-w-[10rem] p-1" align="end">
               <DropdownMenuItem
                 className="ph-no-capture rounded-sm text-sm font-medium text-slate-600 md:text-base"
-                onClick={deleteOnOpen}
+                onClick={handleCopyLink}
                 tabIndex={-1}
               >
-                Delete
+                <Copy className="mr-2 h-4 w-4" />
+                Copy Link
               </DropdownMenuItem>
+              {comment.authorId === user?.id && (
+                <DropdownMenuItem
+                  className="ph-no-capture rounded-sm text-sm font-medium text-slate-600 md:text-base"
+                  onClick={deleteOnOpen}
+                  tabIndex={-1}
+                >
+                  Delete
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

@@ -58,17 +58,53 @@ function Content({
 }) {
   const commentsRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    // Check if there's a hash in the URL
-    if (typeof window !== 'undefined') {
-      const hash = window.location.hash;
-      if (hash === '#comments' && commentsRef.current) {
-        // Scroll to comments section with a slight delay to ensure rendering is complete
+    if (typeof window === 'undefined') return;
+
+    const hash = window.location.hash;
+
+    if (hash === '#comments' && commentsRef.current) {
+      setTimeout(() => {
+        if (commentsRef.current) {
+          commentsRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+      return;
+    }
+
+    if (hash.startsWith('#comment-')) {
+      const commentId = hash.substring(1);
+
+      const scrollToComment = () => {
+        const commentElement = document.getElementById(commentId);
+        if (!commentElement) return;
+
+        commentElement.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+        });
+
+        commentElement.classList.add(
+          'bg-yellow-100',
+          'border-l-4',
+          'border-yellow-400',
+          'pl-2',
+          '-ml-2',
+          'rounded-md',
+        );
+
         setTimeout(() => {
-          if (commentsRef.current) {
-            commentsRef.current.scrollIntoView({ behavior: 'smooth' });
-          }
-        }, 100);
-      }
+          commentElement.classList.remove(
+            'bg-yellow-100',
+            'border-l-4',
+            'border-yellow-400',
+            'pl-2',
+            '-ml-2',
+            'rounded-md',
+          );
+        }, 3000);
+      };
+
+      setTimeout(scrollToComment, 150);
     }
   }, []);
 
