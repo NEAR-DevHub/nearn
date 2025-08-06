@@ -21,7 +21,7 @@ const listingTypes = [
     name: 'Bounty',
     alterName: 'Competition',
     description: 'Short-term tasks with quick, varied contributions.',
-    examples: 'Firehose Hackahon, design\n contests, creative tasks.',
+    examples: 'Hackathons, design\n contests, creative tasks.',
     winners: 'Multiple winners. Submissions\n public after announcement.',
     payment: 'Ready to pay for multiple\n solutions.',
     gradientClassName: 'from-violet-400 to-violet-300 bg-gradient-to-r',
