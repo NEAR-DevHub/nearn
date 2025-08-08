@@ -61,7 +61,10 @@ import TreasuryStatus from '@/features/treasury/components/TreasuryStatus';
 
 import { treasuryProposalStatusQuery } from '../../../treasury/queries/treasuryProposalStatus';
 import { selectedSubmissionAtom } from '../../atoms';
+import { usePaymentCacheManager } from '../../hooks/usePaymentCacheManager';
+import { usePaymentStatusMonitor } from '../../hooks/usePaymentStatusMonitor';
 import { getUserQuery } from '../../queries/user';
+import { createPaymentUpdateContext } from '../../utils/cache-invalidation';
 import { Details } from './Details';
 import NearTreasuryPaymentModal from './Modals/NearTreasuryPaymentModal';
 import { SelectWinnersGuide } from './Modals/SelectWinnersGuide';
@@ -225,6 +228,21 @@ export const SubmissionPanel = ({
   const [selectedSubmission, setSelectedSubmission] = useAtom(
     selectedSubmissionAtom,
   );
+  const paymentCacheManager = usePaymentCacheManager();
+
+  usePaymentStatusMonitor({
+    submission: selectedSubmission,
+    listing:
+      bounty && bounty.id && bounty.slug && bounty.sponsorId
+        ? {
+            id: bounty.id as string,
+            slug: bounty.slug as string,
+            sponsorId: bounty.sponsorId as string,
+          }
+        : undefined,
+    enabled: !!selectedSubmission && !!bounty,
+  });
+
   const { data: commentData, refetch: refetchCommentCount } = useCommentCount(
     selectedSubmission?.id,
   );
@@ -529,12 +547,12 @@ export const SubmissionPanel = ({
                   treasury={treasury}
                   submissionId={selectedSubmission?.id ?? ''}
                   submissionIsPaid={selectedSubmission?.isPaid ?? false}
-                  updateSubmission={(status) => {
+                  updateSubmission={async (status) => {
                     setSelectedSubmission((prev) =>
                       prev && prev.id === selectedSubmission?.id
                         ? {
                             ...prev,
-                            isPaid: true,
+                            isPaid: status === 'Approved',
                             paymentDetails: {
                               ...(status === 'Approved'
                                 ? {
@@ -550,6 +568,22 @@ export const SubmissionPanel = ({
                           }
                         : prev,
                     );
+
+                    if (selectedSubmission && bounty) {
+                      if (bounty.id && bounty.slug && bounty.sponsorId) {
+                        const context = createPaymentUpdateContext(
+                          selectedSubmission,
+                          {
+                            id: bounty.id as string,
+                            slug: bounty.slug as string,
+                            sponsorId: bounty.sponsorId as string,
+                          },
+                        );
+                        await paymentCacheManager.invalidatePaymentCaches(
+                          context,
+                        );
+                      }
+                    }
                   }}
                 />
               </div>
@@ -852,7 +886,7 @@ export const SubmissionPanel = ({
           isOpen={isNearTreasuryPaymentModalOpen}
           onClose={() => setIsNearTreasuryPaymentModalOpen(false)}
           submissionId={selectedSubmission?.id || ''}
-          onSuccess={(
+          onSuccess={async (
             treasuryLink: string,
             proposalId: number,
             dao: string,
@@ -867,6 +901,22 @@ export const SubmissionPanel = ({
                   }
                 : prev,
             );
+
+            // invalidate caches for treasury proposal creation
+            if (selectedSubmission && bounty) {
+              if (bounty.id && bounty.slug && bounty.sponsorId) {
+                const context = createPaymentUpdateContext(
+                  selectedSubmission,
+                  {
+                    id: bounty.id as string,
+                    slug: bounty.slug as string,
+                    sponsorId: bounty.sponsorId as string,
+                  },
+                  { treasury: { link: treasuryLink, proposalId, dao } },
+                );
+                await paymentCacheManager.invalidatePaymentCaches(context);
+              }
+            }
           }}
         />
       )}

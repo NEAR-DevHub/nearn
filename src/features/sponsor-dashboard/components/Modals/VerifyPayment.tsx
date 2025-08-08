@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { Check, ExternalLink, X } from 'lucide-react';
 import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
@@ -29,11 +29,13 @@ import { BONUS_REWARD_POSITION } from '@/features/listing-builder/constants';
 import { listingSubmissionsQuery } from '@/features/listings/queries/submissions';
 import { type ListingWithSubmissions } from '@/features/listings/types';
 
+import { usePaymentCacheManager } from '../../hooks/usePaymentCacheManager';
 import {
   type ValidatePaymentResult,
   type VerifyPaymentsFormData,
   verifyPaymentsSchema,
 } from '../../types';
+import { createPaymentUpdateContext } from '../../utils/cache-invalidation';
 
 interface VerifyPaymentModalProps {
   isOpen: boolean;
@@ -59,7 +61,7 @@ export const VerifyPaymentModal = ({
   const [status, setStatus] = useState<
     'idle' | 'retry' | 'loading' | 'success' | 'error'
   >('idle');
-  const queryClient = useQueryClient();
+  const paymentCacheManager = usePaymentCacheManager();
   const { data, isLoading, error } = useQuery({
     ...listingSubmissionsQuery({
       slug: listing?.slug ?? '',
@@ -148,15 +150,21 @@ export const VerifyPaymentModal = ({
   const { mutate: verifyPayment, isPending: verifyPaymentPending } =
     useMutation({
       mutationFn: (body: VerifyPaymentsFormData) => verifyPaymentMutation(body),
+      onMutate: async (variables) => {
+        // updates for immediate UI feedback
+        if (listing && listing.id && user?.currentSponsorId) {
+          paymentCacheManager.updateListingPaymentCount(
+            user.currentSponsorId,
+            listing.id as string,
+            variables.paymentLinks.filter((link) => !!link.link).length,
+          );
+        }
+      },
       onSuccess: async (data, variables) => {
-        queryClient.invalidateQueries({
-          queryKey: listingSubmissionsQuery({
-            slug: listing?.slug ?? '',
-            isWinner: true,
-          }).queryKey,
-        });
-
         const { validationResults } = data.data;
+        const successfulResults = validationResults.filter(
+          (v) => v.status === 'SUCCESS',
+        );
         const failedResults = validationResults.filter(
           (v) => v.status === 'FAIL',
         );
@@ -192,44 +200,82 @@ export const VerifyPaymentModal = ({
           }
         });
 
-        const successfulResults = validationResults.filter(
-          (v) => v.status === 'SUCCESS',
-        );
+        if (listing && user?.currentSponsorId && successfulResults.length > 0) {
+          // update each successful submission
+          for (const result of successfulResults) {
+            const submission = submissions?.find(
+              (s) => s.id === result.submissionId,
+            );
+            if (submission) {
+              if (listing.id && listing.slug && user.currentSponsorId) {
+                const context = createPaymentUpdateContext(
+                  submission,
+                  {
+                    id: listing.id as string,
+                    slug: listing.slug as string,
+                    sponsorId: user.currentSponsorId,
+                  },
+                  { txId: result.txId, link: result.link },
+                );
 
-        if (listing) {
-          const existingPayments = listing.BountyCounts.totalPaymentsMade || 0;
-          const newPayments = successfulResults.length;
-          const newListing = {
-            ...listing,
-            BountyCounts: {
-              ...listing.BountyCounts,
-              totalPaymentsMade: existingPayments + newPayments,
-            },
-          };
-          queryClient.setQueryData<ListingWithSubmissions[]>(
-            ['dashboard', user?.currentSponsorId],
-            (oldData) =>
-              oldData
-                ? oldData.map((l) => (l.id === newListing.id ? newListing : l))
-                : [],
-          );
-          setListing(newListing);
-        }
+                // update submission cache optimistically
+                paymentCacheManager.updateSubmissionOptimistically(
+                  context,
+                  (sub) => ({
+                    ...sub,
+                    isPaid: true,
+                    paymentDetails: {
+                      ...sub.paymentDetails,
+                      txId: result.txId,
+                      link: result.link,
+                    },
+                    paymentDate:
+                      (result.transactionDate instanceof Date
+                        ? result.transactionDate.toISOString()
+                        : result.transactionDate) || new Date().toISOString(),
+                  }),
+                );
 
-        nonFailResults.forEach((result) => {
-          const fieldIndex = variables.paymentLinks.findIndex(
-            (link) => link.submissionId === result.submissionId,
-          );
-          if (fieldIndex !== -1) {
-            setValue(`paymentLinks.${fieldIndex}.isVerified`, true, {
-              shouldValidate: true,
-              shouldDirty: true,
-            });
+                // invalidate all related caches
+                await paymentCacheManager.invalidatePaymentCaches(context);
+              }
+            }
+
+            // update listing state
+            const newListing = {
+              ...listing,
+              BountyCounts: {
+                ...listing.BountyCounts,
+                totalPaymentsMade:
+                  (listing.BountyCounts?.totalPaymentsMade || 0) +
+                  successfulResults.length,
+              },
+            };
+            setListing(newListing);
           }
-        });
 
-        if (selectedSubmission && successfulResults.length > 0) {
-          setSelectedSubmission(selectedSubmission);
+          // update selected submission if applicable
+          if (selectedSubmission && successfulResults.length > 0) {
+            const submissionResult = successfulResults.find(
+              (r) => r.submissionId === selectedSubmission.id,
+            );
+            if (submissionResult) {
+              setSelectedSubmission({
+                ...selectedSubmission,
+                isPaid: true,
+                paymentDetails: {
+                  ...selectedSubmission.paymentDetails,
+                  txId: submissionResult.txId,
+                  link: submissionResult.link,
+                },
+                paymentDate:
+                  (submissionResult.transactionDate instanceof Date
+                    ? submissionResult.transactionDate.toISOString()
+                    : submissionResult.transactionDate) ||
+                  new Date().toISOString(),
+              });
+            }
+          }
         }
       },
       onError: () => {
@@ -242,20 +288,26 @@ export const VerifyPaymentModal = ({
     useMutation({
       mutationFn: (body: VerifyPaymentsFormData) =>
         forceVerifyPaymentMutation(body),
+      onMutate: async (variables) => {
+        // optimistic updates for force verification
+        if (listing && user?.currentSponsorId) {
+          paymentCacheManager.updateListingPaymentCount(
+            user.currentSponsorId,
+            listing.id as string,
+            variables.paymentLinks.filter((link) => link.link).length,
+          );
+        }
+      },
       onSuccess: async (data, variables) => {
-        queryClient.invalidateQueries({
-          queryKey: listingSubmissionsQuery({
-            slug: listing?.slug ?? '',
-            isWinner: true,
-          }).queryKey,
-        });
         clearErrors();
 
         const { validationResults } = data.data;
+        const successfulResults = validationResults.filter(
+          (v) => v.status === 'SUCCESS',
+        );
         const nonFailResults = validationResults.filter(
           (v) => v.status !== 'FAIL',
         );
-
         nonFailResults.forEach((result) => {
           const fieldIndex = variables.paymentLinks.findIndex(
             (link) => link.submissionId === result.submissionId,
@@ -266,37 +318,78 @@ export const VerifyPaymentModal = ({
           }
         });
 
-        const successfulResults = validationResults.filter(
-          (v) => v.status === 'SUCCESS',
-        );
+        // use cache management for force verification
+        if (listing && user?.currentSponsorId && successfulResults.length > 0) {
+          for (const result of successfulResults) {
+            const submission = submissions?.find(
+              (s) => s.id === result.submissionId,
+            );
+            if (submission) {
+              if (listing.id && listing.slug) {
+                const context = createPaymentUpdateContext(
+                  submission,
+                  {
+                    id: listing.id as string,
+                    slug: listing.slug as string,
+                    sponsorId: user.currentSponsorId,
+                  },
+                  { link: result.link },
+                );
 
-        if (listing) {
-          const existingPayments = listing.BountyCounts.totalPaymentsMade || 0;
-          const newPayments = successfulResults.length;
-          const newListing = {
-            ...listing,
-            BountyCounts: {
-              ...listing.BountyCounts,
-              totalPaymentsMade: existingPayments + newPayments,
-            },
-          };
-          queryClient.setQueryData<ListingWithSubmissions[]>(
-            ['dashboard', user?.currentSponsorId],
-            (oldData) =>
-              oldData
-                ? oldData.map((l) => (l.id === newListing.id ? newListing : l))
-                : [],
-          );
-          setListing(newListing);
+                // update submission cache with force verification data
+                paymentCacheManager.updateSubmissionOptimistically(
+                  context,
+                  (sub) => ({
+                    ...sub,
+                    isPaid: true,
+                    paymentDetails: {
+                      ...sub.paymentDetails,
+                      link: result.link,
+                    },
+                    paymentDate: new Date().toISOString(),
+                  }),
+                );
+
+                // force refresh to ensure data consistency
+                await paymentCacheManager.forceRefreshPaymentData(context);
+              }
+            }
+
+            // update listing state
+            const newListing = {
+              ...listing,
+              BountyCounts: {
+                ...listing.BountyCounts,
+                totalPaymentsMade:
+                  (listing.BountyCounts?.totalPaymentsMade || 0) +
+                  successfulResults.length,
+              },
+            };
+            setListing(newListing);
+          }
+
+          // update selected submission for force verification
+          if (selectedSubmission && successfulResults.length > 0) {
+            const submissionResult = successfulResults.find(
+              (r) => r.submissionId === selectedSubmission.id,
+            );
+            if (submissionResult) {
+              setSelectedSubmission({
+                ...selectedSubmission,
+                isPaid: true,
+                paymentDetails: {
+                  ...selectedSubmission.paymentDetails,
+                  link: submissionResult.link,
+                },
+                paymentDate: new Date().toISOString(),
+              });
+            }
+          }
+
+          setStatus('success');
         }
-
-        if (selectedSubmission) {
-          setSelectedSubmission(selectedSubmission);
-        }
-
-        setStatus('success');
       },
-      onError: (error) => {
+      onError: (error: any) => {
         console.log('error', error);
         setStatus('error');
         toast.error('Error occurred while force verifying payment');

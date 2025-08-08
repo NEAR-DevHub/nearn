@@ -32,6 +32,7 @@ import { RejectAllSubmissionModal } from '@/features/sponsor-dashboard/component
 import { SubmissionHeader } from '@/features/sponsor-dashboard/components/Submissions/SubmissionHeader';
 import { SubmissionList } from '@/features/sponsor-dashboard/components/Submissions/SubmissionList';
 import { SubmissionPanel } from '@/features/sponsor-dashboard/components/Submissions/SubmissionPanel';
+import { useMultiplePaymentStatusMonitor } from '@/features/sponsor-dashboard/hooks/usePaymentStatusMonitor';
 import { useRejectSubmissions } from '@/features/sponsor-dashboard/mutations/useRejectSubmissions';
 import { sponsorDashboardListingQuery } from '@/features/sponsor-dashboard/queries/listing';
 import { scoutsQuery } from '@/features/sponsor-dashboard/queries/scouts';
@@ -111,6 +112,20 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
   } = useQuery(sponsorDashboardListingQuery(slug));
 
   const [verifyAllPayments, setVerifyAllPayments] = useState(false);
+
+  // monitor payment status changes for automatic refresh
+  useMultiplePaymentStatusMonitor({
+    submissions,
+    listing:
+      bounty && bounty.id && bounty.slug && bounty.sponsorId
+        ? {
+            id: bounty.id as string,
+            slug: bounty.slug as string,
+            sponsorId: bounty.sponsorId as string,
+          }
+        : undefined,
+    enabled: !!bounty && !!submissions,
+  });
 
   const onVerifyPayments = () => {
     setVerifyAllPayments(true);
