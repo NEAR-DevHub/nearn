@@ -287,38 +287,6 @@ services:
     ipAllowList: []
     plan: starter
   - type: cron
-    name: check-listing-status-staging
-    runtime: node
-    region: frankfurt
-    schedule: '*/5 * * * *' # Every 5 minutes for staging
-    buildCommand: 'true'
-    repo: https://github.com/NEAR-DevHub/nearn
-    branch: staging
-    startCommand: |
-      CRON_SECRET=$CRON_SECRET ./scripts/cron-wrapper.sh https://nearn-app-staging.onrender.com/api/cron/check-listing-status
-    envVars:
-      - key: CRON_SECRET
-        fromService:
-          name: nearn-app-staging
-          type: web
-          envVarKey: CRON_SECRET
-  - type: cron
-    name: sync-treasury-status-staging
-    runtime: node
-    schedule: '*/5 * * * *' # Every 5 minutes for staging
-    buildCommand: 'true'
-    region: frankfurt
-    repo: https://github.com/NEAR-DevHub/nearn
-    branch: staging
-    startCommand: |
-      CRON_SECRET=$CRON_SECRET ./scripts/cron-wrapper.sh https://nearn-app-staging.onrender.com/api/cron/sync-treasury-payments
-    envVars:
-      - key: CRON_SECRET
-        fromService:
-          name: nearn-app-staging
-          type: web
-          envVarKey: CRON_SECRET
-  - type: cron
     name: check-listing-status
     runtime: node
     region: frankfurt
