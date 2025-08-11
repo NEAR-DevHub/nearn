@@ -350,3 +350,31 @@ services:
           name: nearn-app
           type: web
           envVarKey: CRON_SECRET
+  - type: web
+    plan: free
+    runtime: image
+    name: n8n-service
+    image:
+      url: docker.io/n8nio/n8n:latest
+    disk: # Persistent disk configuration
+      name: n8n-disk
+      mountPath: /home/node
+      sizeGB: 1 # optional
+    envVars:
+      # Generates a base64-encoded key for
+      # encrypting credentials in n8n
+      #
+      # Do not modify this value after it's generated!
+      # If you do, you'll lose access to all credentials
+      # encrypted with the previous value.
+      - key: N8N_ENCRYPTION_KEY
+        generateValue: true
+      - key: N8N_RUNNERS_ENABLED
+        value: true
+      - key: N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS
+        value: true
+      - key: STAGING_CRON_SECRET
+        fromService:
+          name: nearn-app-staging
+          type: web
+          envVarKey: CRON_SECRET
