@@ -351,7 +351,8 @@ services:
           type: web
           envVarKey: CRON_SECRET
   - type: web
-    plan: free
+    region: frankfurt
+    plan: standard
     runtime: image
     name: n8n-service
     image:
