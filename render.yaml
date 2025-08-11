@@ -349,3 +349,5 @@ services:
           name: nearn-app-staging
           type: web
           envVarKey: CRON_SECRET
+      - key: TELEGRAM_TOKEN
+        sync: false
