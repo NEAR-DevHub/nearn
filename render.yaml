@@ -374,6 +374,8 @@ services:
         value: true
       - key: N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS
         value: true
+      - key: PORT
+        value: 5678
       - key: STAGING_CRON_SECRET
         fromService:
           name: nearn-app-staging
