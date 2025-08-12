@@ -77,6 +77,7 @@ const eventIcons: Record<EventType, React.ReactNode> = {
   [EventType.PLATFORM_ADMIN_SUBMISSION_STATUS_EDITED]: (
     <Pencil className="h-4 w-4" />
   ),
+  [EventType.AUTOMATION_LOG]: <RefreshCcw className="h-4 w-4" />,
 };
 
 export default function LogsTimeline({
