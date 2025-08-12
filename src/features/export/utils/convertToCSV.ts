@@ -2,7 +2,7 @@ import dayjs from 'dayjs';
 import Papa from 'papaparse';
 
 import { isKYCEnabled } from '@/components/ui/KycComponent';
-import { getSubmissionUrl } from '@/utils/bounty-urls';
+import { getBountyUrl, getSubmissionUrl } from '@/utils/bounty-urls';
 import { getURLSanitized } from '@/utils/getURLSanitized';
 import { getURL } from '@/utils/validUrl';
 
@@ -84,26 +84,36 @@ export async function convertToCSV(
     {} as Record<number, SubmissionWithListingUser[]>,
   );
 
-  const prepareAnswersColumns = (submission: SubmissionWithListingUser) => {
+  const prepareAnswersColumns = (
+    submission: SubmissionWithListingUser,
+    questions: string[],
+  ) => {
     const eligibilityAnswers = submission.eligibilityAnswers ?? [];
-    const answersObj: Record<string, string> = {};
+    const submissionAnswers: Record<string, string> = {};
 
     // Add custom questions with full question text as column title
     eligibilityAnswers.forEach(
       (answer: { question: string; answer: string }) => {
-        const questionTitle = `Custom Question: ${stripHtml(answer.question)}`;
-        answersObj[questionTitle] = stripHtml(answer.answer);
+        const questionTitle = stripHtml(answer.question);
+        submissionAnswers[questionTitle] = stripHtml(answer.answer);
       },
     );
 
-    return answersObj;
+    const allPossibleQuestions: Record<string, string> = {};
+    questions.forEach((question) => {
+      const strippedQuestion = stripHtml(question);
+      allPossibleQuestions[strippedQuestion] =
+        submissionAnswers[strippedQuestion] ?? '';
+    });
+
+    return allPossibleQuestions;
   };
 
   const csvParts: string[] = [];
 
   // Process each listing group
   Object.entries(submissionsByListing).forEach(
-    ([listingId, listingSubmissions], index) => {
+    ([_, listingSubmissions], index) => {
       // Add listing header
       const firstSubmission = listingSubmissions[0];
       if (!firstSubmission) return;
@@ -112,9 +122,17 @@ export async function convertToCSV(
         ? `${firstSubmission.listing.type.charAt(0).toUpperCase()}${firstSubmission.listing.type?.slice(1)}`
         : '';
 
-      // Add title row (without header)
-      const titleRow = `${listingTypeWithUppercaseFirstLetter} - ${firstSubmission.listing.title} (ID: ${listingId})`;
-      csvParts.push(titleRow);
+      // Collect a stable, unique set of eligibility question titles for this listing
+      const uniqueQuestionsForListing = Array.from(
+        new Set(
+          listingSubmissions.flatMap((submission) =>
+            (submission.eligibilityAnswers ?? []).map(
+              (answer: { question: string; answer: string }) =>
+                stripHtml(answer.question),
+            ),
+          ),
+        ),
+      );
 
       // Process submissions for this listing
       const listingRows = listingSubmissions.map((submission) => {
@@ -130,13 +148,20 @@ export async function convertToCSV(
             : isUSDBased
               ? amount?.toLocaleString('en-US')
               : `${amount}`;
-        const accountAge = dayjs(dayjs()).diff(
+        const accountAge = dayjs().diff(
           dayjs(submission.user.createdAt),
           'day',
         );
-        const customAnswers = prepareAnswersColumns(submission);
+        const customAnswers = prepareAnswersColumns(
+          submission,
+          uniqueQuestionsForListing,
+        );
 
         return {
+          'Listing Type': listingTypeWithUppercaseFirstLetter,
+          'Listing Name': submission.listing.title,
+          'Listing Link': getBountyUrl(submission.listing),
+          'Listing ID': submission.listing.sequentialId,
           'Submission Link': getSubmissionUrl(submission, submission.listing),
           'Submission ID': submission.sequentialId,
           'Contributor Name': submission.user.name,
@@ -199,6 +224,7 @@ export async function convertToCSV(
 
       // Add empty line between listings (except for the last one)
       if (index < Object.entries(submissionsByListing).length - 1) {
+        csvParts.push('');
         csvParts.push('');
       }
     },
