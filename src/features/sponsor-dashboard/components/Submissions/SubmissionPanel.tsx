@@ -661,7 +661,7 @@ export const SubmissionPanel = ({
                             />
                           }
                           contentProps={{ side: 'top' }}
-                          disabled={!selectedSubmission?.approvedBy}
+                          disabled={!selectedSubmission?.approvedByUser}
                         >
                           <p className="text-sm text-slate-400">
                             Approved on:{' '}
@@ -687,7 +687,7 @@ export const SubmissionPanel = ({
                             />
                           }
                           contentProps={{ side: 'top' }}
-                          disabled={!selectedSubmission?.paidBy}
+                          disabled={!selectedSubmission?.paidByUser}
                         >
                           <p className="text-sm text-slate-400">
                             Paid on:{' '}
