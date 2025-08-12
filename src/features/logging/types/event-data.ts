@@ -41,6 +41,8 @@ export enum EventType {
   PLATFORM_ADMIN_SUBMISSION_STATUS_EDITED = 'PLATFORM_ADMIN_SUBMISSION_STATUS_EDITED',
   SYSTEM_STATUS_CHANGED = 'SYSTEM_STATUS_CHANGED',
   SYSTEM_STATUS_IN_REVIEW = 'SYSTEM_STATUS_IN_REVIEW',
+
+  AUTOMATION_LOG = 'AUTOMATION_LOG',
 }
 
 /**
@@ -313,6 +315,11 @@ export interface EventDataMap {
         | PlatformAdminSubmissionFieldValueMap[PlatformAdminEditableSubmissionFields]
         | null;
     }>;
+  };
+
+  [EventType.AUTOMATION_LOG]: {
+    message: string;
+    type: string;
   };
 }
 

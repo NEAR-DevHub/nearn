@@ -64,6 +64,7 @@ function getDefaultVisibility(eventType: EventType): EventVisibility {
     [EventType.SUBMISSION_NOTE_CHANGED]: 'SPONSOR',
     [EventType.SUBMISSION_PAYMENT_DATE_EDITED]: 'SPONSOR',
     [EventType.PLATFORM_ADMIN_ARCHIVED_OR_UNARCHIVED]: 'SPONSOR',
+    [EventType.AUTOMATION_LOG]: 'SPONSOR',
     [EventType.PLATFORM_ADMIN_SUBMISSION_STATUS_EDITED]: 'TALENT',
     [EventType.SYSTEM_STATUS_IN_REVIEW]: 'PUBLIC',
   };
