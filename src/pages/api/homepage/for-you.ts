@@ -85,13 +85,6 @@ export async function getForYouListings({ statusFilter, userId }: ForYouProps) {
       AND: [
         {
           OR: [
-            { compensationType: 'fixed', usdValue: { gt: 100 } },
-            { compensationType: 'range', maxRewardAsk: { gt: 100 } },
-            { compensationType: 'variable' },
-          ],
-        },
-        {
-          OR: [
             {
               id: { in: (await subscribedListings).map((sub) => sub.bountyId) },
             },
