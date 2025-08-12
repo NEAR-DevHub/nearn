@@ -1,12 +1,13 @@
 import { queryOptions } from '@tanstack/react-query';
 
-import { type SubmissionWithUser } from '@/interface/submission';
 import { api } from '@/lib/api';
+
+import { type SubmissionWithListingUser } from './dashboard-submissions';
 
 const fetchSubmissions = async (
   slug: string,
   isHackathon?: boolean,
-): Promise<SubmissionWithUser[]> => {
+): Promise<SubmissionWithListingUser[]> => {
   const { data } = await api.get(`/api/sponsor-dashboard/${slug}/submissions`, {
     params: { isHackathon },
   });

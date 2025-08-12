@@ -24,13 +24,14 @@ import { type Listing } from '@/features/listings/types';
 import { EarnAvatar } from '@/features/talent/components/EarnAvatar';
 
 import { labelMenuOptions } from '../../constants';
+import { type SubmissionWithListingUser } from '../../queries/dashboard-submissions';
 import { colorMap } from '../../utils/statusColorMap';
 import { DeleteRestoreSubmissionModal } from './Modals/DeleteRestoreSubmissionModal';
 import { EditSubmissionStatusModal } from './Modals/EditSubmissionStatusModal';
 
 interface Props {
   listing?: Listing;
-  submissions: SubmissionWithUser[];
+  submissions: SubmissionWithListingUser[];
   setSearchText: (text: string) => void;
   type?: string;
   filterLabel: SubmissionLabels | 'Paid' | 'Approved' | 'Rejected' | undefined;
@@ -42,8 +43,8 @@ interface Props {
   toggleSubmission?: (id: string) => void;
   isToggled?: (id: string) => boolean;
   toggleAllSubmissions?: () => void;
-  selectedSubmission: SubmissionWithUser | undefined;
-  setSelectedSubmission: (submission: SubmissionWithUser) => void;
+  selectedSubmission: SubmissionWithListingUser | undefined;
+  setSelectedSubmission: (submission: SubmissionWithListingUser) => void;
   isAllToggled?: boolean;
   refetchSubmissions: () => void;
 }

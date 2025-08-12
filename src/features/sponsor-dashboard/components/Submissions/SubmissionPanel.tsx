@@ -20,7 +20,6 @@ import React, {
   type SetStateAction,
   useState,
 } from 'react';
-import { FaSpinner } from 'react-icons/fa';
 import { MdOutlineAccountBalanceWallet, MdOutlineMail } from 'react-icons/md';
 import { toast } from 'sonner';
 
@@ -34,7 +33,6 @@ import {
 import { Tooltip } from '@/components/ui/tooltip';
 import { tokenList } from '@/constants/tokenList';
 import { useClipboard } from '@/hooks/use-clipboard';
-import type { SubmissionWithUser } from '@/interface/submission';
 import type { User } from '@/interface/user';
 import { getSubmissionUrl } from '@/utils/bounty-urls';
 import { cn } from '@/utils/cn';
@@ -61,7 +59,7 @@ import TreasuryStatus from '@/features/treasury/components/TreasuryStatus';
 
 import { treasuryProposalStatusQuery } from '../../../treasury/queries/treasuryProposalStatus';
 import { selectedSubmissionAtom } from '../../atoms';
-import { getUserQuery } from '../../queries/user';
+import { type SubmissionWithListingUser } from '../../queries/dashboard-submissions';
 import { Details } from './Details';
 import NearTreasuryPaymentModal from './Modals/NearTreasuryPaymentModal';
 import { SelectWinnersGuide } from './Modals/SelectWinnersGuide';
@@ -72,7 +70,7 @@ import { SelectWinner } from './SelectWinner';
 
 interface Props {
   bounty: Listing | undefined;
-  submissions: SubmissionWithUser[];
+  submissions: SubmissionWithListingUser[];
   usedPositions: number[];
   isHackathonPage?: boolean;
   onWinnersAnnounceOpen: () => void;
@@ -181,22 +179,13 @@ export const DoneBy = ({
   doneBy,
   doneByType,
 }: {
-  doneBy: string;
+  doneBy: User | undefined;
   doneByType: 'approved' | 'paid';
 }) => {
-  const { data: user, isLoading: isLoadingUser } = useQuery(
-    getUserQuery({ userId: doneBy }),
-  );
-
   return (
     <div className="flex items-center">
       <p className="flex items-center gap-1 text-sm text-slate-400">
-        {doneByType === 'approved' ? 'Approved by' : 'Paid by'}:{' '}
-        {isLoadingUser ? (
-          <FaSpinner className="animate-spin" />
-        ) : (
-          user?.name || doneBy
-        )}
+        {doneByType === 'approved' ? 'Approved by' : 'Paid by'}: {doneBy?.name}
       </p>
     </div>
   );
@@ -663,12 +652,16 @@ export const SubmissionPanel = ({
                         <Tooltip
                           content={
                             <DoneBy
-                              doneBy={selectedSubmission?.approvedBy || ''}
+                              doneBy={
+                                selectedSubmission?.approvedByUser as
+                                  | User
+                                  | undefined
+                              }
                               doneByType="approved"
                             />
                           }
                           contentProps={{ side: 'top' }}
-                          disabled={!selectedSubmission?.approvedBy}
+                          disabled={!selectedSubmission?.approvedByUser}
                         >
                           <p className="text-sm text-slate-400">
                             Approved on:{' '}
@@ -685,12 +678,16 @@ export const SubmissionPanel = ({
                         <Tooltip
                           content={
                             <DoneBy
-                              doneBy={selectedSubmission?.paidBy || ''}
+                              doneBy={
+                                selectedSubmission?.paidByUser as
+                                  | User
+                                  | undefined
+                              }
                               doneByType="paid"
                             />
                           }
                           contentProps={{ side: 'top' }}
-                          disabled={!selectedSubmission?.paidBy}
+                          disabled={!selectedSubmission?.paidByUser}
                         >
                           <p className="text-sm text-slate-400">
                             Paid on:{' '}

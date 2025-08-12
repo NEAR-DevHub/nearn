@@ -41,6 +41,7 @@ import { Tooltip } from '@/components/ui/tooltip';
 import { tokenList } from '@/constants/tokenList';
 import { useDisclosure } from '@/hooks/use-disclosure';
 import { type SubmissionWithUser } from '@/interface/submission';
+import { type User } from '@/interface/user';
 import { getBountyUrl, getSubmissionUrl } from '@/utils/bounty-urls';
 import { cn } from '@/utils/cn';
 import { truncatePublicKey } from '@/utils/truncatePublicKey';
@@ -460,10 +461,12 @@ export const SubmissionTable = ({
                       onAuxClick={(e) => handleClick(e, listingSubmissionLink)}
                     >
                       <Tooltip
-                        disabled={!submission?.approvedBy}
+                        disabled={!submission?.approvedByUser}
                         content={
                           <DoneBy
-                            doneBy={submission?.approvedBy!}
+                            doneBy={
+                              submission?.approvedByUser as User | undefined
+                            }
                             doneByType="approved"
                           />
                         }
@@ -481,10 +484,10 @@ export const SubmissionTable = ({
                       onAuxClick={(e) => handleClick(e, listingSubmissionLink)}
                     >
                       <Tooltip
-                        disabled={!submission?.paidBy}
+                        disabled={!submission?.paidByUser}
                         content={
                           <DoneBy
-                            doneBy={submission?.paidBy!}
+                            doneBy={submission?.paidByUser as User | undefined}
                             doneByType="paid"
                           />
                         }

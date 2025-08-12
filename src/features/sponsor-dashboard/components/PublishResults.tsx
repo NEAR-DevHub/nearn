@@ -12,7 +12,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { type SubmissionWithUser } from '@/interface/submission';
 import { api } from '@/lib/api';
 import { dayjs } from '@/utils/dayjs';
 import { cleanRewards } from '@/utils/rank';
@@ -20,6 +19,7 @@ import { cleanRewards } from '@/utils/rank';
 import { type Listing } from '../../listings/types';
 import { selectedSubmissionAtom } from '../atoms';
 import { useToggleWinner } from '../mutations/useToggleWinner';
+import { type SubmissionWithListingUser } from '../queries/dashboard-submissions';
 
 interface Props {
   onClose: () => void;
@@ -28,7 +28,7 @@ interface Props {
   totalPaymentsMade: number;
   bounty: Listing | undefined;
   remainings: { podiums: number; bonus: number } | null;
-  submissions: SubmissionWithUser[];
+  submissions: SubmissionWithListingUser[];
   usedPositions: number[];
   setRemainings: Dispatch<
     SetStateAction<{ podiums: number; bonus: number } | null>

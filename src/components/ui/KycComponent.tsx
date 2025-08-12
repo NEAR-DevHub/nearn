@@ -133,6 +133,10 @@ function styleKycStatus(kycData?: KycResponse) {
   }
 }
 
+export function isKYCEnabled(listingSponsorId?: string) {
+  return !!listingSponsorId && KYC_SPONSOR_WHITELIST.includes(listingSponsorId);
+}
+
 export function KycComponent({
   address,
   imageOnly = false,
@@ -140,8 +144,7 @@ export function KycComponent({
   listingSponsorId,
   hideCustom = false,
 }: KycComponentProps) {
-  const isKycEnabled =
-    !!listingSponsorId && KYC_SPONSOR_WHITELIST.includes(listingSponsorId);
+  const isKycEnabled = isKYCEnabled(listingSponsorId);
 
   const { data: kycData } = useQuery({
     enabled: !!address && isKycEnabled,

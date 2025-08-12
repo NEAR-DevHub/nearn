@@ -71,6 +71,8 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
           },
         },
         listing: true,
+        approvedByUser: true,
+        paidByUser: true,
       },
       orderBy: { createdAt: 'asc' },
     });

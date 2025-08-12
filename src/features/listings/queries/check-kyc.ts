@@ -7,7 +7,7 @@ export type KycResponse = {
   kyc_status: string;
 };
 
-const fetchKyc = async (address: string): Promise<KycResponse> => {
+export const fetchKyc = async (address: string): Promise<KycResponse> => {
   const { data } = await api.get(
     'https://neardevhub-kyc-proxy-gvbr.shuttle.app/kyc/' + address,
   );

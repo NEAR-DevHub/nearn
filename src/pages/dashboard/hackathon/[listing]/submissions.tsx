@@ -14,7 +14,6 @@ import { ExternalImage } from '@/components/ui/cloudinary-image';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip } from '@/components/ui/tooltip';
 import { useDisclosure } from '@/hooks/use-disclosure';
-import type { SubmissionWithUser } from '@/interface/submission';
 import { SponsorLayout } from '@/layouts/Sponsor';
 import { useUser } from '@/store/user';
 import { cn } from '@/utils/cn';
@@ -27,6 +26,7 @@ import { PublishResults } from '@/features/sponsor-dashboard/components/PublishR
 import { SubmissionHeader } from '@/features/sponsor-dashboard/components/Submissions/SubmissionHeader';
 import { SubmissionList } from '@/features/sponsor-dashboard/components/Submissions/SubmissionList';
 import { SubmissionPanel } from '@/features/sponsor-dashboard/components/Submissions/SubmissionPanel';
+import { type SubmissionWithListingUser } from '@/features/sponsor-dashboard/queries/dashboard-submissions';
 import { sponsorDashboardListingQuery } from '@/features/sponsor-dashboard/queries/listing';
 import { submissionsQuery } from '@/features/sponsor-dashboard/queries/submissions';
 
@@ -73,7 +73,7 @@ export default function BountySubmissions({ listing }: Props) {
 
   const filteredSubmissions = useMemo(() => {
     if (!submissions) return [];
-    return submissions.filter((submission: SubmissionWithUser) => {
+    return submissions.filter((submission: SubmissionWithListingUser) => {
       const name = submission.user.name?.toLowerCase() || '';
       const email = submission.user.email?.toLowerCase() || '';
       const username = submission.user.username?.toLowerCase() || '';

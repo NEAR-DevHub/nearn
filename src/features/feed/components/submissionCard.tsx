@@ -5,6 +5,7 @@ import { OgImageViewer } from '@/components/shared/ogImageViewer';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip } from '@/components/ui/tooltip';
 import { getBountyUrlBySponsorAndId } from '@/utils/bounty-urls';
+import { getURLSanitized } from '@/utils/getURLSanitized';
 
 import { type FeedDataProps } from '../types';
 import { FeedCardContainer } from './FeedCardContainer';
@@ -100,7 +101,7 @@ export function SubmissionCard({ sub, type, commentCount }: SubCardProps) {
       ) : !isProject ? (
         <FeedCardLink
           style="pointer-events-auto opacity-100"
-          href={`${submissionLink}`}
+          href={getURLSanitized(submissionLink)}
         >
           {'View Submission'}
         </FeedCardLink>

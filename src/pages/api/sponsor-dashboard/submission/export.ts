@@ -1,17 +1,15 @@
 import type { NextApiResponse } from 'next';
-import Papa from 'papaparse';
 
 import logger from '@/lib/logger';
 import { prisma } from '@/prisma';
 import { csvUpload, str2ab } from '@/utils/cloudinary';
-import { dayjs } from '@/utils/dayjs';
 import { safeStringify } from '@/utils/safeStringify';
-import { getURL } from '@/utils/validUrl';
 
 import { type NextApiRequestWithSponsor } from '@/features/auth/types';
 import { checkListingSponsorAuth } from '@/features/auth/utils/checkListingSponsorAuth';
 import { withSponsorAuth } from '@/features/auth/utils/withSponsorAuth';
-import { BONUS_REWARD_POSITION } from '@/features/listing-builder/constants';
+import { convertToCSV } from '@/features/export/utils/convertToCSV';
+import { type SubmissionWithListingUser } from '@/features/sponsor-dashboard/queries/dashboard-submissions';
 
 async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
   const userId = req.userId;
@@ -52,6 +50,13 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       },
       include: {
         user: true,
+        listing: {
+          include: {
+            sponsor: true,
+          },
+        },
+        approvedByUser: true,
+        paidByUser: true,
       },
       orderBy: {
         createdAt: 'asc',
@@ -59,48 +64,11 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       take: 1000,
     });
 
-    const eligibilityQuestions = new Set<string>();
-    submissions.forEach((submission: any) => {
-      submission.eligibilityAnswers?.forEach((answer: any) => {
-        eligibilityQuestions.add(answer.question);
-      });
-    });
-
-    logger.debug('Transforming submissions to JSON format for CSV export');
-    const finalJson = submissions.map((submission, i: number) => {
-      const user = submission.user;
-      const accountAge = Math.abs(dayjs(user.createdAt).diff(dayjs(), 'day'));
-      const eligibility: any = {};
-      eligibilityQuestions.forEach((question) => {
-        const answer = (submission.eligibilityAnswers as Array<any>)?.find(
-          (e: any) => e.question === question,
-        );
-        eligibility[question] = answer ? answer.answer : '';
-      });
-      return {
-        'Sr no': i + 1,
-        'Profile Link': `${getURL()}/t/${user.username}`,
-        Name: user.name ?? user.username ?? '',
-        'Submission Link': submission.link || '',
-        ...eligibility,
-        Ask: submission.ask || '',
-        'Tweet Link': submission.tweet || '',
-        'Email ID': user.email,
-        'User Twitter': user.twitter || '',
-        'User Wallet': user.publicKey,
-        Label: submission.label,
-        'Winner Position': submission.isWinner
-          ? submission.winnerPosition === BONUS_REWARD_POSITION
-            ? 'Bonus'
-            : submission.winnerPosition
-          : '',
-        'Account Age': `${accountAge} day${accountAge > 1 ? 's' : ''} ago`,
-        Notes: submission.notes,
-      };
-    });
-
     logger.debug('Converting JSON to CSV');
-    const csv = Papa.unparse(finalJson);
+    const csv = await convertToCSV(
+      listing.sponsorId,
+      submissions as unknown as SubmissionWithListingUser[],
+    );
     const fileName = `${listing.slug || listingId}-submissions-${Date.now()}`;
     const file = str2ab(csv, fileName);
 
