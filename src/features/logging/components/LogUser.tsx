@@ -112,7 +112,7 @@ export default function LogUser({
         </>
       )}
 
-      <Tooltip content={fullDate}>
+      <Tooltip contentProps={{ className: 'z-[1000]' }} content={fullDate}>
         <span className="text-sm font-medium text-slate-400">{date}</span>
       </Tooltip>
     </div>
