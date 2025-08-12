@@ -1,5 +1,5 @@
 -- This migration populates the EventLog table with historical data
-SET SESSION group_concat_max_len = 100000;
+
 -- Migrate existing comments to COMMENT_ADDED events
 INSERT INTO `EventLog` (
     `id`,
