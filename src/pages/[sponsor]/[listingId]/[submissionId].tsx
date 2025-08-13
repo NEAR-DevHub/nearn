@@ -25,6 +25,7 @@ import { api } from '@/lib/api';
 import { authOptions } from '@/pages/api/auth/[...nextauth]';
 import { getBountyUrl, getSubmissionUrl } from '@/utils/bounty-urls';
 import { cn } from '@/utils/cn';
+import { setupCommentLinking } from '@/utils/comment-highlighting';
 import { getURLSanitized } from '@/utils/getURLSanitized';
 import { truncatePublicKey } from '@/utils/truncatePublicKey';
 import { truncateString } from '@/utils/truncateString';
@@ -58,18 +59,23 @@ function Content({
 }) {
   const commentsRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    // Check if there's a hash in the URL
-    if (typeof window !== 'undefined') {
-      const hash = window.location.hash;
-      if (hash === '#comments' && commentsRef.current) {
-        // Scroll to comments section with a slight delay to ensure rendering is complete
-        setTimeout(() => {
-          if (commentsRef.current) {
-            commentsRef.current.scrollIntoView({ behavior: 'smooth' });
-          }
-        }, 100);
-      }
+    if (typeof window === 'undefined') return;
+
+    const hash = window.location.hash;
+
+    // Handle comments section scroll
+    if (hash === '#comments' && commentsRef.current) {
+      setTimeout(() => {
+        if (commentsRef.current) {
+          commentsRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+      return;
     }
+
+    // Handle comment linking
+    const cleanup = setupCommentLinking();
+    return cleanup;
   }, []);
 
   const { data, refetch } = useQuery(

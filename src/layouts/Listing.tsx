@@ -12,6 +12,7 @@ import { PROJECT_NAME } from '@/constants/project';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { type SubmissionWithUser } from '@/interface/submission';
 import { cn } from '@/utils/cn';
+import { setupCommentLinking } from '@/utils/comment-highlighting';
 import { getURLSanitized } from '@/utils/getURLSanitized';
 import { getURL } from '@/utils/validUrl';
 
@@ -58,6 +59,11 @@ export function ListingPageLayout({
     } else if (initialBounty?.type === 'sponsorship') {
       posthog.capture('open_sponsorship');
     }
+  }, []);
+
+  useEffect(() => {
+    const cleanup = setupCommentLinking();
+    return cleanup;
   }, []);
 
   useEffect(() => {
