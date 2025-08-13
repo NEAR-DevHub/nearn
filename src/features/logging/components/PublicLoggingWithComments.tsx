@@ -123,8 +123,6 @@ export default function PublicLoggingWithComments({
           submissionAuthor={submission?.user as User}
           isDisabled={!listing.isPublished && listing.status === 'OPEN'}
           hideCount
-          listing={listing}
-          submission={submission}
         />
       )}
       {tab === 'activity' && (

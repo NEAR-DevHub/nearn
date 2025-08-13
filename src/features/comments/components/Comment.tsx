@@ -28,17 +28,14 @@ import { useClipboard } from '@/hooks/use-clipboard';
 import { useDisclosure } from '@/hooks/use-disclosure';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import type { Comment as IComment } from '@/interface/comments';
-import type { SubmissionWithUser } from '@/interface/submission';
 import type { User } from '@/interface/user';
 import { api } from '@/lib/api';
 import { useUser } from '@/store/user';
-import { getBountyUrl, getSubmissionUrl } from '@/utils/bounty-urls';
 import { cn } from '@/utils/cn';
 import { dayjs } from '@/utils/dayjs';
 import { getURL } from '@/utils/validUrl';
 
 import { AuthWrapper } from '@/features/auth/components/AuthWrapper';
-import type { Listing } from '@/features/listings/types';
 import { EarnAvatar } from '@/features/talent/components/EarnAvatar';
 
 import { useCommentLike } from '../mutations/useCommentLike';
@@ -63,8 +60,6 @@ interface Props {
   isVerified?: boolean;
   isTemplate?: boolean;
   isDisabled?: boolean;
-  listing?: Listing;
-  submission?: SubmissionWithUser;
 }
 
 export const Comment = ({
@@ -84,8 +79,6 @@ export const Comment = ({
   isVerified = false,
   isTemplate = false,
   isDisabled = false,
-  listing,
-  submission,
 }: Props) => {
   const { user } = useUser();
   const posthog = usePostHog();
@@ -187,39 +180,9 @@ export const Comment = ({
     } catch (error) {}
   };
 
-  // Generate public comment link URL
-  const [commentUrl, setCommentUrl] = useState(`#comment-${comment.id}`);
-
-  useEffect(() => {
-    const generatePublicCommentUrl = () => {
-      try {
-        if (refType === 'SUBMISSION' && submission && listing) {
-          // For submission comments used public submission URL
-          return `${getSubmissionUrl(submission, listing)}#comment-${comment.id}`;
-        } else if (refType === 'BOUNTY' && listing) {
-          // For bounty comments used public bounty URL
-          return `${getBountyUrl(listing)}#comment-${comment.id}`;
-        }
-
-        // Fallback to current URL if data is not available
-        if (typeof window !== 'undefined') {
-          return `${window.location.href.split('#')[0]}#comment-${comment.id}`;
-        }
-
-        return `#comment-${comment.id}`;
-      } catch (error) {
-        // Fallback to current URL on any error
-        if (typeof window !== 'undefined') {
-          return `${window.location.href.split('#')[0]}#comment-${comment.id}`;
-        }
-        return `#comment-${comment.id}`;
-      }
-    };
-
-    setCommentUrl(generatePublicCommentUrl());
-  }, [refType, submission, listing, comment.id]);
-
-  const { onCopy: onCopyCommentLink } = useClipboard(commentUrl);
+  const { onCopy: onCopyCommentLink } = useClipboard(
+    `${getURL()}comment/${comment.id}`,
+  );
 
   const handleCopyLink = useCallback(() => {
     onCopyCommentLink();
@@ -451,8 +414,6 @@ export const Comment = ({
                   sponsorId={sponsorId}
                   comment={reply}
                   refId={refId}
-                  listing={listing}
-                  submission={submission}
                 />
               ))}
             </div>
@@ -464,50 +425,57 @@ export const Comment = ({
             showOptions || isMobile ? 'opacity-100' : 'opacity-0',
           )}
         >
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                className="px-2"
-                aria-label="Comment options"
-                title="Comment options"
-              >
-                <svg
-                  width="3"
-                  height="12"
-                  viewBox="0 0 3 12"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="text-slate-400"
+          {(comment.authorId === user?.id ||
+            comment.refType === 'BOUNTY' ||
+            comment.refType === 'SUBMISSION') && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className="px-2"
+                  aria-label="Comment options"
+                  title="Comment options"
                 >
-                  <title>More options</title>
-                  <path
-                    d="M1.5 3C2.325 3 3 2.325 3 1.5C3 0.675 2.325 0 1.5 0C0.675 0 0 0.675 0 1.5C0 2.325 0.675 3 1.5 3ZM1.5 4.5C0.675 4.5 0 5.175 0 6C0 6.825 0.675 7.5 1.5 7.5C2.325 7.5 3 6.825 3 6C3 5.175 2.325 4.5 1.5 4.5ZM1.5 9C0.675 9 0 9.675 0 10.5C0 11.325 0.675 12 1.5 12C2.325 12 3 11.325 3 10.5C3 9.675 2.325 9 1.5 9Z"
-                    fill="currentColor"
-                  />
-                </svg>
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="min-w-[10rem] p-1" align="end">
-              <DropdownMenuItem
-                className="ph-no-capture rounded-sm text-sm font-medium text-slate-600 md:text-base"
-                onClick={handleCopyLink}
-                tabIndex={-1}
-              >
-                <Copy className="mr-2 h-4 w-4" />
-                Copy Link
-              </DropdownMenuItem>
-              {comment.authorId === user?.id && (
-                <DropdownMenuItem
-                  className="ph-no-capture rounded-sm text-sm font-medium text-slate-600 md:text-base"
-                  onClick={deleteOnOpen}
-                  tabIndex={-1}
-                >
-                  Delete
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                  <svg
+                    width="3"
+                    height="12"
+                    viewBox="0 0 3 12"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="text-slate-400"
+                  >
+                    <title>More options</title>
+                    <path
+                      d="M1.5 3C2.325 3 3 2.325 3 1.5C3 0.675 2.325 0 1.5 0C0.675 0 0 0.675 0 1.5C0 2.325 0.675 3 1.5 3ZM1.5 4.5C0.675 4.5 0 5.175 0 6C0 6.825 0.675 7.5 1.5 7.5C2.325 7.5 3 6.825 3 6C3 5.175 2.325 4.5 1.5 4.5ZM1.5 9C0.675 9 0 9.675 0 10.5C0 11.325 0.675 12 1.5 12C2.325 12 3 11.325 3 10.5C3 9.675 2.325 9 1.5 9Z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="min-w-[10rem] p-1" align="end">
+                {(comment.refType === 'BOUNTY' ||
+                  comment.refType === 'SUBMISSION') && (
+                  <DropdownMenuItem
+                    className="ph-no-capture rounded-sm text-sm font-medium text-slate-600 md:text-base"
+                    onClick={handleCopyLink}
+                    tabIndex={-1}
+                  >
+                    <Copy className="mr-2 h-4 w-4" />
+                    Copy Link
+                  </DropdownMenuItem>
+                )}
+                {comment.authorId === user?.id && (
+                  <DropdownMenuItem
+                    className="ph-no-capture rounded-sm text-sm font-medium text-slate-600 md:text-base"
+                    onClick={deleteOnOpen}
+                    tabIndex={-1}
+                  >
+                    Delete
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </div>
       <AlertDialog open={deleteIsOpen} onOpenChange={deleteOnClose}>
