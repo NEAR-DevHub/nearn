@@ -9,9 +9,12 @@ import { Loading } from '@/components/shared/Loading';
 import { Button } from '@/components/ui/button';
 import { ExternalImage } from '@/components/ui/cloudinary-image';
 import type { Comment } from '@/interface/comments';
+import type { SubmissionWithUser } from '@/interface/submission';
 import { type User } from '@/interface/user';
 import { api } from '@/lib/api';
 import { cn } from '@/utils/cn';
+
+import type { Listing } from '@/features/listings/types';
 
 import { validUsernamesAtom } from '../atoms';
 import { Comment as CommentUI } from './Comment';
@@ -34,6 +37,8 @@ interface Props {
   isTemplate?: boolean;
   onSuccess?: (newComment: Comment) => void;
   isDisabled?: boolean;
+  listing?: Listing;
+  submission?: SubmissionWithUser;
 }
 export const Comments = ({
   refId,
@@ -52,6 +57,8 @@ export const Comments = ({
   take = 10,
   setCount,
   onSuccess,
+  listing,
+  submission,
 }: Props) => {
   const posthog = usePostHog();
 
@@ -184,6 +191,8 @@ export const Comments = ({
               isVerified={isVerified}
               isTemplate={isTemplate}
               isDisabled={isDisabled}
+              listing={listing}
+              submission={submission}
             />
           );
         })}

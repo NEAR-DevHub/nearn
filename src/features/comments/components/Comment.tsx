@@ -28,14 +28,17 @@ import { useClipboard } from '@/hooks/use-clipboard';
 import { useDisclosure } from '@/hooks/use-disclosure';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import type { Comment as IComment } from '@/interface/comments';
+import type { SubmissionWithUser } from '@/interface/submission';
 import type { User } from '@/interface/user';
 import { api } from '@/lib/api';
 import { useUser } from '@/store/user';
+import { getBountyUrl, getSubmissionUrl } from '@/utils/bounty-urls';
 import { cn } from '@/utils/cn';
 import { dayjs } from '@/utils/dayjs';
 import { getURL } from '@/utils/validUrl';
 
 import { AuthWrapper } from '@/features/auth/components/AuthWrapper';
+import type { Listing } from '@/features/listings/types';
 import { EarnAvatar } from '@/features/talent/components/EarnAvatar';
 
 import { useCommentLike } from '../mutations/useCommentLike';
@@ -60,6 +63,8 @@ interface Props {
   isVerified?: boolean;
   isTemplate?: boolean;
   isDisabled?: boolean;
+  listing?: Listing;
+  submission?: SubmissionWithUser;
 }
 
 export const Comment = ({
@@ -79,6 +84,8 @@ export const Comment = ({
   isVerified = false,
   isTemplate = false,
   isDisabled = false,
+  listing,
+  submission,
 }: Props) => {
   const { user } = useUser();
   const posthog = usePostHog();
@@ -180,7 +187,37 @@ export const Comment = ({
     } catch (error) {}
   };
 
-  const commentUrl = `${typeof window !== 'undefined' ? window.location.href.split('#')[0] : ''}#comment-${comment.id}`;
+  // Generate public comment link URL
+  const [commentUrl, setCommentUrl] = useState(`#comment-${comment.id}`);
+
+  useEffect(() => {
+    const generatePublicCommentUrl = () => {
+      try {
+        if (refType === 'SUBMISSION' && submission && listing) {
+          // For submission comments used public submission URL
+          return `${getSubmissionUrl(submission, listing)}#comment-${comment.id}`;
+        } else if (refType === 'BOUNTY' && listing) {
+          // For bounty comments used public bounty URL
+          return `${getBountyUrl(listing)}#comment-${comment.id}`;
+        }
+
+        // Fallback to current URL if data is not available
+        if (typeof window !== 'undefined') {
+          return `${window.location.href.split('#')[0]}#comment-${comment.id}`;
+        }
+
+        return `#comment-${comment.id}`;
+      } catch (error) {
+        // Fallback to current URL on any error
+        if (typeof window !== 'undefined') {
+          return `${window.location.href.split('#')[0]}#comment-${comment.id}`;
+        }
+        return `#comment-${comment.id}`;
+      }
+    };
+
+    setCommentUrl(generatePublicCommentUrl());
+  }, [refType, submission, listing, comment.id]);
 
   const { onCopy: onCopyCommentLink } = useClipboard(commentUrl);
 
@@ -302,6 +339,7 @@ export const Comment = ({
                 type="button"
                 onClick={() => setShowReplies((prev) => !prev)}
                 className="relative -left-3 flex items-center text-xs font-medium text-black md:text-sm"
+                data-show-replies-button
               >
                 <ChevronDown className="mr-1 h-4 w-4" />
                 {replies?.length} {replies?.length === 1 ? 'Reply' : 'Replies'}
@@ -394,6 +432,7 @@ export const Comment = ({
               'w-full transition-all duration-200',
               !showReplies && 'hidden',
             )}
+            data-replies-container
           >
             <div className="flex w-full flex-col gap-4 pt-3">
               {replies.map((reply) => (
@@ -412,6 +451,8 @@ export const Comment = ({
                   sponsorId={sponsorId}
                   comment={reply}
                   refId={refId}
+                  listing={listing}
+                  submission={submission}
                 />
               ))}
             </div>

@@ -12,6 +12,7 @@ import { PROJECT_NAME } from '@/constants/project';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { type SubmissionWithUser } from '@/interface/submission';
 import { cn } from '@/utils/cn';
+import { setupCommentLinking } from '@/utils/comment-highlighting';
 import { getURLSanitized } from '@/utils/getURLSanitized';
 import { getURL } from '@/utils/validUrl';
 
@@ -61,42 +62,8 @@ export function ListingPageLayout({
   }, []);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const hash = window.location.hash;
-    if (!hash.startsWith('#comment-')) return;
-
-    const commentId = hash.substring(1);
-
-    const scrollToComment = () => {
-      const commentElement = document.getElementById(commentId);
-      if (!commentElement) return;
-
-      commentElement.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
-      });
-      commentElement.classList.add(
-        'bg-yellow-100',
-        'border-l-4',
-        'border-yellow-400',
-        'pl-2',
-        '-ml-2',
-        'rounded-md',
-      );
-
-      setTimeout(() => {
-        commentElement.classList.remove(
-          'bg-yellow-100',
-          'border-l-4',
-          'border-yellow-400',
-          'pl-2',
-          '-ml-2',
-          'rounded-md',
-        );
-      }, 3000);
-    };
-    setTimeout(scrollToComment, 150);
+    const cleanup = setupCommentLinking();
+    return cleanup;
   }, []);
 
   useEffect(() => {
