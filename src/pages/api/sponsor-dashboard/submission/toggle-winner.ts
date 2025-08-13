@@ -113,7 +113,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
           where: { id: bountyId },
           data: {
             rewards: { ...(oldRewards as Rewards), [position]: ask },
-            rewardAmount: ask,
+            rewardAmount: { increment: ask },
             usdValue: { increment: usdValue },
           },
         });

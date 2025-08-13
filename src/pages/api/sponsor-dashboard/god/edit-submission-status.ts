@@ -134,6 +134,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
             where: { id: listing.id },
             data: {
               rewards: remainingRewards,
+              rewardAmount: { decrement: removed },
               usdValue: { decrement: currentSubmission.rewardInUSD },
               updatedAt: new Date(),
             },
@@ -163,7 +164,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
               // We already put him as a winner so we don't need to add + 1
               [maxPosition]: currentSubmission.ask,
             },
-            rewardAmount: currentSubmission.ask,
+            rewardAmount: { increment: currentSubmission.ask || 0 },
             usdValue: { increment: usdValue },
             updatedAt: new Date(),
           },
