@@ -61,7 +61,7 @@ export default function N8nIntegrationRequest() {
       // Well, I understand that this is not ideal way, but
       // I don't think we actually have any issues with that so let's expose it.
       await axios.post(
-        'https://n8n-service-nu12.onrender.com/webhook/823ad6f3-aec4-4060-b10d-862db1f3a1bc',
+        'https://n8n.nearn.io/webhook/823ad6f3-aec4-4060-b10d-862db1f3a1bc',
         payload,
       );
 
@@ -80,7 +80,7 @@ export default function N8nIntegrationRequest() {
     <>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Image src="/assets/n8n.ico" alt="n8n" width={40} height={40} />
+          <Image src="/assets/N8N.svg" alt="n8n" width={40} height={40} />
           <div className="flex flex-col">
             <h3 className="text-lg font-semibold text-gray-700">
               n8n Workflow Automation

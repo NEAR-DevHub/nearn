@@ -98,6 +98,7 @@ export const SocialInput = ({
     () => socials.find((s) => s.name === socialName),
     [socials, socialName],
   );
+
   return (
     <FormField
       control={control}
@@ -180,7 +181,7 @@ export const SocialInput = ({
                   />
                 </FormControl>
               </div>
-              {hideMessage && <FormMessage className="pt-1" />}
+              {!hideMessage && <FormMessage className="z-[1000] pt-1" />}
             </div>
           </FormItem>
         );
