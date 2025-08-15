@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckCircle, Edit, XCircle } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -30,6 +30,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import type { SubmissionWithUser } from '@/interface/submission';
+import { cleanRewards, nthLabelGenerator, sortRank } from '@/utils/rank';
 
 const formSchema = z
   .object({
@@ -37,6 +38,7 @@ const formSchema = z
     label: z.enum(['New', 'Reviewed', 'Shortlisted', 'Spam'] as const),
     isPaid: z.boolean().default(false),
     paymentLink: z.string().optional(),
+    winnerPosition: z.coerce.number().int().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.isPaid && !data.paymentLink) {
@@ -88,6 +90,8 @@ export const EditSubmissionStatusModal = ({
       label: submission?.label || 'New',
       isPaid: submission?.isPaid || false,
       paymentLink: submission?.paymentDetails?.link,
+      winnerPosition:
+        (submission?.winnerPosition as unknown as number) || undefined,
     },
   });
 
@@ -95,12 +99,20 @@ export const EditSubmissionStatusModal = ({
   const status = watch('status');
   const isPaid = watch('isPaid');
 
+  const rewardPositions = useMemo(() => {
+    return sortRank(cleanRewards(submission?.listing?.rewards));
+  }, [submission?.listing?.rewards]);
+
   useEffect(() => {
     if (submission) {
       setValue('status', submission.status || 'Pending');
       setValue('label', submission.label || 'New');
       setValue('isPaid', submission.isPaid || false);
       setValue('paymentLink', submission.paymentDetails?.link);
+      setValue(
+        'winnerPosition',
+        (submission.winnerPosition as unknown as number) || undefined,
+      );
     }
   }, [submission, setValue]);
 
@@ -117,6 +129,21 @@ export const EditSubmissionStatusModal = ({
   const onSubmit = async (values: FormValues) => {
     if (!submission) return;
 
+    // If bounty with fixed rewards and approving, ensure a valid winner position is selected
+    const requiresWinnerPosition =
+      submission.listing?.type === 'bounty' &&
+      submission.listing?.compensationType === 'fixed' &&
+      values.status === 'Approved';
+
+    if (
+      requiresWinnerPosition &&
+      (!values.winnerPosition ||
+        !rewardPositions.includes(values.winnerPosition))
+    ) {
+      toast.error('Please select a winner position from rewards');
+      return;
+    }
+
     try {
       const response = await fetch(
         '/api/sponsor-dashboard/god/edit-submission-status',
@@ -127,20 +154,27 @@ export const EditSubmissionStatusModal = ({
           },
           body: JSON.stringify({
             id: submission.id,
-            ...values,
+            status: values.status,
+            label: values.label,
+            isPaid: values.isPaid,
+            paymentLink: values.paymentLink,
+            winnerPosition: requiresWinnerPosition
+              ? values.winnerPosition
+              : undefined,
           }),
         },
       );
 
       const data = await response.json();
 
-      if (response.ok) {
-        toast.success('Submission updated successfully');
-        onSuccess(data.submission);
-        onClose();
-      } else {
+      if (!response.ok) {
         toast.error(data.error || 'Failed to update submission');
+        return;
       }
+
+      toast.success('Submission updated successfully');
+      onSuccess(data.submission);
+      onClose();
     } catch (error) {
       console.error('Submission update error:', error);
       toast.error('An error occurred while updating the submission');
@@ -209,6 +243,48 @@ export const EditSubmissionStatusModal = ({
                 )}
               />
             )}
+
+            {submission?.listing?.type === 'bounty' &&
+              submission?.listing?.compensationType === 'fixed' &&
+              status === 'Approved' && (
+                <FormField
+                  control={form.control}
+                  name="winnerPosition"
+                  render={({ field }) => (
+                    <FormItem className="grid gap-2">
+                      <FormLabel>Winner Position</FormLabel>
+                      <Select
+                        value={field.value ? String(field.value) : ''}
+                        onValueChange={field.onChange}
+                      >
+                        <FormControl>
+                          <SelectTrigger id="winnerPosition">
+                            <SelectValue placeholder="Select position" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {rewardPositions.map((pos) => (
+                            <SelectItem key={pos} value={String(pos)}>
+                              {nthLabelGenerator(pos)}
+                              {submission?.listing?.rewards?.[pos] ? (
+                                <>
+                                  {' '}
+                                  |{' '}
+                                  {submission?.listing?.rewards?.[
+                                    pos
+                                  ]!.toLocaleString('en-us')}{' '}
+                                  {submission?.listing?.token}
+                                </>
+                              ) : null}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
 
             {status === 'Approved' && (
               <FormField

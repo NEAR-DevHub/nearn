@@ -30,6 +30,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
 
   logger.debug(`Request body: ${JSON.stringify(req.body)}`);
   const { id, status, label, isPaid, paymentLink } = req.body;
+  const winnerPositionFromBody = req.body?.winnerPosition;
 
   if (!id) {
     return res.status(400).json({ error: 'Submission ID is required' });
@@ -104,6 +105,33 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
         },
       };
       updateData.isWinner = true;
+    }
+
+    // Handle winnerPosition for fixed bounty listings when approved
+    const canSetWinnerPosition =
+      currentSubmission.listing.type === 'bounty' &&
+      currentSubmission.listing.compensationType === 'fixed';
+
+    if (canSetWinnerPosition && typeof winnerPositionFromBody !== 'undefined') {
+      const parsedWinnerPosition = Number(winnerPositionFromBody);
+      const rewardKeys = Object.keys(
+        (currentSubmission.listing.rewards || {}) as Record<string, number>,
+      )
+        .map(Number)
+        .filter((n) => !isNaN(n));
+
+      const willBeApproved =
+        status === 'Approved' ||
+        (!status && currentSubmission.status === 'Approved');
+
+      if (
+        willBeApproved &&
+        !isNaN(parsedWinnerPosition) &&
+        rewardKeys.includes(parsedWinnerPosition)
+      ) {
+        updateData.winnerPosition = parsedWinnerPosition;
+        updateData.isWinner = true;
+      }
     }
 
     const result = await prisma.submission.update({
