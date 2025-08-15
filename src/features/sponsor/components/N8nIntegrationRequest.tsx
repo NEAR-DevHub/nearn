@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import axios from 'axios';
 import { Loader2 } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -27,6 +28,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { useUser } from '@/store/user';
 import { getURL } from '@/utils/validUrl';
 
+const CONNECTED_SPONSORS = (
+  process.env.NEXT_PUBLIC_N8N_CONNECTED_SPONSORS || ''
+)
+  .split(',')
+  .map((s) => s.trim().toLowerCase())
+  .filter(Boolean);
+
 const n8nRequestSchema = z.object({
   reason: z
     .string()
@@ -40,6 +48,10 @@ export default function N8nIntegrationRequest() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { user, isLoading: isLoadingUser } = useUser();
+
+  const isConnectedSponsor = Boolean(
+    CONNECTED_SPONSORS.includes(user?.currentSponsorId ?? ''),
+  );
 
   const form = useForm<N8nRequestFormValues>({
     resolver: zodResolver(n8nRequestSchema),
@@ -90,9 +102,25 @@ export default function N8nIntegrationRequest() {
             </p>
           </div>
         </div>
-        <Button variant="default" onClick={() => setIsModalOpen(true)}>
-          Request Access
-        </Button>
+        {isConnectedSponsor ? (
+          <Button asChild>
+            <Link
+              href="https://n8n.nearn.io"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Open
+            </Link>
+          </Button>
+        ) : (
+          <Button
+            variant="default"
+            onClick={() => setIsModalOpen(true)}
+            disabled={isLoadingUser}
+          >
+            Request Access
+          </Button>
+        )}
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
