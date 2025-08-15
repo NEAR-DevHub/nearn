@@ -1,5 +1,12 @@
 import type { CommentRefType } from '@prisma/client';
-import { AlertCircle, ChevronDown, Copy, Heart, Loader2 } from 'lucide-react';
+import {
+  AlertCircle,
+  ChevronDown,
+  Copy,
+  Heart,
+  Loader2,
+  Trash,
+} from 'lucide-react';
 import Link from 'next/link';
 import { usePostHog } from 'posthog-js/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -470,6 +477,7 @@ export const Comment = ({
                     onClick={deleteOnOpen}
                     tabIndex={-1}
                   >
+                    <Trash className="mr-2 h-4 w-4" />
                     Delete
                   </DropdownMenuItem>
                 )}
