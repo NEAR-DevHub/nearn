@@ -62,6 +62,56 @@ const LOG_IMPLEMENTATION_MAPPING: Record<
   [EventType.SUBMISSION_TREASURY_CREATED]: TreasuryProposal,
   [EventType.SUBMISSION_PAYMENT_DATE_EDITED]: PaymentDateEdited,
   [EventType.SUBMISSION_PAID]: Paid,
+  [EventType.SUBMISSION_MANUAL_PAYMENT_ADDED]: (props: LogProperties) => {
+    const data = props.event
+      .data as EventDataMap[EventType.SUBMISSION_MANUAL_PAYMENT_ADDED];
+    return SimpleLogMessage({
+      message: `Marked as paid manually → Paid on ${new Date(data.paymentDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
+    });
+  },
+  [EventType.SUBMISSION_MANUAL_PAYMENT_UPDATED]: (props: LogProperties) => {
+    const data = props.event
+      .data as EventDataMap[EventType.SUBMISSION_MANUAL_PAYMENT_UPDATED];
+
+    const changes = [];
+    if (data.before.amount !== data.after.amount) {
+      changes.push(`amount from ${data.before.amount} to ${data.after.amount}`);
+    }
+    if (data.before.currency !== data.after.currency) {
+      changes.push(
+        `currency from ${data.before.currency} to ${data.after.currency}`,
+      );
+    }
+    if (data.before.paymentDate !== data.after.paymentDate) {
+      changes.push(
+        `payment date from ${new Date(data.before.paymentDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} to ${new Date(data.after.paymentDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
+      );
+    }
+    if (data.before.notes !== data.after.notes) {
+      changes.push('notes');
+    }
+    if (data.before.isPublic !== data.after.isPublic) {
+      changes.push(
+        `visibility to ${data.after.isPublic ? 'public' : 'private'}`,
+      );
+    }
+
+    const message =
+      changes.length > 0
+        ? `Edited payment data → ${changes.join(', ')}`
+        : 'Edited manual payment';
+
+    return SimpleLogMessage({ message });
+  },
+  [EventType.SUBMISSION_MANUAL_PAYMENT_ISSUE_REPORTED]: (
+    props: LogProperties,
+  ) => {
+    const data = props.event
+      .data as EventDataMap[EventType.SUBMISSION_MANUAL_PAYMENT_ISSUE_REPORTED];
+    return SimpleLogMessage({
+      message: `Reported payment issue → ${data.description.length > 50 ? data.description.substring(0, 50) + '...' : data.description}`,
+    });
+  },
   [EventType.COMMENT_ADDED]: Comment,
   [EventType.COMMENT_DELETED]: Comment,
   [EventType.TREASURY_PROPOSAL_APPROVED]: TreasuryProposal,

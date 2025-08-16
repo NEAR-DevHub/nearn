@@ -32,6 +32,9 @@ export enum EventType {
   SUBMISSION_TREASURY_CREATED = 'SUBMISSION_TREASURY_CREATED',
   SUBMISSION_PAYMENT_DATE_EDITED = 'SUBMISSION_PAYMENT_DATE_EDITED',
   SUBMISSION_PAID = 'SUBMISSION_PAID',
+  SUBMISSION_MANUAL_PAYMENT_ADDED = 'SUBMISSION_MANUAL_PAYMENT_ADDED',
+  SUBMISSION_MANUAL_PAYMENT_UPDATED = 'SUBMISSION_MANUAL_PAYMENT_UPDATED',
+  SUBMISSION_MANUAL_PAYMENT_ISSUE_REPORTED = 'SUBMISSION_MANUAL_PAYMENT_ISSUE_REPORTED',
   COMMENT_ADDED = 'COMMENT_ADDED',
   COMMENT_DELETED = 'COMMENT_DELETED',
   TREASURY_PROPOSAL_APPROVED = 'TREASURY_PROPOSAL_APPROVED',
@@ -269,6 +272,40 @@ export interface EventDataMap {
 
   [EventType.SUBMISSION_PAID]: {
     link: string;
+  };
+
+  [EventType.SUBMISSION_MANUAL_PAYMENT_ADDED]: {
+    amount: number;
+    currency: string;
+    paymentDate: string;
+    notes?: string;
+    isPublic?: boolean;
+  };
+
+  [EventType.SUBMISSION_MANUAL_PAYMENT_UPDATED]: {
+    before: {
+      amount: number;
+      currency: string;
+      paymentDate: string;
+      notes?: string;
+      isPublic?: boolean;
+    };
+    after: {
+      amount: number;
+      currency: string;
+      paymentDate: string;
+      notes?: string;
+      isPublic?: boolean;
+    };
+  };
+
+  [EventType.SUBMISSION_MANUAL_PAYMENT_ISSUE_REPORTED]: {
+    description: string;
+    paymentAmount: number;
+    paymentCurrency: string;
+    paymentDate: string;
+    userEmail: string;
+    userName: string;
   };
 
   // Comment Events

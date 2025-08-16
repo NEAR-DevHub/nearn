@@ -43,6 +43,7 @@ import { truncateString } from '@/utils/truncateString';
 
 import { Comments } from '@/features/comments/components/Comments';
 import { useCommentCount } from '@/features/comments/queries/comment-count';
+import PaymentDetailsModal from '@/features/listings/components/PaymentDetailsModal';
 import type { Listing } from '@/features/listings/types';
 import LogsTimeline from '@/features/logging/components/LogsTimeline';
 import { useGetLogsInfinite } from '@/features/logging/queries';
@@ -61,9 +62,11 @@ import { treasuryProposalStatusQuery } from '../../../treasury/queries/treasuryP
 import { selectedSubmissionAtom } from '../../atoms';
 import { type SubmissionWithListingUser } from '../../queries/dashboard-submissions';
 import { Details } from './Details';
+import AddManualPaymentModal from './Modals/AddManualPaymentModal';
 import NearTreasuryPaymentModal from './Modals/NearTreasuryPaymentModal';
 import { SelectWinnersGuide } from './Modals/SelectWinnersGuide';
 import { UpdatePaymentDateModal } from './Modals/UpdateDateModal';
+import UpdateManualPaymentModal from './Modals/UpdateManualPaymentModal';
 import { Notes } from './Notes';
 import { SelectLabel } from './SelectLabel';
 import { SelectWinner } from './SelectWinner';
@@ -92,6 +95,7 @@ interface PaymentButtonProps {
   isLoadingProposalStatus: boolean;
   onVerifyPayment: () => void;
   setIsNearTreasuryPaymentModalOpen: Dispatch<SetStateAction<boolean>>;
+  setIsAddManualPaymentModalOpen: Dispatch<SetStateAction<boolean>>;
 }
 
 export const PaymentButton = ({
@@ -100,6 +104,7 @@ export const PaymentButton = ({
   isLoadingProposalStatus,
   onVerifyPayment,
   setIsNearTreasuryPaymentModalOpen,
+  setIsAddManualPaymentModalOpen,
 }: PaymentButtonProps) => {
   if (isLoadingProposalStatus) {
     return <></>;
@@ -147,6 +152,20 @@ export const PaymentButton = ({
             <p className="text-wrap text-xs text-muted-foreground">
               Pay the contributor using your preferred method, then paste the
               transaction link here.
+            </p>
+          </div>
+        </Button>
+        <Button
+          onClick={() => setIsAddManualPaymentModalOpen(true)}
+          variant="ghost"
+          className="flex h-full w-full items-start rounded-sm px-4 py-3"
+        >
+          <DollarSign className="mr-3 h-4 w-4" />
+          <div className="flex flex-col text-left">
+            <p>Add Manual Payment</p>
+            <p className="text-wrap text-xs text-muted-foreground">
+              Make the payment via your preferred channel, then enter the
+              transaction manually.
             </p>
           </div>
         </Button>
@@ -241,6 +260,12 @@ export const SubmissionPanel = ({
   );
 
   const [isNearTreasuryPaymentModalOpen, setIsNearTreasuryPaymentModalOpen] =
+    useState(false);
+  const [isAddManualPaymentModalOpen, setIsAddManualPaymentModalOpen] =
+    useState(false);
+  const [isUpdateManualPaymentModalOpen, setIsUpdateManualPaymentModalOpen] =
+    useState(false);
+  const [isPaymentDetailsModalOpen, setIsPaymentDetailsModalOpen] =
     useState(false);
 
   const handleCopySubmissionLink = () => {
@@ -414,6 +439,9 @@ export const SubmissionPanel = ({
                         setIsNearTreasuryPaymentModalOpen={
                           setIsNearTreasuryPaymentModalOpen
                         }
+                        setIsAddManualPaymentModalOpen={
+                          setIsAddManualPaymentModalOpen
+                        }
                       />
                     )}
                   {selectedSubmission?.status === 'Pending' &&
@@ -424,28 +452,35 @@ export const SubmissionPanel = ({
                     selectedSubmission?.winnerPosition &&
                     selectedSubmission?.isPaid &&
                     selectedSubmission?.paymentDetails?.link && (
-                      <Button
-                        className="text-slate-500"
-                        onClick={() => {
-                          window.open(
-                            getURLSanitized(
-                              selectedSubmission?.paymentDetails?.link ?? '',
-                            ),
-                            '_blank',
-                          );
-                        }}
-                        size="default"
-                        variant="outline"
+                      <Tooltip
+                        content="Paid via external link"
+                        contentProps={{ side: 'top' }}
                       >
-                        <ExternalLink className="mr-1 h-4 w-4" />
-                        View Payment
-                      </Button>
+                        <Button
+                          className="text-slate-500"
+                          onClick={() => {
+                            window.open(
+                              getURLSanitized(
+                                selectedSubmission?.paymentDetails?.link ?? '',
+                              ),
+                              '_blank',
+                            );
+                          }}
+                          size="default"
+                          variant="outline"
+                        >
+                          <Link2 className="mr-2 h-4 w-4" />
+                          View Payment
+                          <ExternalLink className="ml-1 h-3 w-3" />
+                        </Button>
+                      </Tooltip>
                     )}
 
                   {selectedSubmission?.isWinner &&
                     selectedSubmission?.winnerPosition &&
                     selectedSubmission?.isPaid &&
-                    !selectedSubmission?.paymentDetails?.link && (
+                    !selectedSubmission?.paymentDetails?.link &&
+                    !selectedSubmission?.paymentDetails?.manual && (
                       <Button
                         className="text-slate-500"
                         disabled
@@ -455,6 +490,82 @@ export const SubmissionPanel = ({
                         <p className="mr-2">Marked as paid</p>
                       </Button>
                     )}
+
+                  {selectedSubmission?.isWinner &&
+                    selectedSubmission?.winnerPosition &&
+                    selectedSubmission?.isPaid &&
+                    selectedSubmission?.paymentDetails?.manual && (
+                      <Tooltip
+                        content="Paid manually"
+                        contentProps={{ side: 'top' }}
+                      >
+                        <Button
+                          className="text-slate-500"
+                          onClick={() => setIsPaymentDetailsModalOpen(true)}
+                          size="default"
+                          variant="outline"
+                        >
+                          <DollarSign className="mr-2 h-4 w-4" />
+                          View Payment
+                        </Button>
+                      </Tooltip>
+                    )}
+
+                  {selectedSubmission?.isWinner &&
+                    selectedSubmission?.winnerPosition &&
+                    selectedSubmission?.isPaid &&
+                    selectedSubmission?.paymentDetails?.treasury?.link && (
+                      <Tooltip
+                        content="Paid via NEAR Treasury"
+                        contentProps={{ side: 'top' }}
+                      >
+                        <Button
+                          className="text-slate-500"
+                          onClick={() => {
+                            window.open(
+                              getURLSanitized(
+                                selectedSubmission?.paymentDetails?.treasury
+                                  ?.link ?? '',
+                              ),
+                              '_blank',
+                            );
+                          }}
+                          size="default"
+                          variant="outline"
+                        >
+                          <Image
+                            src="/assets/NEARTreasuryLogo.svg"
+                            alt="NEAR Treasury"
+                            width={16}
+                            height={16}
+                            className="mr-2"
+                          />
+                          View Payment
+                          <ExternalLink className="ml-1 h-3 w-3" />
+                        </Button>
+                      </Tooltip>
+                    )}
+
+                  {selectedSubmission?.isWinner &&
+                    selectedSubmission?.winnerPosition &&
+                    selectedSubmission?.isPaid &&
+                    selectedSubmission?.paymentDetails?.link && (
+                      <Tooltip
+                        content="Paid manually"
+                        contentProps={{ side: 'top' }}
+                      >
+                        <Button
+                          className="text-slate-500"
+                          onClick={() => setIsPaymentDetailsModalOpen(true)}
+                          size="default"
+                          variant="outline"
+                        >
+                          <DollarSign className="mr-2 h-4 w-4" />
+                          View Payment
+                        </Button>
+                      </Tooltip>
+                    )}
+
                   {!bounty?.isWinnersAnnounced &&
                     selectedSubmission?.status === 'Pending' && (
                       <>
@@ -699,7 +810,11 @@ export const SubmissionPanel = ({
                         <Button
                           variant="ghost"
                           className="h-4 w-4 p-0 hover:bg-transparent"
-                          onClick={handleUpdatePaymentDate}
+                          onClick={
+                            selectedSubmission?.paymentDetails?.manual
+                              ? () => setIsUpdateManualPaymentModalOpen(true)
+                              : handleUpdatePaymentDate
+                          }
                         >
                           <Pencil className="ml-3 h-4 w-4 text-slate-400" />
                         </Button>
@@ -865,6 +980,43 @@ export const SubmissionPanel = ({
                 : prev,
             );
           }}
+        />
+      )}
+
+      {selectedSubmission && (
+        <AddManualPaymentModal
+          isOpen={isAddManualPaymentModalOpen}
+          onClose={() => setIsAddManualPaymentModalOpen(false)}
+          submissionId={selectedSubmission?.id || ''}
+          onSuccess={() => {
+            setSelectedSubmission((prev) =>
+              prev && prev.id === selectedSubmission?.id
+                ? { ...prev, isPaid: true }
+                : prev,
+            );
+          }}
+        />
+      )}
+
+      {selectedSubmission && (
+        <UpdateManualPaymentModal
+          isOpen={isUpdateManualPaymentModalOpen}
+          onClose={() => setIsUpdateManualPaymentModalOpen(false)}
+          submissionId={selectedSubmission?.id || ''}
+          currentPaymentData={selectedSubmission?.paymentDetails?.manual as any}
+          onSuccess={() => {
+            // Optionally refetch submission data -> if needed
+          }}
+        />
+      )}
+
+      {selectedSubmission?.paymentDetails?.manual && (
+        <PaymentDetailsModal
+          isOpen={isPaymentDetailsModalOpen}
+          onClose={() => setIsPaymentDetailsModalOpen(false)}
+          paymentData={selectedSubmission.paymentDetails.manual as any}
+          submissionId={selectedSubmission.id}
+          isOwner={false}
         />
       )}
     </>

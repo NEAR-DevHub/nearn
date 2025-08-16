@@ -1,10 +1,18 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAtom } from 'jotai';
-import { ArrowRight, ChevronLeft, Copy, ExternalLink } from 'lucide-react';
+import {
+  ArrowRight,
+  ChevronLeft,
+  Copy,
+  DollarSign,
+  ExternalLink,
+  Link2,
+} from 'lucide-react';
 import type { GetServerSideProps } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
 import { getServerSession } from 'next-auth';
-import React, { Fragment, useEffect, useRef } from 'react';
+import React, { Fragment, useEffect, useRef, useState } from 'react';
 import { MdOutlineAccountBalanceWallet, MdOutlineMail } from 'react-icons/md';
 import { toast } from 'sonner';
 
@@ -23,6 +31,7 @@ import type { SubmissionWithUser } from '@/interface/submission';
 import { ListingPageLayout } from '@/layouts/Listing';
 import { api } from '@/lib/api';
 import { authOptions } from '@/pages/api/auth/[...nextauth]';
+import { useUser } from '@/store/user';
 import { getBountyUrl, getSubmissionUrl } from '@/utils/bounty-urls';
 import { cn } from '@/utils/cn';
 import { setupCommentLinking } from '@/utils/comment-highlighting';
@@ -31,6 +40,7 @@ import { truncatePublicKey } from '@/utils/truncatePublicKey';
 import { truncateString } from '@/utils/truncateString';
 import { getURL } from '@/utils/validUrl';
 
+import PaymentDetailsModal from '@/features/listings/components/PaymentDetailsModal';
 import {
   LikeAndComment,
   selectedSubmissionAtom,
@@ -57,7 +67,10 @@ function Content({
   bounty: Listing;
   submission: SubmissionWithUser;
 }) {
+  const { user } = useUser();
   const commentsRef = useRef<HTMLDivElement>(null);
+  const [isPaymentDetailsModalOpen, setIsPaymentDetailsModalOpen] =
+    useState(false);
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -290,34 +303,99 @@ function Content({
                 </div>
                 {submission?.isWinner &&
                   submission?.winnerPosition &&
-                  ((submission?.isPaid && submission?.paymentDetails?.link) ||
-                    submission.paymentDetails?.treasury?.link) && (
+                  submission?.isPaid &&
+                  submission?.paymentDetails?.link && (
                     <div className="ph-no-capture hidden items-center justify-end gap-2 md:flex">
-                      <Button
-                        className="text-slate-600"
-                        onClick={() => {
-                          window.open(
-                            getURLSanitized(
-                              submission?.paymentDetails?.link ??
-                                submission.paymentDetails?.treasury?.link ??
-                                '',
-                            ),
-                            '_blank',
-                          );
-                        }}
-                        size="default"
-                        variant="outline"
+                      <Tooltip
+                        content="Paid via external link"
+                        contentProps={{ side: 'top' }}
                       >
-                        <ExternalLink className="mr-1 h-4 w-4" />
-                        View Payment
-                      </Button>
+                        <Button
+                          className="text-slate-600"
+                          onClick={() => {
+                            window.open(
+                              getURLSanitized(
+                                submission?.paymentDetails?.link ?? '',
+                              ),
+                              '_blank',
+                            );
+                          }}
+                          size="default"
+                          variant="outline"
+                        >
+                          <Link2 className="mr-2 h-4 w-4" />
+                          View Payment
+                          <ExternalLink className="ml-1 h-3 w-3" />
+                        </Button>
+                      </Tooltip>
                     </div>
                   )}
 
                 {submission?.isWinner &&
                   submission?.winnerPosition &&
                   submission?.isPaid &&
-                  !submission?.paymentDetails?.link && (
+                  submission?.paymentDetails?.treasury?.link && (
+                    <div className="ph-no-capture hidden items-center justify-end gap-2 md:flex">
+                      <Tooltip
+                        content="Paid via NEAR Treasury"
+                        contentProps={{ side: 'top' }}
+                      >
+                        <Button
+                          className="text-slate-600"
+                          onClick={() => {
+                            window.open(
+                              getURLSanitized(
+                                submission?.paymentDetails?.treasury?.link ??
+                                  '',
+                              ),
+                              '_blank',
+                            );
+                          }}
+                          size="default"
+                          variant="outline"
+                        >
+                          <Image
+                            src="/assets/NEARTreasuryLogo.svg"
+                            alt="NEAR Treasury"
+                            width={16}
+                            height={16}
+                            className="mr-2"
+                          />
+                          View Payment
+                          <ExternalLink className="ml-1 h-3 w-3" />
+                        </Button>
+                      </Tooltip>
+                    </div>
+                  )}
+
+                {submission?.isWinner &&
+                  submission?.winnerPosition &&
+                  submission?.isPaid &&
+                  submission?.paymentDetails?.manual && (
+                    <div className="ph-no-capture hidden items-center justify-end gap-2 md:flex">
+                      <Tooltip
+                        content="Paid manually by sponsor"
+                        contentProps={{ side: 'top' }}
+                      >
+                        <Button
+                          className="text-slate-600"
+                          size="default"
+                          variant="outline"
+                          onClick={() => setIsPaymentDetailsModalOpen(true)}
+                        >
+                          <DollarSign className="mr-2 h-4 w-4" />
+                          View Payment
+                        </Button>
+                      </Tooltip>
+                    </div>
+                  )}
+
+                {submission?.isWinner &&
+                  submission?.winnerPosition &&
+                  submission?.isPaid &&
+                  !submission?.paymentDetails?.link &&
+                  !submission?.paymentDetails?.treasury?.link &&
+                  !submission?.paymentDetails?.manual && (
                     <div className="ph-no-capture hidden items-center justify-end gap-2 md:flex">
                       <Button
                         className="text-slate-600"
@@ -466,6 +544,16 @@ function Content({
           </Button>
         </div>
       </div>
+
+      {submission?.paymentDetails?.manual && (
+        <PaymentDetailsModal
+          isOpen={isPaymentDetailsModalOpen}
+          onClose={() => setIsPaymentDetailsModalOpen(false)}
+          paymentData={submission.paymentDetails.manual as any}
+          submissionId={submission.id}
+          isOwner={submission.userId === user?.id}
+        />
+      )}
     </>
   );
 }

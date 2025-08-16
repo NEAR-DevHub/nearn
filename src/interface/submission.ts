@@ -29,6 +29,13 @@ interface SubmissionWithUser {
       dao?: string;
       synced?: boolean;
     };
+    manual?: {
+      amount: number;
+      currency: string;
+      paymentDate: string;
+      notes?: string;
+      isPublic?: boolean;
+    };
   };
   rewardInUSD: number;
   isActive: boolean;
