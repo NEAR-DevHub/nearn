@@ -1,8 +1,13 @@
-import { Check, X } from 'lucide-react';
-import { useState } from 'react';
+import dayjs from 'dayjs';
+import { Info, Loader2 } from 'lucide-react';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
+import { TokenSelect } from '@/components/eligibility/EligibilityQuestions';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { DateTimePicker } from '@/components/ui/datetime-picker';
 import {
   Dialog,
   DialogContent,
@@ -11,60 +16,88 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { FormFieldWrapper } from '@/components/ui/form-field-wrapper';
 import { Textarea } from '@/components/ui/textarea';
-import { tokenList } from '@/constants/tokenList';
+import { Tooltip } from '@/components/ui/tooltip';
+
+import { DEADLINE_FORMAT } from '@/features/listing-builder/components/Form/Deadline';
+import { type SubmissionWithListingUser } from '@/features/sponsor-dashboard/queries/dashboard-submissions';
 
 interface AddManualPaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  submissionId: string;
-  onSuccess: () => void;
+  submission: SubmissionWithListingUser;
+  onSuccess: (paymentData: {
+    amount: number;
+    token: string;
+    paymentDate: string;
+    notes: string;
+    isPublic: boolean;
+  }) => void;
 }
 
-type ModalState = 'form' | 'loading' | 'success' | 'error';
+type FormData = {
+  paymentDate: string;
+  token: string;
+  amount: number;
+  notes: string;
+  isPrivate: boolean;
+};
 
 export default function AddManualPaymentModal({
   isOpen,
   onClose,
-  submissionId,
+  submission,
   onSuccess,
 }: AddManualPaymentModalProps) {
-  const [modalState, setModalState] = useState<ModalState>('form');
-  const [formData, setFormData] = useState({
-    paymentDate: new Date().toISOString().split('T')[0],
-    currency: 'USD',
-    amount: '',
-    notes: '',
-    isPublic: false,
+  const form = useForm<FormData>({
+    defaultValues: {
+      paymentDate: new Date().toISOString().split('T')[0],
+      token: 'Near',
+      amount: 0,
+      notes: '',
+      isPrivate: false,
+    },
   });
 
-  const currencies = [
-    'USD',
-    'NEAR',
-    'USDC',
-    'USDT',
-    ...tokenList.map((t) => t.tokenSymbol),
-  ].filter((value, index, self) => self.indexOf(value) === index);
+  const token = form.watch('token');
 
-  const handleSubmit = async () => {
-    if (!formData.amount || !formData.currency || !formData.paymentDate) {
-      toast.error('Please fill in all required fields');
-      return;
+  const isUpdating = submission.paymentDetails?.manual;
+
+  useEffect(() => {
+    if (isUpdating && submission.paymentDetails?.manual) {
+      form.reset({
+        paymentDate: submission.paymentDetails.manual.paymentDate,
+        token: submission.paymentDetails.manual.token,
+        amount: submission.paymentDetails.manual.amount,
+        notes: submission.paymentDetails.manual.notes,
+        isPrivate: !submission.paymentDetails.manual.isPublic,
+      });
+    } else {
+      const isAny = submission.listing.token === 'Any';
+      const amount = submission.winnerPosition
+        ? submission.listing.rewards?.[submission.winnerPosition] || 0
+        : 0;
+      form.reset({
+        paymentDate: new Date().toISOString().split('T')[0],
+        token: isAny ? submission.token : submission.listing.token,
+        amount: amount,
+        notes: '',
+        isPrivate: false,
+      });
     }
+  }, [submission]);
 
+  const handleSubmit = async (data: FormData) => {
     try {
-      setModalState('loading');
-
       const response = await fetch(
         '/api/sponsor-dashboard/submission/add-manual-payment',
         {
@@ -73,12 +106,12 @@ export default function AddManualPaymentModal({
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            id: submissionId,
-            amount: formData.amount,
-            currency: formData.currency,
-            paymentDate: formData.paymentDate,
-            notes: formData.notes,
-            isPublic: formData.isPublic,
+            id: submission.id,
+            amount: data.amount,
+            token: data.token,
+            paymentDate: data.paymentDate,
+            notes: data.notes,
+            isPublic: !data.isPrivate,
           }),
         },
       );
@@ -87,231 +120,151 @@ export default function AddManualPaymentModal({
         throw new Error('Failed to add manual payment');
       }
 
-      setModalState('success');
-      setTimeout(() => {
-        onSuccess();
-        onClose();
-        resetForm();
-      }, 2000);
+      onSuccess({ ...data, isPublic: !data.isPrivate });
+      onClose();
     } catch (error) {
       console.error('Error adding manual payment:', error);
-      setModalState('error');
       toast.error('Failed to add manual payment');
     }
   };
 
-  const resetForm = () => {
-    setFormData({
-      paymentDate: new Date().toISOString().split('T')[0],
-      currency: 'USD',
-      amount: '',
-      notes: '',
-      isPublic: false,
-    });
-    setModalState('form');
-  };
-
   const handleClose = () => {
-    resetForm();
+    form.reset();
     onClose();
-  };
-
-  const renderContent = () => {
-    switch (modalState) {
-      case 'form':
-        return (
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Add Manual Payment</DialogTitle>
-              <DialogDescription>
-                Make the payment via your preferred channel, then enter the
-                transaction manually.
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="paymentDate">Payment Date*</Label>
-                <Input
-                  id="paymentDate"
-                  type="date"
-                  value={formData.paymentDate}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      paymentDate: e.target.value,
-                    }))
-                  }
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="currency">Currency*</Label>
-                <Select
-                  value={formData.currency}
-                  onValueChange={(value) =>
-                    setFormData((prev) => ({ ...prev, currency: value }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select currency" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {currencies.map((currency) => {
-                      const token = tokenList.find(
-                        (t) => t.tokenSymbol === currency,
-                      );
-                      return (
-                        <SelectItem key={currency} value={currency}>
-                          <div className="flex items-center gap-2">
-                            {token?.icon && (
-                              <img
-                                src={token.icon}
-                                alt={currency}
-                                className="h-4 w-4 rounded-full"
-                              />
-                            )}
-                            {currency}
-                          </div>
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="amount">Payment Amount*</Label>
-                <Input
-                  id="amount"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  placeholder="8000"
-                  value={formData.amount}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, amount: e.target.value }))
-                  }
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="notes">Note</Label>
-                <Textarea
-                  id="notes"
-                  placeholder="Enter any additional info about the payment"
-                  value={formData.notes}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, notes: e.target.value }))
-                  }
-                  className="resize-none"
-                  rows={3}
-                />
-                <p className="text-xs text-muted-foreground">
-                  This note will be visible only to the contributor and your
-                  sponsor team. Neither from others. The data will not be shared
-                  with everyone.
-                </p>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="isPublic"
-                  checked={formData.isPublic}
-                  onCheckedChange={(checked) =>
-                    setFormData((prev) => ({ ...prev, isPublic: checked }))
-                  }
-                />
-                <Label htmlFor="isPublic" className="text-sm">
-                  Keep note private
-                </Label>
-              </div>
-            </div>
-
-            <DialogFooter>
-              <Button variant="outline" onClick={handleClose}>
-                Cancel
-              </Button>
-              <Button onClick={handleSubmit}>Complete</Button>
-            </DialogFooter>
-          </DialogContent>
-        );
-
-      case 'loading':
-        return (
-          <DialogContent hideCloseIcon>
-            <div className="flex h-full flex-col">
-              <div className="flex flex-col py-14">
-                <div className="mb-4 flex justify-center">
-                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-brand-green" />
-                </div>
-                <div className="mx-auto mt-8 flex w-full flex-col items-center gap-2">
-                  <DialogTitle>Processing manual payment...</DialogTitle>
-                  <DialogDescription className="text-center text-sm text-slate-500">
-                    Please wait while we process your payment details
-                  </DialogDescription>
-                </div>
-              </div>
-            </div>
-          </DialogContent>
-        );
-
-      case 'success':
-        return (
-          <DialogContent className="p-0" hideCloseIcon>
-            <div className="flex h-40 items-center justify-center bg-emerald-50">
-              <div className="rounded-full bg-emerald-600 p-3">
-                <Check className="h-6 w-6 text-white" strokeWidth={2} />
-              </div>
-            </div>
-            <div className="p-6">
-              <DialogTitle className="font-bold">
-                Manual Payment Added
-              </DialogTitle>
-              <DialogDescription className="mt-2">
-                The payment has been successfully recorded and the contributor
-                has been notified.
-              </DialogDescription>
-            </div>
-          </DialogContent>
-        );
-
-      case 'error':
-        return (
-          <DialogContent className="pt-0" hideCloseIcon>
-            <div className="flex items-center justify-center py-10">
-              <div className="flex items-center justify-center rounded-full bg-red-100 p-3">
-                <div className="rounded-full bg-red-600 p-3">
-                  <X className="h-6 w-6 text-white" strokeWidth={2} />
-                </div>
-              </div>
-            </div>
-            <div className="mx-auto mt-6 flex max-w-[20rem] flex-col items-center gap-2">
-              <DialogTitle>Something went wrong</DialogTitle>
-              <p className="text-center text-sm text-slate-500">
-                We couldn&apos;t process the manual payment
-              </p>
-            </div>
-            <div className="mx-auto mt-8 flex flex-col items-center gap-5">
-              <Button onClick={() => setModalState('form')}>Try Again</Button>
-              <Button
-                variant="link"
-                onClick={handleClose}
-                className="text-slate-500"
-              >
-                Cancel
-              </Button>
-            </div>
-          </DialogContent>
-        );
-    }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      {renderContent()}
+      <DialogContent className="max-w-md p-6">
+        <DialogHeader>
+          <DialogTitle className="text-slate text-xl font-bold">
+            {isUpdating ? 'Update Manual Payment' : 'Add Manual Payment'}
+          </DialogTitle>
+          <DialogDescription className="text-xs text-slate-500">
+            Make the payment via your preferred channel, then enter the
+            transaction manually.
+          </DialogDescription>
+        </DialogHeader>
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-4"
+          >
+            <div className="space-y-4">
+              <FormField
+                name="paymentDate"
+                control={form.control}
+                render={({ field }) => {
+                  return (
+                    <FormItem className="gap-2">
+                      <FormLabel isRequired>Payment Date</FormLabel>
+                      <div className="has-focus:ring-1 flex rounded-md border ring-primary has-[data-[state=open]]:ring-1">
+                        <DateTimePicker
+                          value={
+                            field.value ? new Date(field.value) : undefined
+                          }
+                          onChange={(date) => {
+                            if (date) {
+                              const formattedDate =
+                                dayjs(date).format(DEADLINE_FORMAT);
+                              const localFormat = formattedDate.replace(
+                                'Z',
+                                '',
+                              );
+                              field.onChange(localFormat);
+                            } else {
+                              field.onChange(undefined);
+                            }
+                          }}
+                          hideTime
+                          classNames={{
+                            trigger: 'border-0',
+                          }}
+                        />
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
+              />
+
+              <TokenSelect
+                control={form.control}
+                name="token"
+                hideDescription
+              />
+
+              <FormFieldWrapper
+                control={form.control}
+                name={'amount' as any}
+                label="Payment Amount"
+                isRequired
+                isTokenInput
+                token={token ?? undefined}
+              />
+
+              <FormField
+                control={form.control}
+                name={'notes' as any}
+                render={({ field }) => (
+                  <FormItem className="gap-2">
+                    <FormLabel>Note</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        placeholder="Enter any additional info about the payment..."
+                        className="min-h-[80px] resize-none overflow-hidden font-medium !text-muted-foreground shadow-none focus-visible:ring-0"
+                        value={field.value || ''}
+                        onBlur={() => null}
+                        rows={1}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name={'isPrivate' as any}
+                render={({ field }) => (
+                  <FormItem className="gap-2">
+                    <FormControl>
+                      <div className="flex items-center justify-start gap-2">
+                        <Checkbox
+                          checked={field.value === true}
+                          onClick={() => field.onChange(!field.value)}
+                        />
+                        <FormLabel>Keep note private</FormLabel>
+                        <Tooltip
+                          contentProps={{ className: 'z-[1000]' }}
+                          content="This note will be visible only for the contributor and your sponsor team - hidden from others. The date, amount and currency will be visible to everyone."
+                        >
+                          <Info className="h-4 w-4 text-slate-500" />
+                        </Tooltip>
+                      </div>
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <DialogFooter>
+                <Button variant="outline" onClick={handleClose}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={form.formState.isSubmitting}>
+                  {form.formState.isSubmitting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : isUpdating ? (
+                    'Update'
+                  ) : (
+                    'Complete'
+                  )}
+                </Button>
+              </DialogFooter>
+            </div>
+          </form>
+        </Form>
+      </DialogContent>
     </Dialog>
   );
 }

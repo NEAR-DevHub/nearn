@@ -26,7 +26,6 @@ import {
 } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
 import { useUser } from '@/store/user';
-import { getURL } from '@/utils/validUrl';
 
 const CONNECTED_SPONSORS = (
   process.env.NEXT_PUBLIC_N8N_CONNECTED_SPONSORS || ''
@@ -63,19 +62,10 @@ export default function N8nIntegrationRequest() {
   const onSubmit = async (data: N8nRequestFormValues) => {
     try {
       setIsLoading(true);
-
-      const payload = {
-        reason: data.reason,
-        sponsor: user?.currentSponsor?.name,
-        sponsorLink: `${getURL()}${user?.currentSponsor?.slug}`,
-      };
-
-      // Well, I understand that this is not ideal way, but
-      // I don't think we actually have any issues with that so let's expose it.
-      await axios.post(
-        'https://n8n.nearn.io/webhook/823ad6f3-aec4-4060-b10d-862db1f3a1bc',
-        payload,
-      );
+      await axios.post('/api/n8n/sendMessage', {
+        type: 'n8n-request',
+        message: data.reason,
+      });
 
       toast.success('Your n8n access request has been submitted successfully!');
       setIsModalOpen(false);

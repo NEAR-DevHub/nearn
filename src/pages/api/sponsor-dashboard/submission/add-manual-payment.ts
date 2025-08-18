@@ -7,17 +7,19 @@ import { safeStringify } from '@/utils/safeStringify';
 import { type NextApiRequestWithSponsor } from '@/features/auth/types';
 import { checkListingSponsorAuth } from '@/features/auth/utils/checkListingSponsorAuth';
 import { withSponsorAuth } from '@/features/auth/utils/withSponsorAuth';
-import { sendEmailNotification } from '@/features/emails/utils/sendEmailNotification';
 import { eventLogger } from '@/features/logging/services/event-logger';
-import { EventType } from '@/features/logging/types/event-data';
+import {
+  detectManualPaymentChanges,
+  EventType,
+} from '@/features/logging/types/event-data';
 
 async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
   const userId = req.userId;
 
   logger.debug(`Request body: ${safeStringify(req.body)}`);
-  const { id, amount, currency, paymentDate, notes, isPublic } = req.body;
+  const { id, amount, token, paymentDate, notes, isPublic } = req.body;
 
-  if (!id || !amount || !currency || !paymentDate) {
+  if (!id || !amount || !token || !paymentDate) {
     logger.warn('Required fields missing for manual payment');
     return res.status(400).json({
       error: 'Missing required fields',
@@ -61,12 +63,13 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
 
     const manualPaymentDetails = {
       amount: parseFloat(amount),
-      currency,
+      token,
       paymentDate,
       notes: notes || '',
       isPublic: isPublic === true,
     };
 
+    const isUpdating = !!currentSubmission.paymentDetails;
     const existingPaymentDetails =
       (currentSubmission.paymentDetails as any) || {};
     const updatedPaymentDetails = {
@@ -88,25 +91,34 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
     });
 
     logger.info(`Sending payment notification email for submission ID: ${id}`);
-    sendEmailNotification({
-      type: 'addPayment',
-      id,
-      triggeredBy: userId,
-    });
 
-    // Log the manual payment activity
-    await eventLogger.log({
-      eventType: EventType.SUBMISSION_MANUAL_PAYMENT_ADDED,
-      actor: {
-        id: userId,
-        type: 'SPONSOR',
-      },
-      entities: {
-        submissionId: id,
-        listingId: currentSubmission.listingId,
-      },
-      data: manualPaymentDetails,
-    });
+    const changes = isUpdating
+      ? detectManualPaymentChanges(
+          existingPaymentDetails.manual,
+          manualPaymentDetails,
+        )
+      : [];
+
+    if (changes.length > 0 || !isUpdating) {
+      // Log the manual payment activity
+      await eventLogger.log({
+        eventType: isUpdating
+          ? EventType.SUBMISSION_MANUAL_PAYMENT_UPDATED
+          : EventType.SUBMISSION_MANUAL_PAYMENT_ADDED,
+        actor: {
+          id: userId,
+          type: 'SPONSOR',
+        },
+        entities: {
+          sponsorId: userSponsorId,
+          submissionId: id,
+          listingId: currentSubmission.listingId,
+        },
+        data: {
+          changes: changes,
+        },
+      });
+    }
 
     logger.info(`Successfully added manual payment for submission ID: ${id}`);
     return res.status(200).json(result);

@@ -481,21 +481,29 @@ export function EligibilityQuestionsForm({
 
 interface TokenSelectProps {
   control: Control<any>;
+  name?: string;
+  hideDescription?: boolean;
 }
 
-export function TokenSelect({ control }: TokenSelectProps) {
+export function TokenSelect({
+  control,
+  name,
+  hideDescription = false,
+}: TokenSelectProps) {
   return (
     <FormField
-      name={'token' as any}
+      name={name ?? ('token' as any)}
       control={control}
       render={({ field }) => (
         <FormItem className="gap-2">
           <div>
-            <FormLabel>Currency</FormLabel>
-            <FormDescription>
-              Select your preferred currency for receiving funds. The exchange
-              rate will be the closing rate at the day of the invoice.
-            </FormDescription>
+            <FormLabel isRequired>Currency</FormLabel>
+            {!hideDescription && (
+              <FormDescription>
+                Select your preferred currency for receiving funds. The exchange
+                rate will be the closing rate at the day of the invoice.
+              </FormDescription>
+            )}
           </div>
           <Popover>
             <PopoverTrigger asChild>
@@ -525,7 +533,10 @@ export function TokenSelect({ control }: TokenSelectProps) {
                 </Button>
               </FormControl>
             </PopoverTrigger>
-            <PopoverContent className="w-[33rem] p-0">
+            <PopoverContent
+              style={{ width: 'var(--radix-popover-trigger-width)' }}
+              className="p-0"
+            >
               <Command>
                 <CommandInput placeholder="Search token..." className="h-9" />
                 <CommandList>
@@ -624,7 +635,7 @@ export function TokenLabel({
         <img
           src={token.icon}
           alt={token.tokenSymbol}
-          className={cn('mr-1 block h-4 w-4', classNames?.icon)}
+          className={cn('mr-1 block h-4 w-4 rounded-full', classNames?.icon)}
         />
       )}
       {typeof amount === 'number' && !isNaN(amount) && (

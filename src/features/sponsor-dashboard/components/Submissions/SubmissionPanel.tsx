@@ -43,7 +43,6 @@ import { truncateString } from '@/utils/truncateString';
 
 import { Comments } from '@/features/comments/components/Comments';
 import { useCommentCount } from '@/features/comments/queries/comment-count';
-import PaymentDetailsModal from '@/features/listings/components/PaymentDetailsModal';
 import type { Listing } from '@/features/listings/types';
 import LogsTimeline from '@/features/logging/components/LogsTimeline';
 import { useGetLogsInfinite } from '@/features/logging/queries';
@@ -62,11 +61,11 @@ import { treasuryProposalStatusQuery } from '../../../treasury/queries/treasuryP
 import { selectedSubmissionAtom } from '../../atoms';
 import { type SubmissionWithListingUser } from '../../queries/dashboard-submissions';
 import { Details } from './Details';
+import { DisplayPayment } from './DisplayPayment';
 import AddManualPaymentModal from './Modals/AddManualPaymentModal';
 import NearTreasuryPaymentModal from './Modals/NearTreasuryPaymentModal';
 import { SelectWinnersGuide } from './Modals/SelectWinnersGuide';
 import { UpdatePaymentDateModal } from './Modals/UpdateDateModal';
-import UpdateManualPaymentModal from './Modals/UpdateManualPaymentModal';
 import { Notes } from './Notes';
 import { SelectLabel } from './SelectLabel';
 import { SelectWinner } from './SelectWinner';
@@ -128,6 +127,39 @@ export const PaymentButton = ({
     );
   }
 
+  const paymentTypes = [
+    {
+      label: 'Add Payment Link',
+      description:
+        'Pay the contributor using your preferred method, then paste the transaction link here.',
+      icon: <Link2 className="mx-0.5 mt-0.5 h-4 w-4 shrink-0 text-slate-500" />,
+      onClick: () => onVerifyPayment(),
+    },
+    {
+      label: 'Add Manual Payment',
+      description:
+        'Make the payment via your preferred channel, then enter the transaction manually.',
+      icon: (
+        <DollarSign className="mx-0.5 mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
+      ),
+      onClick: () => setIsAddManualPaymentModalOpen(true),
+    },
+    {
+      label: 'Pay with NEAR Treasury',
+      description:
+        'Create a payment request through NEAR Treasury and approve it on-chain.',
+      icon: (
+        <Image
+          src="/assets/NEARTreasuryLogo.svg"
+          alt="NEAR Treasury Logo"
+          width={20}
+          height={20}
+        />
+      ),
+      onClick: () => setIsNearTreasuryPaymentModalOpen(true),
+    },
+  ];
+
   return (
     <Popover>
       <PopoverTrigger>
@@ -139,56 +171,24 @@ export const PaymentButton = ({
       <PopoverContent
         side="bottom"
         align="end"
-        className="flex w-full max-w-md flex-col gap-2 p-2"
+        className="flex w-full max-w-[376px] flex-col gap-2 p-2"
       >
-        <Button
-          onClick={() => onVerifyPayment()}
-          variant="ghost"
-          className="flex h-full w-full items-start rounded-sm px-4 py-3"
-        >
-          <Link2 className="mr-3 h-4 w-4" />
-          <div className="flex flex-col text-left">
-            <p>Add Payment Link</p>
-            <p className="text-wrap text-xs text-muted-foreground">
-              Pay the contributor using your preferred method, then paste the
-              transaction link here.
-            </p>
-          </div>
-        </Button>
-        <Button
-          onClick={() => setIsAddManualPaymentModalOpen(true)}
-          variant="ghost"
-          className="flex h-full w-full items-start rounded-sm px-4 py-3"
-        >
-          <DollarSign className="mr-3 h-4 w-4" />
-          <div className="flex flex-col text-left">
-            <p>Add Manual Payment</p>
-            <p className="text-wrap text-xs text-muted-foreground">
-              Make the payment via your preferred channel, then enter the
-              transaction manually.
-            </p>
-          </div>
-        </Button>
-        <Button
-          onClick={() => setIsNearTreasuryPaymentModalOpen(true)}
-          variant="ghost"
-          className="flex h-full w-full items-start justify-start rounded-sm pb-3 pl-2 pr-4 pt-[10px]"
-        >
-          <Image
-            src="/assets/NEARTreasuryLogo.svg"
-            alt="Near Treasury Logo"
-            width={24}
-            height={24}
-            className="mr-3"
-          />
-          <div className="flex flex-col text-left">
-            <p>Pay with NEAR Treasury</p>
-            <p className="text-wrap text-xs text-muted-foreground">
-              Create a payment request through NEAR Treasury and approve it
-              on-chain.
-            </p>
-          </div>
-        </Button>
+        {paymentTypes.map((paymentType) => (
+          <Button
+            key={paymentType.label}
+            onClick={paymentType.onClick}
+            variant="ghost"
+            className="flex h-full w-full items-start gap-2 rounded-sm p-2"
+          >
+            {paymentType.icon}
+            <div className="flex flex-col text-left">
+              <p className="font-medium text-slate-500">{paymentType.label}</p>
+              <p className="text-wrap text-sm text-slate-400">
+                {paymentType.description}
+              </p>
+            </div>
+          </Button>
+        ))}
       </PopoverContent>
     </Popover>
   );
@@ -262,10 +262,6 @@ export const SubmissionPanel = ({
   const [isNearTreasuryPaymentModalOpen, setIsNearTreasuryPaymentModalOpen] =
     useState(false);
   const [isAddManualPaymentModalOpen, setIsAddManualPaymentModalOpen] =
-    useState(false);
-  const [isUpdateManualPaymentModalOpen, setIsUpdateManualPaymentModalOpen] =
-    useState(false);
-  const [isPaymentDetailsModalOpen, setIsPaymentDetailsModalOpen] =
     useState(false);
 
   const handleCopySubmissionLink = () => {
@@ -444,126 +440,17 @@ export const SubmissionPanel = ({
                         }
                       />
                     )}
+                  {selectedSubmission?.isWinner &&
+                    selectedSubmission?.winnerPosition &&
+                    selectedSubmission?.isPaid && (
+                      <DisplayPayment
+                        submission={selectedSubmission}
+                        isSponsorView={true}
+                      />
+                    )}
                   {selectedSubmission?.status === 'Pending' &&
                     !selectedSubmission?.isPaid && (
                       <SelectLabel listingSlug={bounty?.slug!} />
-                    )}
-                  {selectedSubmission?.isWinner &&
-                    selectedSubmission?.winnerPosition &&
-                    selectedSubmission?.isPaid &&
-                    selectedSubmission?.paymentDetails?.link && (
-                      <Tooltip
-                        content="Paid via external link"
-                        contentProps={{ side: 'top' }}
-                      >
-                        <Button
-                          className="text-slate-500"
-                          onClick={() => {
-                            window.open(
-                              getURLSanitized(
-                                selectedSubmission?.paymentDetails?.link ?? '',
-                              ),
-                              '_blank',
-                            );
-                          }}
-                          size="default"
-                          variant="outline"
-                        >
-                          <Link2 className="mr-2 h-4 w-4" />
-                          View Payment
-                          <ExternalLink className="ml-1 h-3 w-3" />
-                        </Button>
-                      </Tooltip>
-                    )}
-
-                  {selectedSubmission?.isWinner &&
-                    selectedSubmission?.winnerPosition &&
-                    selectedSubmission?.isPaid &&
-                    !selectedSubmission?.paymentDetails?.link &&
-                    !selectedSubmission?.paymentDetails?.manual && (
-                      <Button
-                        className="text-slate-500"
-                        disabled
-                        size="default"
-                        variant="outline"
-                      >
-                        <p className="mr-2">Marked as paid</p>
-                      </Button>
-                    )}
-
-                  {selectedSubmission?.isWinner &&
-                    selectedSubmission?.winnerPosition &&
-                    selectedSubmission?.isPaid &&
-                    selectedSubmission?.paymentDetails?.manual && (
-                      <Tooltip
-                        content="Paid manually"
-                        contentProps={{ side: 'top' }}
-                      >
-                        <Button
-                          className="text-slate-500"
-                          onClick={() => setIsPaymentDetailsModalOpen(true)}
-                          size="default"
-                          variant="outline"
-                        >
-                          <DollarSign className="mr-2 h-4 w-4" />
-                          View Payment
-                        </Button>
-                      </Tooltip>
-                    )}
-
-                  {selectedSubmission?.isWinner &&
-                    selectedSubmission?.winnerPosition &&
-                    selectedSubmission?.isPaid &&
-                    selectedSubmission?.paymentDetails?.treasury?.link && (
-                      <Tooltip
-                        content="Paid via NEAR Treasury"
-                        contentProps={{ side: 'top' }}
-                      >
-                        <Button
-                          className="text-slate-500"
-                          onClick={() => {
-                            window.open(
-                              getURLSanitized(
-                                selectedSubmission?.paymentDetails?.treasury
-                                  ?.link ?? '',
-                              ),
-                              '_blank',
-                            );
-                          }}
-                          size="default"
-                          variant="outline"
-                        >
-                          <Image
-                            src="/assets/NEARTreasuryLogo.svg"
-                            alt="NEAR Treasury"
-                            width={16}
-                            height={16}
-                            className="mr-2"
-                          />
-                          View Payment
-                          <ExternalLink className="ml-1 h-3 w-3" />
-                        </Button>
-                      </Tooltip>
-                    )}
-
-                  {selectedSubmission?.isWinner &&
-                    selectedSubmission?.winnerPosition &&
-                    selectedSubmission?.isPaid &&
-                    selectedSubmission?.paymentDetails?.link && (
-                      <Tooltip
-                        content="Paid manually"
-                        contentProps={{ side: 'top' }}
-                      >
-                        <Button
-                          className="text-slate-500"
-                          onClick={() => setIsPaymentDetailsModalOpen(true)}
-                          size="default"
-                          variant="outline"
-                        >
-                          <DollarSign className="mr-2 h-4 w-4" />
-                          View Payment
-                        </Button>
-                      </Tooltip>
                     )}
 
                   {!bounty?.isWinnersAnnounced &&
@@ -810,11 +697,7 @@ export const SubmissionPanel = ({
                         <Button
                           variant="ghost"
                           className="h-4 w-4 p-0 hover:bg-transparent"
-                          onClick={
-                            selectedSubmission?.paymentDetails?.manual
-                              ? () => setIsUpdateManualPaymentModalOpen(true)
-                              : handleUpdatePaymentDate
-                          }
+                          onClick={handleUpdatePaymentDate}
                         >
                           <Pencil className="ml-3 h-4 w-4 text-slate-400" />
                         </Button>
@@ -987,36 +870,18 @@ export const SubmissionPanel = ({
         <AddManualPaymentModal
           isOpen={isAddManualPaymentModalOpen}
           onClose={() => setIsAddManualPaymentModalOpen(false)}
-          submissionId={selectedSubmission?.id || ''}
-          onSuccess={() => {
+          submission={selectedSubmission}
+          onSuccess={(paymentData) => {
             setSelectedSubmission((prev) =>
               prev && prev.id === selectedSubmission?.id
-                ? { ...prev, isPaid: true }
+                ? {
+                    ...prev,
+                    isPaid: true,
+                    paymentDetails: { manual: paymentData },
+                  }
                 : prev,
             );
           }}
-        />
-      )}
-
-      {selectedSubmission && (
-        <UpdateManualPaymentModal
-          isOpen={isUpdateManualPaymentModalOpen}
-          onClose={() => setIsUpdateManualPaymentModalOpen(false)}
-          submissionId={selectedSubmission?.id || ''}
-          currentPaymentData={selectedSubmission?.paymentDetails?.manual as any}
-          onSuccess={() => {
-            // Optionally refetch submission data -> if needed
-          }}
-        />
-      )}
-
-      {selectedSubmission?.paymentDetails?.manual && (
-        <PaymentDetailsModal
-          isOpen={isPaymentDetailsModalOpen}
-          onClose={() => setIsPaymentDetailsModalOpen(false)}
-          paymentData={selectedSubmission.paymentDetails.manual as any}
-          submissionId={selectedSubmission.id}
-          isOwner={false}
         />
       )}
     </>

@@ -144,7 +144,15 @@ async function handler(
         },
         paymentDetails: submission.user?.private
           ? undefined
-          : submission.paymentDetails,
+          : {
+              ...(submission.paymentDetails as any),
+              manual: {
+                ...(submission.paymentDetails as any)?.manual,
+                notes: (submission.paymentDetails as any)?.manual?.isPublic
+                  ? (submission.paymentDetails as any)?.manual?.notes
+                  : undefined,
+              },
+            },
       })),
     });
   } catch (error: any) {

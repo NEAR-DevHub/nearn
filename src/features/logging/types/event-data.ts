@@ -34,7 +34,6 @@ export enum EventType {
   SUBMISSION_PAID = 'SUBMISSION_PAID',
   SUBMISSION_MANUAL_PAYMENT_ADDED = 'SUBMISSION_MANUAL_PAYMENT_ADDED',
   SUBMISSION_MANUAL_PAYMENT_UPDATED = 'SUBMISSION_MANUAL_PAYMENT_UPDATED',
-  SUBMISSION_MANUAL_PAYMENT_ISSUE_REPORTED = 'SUBMISSION_MANUAL_PAYMENT_ISSUE_REPORTED',
   COMMENT_ADDED = 'COMMENT_ADDED',
   COMMENT_DELETED = 'COMMENT_DELETED',
   TREASURY_PROPOSAL_APPROVED = 'TREASURY_PROPOSAL_APPROVED',
@@ -47,6 +46,21 @@ export enum EventType {
 
   AUTOMATION_LOG = 'AUTOMATION_LOG',
 }
+
+export type ManualPaymentEditableFields =
+  | 'amount'
+  | 'currency'
+  | 'paymentDate'
+  | 'notes'
+  | 'isPublic';
+
+export type ManualPaymentEditableFieldsValueMap = {
+  amount: number;
+  currency: string;
+  paymentDate: string;
+  notes: string;
+  isPublic: boolean;
+};
 
 /**
  * Fields that can be edited in a sponsor profile
@@ -274,40 +288,19 @@ export interface EventDataMap {
     link: string;
   };
 
-  [EventType.SUBMISSION_MANUAL_PAYMENT_ADDED]: {
-    amount: number;
-    currency: string;
-    paymentDate: string;
-    notes?: string;
-    isPublic?: boolean;
-  };
+  [EventType.SUBMISSION_MANUAL_PAYMENT_ADDED]: Record<string, never>;
 
   [EventType.SUBMISSION_MANUAL_PAYMENT_UPDATED]: {
-    before: {
-      amount: number;
-      currency: string;
-      paymentDate: string;
-      notes?: string;
-      isPublic?: boolean;
-    };
-    after: {
-      amount: number;
-      currency: string;
-      paymentDate: string;
-      notes?: string;
-      isPublic?: boolean;
-    };
+    changes: Array<{
+      field: ManualPaymentEditableFields;
+      oldValue:
+        | ManualPaymentEditableFieldsValueMap[ManualPaymentEditableFields]
+        | null;
+      newValue:
+        | ManualPaymentEditableFieldsValueMap[ManualPaymentEditableFields]
+        | null;
+    }>;
   };
-
-  [EventType.SUBMISSION_MANUAL_PAYMENT_ISSUE_REPORTED]: {
-    description: string;
-    paymentAmount: number;
-    paymentCurrency: string;
-    paymentDate: string;
-    userEmail: string;
-    userName: string;
-  };
-
   // Comment Events
   [EventType.COMMENT_ADDED]: Record<string, never>;
   [EventType.COMMENT_DELETED]: Record<string, never>;
@@ -581,6 +574,48 @@ export function detectSubmissionChanges(
           | null,
         newValue: newVal as
           | SubmissionFieldValueMap[SubmissionEditableFields]
+          | null,
+      });
+    }
+  }
+
+  return changes;
+}
+
+export function detectManualPaymentChanges(
+  oldData: Partial<ManualPaymentEditableFieldsValueMap>,
+  newData: Partial<ManualPaymentEditableFieldsValueMap>,
+): Array<{
+  field: ManualPaymentEditableFields;
+  oldValue:
+    | ManualPaymentEditableFieldsValueMap[ManualPaymentEditableFields]
+    | null;
+  newValue:
+    | ManualPaymentEditableFieldsValueMap[ManualPaymentEditableFields]
+    | null;
+}> {
+  const changes: Array<{
+    field: ManualPaymentEditableFields;
+    oldValue:
+      | ManualPaymentEditableFieldsValueMap[ManualPaymentEditableFields]
+      | null;
+    newValue:
+      | ManualPaymentEditableFieldsValueMap[ManualPaymentEditableFields]
+      | null;
+  }> = [];
+
+  for (const field of Object.keys(oldData) as ManualPaymentEditableFields[]) {
+    const oldVal = oldData[field] ?? null;
+    const newVal = newData[field] ?? null;
+
+    if (oldVal !== newVal) {
+      changes.push({
+        field,
+        oldValue: oldVal as
+          | ManualPaymentEditableFieldsValueMap[ManualPaymentEditableFields]
+          | null,
+        newValue: newVal as
+          | ManualPaymentEditableFieldsValueMap[ManualPaymentEditableFields]
           | null,
       });
     }
