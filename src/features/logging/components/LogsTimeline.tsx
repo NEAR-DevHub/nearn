@@ -7,6 +7,7 @@ import {
   Award,
   Check,
   CircleMinus,
+  DollarSign,
   Eye,
   EyeOff,
   FileInput,
@@ -64,6 +65,10 @@ const eventIcons: Record<EventType, React.ReactNode> = {
   [EventType.SUBMISSION_TREASURY_CREATED]: <RefreshCcw className="h-4 w-4" />,
   [EventType.SUBMISSION_PAYMENT_DATE_EDITED]: <Link2 className="h-4 w-4" />,
   [EventType.SUBMISSION_PAID]: <Link2 className="h-4 w-4" />,
+  [EventType.SUBMISSION_MANUAL_PAYMENT_ADDED]: (
+    <DollarSign className="h-4 w-4" />
+  ),
+  [EventType.SUBMISSION_MANUAL_PAYMENT_UPDATED]: <Pencil className="h-4 w-4" />,
   [EventType.COMMENT_ADDED]: <MessageSquare className="h-4 w-4" />,
   [EventType.COMMENT_DELETED]: <Trash className="h-4 w-4" />,
   [EventType.TREASURY_PROPOSAL_APPROVED]: <RefreshCcw className="h-4 w-4" />,

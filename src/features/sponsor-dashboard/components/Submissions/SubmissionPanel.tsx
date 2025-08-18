@@ -61,6 +61,8 @@ import { treasuryProposalStatusQuery } from '../../../treasury/queries/treasuryP
 import { selectedSubmissionAtom } from '../../atoms';
 import { type SubmissionWithListingUser } from '../../queries/dashboard-submissions';
 import { Details } from './Details';
+import { DisplayPayment } from './DisplayPayment';
+import AddManualPaymentModal from './Modals/AddManualPaymentModal';
 import NearTreasuryPaymentModal from './Modals/NearTreasuryPaymentModal';
 import { SelectWinnersGuide } from './Modals/SelectWinnersGuide';
 import { UpdatePaymentDateModal } from './Modals/UpdateDateModal';
@@ -92,6 +94,7 @@ interface PaymentButtonProps {
   isLoadingProposalStatus: boolean;
   onVerifyPayment: () => void;
   setIsNearTreasuryPaymentModalOpen: Dispatch<SetStateAction<boolean>>;
+  setIsAddManualPaymentModalOpen: Dispatch<SetStateAction<boolean>>;
 }
 
 export const PaymentButton = ({
@@ -100,6 +103,7 @@ export const PaymentButton = ({
   isLoadingProposalStatus,
   onVerifyPayment,
   setIsNearTreasuryPaymentModalOpen,
+  setIsAddManualPaymentModalOpen,
 }: PaymentButtonProps) => {
   if (isLoadingProposalStatus) {
     return <></>;
@@ -123,6 +127,39 @@ export const PaymentButton = ({
     );
   }
 
+  const paymentTypes = [
+    {
+      label: 'Add Payment Link',
+      description:
+        'Pay the contributor using your preferred method, then paste the transaction link here.',
+      icon: <Link2 className="mx-0.5 mt-0.5 h-4 w-4 shrink-0 text-slate-500" />,
+      onClick: () => onVerifyPayment(),
+    },
+    {
+      label: 'Add Manual Payment',
+      description:
+        'Make the payment via your preferred channel, then enter the transaction manually.',
+      icon: (
+        <DollarSign className="mx-0.5 mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
+      ),
+      onClick: () => setIsAddManualPaymentModalOpen(true),
+    },
+    {
+      label: 'Pay with NEAR Treasury',
+      description:
+        'Create a payment request through NEAR Treasury and approve it on-chain.',
+      icon: (
+        <Image
+          src="/assets/NEARTreasuryLogo.svg"
+          alt="NEAR Treasury Logo"
+          width={20}
+          height={20}
+        />
+      ),
+      onClick: () => setIsNearTreasuryPaymentModalOpen(true),
+    },
+  ];
+
   return (
     <Popover>
       <PopoverTrigger>
@@ -134,42 +171,24 @@ export const PaymentButton = ({
       <PopoverContent
         side="bottom"
         align="end"
-        className="flex w-full max-w-md flex-col gap-2 p-2"
+        className="flex w-full max-w-[376px] flex-col gap-2 p-2"
       >
-        <Button
-          onClick={() => onVerifyPayment()}
-          variant="ghost"
-          className="flex h-full w-full items-start rounded-sm px-4 py-3"
-        >
-          <Link2 className="mr-3 h-4 w-4" />
-          <div className="flex flex-col text-left">
-            <p>Add Payment Link</p>
-            <p className="text-wrap text-xs text-muted-foreground">
-              Pay the contributor using your preferred method, then paste the
-              transaction link here.
-            </p>
-          </div>
-        </Button>
-        <Button
-          onClick={() => setIsNearTreasuryPaymentModalOpen(true)}
-          variant="ghost"
-          className="flex h-full w-full items-start justify-start rounded-sm pb-3 pl-2 pr-4 pt-[10px]"
-        >
-          <Image
-            src="/assets/NEARTreasuryLogo.svg"
-            alt="Near Treasury Logo"
-            width={24}
-            height={24}
-            className="mr-3"
-          />
-          <div className="flex flex-col text-left">
-            <p>Pay with NEAR Treasury</p>
-            <p className="text-wrap text-xs text-muted-foreground">
-              Create a payment request through NEAR Treasury and approve it
-              on-chain.
-            </p>
-          </div>
-        </Button>
+        {paymentTypes.map((paymentType) => (
+          <Button
+            key={paymentType.label}
+            onClick={paymentType.onClick}
+            variant="ghost"
+            className="flex h-full w-full items-start gap-2 rounded-sm p-2"
+          >
+            {paymentType.icon}
+            <div className="flex flex-col text-left">
+              <p className="font-medium text-slate-500">{paymentType.label}</p>
+              <p className="text-wrap text-sm text-slate-400">
+                {paymentType.description}
+              </p>
+            </div>
+          </Button>
+        ))}
       </PopoverContent>
     </Popover>
   );
@@ -241,6 +260,8 @@ export const SubmissionPanel = ({
   );
 
   const [isNearTreasuryPaymentModalOpen, setIsNearTreasuryPaymentModalOpen] =
+    useState(false);
+  const [isAddManualPaymentModalOpen, setIsAddManualPaymentModalOpen] =
     useState(false);
 
   const handleCopySubmissionLink = () => {
@@ -414,47 +435,24 @@ export const SubmissionPanel = ({
                         setIsNearTreasuryPaymentModalOpen={
                           setIsNearTreasuryPaymentModalOpen
                         }
+                        setIsAddManualPaymentModalOpen={
+                          setIsAddManualPaymentModalOpen
+                        }
+                      />
+                    )}
+                  {selectedSubmission?.isWinner &&
+                    selectedSubmission?.winnerPosition &&
+                    selectedSubmission?.isPaid && (
+                      <DisplayPayment
+                        submission={selectedSubmission}
+                        isSponsorView={true}
                       />
                     )}
                   {selectedSubmission?.status === 'Pending' &&
                     !selectedSubmission?.isPaid && (
                       <SelectLabel listingSlug={bounty?.slug!} />
                     )}
-                  {selectedSubmission?.isWinner &&
-                    selectedSubmission?.winnerPosition &&
-                    selectedSubmission?.isPaid &&
-                    selectedSubmission?.paymentDetails?.link && (
-                      <Button
-                        className="text-slate-500"
-                        onClick={() => {
-                          window.open(
-                            getURLSanitized(
-                              selectedSubmission?.paymentDetails?.link ?? '',
-                            ),
-                            '_blank',
-                          );
-                        }}
-                        size="default"
-                        variant="outline"
-                      >
-                        <ExternalLink className="mr-1 h-4 w-4" />
-                        View Payment
-                      </Button>
-                    )}
 
-                  {selectedSubmission?.isWinner &&
-                    selectedSubmission?.winnerPosition &&
-                    selectedSubmission?.isPaid &&
-                    !selectedSubmission?.paymentDetails?.link && (
-                      <Button
-                        className="text-slate-500"
-                        disabled
-                        size="default"
-                        variant="outline"
-                      >
-                        <p className="mr-2">Marked as paid</p>
-                      </Button>
-                    )}
                   {!bounty?.isWinnersAnnounced &&
                     selectedSubmission?.status === 'Pending' && (
                       <>
@@ -861,6 +859,25 @@ export const SubmissionPanel = ({
                     paymentDetails: {
                       treasury: { link: treasuryLink, proposalId, dao },
                     },
+                  }
+                : prev,
+            );
+          }}
+        />
+      )}
+
+      {selectedSubmission && (
+        <AddManualPaymentModal
+          isOpen={isAddManualPaymentModalOpen}
+          onClose={() => setIsAddManualPaymentModalOpen(false)}
+          submission={selectedSubmission}
+          onSuccess={(paymentData) => {
+            setSelectedSubmission((prev) =>
+              prev && prev.id === selectedSubmission?.id
+                ? {
+                    ...prev,
+                    isPaid: true,
+                    paymentDetails: { manual: paymentData },
                   }
                 : prev,
             );

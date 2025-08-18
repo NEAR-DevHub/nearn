@@ -72,6 +72,12 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
             id: userId,
           },
         };
+      } else {
+        updateData.paymentDetails = Prisma.JsonNull;
+        updateData.paymentDate = null;
+        updateData.paidByUser = {
+          disconnect: true,
+        };
       }
     }
 

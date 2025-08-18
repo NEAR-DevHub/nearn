@@ -20,6 +20,7 @@ import SubmissionApproveReject from './SubmissionApproveReject';
 import SubmissionCreated from './SubmissionCreated';
 import SubmissionEdit from './SubmissionEdit';
 import SubmissionLabelChange from './SubmissionLabelChange';
+import SubmissionManualPaymentUpdated from './SubmissionManualPaymentUpdated';
 import SubmissionNoteChanged from './SubmissionNoteChanged';
 import SubmissionToggledWinner from './SubmissionToggledWinner';
 import SystemStatusChanged from './SystemStatusChanged';
@@ -62,6 +63,9 @@ const LOG_IMPLEMENTATION_MAPPING: Record<
   [EventType.SUBMISSION_TREASURY_CREATED]: TreasuryProposal,
   [EventType.SUBMISSION_PAYMENT_DATE_EDITED]: PaymentDateEdited,
   [EventType.SUBMISSION_PAID]: Paid,
+  [EventType.SUBMISSION_MANUAL_PAYMENT_ADDED]: () =>
+    SimpleLogMessage({ message: 'Marked as paid manually' }),
+  [EventType.SUBMISSION_MANUAL_PAYMENT_UPDATED]: SubmissionManualPaymentUpdated,
   [EventType.COMMENT_ADDED]: Comment,
   [EventType.COMMENT_DELETED]: Comment,
   [EventType.TREASURY_PROPOSAL_APPROVED]: TreasuryProposal,
