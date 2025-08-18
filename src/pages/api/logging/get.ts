@@ -293,7 +293,6 @@ async function submission(
                 username: true,
               },
             },
-            paymentDate: true,
           },
         },
         listing: {

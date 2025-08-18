@@ -104,7 +104,6 @@ export type Log = EventLog & {
     user: {
       username: string;
     };
-    paymentDate: Date;
   };
   listing?: {
     sequentialId: number;
