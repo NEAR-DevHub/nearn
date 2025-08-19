@@ -62,7 +62,6 @@ import { selectedSubmissionAtom } from '../../atoms';
 import { type SubmissionWithListingUser } from '../../queries/dashboard-submissions';
 import { Details } from './Details';
 import { DisplayPayment } from './DisplayPayment';
-import AddManualPaymentModal from './Modals/AddManualPaymentModal';
 import NearTreasuryPaymentModal from './Modals/NearTreasuryPaymentModal';
 import { SelectWinnersGuide } from './Modals/SelectWinnersGuide';
 import { UpdatePaymentDateModal } from './Modals/UpdateDateModal';
@@ -80,6 +79,7 @@ interface Props {
   setRemainings: Dispatch<
     SetStateAction<{ podiums: number; bonus: number } | null>
   >;
+  onManualPaymentOpen: () => void;
   isMultiSelectOn?: boolean;
   onVerifyPayment: () => void;
 }
@@ -94,7 +94,7 @@ interface PaymentButtonProps {
   isLoadingProposalStatus: boolean;
   onVerifyPayment: () => void;
   setIsNearTreasuryPaymentModalOpen: Dispatch<SetStateAction<boolean>>;
-  setIsAddManualPaymentModalOpen: Dispatch<SetStateAction<boolean>>;
+  onManualPaymentOpen: () => void;
 }
 
 export const PaymentButton = ({
@@ -103,7 +103,7 @@ export const PaymentButton = ({
   isLoadingProposalStatus,
   onVerifyPayment,
   setIsNearTreasuryPaymentModalOpen,
-  setIsAddManualPaymentModalOpen,
+  onManualPaymentOpen,
 }: PaymentButtonProps) => {
   if (isLoadingProposalStatus) {
     return <></>;
@@ -142,7 +142,7 @@ export const PaymentButton = ({
       icon: (
         <DollarSign className="mx-0.5 mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
       ),
-      onClick: () => setIsAddManualPaymentModalOpen(true),
+      onClick: () => onManualPaymentOpen(),
     },
     {
       label: 'Pay with NEAR Treasury',
@@ -222,6 +222,7 @@ export const SubmissionPanel = ({
   setRemainings,
   isMultiSelectOn,
   onVerifyPayment,
+  onManualPaymentOpen,
 }: Props) => {
   const afterAnnounceDate =
     bounty?.type === 'hackathon'
@@ -260,8 +261,6 @@ export const SubmissionPanel = ({
   );
 
   const [isNearTreasuryPaymentModalOpen, setIsNearTreasuryPaymentModalOpen] =
-    useState(false);
-  const [isAddManualPaymentModalOpen, setIsAddManualPaymentModalOpen] =
     useState(false);
 
   const handleCopySubmissionLink = () => {
@@ -435,9 +434,7 @@ export const SubmissionPanel = ({
                         setIsNearTreasuryPaymentModalOpen={
                           setIsNearTreasuryPaymentModalOpen
                         }
-                        setIsAddManualPaymentModalOpen={
-                          setIsAddManualPaymentModalOpen
-                        }
+                        onManualPaymentOpen={onManualPaymentOpen}
                       />
                     )}
                   {selectedSubmission?.isWinner &&
@@ -859,25 +856,6 @@ export const SubmissionPanel = ({
                     paymentDetails: {
                       treasury: { link: treasuryLink, proposalId, dao },
                     },
-                  }
-                : prev,
-            );
-          }}
-        />
-      )}
-
-      {selectedSubmission && (
-        <AddManualPaymentModal
-          isOpen={isAddManualPaymentModalOpen}
-          onClose={() => setIsAddManualPaymentModalOpen(false)}
-          submission={selectedSubmission}
-          onSuccess={(paymentData) => {
-            setSelectedSubmission((prev) =>
-              prev && prev.id === selectedSubmission?.id
-                ? {
-                    ...prev,
-                    isPaid: true,
-                    paymentDetails: { manual: paymentData },
                   }
                 : prev,
             );

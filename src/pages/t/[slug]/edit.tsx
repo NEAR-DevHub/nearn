@@ -735,7 +735,7 @@ export default function EditProfilePage({ slug }: { slug: string }) {
                               field.onChange(checked);
                             }
                           }}
-                          className="mr-1 text-brand-green data-[state=checked]:border-brand-green data-[state=checked]:bg-brand-green"
+                          className="mr-1"
                         />
                       </FormControl>
                       <FormLabel className="flex items-center gap-2 font-medium text-slate-500">

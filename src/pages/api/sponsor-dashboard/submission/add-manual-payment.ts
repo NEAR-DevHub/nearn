@@ -120,6 +120,36 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       });
     }
 
+    const bounty = await prisma.bounties.findUnique({
+      where: {
+        id: currentSubmission.listingId,
+      },
+      include: {
+        BountyCounts: true,
+      },
+    });
+    if (
+      bounty &&
+      bounty.isWinnersAnnounced &&
+      bounty?.BountyCounts.totalPaymentsMade ===
+        bounty.BountyCounts.totalWinnersSelected
+    ) {
+      eventLogger.log({
+        eventType: EventType.SYSTEM_STATUS_CHANGED,
+        actor: {
+          type: 'SYSTEM',
+        },
+        data: {
+          oldStatus: 'Payment Pending',
+          newStatus: 'Completed',
+        },
+        entities: {
+          listingId: currentSubmission.listingId,
+          sponsorId: currentSubmission.listing.sponsorId,
+        },
+      });
+    }
+
     logger.info(`Successfully added manual payment for submission ID: ${id}`);
     return res.status(200).json(result);
   } catch (error: any) {

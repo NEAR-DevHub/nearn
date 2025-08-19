@@ -70,7 +70,7 @@ export default function AddManualPaymentModal({
 
   const token = form.watch('token');
 
-  const isUpdating = submission.paymentDetails?.manual;
+  const isUpdating = submission && submission.paymentDetails?.manual;
 
   useEffect(() => {
     if (isUpdating && submission.paymentDetails?.manual) {
@@ -213,7 +213,7 @@ export default function AddManualPaymentModal({
                       <Textarea
                         {...field}
                         placeholder="Enter any additional info about the payment..."
-                        className="min-h-[80px] resize-none overflow-hidden font-medium !text-muted-foreground shadow-none focus-visible:ring-0"
+                        className="min-h-[80px] resize-none overflow-hidden font-medium !text-muted-foreground shadow-none"
                         value={field.value || ''}
                         onBlur={() => null}
                         rows={1}

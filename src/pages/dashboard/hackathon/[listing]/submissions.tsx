@@ -278,6 +278,9 @@ export default function BountySubmissions({ listing }: Props) {
                         onVerifyPayment={() => {
                           alert('TODO');
                         }}
+                        onManualPaymentOpen={() => {
+                          alert('TODO');
+                        }}
                         remainings={remainings}
                         setRemainings={setRemainings}
                         bounty={bounty}

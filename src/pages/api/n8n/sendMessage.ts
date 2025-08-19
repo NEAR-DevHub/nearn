@@ -28,7 +28,11 @@ async function handler(req: NextApiRequestWithUser, res: NextApiResponse) {
         where: { id: submissionId },
         include: {
           user: true,
-          listing: true,
+          listing: {
+            include: {
+              sponsor: true,
+            },
+          },
         },
       });
 
@@ -44,6 +48,7 @@ async function handler(req: NextApiRequestWithUser, res: NextApiResponse) {
         body: JSON.stringify({
           type,
           name: submission.user.name,
+          userUrl: `${getURL()}t/${submission.user.username}`,
           submissionUrl: getSubmissionUrl(
             submission as any as SubmissionWithUser,
             submission.listing as any as Listing,
