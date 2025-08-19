@@ -9,7 +9,7 @@ import { renderSimpleFieldChange } from './utils';
 function formatFieldName(field: string): string {
   const fieldNames: Record<string, string> = {
     amount: 'amount on manual payment',
-    currency: 'currency on manual payment',
+    token: 'currency on manual payment',
     paymentDate: 'payment date',
     notes: 'payment notes',
     isPublic: 'notes visibility',
@@ -73,18 +73,16 @@ function renderFieldChange(
   if (field === 'paymentDate') {
     return (
       <span className="text-slate-500">
-        Edited payment date from{' '}
-        <span className="font-medium">{formattedOld}</span> to{' '}
+        Edited payment date from <span>{formattedOld}</span> to{' '}
         <span className="font-medium">{formattedNew}</span>
       </span>
     );
   }
 
-  if (field === 'amount' || field === 'currency') {
+  if (field === 'amount' || field === 'token') {
     return (
       <span className="text-slate-500">
-        The {fieldDisplayName} was changed from{' '}
-        <span className="font-medium">{formattedOld}</span> to{' '}
+        The {fieldDisplayName} was changed from <span>{formattedOld}</span> to{' '}
         <span className="font-medium">{formattedNew}</span>
       </span>
     );
