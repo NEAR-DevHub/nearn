@@ -3,7 +3,6 @@ import { useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
-import { PROJECT_NAME } from '@/constants/project';
 
 import { calculateTotalPrizes } from '@/features/listing-builder/utils/rewards';
 
@@ -24,10 +23,6 @@ function RewardsFooter({ closeSheet }: { closeSheet: () => void }) {
     control: form.control,
     name: 'maxBonusSpots',
   });
-  const rewardAmount = useWatch({
-    control: form.control,
-    name: 'rewardAmount',
-  });
 
   const totalPrize = useMemo(
     () => calculateTotalPrizes(rewards, maxBonusSpots || 0),
@@ -36,11 +31,6 @@ function RewardsFooter({ closeSheet }: { closeSheet: () => void }) {
 
   return (
     <div className="w-full space-y-4">
-      {!!rewardAmount && rewardAmount <= 100 && (
-        <p className="text-[0.8rem] text-yellow-600">
-          {`Note: This listing will not show up on ${PROJECT_NAME}'s Landing Page since it is ≤$100 in value. Increase the total compensation for better discoverability.`}
-        </p>
-      )}
       <div className="flex items-center justify-between text-sm font-medium">
         {type !== 'project' ? (
           <span className="flex gap-2">

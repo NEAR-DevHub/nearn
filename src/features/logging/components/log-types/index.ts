@@ -1,4 +1,7 @@
-import { EventType } from '@/features/logging/types/event-data';
+import {
+  type EventDataMap,
+  EventType,
+} from '@/features/logging/types/event-data';
 
 import { type Log } from '../../queries/logs';
 import Comment from './Comment';
@@ -17,6 +20,7 @@ import SubmissionApproveReject from './SubmissionApproveReject';
 import SubmissionCreated from './SubmissionCreated';
 import SubmissionEdit from './SubmissionEdit';
 import SubmissionLabelChange from './SubmissionLabelChange';
+import SubmissionManualPaymentUpdated from './SubmissionManualPaymentUpdated';
 import SubmissionNoteChanged from './SubmissionNoteChanged';
 import SubmissionToggledWinner from './SubmissionToggledWinner';
 import SystemStatusChanged from './SystemStatusChanged';
@@ -59,6 +63,9 @@ const LOG_IMPLEMENTATION_MAPPING: Record<
   [EventType.SUBMISSION_TREASURY_CREATED]: TreasuryProposal,
   [EventType.SUBMISSION_PAYMENT_DATE_EDITED]: PaymentDateEdited,
   [EventType.SUBMISSION_PAID]: Paid,
+  [EventType.SUBMISSION_MANUAL_PAYMENT_ADDED]: () =>
+    SimpleLogMessage({ message: 'Marked as paid manually' }),
+  [EventType.SUBMISSION_MANUAL_PAYMENT_UPDATED]: SubmissionManualPaymentUpdated,
   [EventType.COMMENT_ADDED]: Comment,
   [EventType.COMMENT_DELETED]: Comment,
   [EventType.TREASURY_PROPOSAL_APPROVED]: TreasuryProposal,
@@ -69,6 +76,10 @@ const LOG_IMPLEMENTATION_MAPPING: Record<
   [EventType.PLATFORM_ADMIN_SUBMISSION_STATUS_EDITED]:
     PlatformAdminSubmissionStatusEdited,
   [EventType.SYSTEM_STATUS_CHANGED]: SystemStatusChanged,
+  [EventType.AUTOMATION_LOG]: (props: LogProperties) => {
+    const data = props.event.data as EventDataMap[EventType.AUTOMATION_LOG];
+    return SimpleLogMessage({ message: data.message });
+  },
 };
 
 export default LOG_IMPLEMENTATION_MAPPING;

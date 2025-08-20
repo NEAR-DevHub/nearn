@@ -33,6 +33,7 @@ import { uploadAndReplaceImage } from '@/utils/image';
 
 import { SocialInputAll } from '@/features/social/components/SocialInput';
 import { extractSocialUsername } from '@/features/social/utils/extractUsername';
+import N8nIntegrationRequest from '@/features/sponsor/components/N8nIntegrationRequest';
 import NearTreasuryIntegration from '@/features/sponsor/components/NearTreasuryIntegration';
 import { useSlugValidation } from '@/features/sponsor/hooks/useSlugValidation';
 import { useSponsorNameValidation } from '@/features/sponsor/hooks/useSponsorNameValidation';
@@ -462,7 +463,8 @@ function Integrations() {
   }
 
   return (
-    <div className="flex w-full flex-col">
+    <div className="flex w-full flex-col gap-8">
+      <N8nIntegrationRequest />
       <NearTreasuryIntegration
         sponsorData={sponsorData}
         refetchUser={refetchUser}

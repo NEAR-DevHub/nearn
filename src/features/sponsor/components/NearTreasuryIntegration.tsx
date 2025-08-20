@@ -5,7 +5,7 @@ import { Copy, Loader2, TriangleAlert } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { useForm, type UseFormReturn } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -17,7 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Form, FormDescription, FormLabel } from '@/components/ui/form';
+import { Form } from '@/components/ui/form';
 import { type SponsorType } from '@/interface/sponsor';
 import { getURLSanitized } from '@/utils/getURLSanitized';
 
@@ -38,142 +38,6 @@ interface Props {
   refetch: () => void;
 }
 
-function NearTreasuryForm({
-  form,
-  onSubmit,
-  isLoading,
-}: {
-  form: UseFormReturn<NearTreasuryFormValues>;
-  onSubmit: (data: NearTreasuryFormValues) => void;
-  isLoading: boolean;
-}) {
-  const [frontendLinkTransformedError, setIsError] = useState<
-    string | undefined
-  >(undefined);
-
-  useEffect(() => {
-    const error = form.formState.errors.nearTreasuryFrontend;
-    if (
-      error?.type === 'custom' &&
-      error.message?.includes(`[${NEARN_NO_REQUESTOR_RIGHTS}]`)
-    ) {
-      setIsError(error.message.split(`[${NEARN_NO_REQUESTOR_RIGHTS}]`)[1]);
-    } else if (!!error) {
-      setIsError(undefined);
-    }
-  }, [form.formState.errors.nearTreasuryFrontend, form.clearErrors]);
-
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="space-y-5">
-          <div className="flex items-center gap-4">
-            <Image
-              src="/assets/NEARTreasuryLogo.svg"
-              alt="NEAR Treasury"
-              width={40}
-              height={40}
-            />
-            <div className="flex flex-col">
-              <h3 className="text-lg font-semibold text-gray-700">
-                Connect to NEAR Treasury
-              </h3>
-              <p className="font-sans text-sm text-gray-600">
-                Link your{' '}
-                <Link
-                  href="https://neartreasury.com"
-                  className="text-gray-900 underline underline-offset-[3px]"
-                  target="_blank"
-                >
-                  NEAR Treasury
-                </Link>{' '}
-                to NEARN to create on-chain payment proposals directly from
-                approved submissions and automatically track their status.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <div>
-              <FormLabel>NEAR Treasury URL</FormLabel>
-              <FormDescription>
-                Please ensure you&apos;ve added{' '}
-                <span
-                  className="inline-flex cursor-pointer items-center gap-1 rounded py-0.5 font-bold hover:bg-gray-100"
-                  onClick={() => {
-                    navigator.clipboard.writeText('nearn-io.near');
-                    toast.success('Copied to clipboard!');
-                  }}
-                >
-                  nearn-io.near <Copy className="h-4 w-4" />
-                </span>{' '}
-                to your member list on NEAR Treasury with Requestor role to your
-                DAO. This must be approved before you can link it here.
-              </FormDescription>
-            </div>
-            <SocialInput
-              required
-              name="nearTreasuryFrontend"
-              socialName="website"
-              placeholder="your-treasury.near.page"
-              control={form.control}
-              withIcon={false}
-              hideMessage={!frontendLinkTransformedError}
-            />
-          </div>
-        </div>
-
-        {frontendLinkTransformedError && (
-          <div className="mt-4 flex items-center gap-3 bg-red-50 p-3 text-red-500">
-            <TriangleAlert className="h-full w-5" />
-            <p className="h-full w-full text-sm">
-              The member{' '}
-              <span
-                className="inline-flex cursor-pointer items-center gap-1 rounded py-0.5 font-bold hover:bg-red-100"
-                onClick={() => {
-                  navigator.clipboard.writeText('nearn-io.near');
-                  toast.success('Copied to clipboard!');
-                }}
-              >
-                nearn-io.near <Copy className="h-4 w-4" />
-              </span>{' '}
-              is not a requestor in your Treasury, so NEARN cannot submit
-              payment proposals. To fix this, go to{' '}
-              <Link
-                href={`${getURLSanitized(frontendLinkTransformedError + '/?page=settings&tab=members&member=nearn-io.near&permissions=requestor') ?? 'https://neartreasury.com'}`}
-                className="underline underline-offset-[3px]"
-                target="_blank"
-              >
-                NEAR Treasury
-              </Link>{' '}
-              and add the member with the &quot;Requestor&quot; permission.
-            </p>
-          </div>
-        )}
-
-        <div className="mt-8">
-          <Button
-            className="w-full"
-            disabled={isLoading}
-            size="lg"
-            variant="default"
-            type="submit"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Connecting...
-              </>
-            ) : (
-              'Connect'
-            )}
-          </Button>
-        </div>
-      </form>
-    </Form>
-  );
-}
-
 export default function NearTreasuryIntegration({
   sponsorData,
   refetchUser,
@@ -182,6 +46,7 @@ export default function NearTreasuryIntegration({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [disconnectModalOpen, setDisconnectModalOpen] =
     useState<boolean>(false);
+  const [connectModalOpen, setConnectModalOpen] = useState<boolean>(false);
   const form = useForm<NearTreasuryFormValues>({
     resolver: zodResolver(nearTreasuryFormSchema),
     mode: 'onBlur',
@@ -197,6 +62,22 @@ export default function NearTreasuryIntegration({
   const { data: isValidDaoPolicy, isLoading: isLoadingDaoPolicy } = useQuery(
     isValidDaoPolicyQuery(sponsorData?.nearTreasury?.dao),
   );
+
+  const [frontendLinkTransformedError, setIsError] = useState<
+    string | undefined
+  >(undefined);
+
+  useEffect(() => {
+    const error = form.formState.errors.nearTreasuryFrontend;
+    if (
+      error?.type === 'custom' &&
+      error.message?.includes(`[${NEARN_NO_REQUESTOR_RIGHTS}]`)
+    ) {
+      setIsError(error.message.split(`[${NEARN_NO_REQUESTOR_RIGHTS}]`)[1]);
+    } else if (!!error) {
+      setIsError(undefined);
+    }
+  }, [form.formState.errors.nearTreasuryFrontend, form.clearErrors]);
 
   useEffect(() => {
     if (sponsorData) {
@@ -216,6 +97,8 @@ export default function NearTreasuryIntegration({
       await refetchUser();
       await refetch();
       toast.success('Integrations updated successfully!');
+      setConnectModalOpen(false);
+      form.reset();
     } catch (error) {
       console.error('Error updating integrations:', error);
       toast.error('Failed to update integrations. Please try again.');
@@ -229,7 +112,143 @@ export default function NearTreasuryIntegration({
     sponsorData.nearTreasury?.frontend === '';
 
   return showForm ? (
-    <NearTreasuryForm form={form} onSubmit={onSubmit} isLoading={isLoading} />
+    <>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Image
+            src="/assets/NEARTreasuryLogo.svg"
+            alt="NEAR Treasury"
+            width={40}
+            height={40}
+          />
+          <div className="flex flex-col">
+            <h3 className="text-lg font-semibold text-gray-700">
+              Connect to NEAR Treasury
+            </h3>
+            <p className="font-sans text-sm text-gray-600">
+              Create on-chain payment proposals directly from approved
+              submissions and automatically track their status.
+            </p>
+          </div>
+        </div>
+        <Button variant="default" onClick={() => setConnectModalOpen(true)}>
+          Connect
+        </Button>
+      </div>
+
+      <Dialog open={connectModalOpen} onOpenChange={setConnectModalOpen}>
+        <DialogContent className="w-[512px] p-6">
+          <DialogHeader>
+            <DialogTitle className="font-bold">
+              Connect your NEAR Treasury
+            </DialogTitle>
+            <DialogDescription className="text-xs text-slate-500">
+              <Link
+                href="https://neartreasury.com"
+                className="underline underline-offset-[3px]"
+                target="_blank"
+              >
+                Learn more
+              </Link>{' '}
+              about NEAR Treasury
+            </DialogDescription>
+          </DialogHeader>
+
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <div className="space-y-2 text-sm text-slate-500">
+                <p>
+                  <span className="mr-1">1.</span>
+                  Add
+                  <span
+                    className="inline-flex cursor-pointer items-center gap-1 rounded px-1 font-bold hover:bg-gray-100"
+                    onClick={() => {
+                      navigator.clipboard.writeText('nearn-io.near');
+                      toast.success('Copied to clipboard!');
+                    }}
+                  >
+                    nearn-io.near <Copy className="h-3 w-3" />
+                  </span>
+                  as a member with Requestor role to your DAO.
+                </p>
+                <p>
+                  <span className="mr-1">2.</span>
+                  Approve the member creation request.
+                </p>
+                <p>
+                  <span className="mr-1">3.</span>
+                  Once all the above is complete, please paste your NEAR
+                  Treasury link below.
+                </p>
+              </div>
+
+              <SocialInput
+                required
+                name="nearTreasuryFrontend"
+                socialName="website"
+                formLabel="NEAR Treasury Link"
+                placeholder="your-treasury.near.page"
+                control={form.control}
+                hideMessage={!!frontendLinkTransformedError}
+                withIcon={false}
+              />
+
+              {frontendLinkTransformedError && (
+                <div className="mt-4 flex items-center gap-3 bg-red-50 p-3 text-red-500">
+                  <TriangleAlert className="h-full w-5" />
+                  <p className="h-full w-full text-sm">
+                    The member{' '}
+                    <span
+                      className="inline-flex cursor-pointer items-center gap-1 rounded py-0.5 font-bold hover:bg-red-100"
+                      onClick={() => {
+                        navigator.clipboard.writeText('nearn-io.near');
+                        toast.success('Copied to clipboard!');
+                      }}
+                    >
+                      nearn-io.near <Copy className="h-4 w-4" />
+                    </span>{' '}
+                    is not a requestor in your Treasury, so NEARN cannot submit
+                    payment proposals. To fix this, go to{' '}
+                    <Link
+                      href={`${getURLSanitized(frontendLinkTransformedError + '/?page=settings&tab=members&member=nearn-io.near&permissions=requestor') ?? 'https://neartreasury.com'}`}
+                      className="underline underline-offset-[3px]"
+                      target="_blank"
+                    >
+                      NEAR Treasury
+                    </Link>{' '}
+                    and add the member with the &quot;Requestor&quot;
+                    permission.
+                  </p>
+                </div>
+              )}
+
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {
+                    setConnectModalOpen(false);
+                    form.reset();
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Connecting...
+                    </>
+                  ) : (
+                    'Connect'
+                  )}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+    </>
   ) : (
     <>
       <div className="flex items-center justify-between">

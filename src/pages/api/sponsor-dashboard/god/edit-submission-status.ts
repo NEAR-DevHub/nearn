@@ -8,6 +8,7 @@ import { fetchTokenUSDValue } from '@/utils/fetchTokenUSDValue';
 
 import { type NextApiRequestWithSponsor } from '@/features/auth/types';
 import { withSponsorAuth } from '@/features/auth/utils/withSponsorAuth';
+import { BONUS_REWARD_POSITION } from '@/features/listing-builder/constants';
 import { sponsorshipSubmissionStatus } from '@/features/listings/components/SubmissionsPage/SubmissionTable';
 import { type Rewards } from '@/features/listings/types';
 import { eventLogger } from '@/features/logging/services/event-logger';
@@ -29,6 +30,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
 
   logger.debug(`Request body: ${JSON.stringify(req.body)}`);
   const { id, status, label, isPaid, paymentLink } = req.body;
+  const winnerPositionFromBody = req.body?.winnerPosition;
 
   if (!id) {
     return res.status(400).json({ error: 'Submission ID is required' });
@@ -70,6 +72,12 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
             id: userId,
           },
         };
+      } else {
+        updateData.paymentDetails = Prisma.JsonNull;
+        updateData.paymentDate = null;
+        updateData.paidByUser = {
+          disconnect: true,
+        };
       }
     }
 
@@ -105,6 +113,33 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       updateData.isWinner = true;
     }
 
+    // Handle winnerPosition for fixed bounty listings when approved
+    const canSetWinnerPosition =
+      currentSubmission.listing.type === 'bounty' &&
+      currentSubmission.listing.compensationType === 'fixed';
+
+    if (canSetWinnerPosition && typeof winnerPositionFromBody !== 'undefined') {
+      const parsedWinnerPosition = Number(winnerPositionFromBody);
+      const rewardKeys = Object.keys(
+        (currentSubmission.listing.rewards || {}) as Record<string, number>,
+      )
+        .map(Number)
+        .filter((n) => !isNaN(n));
+
+      const willBeApproved =
+        status === 'Approved' ||
+        (!status && currentSubmission.status === 'Approved');
+
+      if (
+        willBeApproved &&
+        !isNaN(parsedWinnerPosition) &&
+        rewardKeys.includes(parsedWinnerPosition)
+      ) {
+        updateData.winnerPosition = parsedWinnerPosition;
+        updateData.isWinner = true;
+      }
+    }
+
     const result = await prisma.submission.update({
       where: { id },
       data: {
@@ -124,20 +159,56 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       if (listing.compensationType !== 'fixed' && currentSubmission.ask) {
         if (currentSubmission.winnerPosition) {
           const position = currentSubmission.winnerPosition.toString();
+          const removedPosition = Number(currentSubmission.winnerPosition);
           const { [position]: removed, ...remainingRewards } = oldRewards;
           logger.debug(`Removed reward: ${removed}`);
           logger.debug(
             `Remaining rewards: ${JSON.stringify(remainingRewards)}`,
           );
 
-          await prisma.bounties.update({
-            where: { id: listing.id },
-            data: {
-              rewards: remainingRewards,
-              usdValue: { decrement: currentSubmission.rewardInUSD },
-              updatedAt: new Date(),
+          // Shift all rewards with position greater than the removed position down by 1 (skip bonus)
+          const shiftedRewards = Object.entries(remainingRewards).reduce(
+            (acc, [key, value]) => {
+              const numericKey = Number(key);
+              if (numericKey === BONUS_REWARD_POSITION) {
+                acc[key] = value;
+                return acc;
+              }
+              if (numericKey > removedPosition) {
+                acc[String(numericKey - 1)] = value;
+              } else {
+                acc[key] = value;
+              }
+              return acc;
             },
-          });
+            {} as Record<string, number>,
+          );
+
+          await prisma.$transaction([
+            prisma.bounties.update({
+              where: { id: listing.id },
+              data: {
+                rewards: shiftedRewards,
+                rewardAmount: { decrement: removed },
+                usdValue: { decrement: currentSubmission.rewardInUSD },
+                updatedAt: new Date(),
+              },
+            }),
+            prisma.submission.updateMany({
+              where: {
+                listingId: listing.id,
+                isWinner: true,
+                winnerPosition: {
+                  gt: removedPosition,
+                  not: BONUS_REWARD_POSITION,
+                },
+              },
+              data: {
+                winnerPosition: { decrement: 1 },
+                updatedAt: new Date(),
+              },
+            }),
+          ]);
         }
       }
     } else if (isApproving) {
@@ -163,7 +234,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
               // We already put him as a winner so we don't need to add + 1
               [maxPosition]: currentSubmission.ask,
             },
-            rewardAmount: currentSubmission.ask,
+            rewardAmount: { increment: currentSubmission.ask || 0 },
             usdValue: { increment: usdValue },
             updatedAt: new Date(),
           },

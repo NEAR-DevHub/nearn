@@ -51,11 +51,6 @@ export async function getListings({
       isPrivate: false,
       hackathonprize: false,
       isArchived: false,
-      OR: [
-        { compensationType: 'fixed', usdValue: { gt: 100 } },
-        { compensationType: 'range', maxRewardAsk: { gt: 100 } },
-        { compensationType: 'variable' },
-      ],
       language: { in: ['eng', 'sco'] }, //cuz both eng and sco refer to listings in english
       ...statusFilterQuery,
       ...(userRegion ? { region: { in: userRegion } } : {}),

@@ -1,8 +1,16 @@
 import type { CommentRefType } from '@prisma/client';
-import { AlertCircle, ChevronDown, Heart, Loader2 } from 'lucide-react';
+import {
+  AlertCircle,
+  ChevronDown,
+  Copy,
+  Heart,
+  Loader2,
+  Trash,
+} from 'lucide-react';
 import Link from 'next/link';
 import { usePostHog } from 'posthog-js/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 
 import { VerifiedBadge } from '@/components/shared/VerifiedBadge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -23,6 +31,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Tooltip } from '@/components/ui/tooltip';
+import { useClipboard } from '@/hooks/use-clipboard';
 import { useDisclosure } from '@/hooks/use-disclosure';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import type { Comment as IComment } from '@/interface/comments';
@@ -178,6 +187,17 @@ export const Comment = ({
     } catch (error) {}
   };
 
+  const { onCopy: onCopyCommentLink } = useClipboard(
+    `${getURL()}comment/${comment.id}`,
+  );
+
+  const handleCopyLink = useCallback(() => {
+    onCopyCommentLink();
+    toast.success('Comment link copied', {
+      duration: 1500,
+    });
+  }, [onCopyCommentLink]);
+
   const handleSubmit = async () => {
     try {
       setNewReplyLoading(true);
@@ -217,8 +237,9 @@ export const Comment = ({
   return (
     <>
       <div
+        id={`comment-${comment.id}`}
         key={comment.id}
-        className="flex w-full items-start gap-3 overflow-visible"
+        className="flex w-full items-start gap-3 overflow-visible transition-colors duration-300"
         onMouseEnter={() => {
           if (!isMobile) setShowOptions(true);
         }}
@@ -288,6 +309,7 @@ export const Comment = ({
                 type="button"
                 onClick={() => setShowReplies((prev) => !prev)}
                 className="relative -left-3 flex items-center text-xs font-medium text-black md:text-sm"
+                data-show-replies-button
               >
                 <ChevronDown className="mr-1 h-4 w-4" />
                 {replies?.length} {replies?.length === 1 ? 'Reply' : 'Replies'}
@@ -380,6 +402,7 @@ export const Comment = ({
               'w-full transition-all duration-200',
               !showReplies && 'hidden',
             )}
+            data-replies-container
           >
             <div className="flex w-full flex-col gap-4 pt-3">
               {replies.map((reply) => (
@@ -406,45 +429,61 @@ export const Comment = ({
         <div
           className={cn(
             'transition-opacity duration-200',
-            (showOptions || isMobile) && comment.authorId === user?.id
-              ? 'opacity-100'
-              : 'opacity-0',
+            showOptions || isMobile ? 'opacity-100' : 'opacity-0',
           )}
         >
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                className="px-2"
-                aria-label="Comment options"
-                title="Comment options"
-              >
-                <svg
-                  width="3"
-                  height="12"
-                  viewBox="0 0 3 12"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="text-slate-400"
+          {(comment.authorId === user?.id ||
+            comment.refType === 'BOUNTY' ||
+            comment.refType === 'SUBMISSION') && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className="px-2"
+                  aria-label="Comment options"
+                  title="Comment options"
                 >
-                  <title>More options</title>
-                  <path
-                    d="M1.5 3C2.325 3 3 2.325 3 1.5C3 0.675 2.325 0 1.5 0C0.675 0 0 0.675 0 1.5C0 2.325 0.675 3 1.5 3ZM1.5 4.5C0.675 4.5 0 5.175 0 6C0 6.825 0.675 7.5 1.5 7.5C2.325 7.5 3 6.825 3 6C3 5.175 2.325 4.5 1.5 4.5ZM1.5 9C0.675 9 0 9.675 0 10.5C0 11.325 0.675 12 1.5 12C2.325 12 3 11.325 3 10.5C3 9.675 2.325 9 1.5 9Z"
-                    fill="currentColor"
-                  />
-                </svg>
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="min-w-[10rem] p-1" align="end">
-              <DropdownMenuItem
-                className="ph-no-capture rounded-sm text-sm font-medium text-slate-600 md:text-base"
-                onClick={deleteOnOpen}
-                tabIndex={-1}
-              >
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                  <svg
+                    width="3"
+                    height="12"
+                    viewBox="0 0 3 12"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="text-slate-400"
+                  >
+                    <title>More options</title>
+                    <path
+                      d="M1.5 3C2.325 3 3 2.325 3 1.5C3 0.675 2.325 0 1.5 0C0.675 0 0 0.675 0 1.5C0 2.325 0.675 3 1.5 3ZM1.5 4.5C0.675 4.5 0 5.175 0 6C0 6.825 0.675 7.5 1.5 7.5C2.325 7.5 3 6.825 3 6C3 5.175 2.325 4.5 1.5 4.5ZM1.5 9C0.675 9 0 9.675 0 10.5C0 11.325 0.675 12 1.5 12C2.325 12 3 11.325 3 10.5C3 9.675 2.325 9 1.5 9Z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="min-w-[10rem] p-1" align="end">
+                {(comment.refType === 'BOUNTY' ||
+                  comment.refType === 'SUBMISSION') && (
+                  <DropdownMenuItem
+                    className="ph-no-capture rounded-sm text-sm font-medium text-slate-600 md:text-base"
+                    onClick={handleCopyLink}
+                    tabIndex={-1}
+                  >
+                    <Copy className="mr-2 h-4 w-4" />
+                    Copy Link
+                  </DropdownMenuItem>
+                )}
+                {comment.authorId === user?.id && (
+                  <DropdownMenuItem
+                    className="ph-no-capture rounded-sm text-sm font-medium text-slate-600 md:text-base"
+                    onClick={deleteOnOpen}
+                    tabIndex={-1}
+                  >
+                    <Trash className="mr-2 h-4 w-4" />
+                    Delete
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </div>
       <AlertDialog open={deleteIsOpen} onOpenChange={deleteOnClose}>

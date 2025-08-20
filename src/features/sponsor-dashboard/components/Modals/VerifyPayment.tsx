@@ -145,6 +145,99 @@ export const VerifyPaymentModal = ({
     );
   };
 
+  const processValidationResults = ({
+    validationResults,
+    paymentLinks,
+    mode,
+  }: {
+    validationResults: ValidatePaymentResult[];
+    paymentLinks: VerifyPaymentsFormData['paymentLinks'];
+    mode: 'verify' | 'force';
+  }) => {
+    if (mode === 'force') {
+      clearErrors();
+    }
+
+    const failedResults = validationResults.filter((v) => v.status === 'FAIL');
+    if (mode === 'verify') {
+      if (failedResults.length > 0) {
+        clearErrors();
+        failedResults.forEach((result) => {
+          const fieldIndex = paymentLinks.findIndex(
+            (link) => link.submissionId === result.submissionId,
+          );
+          if (fieldIndex !== -1) {
+            setError(`paymentLinks.${fieldIndex}.link`, {
+              type: 'manual',
+              message: result.message || 'Verification failed',
+            });
+          }
+        });
+        setStatus('retry');
+      } else {
+        setStatus('success');
+      }
+    }
+
+    const nonFailResults = validationResults.filter((v) => v.status !== 'FAIL');
+
+    nonFailResults.forEach((result) => {
+      const fieldIndex = paymentLinks.findIndex(
+        (link) => link.submissionId === result.submissionId,
+      );
+      if (fieldIndex !== -1) {
+        const verifyOptions =
+          mode === 'verify'
+            ? { shouldValidate: true, shouldDirty: true }
+            : undefined;
+        if (verifyOptions) {
+          setValue(
+            `paymentLinks.${fieldIndex}.isVerified`,
+            true,
+            verifyOptions,
+          );
+        } else {
+          setValue(`paymentLinks.${fieldIndex}.isVerified`, true);
+        }
+        setValue(`paymentLinks.${fieldIndex}.txId`, result.txId);
+      }
+    });
+
+    const successfulResults = validationResults.filter(
+      (v) => v.status === 'SUCCESS',
+    );
+
+    if (listing) {
+      const existingPayments = listing.BountyCounts.totalPaymentsMade || 0;
+      const newPayments = successfulResults.length;
+      const newListing = {
+        ...listing,
+        BountyCounts: {
+          ...listing.BountyCounts,
+          totalPaymentsMade: existingPayments + newPayments,
+        },
+      };
+      queryClient.setQueryData<ListingWithSubmissions[]>(
+        ['dashboard', user?.currentSponsorId],
+        (oldData) =>
+          oldData
+            ? oldData.map((l) => (l.id === newListing.id ? newListing : l))
+            : [],
+      );
+      setListing(newListing);
+    }
+
+    if (selectedSubmission) {
+      if (mode === 'force' || successfulResults.length > 0) {
+        setSelectedSubmission(selectedSubmission);
+      }
+    }
+
+    if (mode === 'force') {
+      setStatus('success');
+    }
+  };
+
   const { mutate: verifyPayment, isPending: verifyPaymentPending } =
     useMutation({
       mutationFn: (body: VerifyPaymentsFormData) => verifyPaymentMutation(body),
@@ -157,80 +250,11 @@ export const VerifyPaymentModal = ({
         });
 
         const { validationResults } = data.data;
-        const failedResults = validationResults.filter(
-          (v) => v.status === 'FAIL',
-        );
-        if (failedResults.length > 0) {
-          clearErrors();
-          failedResults.forEach((result) => {
-            const fieldIndex = variables.paymentLinks.findIndex(
-              (link) => link.submissionId === result.submissionId,
-            );
-
-            if (fieldIndex !== -1) {
-              setError(`paymentLinks.${fieldIndex}.link`, {
-                type: 'manual',
-                message: result.message || 'Verification failed',
-              });
-            }
-          });
-          setStatus('retry');
-        } else {
-          setStatus('success');
-        }
-        const nonFailResults = validationResults.filter(
-          (v) => v.status !== 'FAIL',
-        );
-
-        nonFailResults.forEach((result) => {
-          const fieldIndex = variables.paymentLinks.findIndex(
-            (link) => link.submissionId === result.submissionId,
-          );
-          if (fieldIndex !== -1) {
-            setValue(`paymentLinks.${fieldIndex}.isVerified`, true);
-            setValue(`paymentLinks.${fieldIndex}.txId`, result.txId);
-          }
+        processValidationResults({
+          validationResults,
+          paymentLinks: variables.paymentLinks,
+          mode: 'verify',
         });
-
-        const successfulResults = validationResults.filter(
-          (v) => v.status === 'SUCCESS',
-        );
-
-        if (listing) {
-          const existingPayments = listing.BountyCounts.totalPaymentsMade || 0;
-          const newPayments = successfulResults.length;
-          const newListing = {
-            ...listing,
-            BountyCounts: {
-              ...listing.BountyCounts,
-              totalPaymentsMade: existingPayments + newPayments,
-            },
-          };
-          queryClient.setQueryData<ListingWithSubmissions[]>(
-            ['dashboard', user?.currentSponsorId],
-            (oldData) =>
-              oldData
-                ? oldData.map((l) => (l.id === newListing.id ? newListing : l))
-                : [],
-          );
-          setListing(newListing);
-        }
-
-        nonFailResults.forEach((result) => {
-          const fieldIndex = variables.paymentLinks.findIndex(
-            (link) => link.submissionId === result.submissionId,
-          );
-          if (fieldIndex !== -1) {
-            setValue(`paymentLinks.${fieldIndex}.isVerified`, true, {
-              shouldValidate: true,
-              shouldDirty: true,
-            });
-          }
-        });
-
-        if (selectedSubmission && successfulResults.length > 0) {
-          setSelectedSubmission(selectedSubmission);
-        }
       },
       onError: () => {
         setStatus('retry');
@@ -249,52 +273,13 @@ export const VerifyPaymentModal = ({
             isWinner: true,
           }).queryKey,
         });
-        clearErrors();
 
         const { validationResults } = data.data;
-        const nonFailResults = validationResults.filter(
-          (v) => v.status !== 'FAIL',
-        );
-
-        nonFailResults.forEach((result) => {
-          const fieldIndex = variables.paymentLinks.findIndex(
-            (link) => link.submissionId === result.submissionId,
-          );
-          if (fieldIndex !== -1) {
-            setValue(`paymentLinks.${fieldIndex}.isVerified`, true);
-            setValue(`paymentLinks.${fieldIndex}.txId`, result.txId);
-          }
+        processValidationResults({
+          validationResults,
+          paymentLinks: variables.paymentLinks,
+          mode: 'force',
         });
-
-        const successfulResults = validationResults.filter(
-          (v) => v.status === 'SUCCESS',
-        );
-
-        if (listing) {
-          const existingPayments = listing.BountyCounts.totalPaymentsMade || 0;
-          const newPayments = successfulResults.length;
-          const newListing = {
-            ...listing,
-            BountyCounts: {
-              ...listing.BountyCounts,
-              totalPaymentsMade: existingPayments + newPayments,
-            },
-          };
-          queryClient.setQueryData<ListingWithSubmissions[]>(
-            ['dashboard', user?.currentSponsorId],
-            (oldData) =>
-              oldData
-                ? oldData.map((l) => (l.id === newListing.id ? newListing : l))
-                : [],
-          );
-          setListing(newListing);
-        }
-
-        if (selectedSubmission) {
-          setSelectedSubmission(selectedSubmission);
-        }
-
-        setStatus('success');
       },
       onError: (error) => {
         console.log('error', error);

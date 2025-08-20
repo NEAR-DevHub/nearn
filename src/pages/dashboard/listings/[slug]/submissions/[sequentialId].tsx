@@ -21,6 +21,7 @@ import { dayjs } from '@/utils/dayjs';
 import { cleanRewards } from '@/utils/rank';
 
 import { BONUS_REWARD_POSITION } from '@/features/listing-builder/constants';
+import type { Listing } from '@/features/listings/types';
 import {
   selectedSubmissionAtom,
   selectedSubmissionIdsAtom,
@@ -28,11 +29,13 @@ import {
 import { VerifyPaymentModal } from '@/features/sponsor-dashboard/components/Modals/VerifyPayment';
 import { PublishResults } from '@/features/sponsor-dashboard/components/PublishResults';
 import { ScoutTable } from '@/features/sponsor-dashboard/components/Scouts/ScoutTable';
+import AddManualPaymentModal from '@/features/sponsor-dashboard/components/Submissions/Modals/AddManualPaymentModal';
 import { RejectAllSubmissionModal } from '@/features/sponsor-dashboard/components/Submissions/Modals/RejectAllModal';
 import { SubmissionHeader } from '@/features/sponsor-dashboard/components/Submissions/SubmissionHeader';
 import { SubmissionList } from '@/features/sponsor-dashboard/components/Submissions/SubmissionList';
 import { SubmissionPanel } from '@/features/sponsor-dashboard/components/Submissions/SubmissionPanel';
 import { useRejectSubmissions } from '@/features/sponsor-dashboard/mutations/useRejectSubmissions';
+import { type SubmissionWithListingUser } from '@/features/sponsor-dashboard/queries/dashboard-submissions';
 import { sponsorDashboardListingQuery } from '@/features/sponsor-dashboard/queries/listing';
 import { scoutsQuery } from '@/features/sponsor-dashboard/queries/scouts';
 import { submissionsQuery } from '@/features/sponsor-dashboard/queries/submissions';
@@ -96,6 +99,12 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
     isOpen: verifyPaymentIsOpen,
     onOpen: verifyPaymentOnOpen,
     onClose: verifyPaymentOnClose,
+  } = useDisclosure();
+
+  const {
+    isOpen: isAddManualPaymentModalOpen,
+    onOpen: onAddManualPaymentOpen,
+    onClose: onAddManualPaymentClose,
   } = useDisclosure();
 
   const {
@@ -469,6 +478,7 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
                         submissions={paginatedSubmissions}
                         usedPositions={usedPositions || []}
                         onWinnersAnnounceOpen={onOpen}
+                        onManualPaymentOpen={onAddManualPaymentOpen}
                         onVerifyPayment={() => {
                           setVerifyAllPayments(false);
                           verifyPaymentOnOpen();
@@ -627,6 +637,19 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
             rejectIsOpen={rejectedIsOpen}
             rejectOnClose={rejectedOnClose}
             onRejectSubmission={handleRejectSubmission}
+          />
+          <AddManualPaymentModal
+            isOpen={isAddManualPaymentModalOpen}
+            onClose={onAddManualPaymentClose}
+            submission={
+              {
+                ...selectedSubmission,
+                listing: bounty as Listing,
+              } as SubmissionWithListingUser
+            }
+            onSuccess={(_) => {
+              refetchSubmissions();
+            }}
           />
         </>
       )}

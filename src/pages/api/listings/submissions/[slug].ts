@@ -142,9 +142,18 @@ async function handler(
             ? undefined
             : submission.user?.publicKey,
         },
-        paymentDetails: submission.user?.private
-          ? undefined
-          : submission.paymentDetails,
+        paymentDetails:
+          submission.user?.private && submission.user.id !== req.userId
+            ? undefined
+            : {
+                ...(submission.paymentDetails as any),
+                manual: {
+                  ...(submission.paymentDetails as any)?.manual,
+                  notes: (submission.paymentDetails as any)?.manual?.isPublic
+                    ? (submission.paymentDetails as any)?.manual?.notes
+                    : undefined,
+                },
+              },
       })),
     });
   } catch (error: any) {
