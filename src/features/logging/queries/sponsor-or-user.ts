@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 
 interface GetSponsorOrUserParams {
-  id: string;
+  id?: string;
   type: 'sponsor' | 'user';
 }
 

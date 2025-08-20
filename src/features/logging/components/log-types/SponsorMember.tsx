@@ -5,10 +5,21 @@ import {
   EventType,
 } from '@/features/logging/types/event-data';
 
+import { useGetSponsorOrUser } from '../../queries';
 import { type LogProperties } from '.';
 
 export default function SponsorMember({ event }: LogProperties) {
   const eventType = event.eventType;
+  const removedUserId =
+    event.eventType === EventType.SPONSOR_MEMBER_REMOVED
+      ? (event.data as EventDataMap[EventType.SPONSOR_MEMBER_REMOVED])
+          .removedUserId
+      : undefined;
+
+  const { data: user } = useGetSponsorOrUser({
+    id: removedUserId,
+    type: 'user',
+  });
 
   switch (eventType) {
     case EventType.SPONSOR_MEMBER_INVITED: {
@@ -41,12 +52,10 @@ export default function SponsorMember({ event }: LogProperties) {
     }
 
     case EventType.SPONSOR_MEMBER_REMOVED: {
-      const data = event.data as EventDataMap[EventType.SPONSOR_MEMBER_REMOVED];
-      // Note: User data is not available in the event, only the user ID
       return (
         <p className="inline-flex items-center gap-1 text-slate-500">
-          Removed <span className="font-medium">{data.removedUserId}</span> from
-          the team
+          Removed <span className="font-medium">{user?.name}</span> from the
+          team
         </p>
       );
     }
