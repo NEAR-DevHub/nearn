@@ -6,6 +6,9 @@ import { useEffect, useState } from 'react';
 import { useForm, type UseFormReturn } from 'react-hook-form';
 import { toast } from 'sonner';
 import { type z } from 'zod';
+import { Info, Loader2, Pencil } from 'lucide-react';
+import dayjs from 'dayjs';
+import Link from 'next/link';
 
 import { EligibilityQuestionsForm } from '@/components/eligibility/EligibilityQuestions';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -13,10 +16,16 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Form } from '@/components/ui/form';
 import { SideDrawer, SideDrawerContent } from '@/components/ui/side-drawer';
+import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
+import { Tooltip } from '@/components/ui/tooltip';
 import { tokenList } from '@/constants/tokenList';
 import { type SubmissionWithUser } from '@/interface/submission';
 import { api } from '@/lib/api';
 import { useUser } from '@/store/user';
+import { KycComponent } from '@/components/ui/KycComponent';
+import { EarnAvatar } from '@/features/talent/components/EarnAvatar';
+import { cn } from '@/utils/cn';
+import { colorMap } from '@/features/sponsor-dashboard/utils/statusColorMap';
 
 import { AuthWrapper } from '@/features/auth/components/AuthWrapper';
 
@@ -24,9 +33,11 @@ import { useSubmissionDraft } from '../../hooks/useSubmissionDraft';
 import { submissionCountQuery } from '../../queries/submission-count';
 import { listingSubmissionsQuery } from '../../queries/submissions';
 import { userSubmissionQuery } from '../../queries/user-submission-status';
+import { userAllSubmissionsQuery } from '../../queries/user-all-submissions';
 import { type Listing } from '../../types';
 import { submissionSchema } from '../../utils/submissionFormSchema';
 import { SubmissionTerms } from './SubmissionTerms';
+import { sponsorshipSubmissionStatus, LikeAndComment } from '../SubmissionsPage/SubmissionTable';
 
 interface Props {
   isOpen: boolean;
@@ -34,10 +45,12 @@ interface Props {
   editMode: boolean;
   listing: Listing;
   submission: SubmissionWithUser | undefined;
+  submissions?: SubmissionWithUser[];
   isTemplate?: boolean;
   showEasterEgg: () => void;
   onSurveyOpen: () => void;
   isGodMode?: boolean;
+  refetchSubmissions?: () => void;
 }
 
 type FormData = z.infer<ReturnType<typeof submissionSchema>>;
@@ -48,10 +61,12 @@ export const SubmissionDrawer = ({
   editMode,
   listing,
   submission,
+  submissions,
   isTemplate = false,
   showEasterEgg,
   onSurveyOpen,
   isGodMode = false,
+  refetchSubmissions,
 }: Props) => {
   const {
     id,
@@ -70,6 +85,9 @@ export const SubmissionDrawer = ({
   const [isTOSModalOpen, setIsTOSModalOpen] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [editFetched, setEditFetched] = useState(false);
+  const [showSelectionView, setShowSelectionView] = useState(false);
+  const [selectedSubmission, setSelectedSubmission] = useState<SubmissionWithUser | undefined>(submission);
+  const [isLoadingSubmissions, setIsLoadingSubmissions] = useState(false);
 
   const { user, refetchUser } = useUser();
   const form: UseFormReturn<FormData> = useForm<FormData>({
@@ -80,9 +98,9 @@ export const SubmissionDrawer = ({
       eligibilityAnswers:
         Array.isArray(listing.eligibility) && listing.eligibility.length > 0
           ? listing.eligibility.map((q) => ({
-              question: q.question,
-              answer: '',
-            }))
+            question: q.question,
+            answer: '',
+          }))
           : [],
       token: token === 'Any' ? tokenList[0]?.tokenSymbol : undefined,
     },
@@ -101,15 +119,34 @@ export const SubmissionDrawer = ({
 
   const handleClose = () => {
     setTermsAccepted(false);
+    setShowSelectionView(false);
+    setSelectedSubmission(submission);
     onClose();
   };
 
+  const canEdit = (sub: SubmissionWithUser) => {
+    return sub.label === 'New' && sub.status === 'Pending';
+  };
+
+  const handleEditSubmission = (sub: SubmissionWithUser) => {
+    setSelectedSubmission(sub);
+    setShowSelectionView(false);
+  };
+
+  useEffect(() => {
+    if (editMode && submissions && submissions.length > 1 && !selectedSubmission) {
+      setShowSelectionView(true);
+    } else if (editMode && submissions && submissions.length === 1 && !selectedSubmission) {
+      setSelectedSubmission(submissions[0]);
+    }
+  }, [editMode, submissions, selectedSubmission]);
+
   useEffect(() => {
     const fetchData = async () => {
-      if (editMode && submission?.id) {
+      if (editMode && selectedSubmission?.id && !showSelectionView) {
         try {
           const response = await api.get('/api/submission/get/', {
-            params: { id: submission.id },
+            params: { id: selectedSubmission.id },
           });
 
           const {
@@ -154,7 +191,7 @@ export const SubmissionDrawer = ({
     };
 
     fetchData();
-  }, [id, editMode, form.reset, isOpen, loadDraft]);
+  }, [id, editMode, form.reset, isOpen, loadDraft, selectedSubmission, showSelectionView]);
 
   const onSubmit = async (data: FormData) => {
     posthog.capture('confirmed_submission');
@@ -174,7 +211,7 @@ export const SubmissionDrawer = ({
         eligibilityAnswers: data.eligibilityAnswers || [],
         publicKey: data.publicKey,
         token: token === 'Any' ? data.token : undefined,
-        submissionId: editMode ? submission?.id : undefined,
+        submissionId: editMode ? selectedSubmission?.id : undefined,
         isGodMode: isGodMode,
       });
 
@@ -195,6 +232,13 @@ export const SubmissionDrawer = ({
       await queryClient.invalidateQueries({
         queryKey: userSubmissionQuery(id!, user!.id).queryKey,
       });
+
+      // Invalidate all submissions query if multiple submissions are allowed
+      if (listing.submissionLimit === 'multiple') {
+        await queryClient.invalidateQueries({
+          queryKey: userAllSubmissionsQuery(id!, user!.id).queryKey,
+        });
+      }
 
       await refetchUser();
 
@@ -230,102 +274,213 @@ export const SubmissionDrawer = ({
 
   return (
     <SideDrawer open={isOpen} onClose={handleClose} className="scrollbar-none">
-      <SideDrawerContent>
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            style={{ width: '100%', height: '100%' }}
-          >
-            <div className="flex h-full flex-col justify-between gap-6">
-              <EligibilityQuestionsForm
-                questions={eligibility}
-                control={form.control}
-                listingId={id ?? null}
-                sponsorId={listing.sponsorId ?? null}
-                editFetched={editFetched}
-                compensationType={compensationType ?? null}
-                token={token ?? null}
-                listingType={type ?? null}
-                isGodMode={isGodMode}
-              />
-              <div className="flex w-full flex-col">
-                {user?.private && !editMode && (
-                  <div className="mb-4">
-                    <Alert className="border-yellow-200 bg-yellow-50">
-                      <AlertDescription className="text-yellow-800">
-                        <strong>Privacy Notice:</strong> Your full profile,
-                        including all details that are normally hidden from
-                        public view, will be shared with the sponsor of this
-                        listing when you submit your application.
-                      </AlertDescription>
-                    </Alert>
-                  </div>
-                )}
-                {isHackathon && !editMode && (
-                  <div className="mb-4 flex items-start space-x-3">
-                    <Checkbox
-                      id="terms"
-                      className="mt-1 data-[state=checked]:border-brand-green data-[state=checked]:bg-brand-green"
-                      checked={termsAccepted}
-                      onCheckedChange={(checked) =>
-                        setTermsAccepted(checked as boolean)
-                      }
-                    />
-                    <label
-                      htmlFor="terms"
-                      className="text-sm leading-none text-slate-600"
-                    >
-                      I confirm that I have reviewed the scope of this track and
-                      that my submission adheres to the specified requirements.
-                      Submitting a project that does not meet the submission
-                      requirements, including potential spam, may result in
-                      restrictions on future submissions.
-                    </label>
-                  </div>
-                )}
-
-                <AuthWrapper
-                  showCompleteProfileModal
-                  completeProfileModalBodyText={
-                    'Please complete your profile before submitting to a listing.'
-                  }
-                >
-                  <Button
-                    className="ph-no-capture h-12 w-full"
-                    disabled={
-                      isTemplate ||
-                      (!listing.isPublished && !!query['preview']) ||
-                      (isHackathon && !editMode && !termsAccepted)
-                    }
-                    type="submit"
-                  >
-                    {isLoading ? (
-                      <>
-                        <span className="loading loading-spinner"></span>
-                        Submitting...
-                      </>
-                    ) : isProject ? (
-                      'Apply'
-                    ) : (
-                      'Submit'
-                    )}
-                  </Button>
-                </AuthWrapper>
-                <p className="mt-2 text-center text-xs text-slate-400 sm:text-sm">
-                  By submitting/applying to this listing, you agree to our{' '}
-                  <button
-                    onClick={() => setIsTOSModalOpen(true)}
-                    className="cursor-pointer underline underline-offset-2"
-                    rel="noopener noreferrer"
-                  >
-                    Terms of Use
-                  </button>
-                  .
-                </p>
-              </div>
+      <SideDrawerContent className="p-6 min-w-[640px]">
+        {showSelectionView && submissions ? (
+          <div className="flex h-full flex-col">
+            <div className="mb-6">
+              <h2 className="text-lg font-semibold font-">Your Submissions</h2>
+              <p className="text-sm text-gray-500 mt-1">
+                Several requests have already been submitted. Editing is available for some of them
+              </p>
             </div>
-          </form>
-        </Form>
+            <div className="flex-1 overflow-y-auto">
+              {isLoadingSubmissions ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+                </div>
+              ) : submissions.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  No submissions found
+                </div>
+              ) : (
+                <Table className="w-full">
+                  <TableBody className="w-full">
+                    {submissions.map((sub) => {
+                      const submissionStatus = sponsorshipSubmissionStatus(sub);
+                      const isEditable = canEdit(sub);
+
+                      return (
+                        <TableRow key={sub.id}>
+                          <TableCell className="min-w-[250px] pr-0">
+                            <Link
+                              className="flex items-center"
+                              href={`/t/${sub?.user?.username}`}
+                            >
+                              <EarnAvatar
+                                id={sub?.user?.id}
+                                avatar={sub?.user?.photo || undefined}
+                              />
+                              <div className="ml-2 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <p className="truncate whitespace-nowrap text-sm font-medium text-slate-700">
+                                    {sub?.user?.private
+                                      ? sub?.user?.username
+                                      : sub?.user?.name}
+                                  </p>
+                                  {sub?.user?.publicKey && (
+                                    <KycComponent
+                                      address={sub.user.publicKey}
+                                      imageOnly
+                                      variant="xs"
+                                      listingSponsorId={listing?.sponsorId}
+                                    />
+                                  )}
+                                </div>
+                                <p className="truncate text-xs font-medium text-slate-500">
+                                  {dayjs(sub.createdAt).format(
+                                    "D MMM' YY h:MM A",
+                                  )}
+                                </p>
+                              </div>
+                            </Link>
+                          </TableCell>
+                          <TableCell className="cursor-pointer py-2 w-full justify-center">
+                            <span
+                              className={cn(
+                                'inline-flex whitespace-nowrap rounded-full px-3 py-1 text-center text-sm font-medium',
+                                colorMap[
+                                  submissionStatus as keyof typeof colorMap
+                                ].bg,
+                                colorMap[
+                                  submissionStatus as keyof typeof colorMap
+                                ].color,
+                              )}
+                            >
+                              {submissionStatus}
+                            </span>
+                          </TableCell>
+                          <TableCell className="items-center py-2 w-full justify-center">
+                            <LikeAndComment
+                              id={sub.id}
+                              bounty={listing}
+                              submission={sub}
+                              setUpdate={refetchSubmissions || (() => { })}
+                            />
+                          </TableCell>
+                          <TableCell className="px-0 py-2 flex items-center gap-2 justify-end w-full">
+                            <div className="flex items-center justify-between">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                disabled={!isEditable}
+                                className="ph-no-capture text-[13px] font-medium text-black"
+                                onClick={() => handleEditSubmission(sub)}
+                              >
+                                <Pencil className="h-4 w-4" />
+                                Edit
+                              </Button>
+                            </div>
+                            {!isEditable && (
+                              <Tooltip content="The submission can no longer be edited due to a status change" contentProps={{ className: "z-[1000]" }}>
+                                <Info className="h-4 w-4" />
+                              </Tooltip>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              )}
+            </div>
+          </div>
+        ) : (
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              style={{ width: '100%', height: '100%' }}
+            >
+              <div className="flex h-full flex-col justify-between gap-6">
+                <EligibilityQuestionsForm
+                  questions={eligibility}
+                  control={form.control}
+                  listingId={id ?? null}
+                  sponsorId={listing.sponsorId ?? null}
+                  editFetched={editFetched}
+                  compensationType={compensationType ?? null}
+                  token={token ?? null}
+                  listingType={type ?? null}
+                  isGodMode={isGodMode}
+                />
+                <div className="flex w-full flex-col">
+                  {user?.private && !editMode && (
+                    <div className="mb-4">
+                      <Alert className="border-yellow-200 bg-yellow-50">
+                        <AlertDescription className="text-yellow-800">
+                          <strong>Privacy Notice:</strong> Your full profile,
+                          including all details that are normally hidden from
+                          public view, will be shared with the sponsor of this
+                          listing when you submit your application.
+                        </AlertDescription>
+                      </Alert>
+                    </div>
+                  )}
+                  {isHackathon && !editMode && (
+                    <div className="mb-4 flex items-start space-x-3">
+                      <Checkbox
+                        id="terms"
+                        className="mt-1 data-[state=checked]:border-brand-green data-[state=checked]:bg-brand-green"
+                        checked={termsAccepted}
+                        onCheckedChange={(checked) =>
+                          setTermsAccepted(checked as boolean)
+                        }
+                      />
+                      <label
+                        htmlFor="terms"
+                        className="text-sm leading-none text-slate-600"
+                      >
+                        I confirm that I have reviewed the scope of this track and
+                        that my submission adheres to the specified requirements.
+                        Submitting a project that does not meet the submission
+                        requirements, including potential spam, may result in
+                        restrictions on future submissions.
+                      </label>
+                    </div>
+                  )}
+
+                  <AuthWrapper
+                    showCompleteProfileModal
+                    completeProfileModalBodyText={
+                      'Please complete your profile before submitting to a listing.'
+                    }
+                  >
+                    <Button
+                      className="ph-no-capture h-12 w-full"
+                      disabled={
+                        isTemplate ||
+                        (!listing.isPublished && !!query['preview']) ||
+                        (isHackathon && !editMode && !termsAccepted)
+                      }
+                      type="submit"
+                    >
+                      {isLoading ? (
+                        <>
+                          <span className="loading loading-spinner"></span>
+                          Submitting...
+                        </>
+                      ) : isProject ? (
+                        'Apply'
+                      ) : (
+                        'Submit'
+                      )}
+                    </Button>
+                  </AuthWrapper>
+                  <p className="mt-2 text-center text-xs text-slate-400 sm:text-sm">
+                    By submitting/applying to this listing, you agree to our{' '}
+                    <button
+                      onClick={() => setIsTOSModalOpen(true)}
+                      className="cursor-pointer underline underline-offset-2"
+                      rel="noopener noreferrer"
+                    >
+                      Terms of Use
+                    </button>
+                    .
+                  </p>
+                </div>
+              </div>
+            </form>
+          </Form>
+        )}
         {listing?.sponsor?.name && (
           <SubmissionTerms
             entityName={listing.sponsor.entityName}

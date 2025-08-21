@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { Loader2, Pencil } from 'lucide-react';
 import { useRouter } from 'next/router';
@@ -16,6 +16,7 @@ import { cn } from '@/utils/cn';
 import { AuthWrapper } from '@/features/auth/components/AuthWrapper';
 
 import { userSubmissionQuery } from '../../queries/user-submission-status';
+import { userAllSubmissionsQuery } from '../../queries/user-all-submissions';
 import { type Listing } from '../../types';
 import { isDeadlineOver } from '../../utils/deadline';
 import {
@@ -26,6 +27,7 @@ import { getListingDraftStatus } from '../../utils/status';
 import { ShareListing } from '../ListingPage/ShareListing';
 import { EasterEgg } from './EasterEgg';
 import { SubmissionDrawer } from './SubmissionDrawer';
+import { SubmissionUnderReviewModal } from './SubmissionUnderReviewModal';
 
 interface Props {
   listing: Listing;
@@ -70,16 +72,21 @@ export const SubmissionActionButton = ({
   const {
     id,
     status,
+    multipleSubmissionRule,
+    submissionLimit,
     isPublished,
     region,
     type,
-    isWinnersAnnounced,
     Hackathon,
+    isWinnersAnnounced,
   } = listing;
 
   const [isEasterEggOpen, setEasterEggOpen] = useState(false);
+  const [showUnderReviewModal, setShowUnderReviewModal] = useState(false);
+  const [isEditMultipleMode, setIsEditMultipleMode] = useState(false);
 
   const { user } = useUser();
+  const queryClient = useQueryClient();
 
   const { status: authStatus } = useSession();
 
@@ -95,6 +102,11 @@ export const SubmissionActionButton = ({
     enabled: isAuthenticated,
   });
 
+  const { data: allSubmissions = [], isLoading: isAllSubmissionsLoading } = useQuery({
+    ...userAllSubmissionsQuery(id!, user?.id),
+    enabled: isAuthenticated && listing.submissionLimit === 'multiple',
+  });
+
   const isSubmitted = submission?.isSubmitted ?? false;
   const submissionStatus = submission?.status;
   const posthog = usePostHog();
@@ -103,16 +115,33 @@ export const SubmissionActionButton = ({
 
   const { isOpen, onOpen, onClose } = useDisclosure();
 
+  const handleDrawerClose = () => {
+    setIsEditMultipleMode(false);
+    onClose();
+  };
+
   const regionTooltipLabel = getRegionTooltipLabel(region);
 
   const bountyDraftStatus = getListingDraftStatus(status, isPublished);
 
   const isSponsorship = type === 'sponsorship';
   const isProject = type === 'project';
+  const isMultipleSubmission = submissionLimit === 'multiple';
+
+  // Check if user has pending submission
+  const hasPendingSubmission = allSubmissions.some(
+    sub => sub.status === 'Pending'
+  );
 
   const buttonState = getButtonState();
 
   const handleSubmit = () => {
+    // Handle Submit Now click for afterReview rule with pending submission
+    if (isMultipleSubmission && multipleSubmissionRule === 'afterReview' && hasPendingSubmission) {
+      setShowUnderReviewModal(true);
+      return;
+    }
+
     onOpen();
     if (buttonState === 'submit') {
       posthog.capture('start_submission');
@@ -136,21 +165,16 @@ export const SubmissionActionButton = ({
 
   function getButtonState() {
     if (isSubmitted && submission?.label === 'Spam') return 'spam';
+
+    if (isMultipleSubmission) {
+      return 'submit';
+    }
+
     if (isSubmitted && submissionStatus === 'Rejected' && !isSponsorship)
       return 'rejected';
     if (isSubmitted && submissionStatus === 'Rejected' && isSponsorship)
       return 'submit';
     if (isSubmitted) {
-      if (
-        isSponsorship &&
-        (submission?.isPaid || submission?.status === 'Approved')
-      )
-        return 'submit';
-      if (
-        isSponsorship &&
-        (submission?.label !== 'New' || submissionStatus !== 'Pending')
-      )
-        return 'freeze';
       return 'edit';
     }
     return 'submit';
@@ -160,12 +184,6 @@ export const SubmissionActionButton = ({
     case 'spam':
       buttonText = 'Application Flagged as Spam';
       buttonBG = 'bg-red-600';
-      isBtnDisabled = true;
-      btnLoadingText = null;
-      break;
-    case 'freeze':
-      buttonText = 'Application Locked';
-      buttonBG = 'bg-gray-500';
       isBtnDisabled = true;
       btnLoadingText = null;
       break;
@@ -186,11 +204,11 @@ export const SubmissionActionButton = ({
       buttonBG = 'bg-black';
       isBtnDisabled = Boolean(
         isDeadlineOver(listing.deadline ?? undefined) ||
-          (user?.id &&
-            user?.isTalentFilled &&
-            ((bountyDraftStatus !== 'PUBLISHED' && !query['preview']) ||
-              !hasHackathonStarted ||
-              !isUserEligibleByRegion)),
+        (user?.id &&
+          user?.isTalentFilled &&
+          ((bountyDraftStatus !== 'PUBLISHED' && !query['preview']) ||
+            !hasHackathonStarted ||
+            !isUserEligibleByRegion)),
       );
       btnLoadingText = 'Checking Submission..';
   }
@@ -211,14 +229,20 @@ export const SubmissionActionButton = ({
     <>
       {isOpen && (
         <SubmissionDrawer
-          onClose={onClose}
+          onClose={handleDrawerClose}
           isOpen={isOpen}
-          editMode={buttonState === 'edit'}
+          editMode={buttonState === 'edit' || isEditMultipleMode}
           listing={listing}
-          submission={submission}
+          submission={isEditMultipleMode ? undefined : submission}
+          submissions={isEditMultipleMode ? allSubmissions : undefined}
           isTemplate={isTemplate}
           showEasterEgg={() => setEasterEggOpen(true)}
           onSurveyOpen={onSurveyOpen}
+          refetchSubmissions={async () => {
+            await queryClient.invalidateQueries({
+              queryKey: userAllSubmissionsQuery(id!, user?.id).queryKey,
+            });
+          }}
         />
       )}
       {isSurveyOpen &&
@@ -236,6 +260,12 @@ export const SubmissionActionButton = ({
           isProject={isProject}
         />
       )}
+      {showUnderReviewModal && (
+        <SubmissionUnderReviewModal
+          isOpen={showUnderReviewModal}
+          onClose={() => setShowUnderReviewModal(false)}
+        />
+      )}
 
       <div className="ph-no-capture fixed bottom-0 left-1/2 z-50 flex w-full -translate-x-1/2 items-start gap-2 bg-white px-3 py-4 pt-2 md:static md:translate-x-0 md:px-0 md:py-0">
         <div className="md:hidden">
@@ -248,22 +278,21 @@ export const SubmissionActionButton = ({
           hackathonStartDate={hackathonStartDate}
         >
           <AuthWrapper className="w-full">
-            <div className="w-full">
+            <div className="w-full flex flex-col gap-2">
               <Button
                 className={cn(
-                  'h-12 w-full gap-4 text-lg',
-                  'mb-12 md:mb-5',
+                  'h-12 gap-4 text-lg flex-1',
                   'disabled:opacity-70',
                   buttonBG,
                   'hover:opacity-90',
                   buttonState === 'edit' &&
-                    'border-brand-green text-gray-600 hover:text-gray-900',
+                  'border-brand-green text-gray-600 hover:text-gray-900',
                 )}
                 disabled={isBtnDisabled}
                 onClick={handleSubmit}
                 variant={buttonState === 'edit' ? 'outline' : 'default'}
               >
-                {isUserSubmissionLoading ? (
+                {isUserSubmissionLoading || isAllSubmissionsLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     <span>{btnLoadingText}</span>
@@ -275,6 +304,26 @@ export const SubmissionActionButton = ({
                   </>
                 )}
               </Button>
+              {/* Show Edit Submissions button for multiple submissions with existing submissions */}
+              {isMultipleSubmission && allSubmissions.length > 0 && (
+                <Button
+                  className={cn(
+                    'h-12 gap-2 text-lg',
+                    'mb-12 md:mb-5',
+                    'border-brand-green text-gray-600 hover:text-gray-900',
+                  )}
+                  onClick={() => {
+                    posthog.capture('view_submissions');
+                    setIsEditMultipleMode(true);
+                    onOpen();
+                  }}
+                  variant="outline"
+                >
+                  <Pencil className="h-4 w-4" />
+                  <span>{isProject ? 'Edit Applications' : 'Edit Submissions'}</span>
+                </Button>
+              )}
+
             </div>
           </AuthWrapper>
         </InfoWrapper>

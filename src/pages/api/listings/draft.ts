@@ -55,6 +55,8 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       isPrivate,
       skills,
       isFndnPaying,
+      submissionLimit,
+      multipleSubmissionRule,
     } = req.body as Partial<ListingFormData>;
 
     const { error, listing } = id
@@ -133,6 +135,10 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       sponsorId: userSponsorId,
       pocId: userId,
       isFndnPaying,
+      submissionLimit: submissionLimit || (type === 'sponsorship' ? 'multiple' : 'single'),
+      multipleSubmissionRule: submissionLimit === 'multiple' 
+        ? (multipleSubmissionRule || (type === 'sponsorship' ? 'afterReview' : 'immediately'))
+        : null,
     };
 
     let result;
