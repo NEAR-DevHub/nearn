@@ -210,7 +210,7 @@ export const DoneBy = ({
   );
 };
 
-type ActionTab = 'notes' | 'comments';
+type ActionTab = 'activity' | 'notes' | 'comments';
 
 export const SubmissionPanel = ({
   bounty,
@@ -246,7 +246,7 @@ export const SubmissionPanel = ({
     refType: 'submission',
     refId: selectedSubmission?.id,
   });
-  const [activeTab, setActiveTab] = useState<ActionTab>('notes');
+  const [activeTab, setActiveTab] = useState<ActionTab>('activity');
 
   const { onCopy: onCopyEmail } = useClipboard(
     selectedSubmission?.user?.email || '',
