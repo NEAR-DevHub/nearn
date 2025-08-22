@@ -23,6 +23,7 @@ export async function POST(request: Request) {
       actor: {
         type: 'SYSTEM',
       },
+      subType: type,
       entities: {
         submissionId,
         sponsorId,
@@ -30,7 +31,6 @@ export async function POST(request: Request) {
       },
       data: {
         message,
-        type,
       },
     });
 

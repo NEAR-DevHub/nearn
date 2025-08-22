@@ -708,7 +708,7 @@ export const SubmissionPanel = ({
               </div>
               <div className="w-1/3 border-l">
                 <Tabs
-                  defaultValue="notes"
+                  defaultValue="activity"
                   value={activeTab}
                   onValueChange={(tab) => setActiveTab(tab as ActionTab)}
                   className="w-full"
