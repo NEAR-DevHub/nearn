@@ -13,6 +13,7 @@ import { type EventDataMap, EventType } from '../types/event-data';
 export interface Log<T extends EventType> {
   eventType: T;
   actor: { id?: string; type: ActorType };
+  subType?: string;
   entities?: {
     listingId?: string;
     submissionId?: string;
@@ -138,6 +139,7 @@ class EventLoggerService implements EventLogger {
 
         return {
           eventType: event.eventType,
+          subType: event.subType || null,
           actorId: event.actor.id,
           actorType: finalActorType,
           listingId: event.entities?.listingId || null,

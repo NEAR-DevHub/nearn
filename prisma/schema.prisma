@@ -684,6 +684,7 @@ model EventLog {
   commentId    String?
 
   eventType String
+  subType   String?
 
   actorId   String?
   actorType ActorType
@@ -706,6 +707,7 @@ model EventLog {
   @@index([commentId, eventTime(sort: Desc)])
   @@index([actorId, eventTime(sort: Desc)])
   @@index([eventType, eventTime(sort: Desc)])
+  @@index([subType, eventTime(sort: Desc)])
   @@index([visibility, eventTime(sort: Desc)])
 }
 
