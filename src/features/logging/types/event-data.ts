@@ -349,7 +349,6 @@ export interface EventDataMap {
 
   [EventType.AUTOMATION_LOG]: {
     message: string;
-    type: string;
   };
 }
 
