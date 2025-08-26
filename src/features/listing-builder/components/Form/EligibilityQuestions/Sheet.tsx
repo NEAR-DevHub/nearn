@@ -49,6 +49,10 @@ function SubmissionLimit() {
     control: form.control,
     name: 'submissionLimit',
   });
+  const multipleSubmissionRule = useWatch({
+    control: form.control,
+    name: 'multipleSubmissionRule',
+  });
   const isUpdating = useAtomValue(isEditingAtom);
 
   const isSponorship = type === 'sponsorship';
@@ -122,7 +126,7 @@ function SubmissionLimit() {
               <FormItem className="space-y-3">
                 <RadioGroup
                   value={
-                    field.value ||
+                    multipleSubmissionRule ||
                     (isSponorship ? 'afterReview' : 'immediately')
                   }
                   onValueChange={field.onChange}
@@ -144,7 +148,11 @@ function SubmissionLimit() {
                     </div>
                   </div>
                   <div className="flex items-start space-x-2">
-                    <RadioGroupItem value="afterReview" id="afterReview" />
+                    <RadioGroupItem
+                      disabled={type !== 'sponsorship'}
+                      value="afterReview"
+                      id="afterReview"
+                    />
                     <div className="grid leading-none">
                       <Label
                         htmlFor="afterReview"
