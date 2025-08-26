@@ -273,9 +273,6 @@ export const SubmissionActionButton = ({
       )}
 
       <div className="ph-no-capture fixed bottom-0 left-1/2 z-50 flex w-full -translate-x-1/2 items-start gap-2 bg-white px-3 py-4 pt-2 md:static md:translate-x-0 md:px-0 md:py-0">
-        <div className="md:hidden">
-          <ShareListing source="listing" className="h-12" listing={listing} />
-        </div>
         <InfoWrapper
           isUserEligibleByRegion={isUserEligibleByRegion}
           hasHackathonStarted={hasHackathonStarted}
@@ -284,31 +281,40 @@ export const SubmissionActionButton = ({
         >
           <AuthWrapper className="w-full">
             <div className="flex w-full flex-col gap-2">
-              <Button
-                className={cn(
-                  'h-12 flex-1 gap-4 text-lg',
-                  'disabled:opacity-70',
-                  buttonBG,
-                  'hover:opacity-90',
-                  buttonState === 'edit' &&
-                    'border-brand-green text-gray-600 hover:text-gray-900',
-                )}
-                disabled={isBtnDisabled}
-                onClick={handleSubmit}
-                variant={buttonState === 'edit' ? 'outline' : 'default'}
-              >
-                {isUserSubmissionLoading || isAllSubmissionsLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    <span>{btnLoadingText}</span>
-                  </>
-                ) : (
-                  <>
-                    {buttonState === 'edit' && <Pencil />}
-                    <span>{buttonText}</span>
-                  </>
-                )}
-              </Button>
+              <div className="flex w-full gap-2">
+                <div className="md:hidden">
+                  <ShareListing
+                    source="listing"
+                    className="h-12"
+                    listing={listing}
+                  />
+                </div>
+                <Button
+                  className={cn(
+                    'h-12 flex-1 gap-4 text-lg',
+                    'disabled:opacity-70',
+                    buttonBG,
+                    'hover:opacity-90',
+                    buttonState === 'edit' &&
+                      'border-brand-green text-gray-600 hover:text-gray-900',
+                  )}
+                  disabled={isBtnDisabled}
+                  onClick={handleSubmit}
+                  variant={buttonState === 'edit' ? 'outline' : 'default'}
+                >
+                  {isUserSubmissionLoading || isAllSubmissionsLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <span>{btnLoadingText}</span>
+                    </>
+                  ) : (
+                    <>
+                      {buttonState === 'edit' && <Pencil />}
+                      <span>{buttonText}</span>
+                    </>
+                  )}
+                </Button>
+              </div>
               {/* Show Edit Submissions button for multiple submissions with existing submissions */}
               {isMultipleSubmission && allSubmissions.length > 0 && (
                 <Button

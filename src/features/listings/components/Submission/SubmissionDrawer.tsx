@@ -295,7 +295,7 @@ export const SubmissionDrawer = ({
 
   return (
     <SideDrawer open={isOpen} onClose={handleClose} className="scrollbar-none">
-      <SideDrawerContent className="min-w-[672px] p-6">
+      <SideDrawerContent className="p-6 md:min-w-[672px]">
         {showSelectionView && submissions ? (
           <div className="flex h-full flex-col">
             <div className="mb-6">
@@ -305,14 +305,14 @@ export const SubmissionDrawer = ({
                 available for some of them
               </p>
             </div>
-            <div className="flex-1 overflow-y-auto">
+            <div className="w-full max-w-[95vw] flex-1 overflow-x-auto overflow-y-auto md:max-w-full">
               {submissions.length === 0 ? (
                 <div className="py-8 text-center text-gray-500">
                   No submissions found
                 </div>
               ) : (
-                <Table className="w-full">
-                  <TableBody className="w-full">
+                <Table>
+                  <TableBody>
                     {submissions.map((sub) => {
                       const submissionStatus = sponsorshipSubmissionStatus(sub);
                       const isEditable = canEdit(sub);
