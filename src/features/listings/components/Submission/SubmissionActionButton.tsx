@@ -314,12 +314,27 @@ export const SubmissionActionButton = ({
                     </>
                   )}
                 </Button>
+                {isMultipleSubmission && allSubmissions.length > 0 && (
+                  <Button
+                    className={cn(
+                      'mb-12 h-12 border-brand-green text-gray-600 hover:text-gray-900 md:mb-5 md:hidden',
+                    )}
+                    variant="outline"
+                    onClick={() => {
+                      posthog.capture('view_submissions');
+                      setIsEditMultipleMode(true);
+                      onOpen();
+                    }}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
               {/* Show Edit Submissions button for multiple submissions with existing submissions */}
               {isMultipleSubmission && allSubmissions.length > 0 && (
                 <Button
                   className={cn(
-                    'h-12 gap-2 text-lg',
+                    'hidden h-12 gap-2 text-lg md:flex',
                     'mb-12 md:mb-5',
                     'border-brand-green text-gray-600 hover:text-gray-900',
                   )}
