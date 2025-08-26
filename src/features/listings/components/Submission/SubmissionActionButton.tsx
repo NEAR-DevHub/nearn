@@ -15,8 +15,8 @@ import { cn } from '@/utils/cn';
 
 import { AuthWrapper } from '@/features/auth/components/AuthWrapper';
 
-import { userSubmissionQuery } from '../../queries/user-submission-status';
 import { userAllSubmissionsQuery } from '../../queries/user-all-submissions';
+import { userSubmissionQuery } from '../../queries/user-submission-status';
 import { type Listing } from '../../types';
 import { isDeadlineOver } from '../../utils/deadline';
 import {
@@ -102,10 +102,11 @@ export const SubmissionActionButton = ({
     enabled: isAuthenticated,
   });
 
-  const { data: allSubmissions = [], isLoading: isAllSubmissionsLoading } = useQuery({
-    ...userAllSubmissionsQuery(id!, user?.id),
-    enabled: isAuthenticated && listing.submissionLimit === 'multiple',
-  });
+  const { data: allSubmissions = [], isLoading: isAllSubmissionsLoading } =
+    useQuery({
+      ...userAllSubmissionsQuery(id!, user?.id),
+      enabled: isAuthenticated && listing.submissionLimit === 'multiple',
+    });
 
   const isSubmitted = submission?.isSubmitted ?? false;
   const submissionStatus = submission?.status;
@@ -130,14 +131,18 @@ export const SubmissionActionButton = ({
 
   // Check if user has pending submission
   const hasPendingSubmission = allSubmissions.some(
-    sub => sub.status === 'Pending'
+    (sub) => sub.status === 'Pending',
   );
 
   const buttonState = getButtonState();
 
   const handleSubmit = () => {
     // Handle Submit Now click for afterReview rule with pending submission
-    if (isMultipleSubmission && multipleSubmissionRule === 'afterReview' && hasPendingSubmission) {
+    if (
+      isMultipleSubmission &&
+      multipleSubmissionRule === 'afterReview' &&
+      hasPendingSubmission
+    ) {
       setShowUnderReviewModal(true);
       return;
     }
@@ -204,11 +209,11 @@ export const SubmissionActionButton = ({
       buttonBG = 'bg-black';
       isBtnDisabled = Boolean(
         isDeadlineOver(listing.deadline ?? undefined) ||
-        (user?.id &&
-          user?.isTalentFilled &&
-          ((bountyDraftStatus !== 'PUBLISHED' && !query['preview']) ||
-            !hasHackathonStarted ||
-            !isUserEligibleByRegion)),
+          (user?.id &&
+            user?.isTalentFilled &&
+            ((bountyDraftStatus !== 'PUBLISHED' && !query['preview']) ||
+              !hasHackathonStarted ||
+              !isUserEligibleByRegion)),
       );
       btnLoadingText = 'Checking Submission..';
   }
@@ -278,15 +283,15 @@ export const SubmissionActionButton = ({
           hackathonStartDate={hackathonStartDate}
         >
           <AuthWrapper className="w-full">
-            <div className="w-full flex flex-col gap-2">
+            <div className="flex w-full flex-col gap-2">
               <Button
                 className={cn(
-                  'h-12 gap-4 text-lg flex-1',
+                  'h-12 flex-1 gap-4 text-lg',
                   'disabled:opacity-70',
                   buttonBG,
                   'hover:opacity-90',
                   buttonState === 'edit' &&
-                  'border-brand-green text-gray-600 hover:text-gray-900',
+                    'border-brand-green text-gray-600 hover:text-gray-900',
                 )}
                 disabled={isBtnDisabled}
                 onClick={handleSubmit}
@@ -320,10 +325,11 @@ export const SubmissionActionButton = ({
                   variant="outline"
                 >
                   <Pencil className="h-4 w-4" />
-                  <span>{isProject ? 'Edit Applications' : 'Edit Submissions'}</span>
+                  <span>
+                    {isProject ? 'Edit Applications' : 'Edit Submissions'}
+                  </span>
                 </Button>
               )}
-
             </div>
           </AuthWrapper>
         </InfoWrapper>

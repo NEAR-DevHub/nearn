@@ -31,7 +31,6 @@ async function createSubmission(
     user as any,
   ).safeParse(data);
 
-
   if (!validationResult.success) {
     throw new Error(JSON.stringify(validationResult.error.formErrors));
   }
@@ -64,7 +63,8 @@ async function createSubmission(
     throw new Error('User submissions has been flagged as spam');
 
   if (
-    allowMultipleSubmissions && listing.multipleSubmissionRule === 'afterReview' &&
+    allowMultipleSubmissions &&
+    listing.multipleSubmissionRule === 'afterReview' &&
     !existingSubmissions.every((submission) => submission.status !== 'Pending')
   )
     throw new Error('User already has an active submission');

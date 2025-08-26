@@ -2,10 +2,10 @@ import {
   BountyType,
   CompensationType,
   type Hackathon,
+  MultipleSubmissionRule,
   Regions,
   status,
   SubmissionLimitType,
-  MultipleSubmissionRule,
 } from '@prisma/client';
 import { z } from 'zod';
 
@@ -411,7 +411,10 @@ export const createListingRefinements = async (
   }
 
   // Validate submission limit settings
-  if (data.type !== 'sponsorship' && data.multipleSubmissionRule === 'afterReview') {
+  if (
+    data.type !== 'sponsorship' &&
+    data.multipleSubmissionRule === 'afterReview'
+  ) {
     if ((!!pick && pick.multipleSubmissionRule) || !pick) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -426,7 +429,8 @@ export const createListingRefinements = async (
     if ((!!pick && pick.multipleSubmissionRule) || !pick) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: 'Multiple submission rule can only be set when submission limit is "multiple"',
+        message:
+          'Multiple submission rule can only be set when submission limit is "multiple"',
         path: ['multipleSubmissionRule'],
       });
     }

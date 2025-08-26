@@ -1,3 +1,4 @@
+import { useAtomValue } from 'jotai';
 import { FilePen, Info } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
@@ -11,6 +12,8 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   Select,
   SelectContent,
@@ -30,14 +33,11 @@ import {
 } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/utils/cn';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
 
+import { isEditingAtom } from '@/features/listing-builder/atoms';
 import { useListingForm } from '@/features/listing-builder/hooks';
 
 import { EligibilityQuestionsForm } from './QuestionsForm';
-import { useAtomValue } from 'jotai';
-import { isEditingAtom } from '@/features/listing-builder/atoms';
 
 function SubmissionLimit() {
   const form = useListingForm();
@@ -59,10 +59,14 @@ function SubmissionLimit() {
       <div className="flex items-center justify-between">
         <div className="">
           <div className="flex items-center gap-1">
-            <p className="text-sm font-medium text-slate-600">Submission Limit</p>
+            <p className="text-sm font-medium text-slate-600">
+              Submission Limit
+            </p>
           </div>
           <p className="text-xs text-slate-500">
-            Set how many times a contributor can submit during<br />the listing period
+            Set how many times a contributor can submit during
+            <br />
+            the listing period
           </p>
         </div>
         <FormField
@@ -102,9 +106,12 @@ function SubmissionLimit() {
       {effectiveSubmissionLimit === 'multiple' && (
         <div className="space-y-3">
           <div>
-            <p className="font-medium text-sm text-slate-600">Multiple Submission Rules</p>
+            <p className="text-sm font-medium text-slate-600">
+              Multiple Submission Rules
+            </p>
             <p className="text-xs text-slate-500">
-              When multiple submissions are allowed, decide when participants can submit again
+              When multiple submissions are allowed, decide when participants
+              can submit again
             </p>
           </div>
 
@@ -114,7 +121,10 @@ function SubmissionLimit() {
             render={({ field }) => (
               <FormItem className="space-y-3">
                 <RadioGroup
-                  value={field.value || (isSponorship ? 'afterReview' : 'immediately')}
+                  value={
+                    field.value ||
+                    (isSponorship ? 'afterReview' : 'immediately')
+                  }
                   onValueChange={field.onChange}
                   disabled={isUpdating}
                 >
@@ -128,7 +138,8 @@ function SubmissionLimit() {
                         Immediately
                       </Label>
                       <p className="text-xs text-slate-500">
-                        Contributors can submit again without waiting for approval or rejection
+                        Contributors can submit again without waiting for
+                        approval or rejection
                       </p>
                     </div>
                   </div>
@@ -142,7 +153,8 @@ function SubmissionLimit() {
                         After review
                       </Label>
                       <p className="text-xs text-slate-500">
-                        Contributors can only submit another entry once their previous one is approved or rejected
+                        Contributors can only submit another entry once their
+                        previous one is approved or rejected
                       </p>
                     </div>
                   </div>

@@ -21,7 +21,7 @@ async function handler(req: NextApiRequestWithUser, res: NextApiResponse) {
     logger.debug(
       `Fetching all submissions for listing ID: ${listingId} and user ID: ${userId}`,
     );
-    
+
     const submissions = await prisma.submission.findMany({
       where: {
         listingId,
@@ -40,7 +40,7 @@ async function handler(req: NextApiRequestWithUser, res: NextApiResponse) {
     logger.info(
       `Fetched ${submissions.length} submissions for listing ID: ${listingId} and user ID: ${userId}`,
     );
-    
+
     res.status(200).json(submissions);
   } catch (error: any) {
     logger.error(

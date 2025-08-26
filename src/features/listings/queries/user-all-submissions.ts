@@ -1,9 +1,11 @@
 import { queryOptions } from '@tanstack/react-query';
 
+import { type SubmissionWithUser } from '@/interface/submission';
 import { api } from '@/lib/api';
-import { SubmissionWithUser } from '@/interface/submission';
 
-const fetchUserAllSubmissions = async (listingId: string): Promise<SubmissionWithUser[]> => {
+const fetchUserAllSubmissions = async (
+  listingId: string,
+): Promise<SubmissionWithUser[]> => {
   const { data } = await api.get('/api/submission/user-listing-submissions/', {
     params: { listingId },
   });
