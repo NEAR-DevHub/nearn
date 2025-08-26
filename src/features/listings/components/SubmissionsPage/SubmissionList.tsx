@@ -13,11 +13,13 @@ interface Props {
   submissions: SubmissionWithUser[];
   endTime: string;
   setUpdate: Dispatch<SetStateAction<boolean>>;
+  ownOnly?: boolean;
 }
 export const SubmissionList = ({
   bounty,
   submissions,
   endTime,
+  ownOnly = false,
   setUpdate,
 }: Props) => {
   const isSponsorship = bounty.type === 'sponsorship';
@@ -25,7 +27,7 @@ export const SubmissionList = ({
   return (
     <>
       <div className="mt-10 flex min-h-screen w-full flex-col items-center md:items-start">
-        {isSponsorship || dayjs(endTime).valueOf() < Date.now() ? (
+        {isSponsorship || dayjs(endTime).valueOf() < Date.now() || ownOnly ? (
           <div className="mx-auto flex w-full max-w-7xl flex-col items-start gap-2">
             <div className="grid w-full grid-cols-1 gap-5 px-3 md:grid-cols-2 md:gap-20 md:px-6 xl:grid-cols-3">
               {submissions?.map((submission) => {

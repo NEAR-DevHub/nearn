@@ -61,6 +61,7 @@ const SubmissionPage = ({
           setUpdate={resetSubmissions}
           submissions={usedSubmissions}
           endTime={bounty.deadline as string}
+          ownOnly={userOnly}
         />
       )}
     </ListingPageLayout>
