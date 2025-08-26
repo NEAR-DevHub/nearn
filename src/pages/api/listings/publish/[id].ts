@@ -140,6 +140,8 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       isPrivate,
       isFndnPaying: rawIsFndnPaying,
       hackathonId,
+      submissionLimit,
+      multipleSubmissionRule,
     } = validatedData;
 
     let isPublished = true;
@@ -345,6 +347,13 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       publishedAt,
       isPublished,
       hackathonId,
+      submissionLimit:
+        submissionLimit || (type === 'sponsorship' ? 'multiple' : 'single'),
+      multipleSubmissionRule:
+        submissionLimit === 'multiple'
+          ? multipleSubmissionRule ||
+            (type === 'sponsorship' ? 'afterReview' : 'immediately')
+          : null,
       sequentialId:
         listing && listing.sequentialId
           ? listing.sequentialId

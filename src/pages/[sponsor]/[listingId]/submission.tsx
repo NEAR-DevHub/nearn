@@ -1,12 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import type { GetServerSideProps } from 'next';
 import { getServerSession } from 'next-auth';
-import React from 'react';
+import React, { useMemo } from 'react';
 
 import type { SubmissionWithUser } from '@/interface/submission';
 import { ListingPageLayout } from '@/layouts/Listing';
 import { api } from '@/lib/api';
 import { authOptions } from '@/pages/api/auth/[...nextauth]';
+import { useUser } from '@/store/user';
 import { getURL } from '@/utils/validUrl';
 
 import { SubmissionTable } from '@/features/listings/components/SubmissionsPage/SubmissionTable';
@@ -17,10 +18,12 @@ const SubmissionPage = ({
   slug,
   bounty: bountyB,
   submission: submissionB,
+  userOnly = false,
 }: {
   slug: string;
   bounty: Listing;
   submission: SubmissionWithUser[];
+  userOnly?: boolean;
 }) => {
   const { data, refetch } = useQuery(
     listingSubmissionsQuery(
@@ -31,10 +34,16 @@ const SubmissionPage = ({
       },
     ),
   );
+  const { user } = useUser();
   const { bounty, submission } = data ?? {
     bounty: bountyB,
     submission: submissionB,
   };
+  const usedSubmissions = useMemo(() => {
+    return userOnly
+      ? submission.filter((s) => s.userId === user?.id)
+      : submission;
+  }, [submission, user, userOnly]);
 
   const resetSubmissions = async () => {
     try {
@@ -50,7 +59,7 @@ const SubmissionPage = ({
         <SubmissionTable
           bounty={bounty}
           setUpdate={resetSubmissions}
-          submissions={submission}
+          submissions={usedSubmissions}
           endTime={bounty.deadline as string}
         />
       )}

@@ -31,13 +31,12 @@ async function createSubmission(
     user as any,
   ).safeParse(data);
 
-  const isSponsorship = listing.type === 'sponsorship';
-
   if (!validationResult.success) {
     throw new Error(JSON.stringify(validationResult.error.formErrors));
   }
 
   const validatedData = validationResult.data;
+  const allowMultipleSubmissions = listing.submissionLimit === 'multiple';
 
   if (validatedData.publicKey) {
     await prisma.user.update({
@@ -54,20 +53,21 @@ async function createSubmission(
     where: { userId, listingId },
   });
 
-  if (!isSponsorship && existingSubmissions.length > 0)
-    throw new Error('Submission already exists');
+  if (!allowMultipleSubmissions && existingSubmissions.length > 0)
+    throw new Error('User already has an active submission');
 
   if (
-    isSponsorship &&
+    allowMultipleSubmissions &&
     existingSubmissions.some((submission) => submission.label === 'Spam')
   )
     throw new Error('User submissions has been flagged as spam');
 
   if (
-    isSponsorship &&
+    allowMultipleSubmissions &&
+    listing.multipleSubmissionRule === 'afterReview' &&
     !existingSubmissions.every((submission) => submission.status !== 'Pending')
   )
-    throw new Error('User already has an active sponsorship request');
+    throw new Error('User already has an active submission');
 
   const sequentialId = await prisma.sponsors.update({
     where: { id: listing.sponsorId },
