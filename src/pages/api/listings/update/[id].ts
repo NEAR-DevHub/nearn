@@ -323,7 +323,7 @@ async function listing(req: NextApiRequestWithSponsor, res: NextApiResponse) {
     });
 
     const dataToUpdate: Prisma.BountiesUncheckedUpdateInput = {
-      ...validatedData,
+      ...{ ...validatedData, submissionLimit: undefined },
       status: isVerifying ? 'VERIFYING' : status || listing?.status || 'OPEN',
       isPublished,
       usdValue,

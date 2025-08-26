@@ -1,20 +1,21 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
+import dayjs from 'dayjs';
+import { Info, Pencil } from 'lucide-react';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { usePostHog } from 'posthog-js/react';
 import { useEffect, useState } from 'react';
 import { useForm, type UseFormReturn } from 'react-hook-form';
 import { toast } from 'sonner';
 import { type z } from 'zod';
-import { Info, Loader2, Pencil } from 'lucide-react';
-import dayjs from 'dayjs';
-import Link from 'next/link';
 
 import { EligibilityQuestionsForm } from '@/components/eligibility/EligibilityQuestions';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Form } from '@/components/ui/form';
+import { KycComponent } from '@/components/ui/KycComponent';
 import { SideDrawer, SideDrawerContent } from '@/components/ui/side-drawer';
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 import { Tooltip } from '@/components/ui/tooltip';
@@ -22,22 +23,24 @@ import { tokenList } from '@/constants/tokenList';
 import { type SubmissionWithUser } from '@/interface/submission';
 import { api } from '@/lib/api';
 import { useUser } from '@/store/user';
-import { KycComponent } from '@/components/ui/KycComponent';
-import { EarnAvatar } from '@/features/talent/components/EarnAvatar';
 import { cn } from '@/utils/cn';
-import { colorMap } from '@/features/sponsor-dashboard/utils/statusColorMap';
 
 import { AuthWrapper } from '@/features/auth/components/AuthWrapper';
+import { colorMap } from '@/features/sponsor-dashboard/utils/statusColorMap';
+import { EarnAvatar } from '@/features/talent/components/EarnAvatar';
 
 import { useSubmissionDraft } from '../../hooks/useSubmissionDraft';
 import { submissionCountQuery } from '../../queries/submission-count';
 import { listingSubmissionsQuery } from '../../queries/submissions';
-import { userSubmissionQuery } from '../../queries/user-submission-status';
 import { userAllSubmissionsQuery } from '../../queries/user-all-submissions';
+import { userSubmissionQuery } from '../../queries/user-submission-status';
 import { type Listing } from '../../types';
 import { submissionSchema } from '../../utils/submissionFormSchema';
+import {
+  LikeAndComment,
+  sponsorshipSubmissionStatus,
+} from '../SubmissionsPage/SubmissionTable';
 import { SubmissionTerms } from './SubmissionTerms';
-import { sponsorshipSubmissionStatus, LikeAndComment } from '../SubmissionsPage/SubmissionTable';
 
 interface Props {
   isOpen: boolean;
@@ -86,8 +89,9 @@ export const SubmissionDrawer = ({
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [editFetched, setEditFetched] = useState(false);
   const [showSelectionView, setShowSelectionView] = useState(false);
-  const [selectedSubmission, setSelectedSubmission] = useState<SubmissionWithUser | undefined>(submission);
-  const [isLoadingSubmissions, setIsLoadingSubmissions] = useState(false);
+  const [selectedSubmission, setSelectedSubmission] = useState<
+    SubmissionWithUser | undefined
+  >(submission);
 
   const { user, refetchUser } = useUser();
   const form: UseFormReturn<FormData> = useForm<FormData>({
@@ -98,9 +102,9 @@ export const SubmissionDrawer = ({
       eligibilityAnswers:
         Array.isArray(listing.eligibility) && listing.eligibility.length > 0
           ? listing.eligibility.map((q) => ({
-            question: q.question,
-            answer: '',
-          }))
+              question: q.question,
+              answer: '',
+            }))
           : [],
       token: token === 'Any' ? tokenList[0]?.tokenSymbol : undefined,
     },
@@ -134,9 +138,19 @@ export const SubmissionDrawer = ({
   };
 
   useEffect(() => {
-    if (editMode && submissions && submissions.length > 1 && !selectedSubmission) {
+    if (
+      editMode &&
+      submissions &&
+      submissions.length > 1 &&
+      !selectedSubmission
+    ) {
       setShowSelectionView(true);
-    } else if (editMode && submissions && submissions.length === 1 && !selectedSubmission) {
+    } else if (
+      editMode &&
+      submissions &&
+      submissions.length === 1 &&
+      !selectedSubmission
+    ) {
       setSelectedSubmission(submissions[0]);
     }
   }, [editMode, submissions, selectedSubmission]);
@@ -191,7 +205,15 @@ export const SubmissionDrawer = ({
     };
 
     fetchData();
-  }, [id, editMode, form.reset, isOpen, loadDraft, selectedSubmission, showSelectionView]);
+  }, [
+    id,
+    editMode,
+    form.reset,
+    isOpen,
+    loadDraft,
+    selectedSubmission,
+    showSelectionView,
+  ]);
 
   const onSubmit = async (data: FormData) => {
     posthog.capture('confirmed_submission');
@@ -274,22 +296,19 @@ export const SubmissionDrawer = ({
 
   return (
     <SideDrawer open={isOpen} onClose={handleClose} className="scrollbar-none">
-      <SideDrawerContent className="p-6 min-w-[640px]">
+      <SideDrawerContent className="min-w-[672px] p-6">
         {showSelectionView && submissions ? (
           <div className="flex h-full flex-col">
             <div className="mb-6">
-              <h2 className="text-lg font-semibold font-">Your Submissions</h2>
-              <p className="text-sm text-gray-500 mt-1">
-                Several requests have already been submitted. Editing is available for some of them
+              <h2 className="font- text-lg font-semibold">Your Submissions</h2>
+              <p className="mt-1 text-sm text-gray-500">
+                Several requests have already been submitted. Editing is
+                available for some of them
               </p>
             </div>
             <div className="flex-1 overflow-y-auto">
-              {isLoadingSubmissions ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
-                </div>
-              ) : submissions.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
+              {submissions.length === 0 ? (
+                <div className="py-8 text-center text-gray-500">
                   No submissions found
                 </div>
               ) : (
@@ -334,7 +353,7 @@ export const SubmissionDrawer = ({
                               </div>
                             </Link>
                           </TableCell>
-                          <TableCell className="cursor-pointer py-2 w-full justify-center">
+                          <TableCell className="w-full cursor-pointer justify-center py-2">
                             <span
                               className={cn(
                                 'inline-flex whitespace-nowrap rounded-full px-3 py-1 text-center text-sm font-medium',
@@ -349,15 +368,15 @@ export const SubmissionDrawer = ({
                               {submissionStatus}
                             </span>
                           </TableCell>
-                          <TableCell className="items-center py-2 w-full justify-center">
+                          <TableCell className="w-full items-center justify-center py-2">
                             <LikeAndComment
                               id={sub.id}
                               bounty={listing}
                               submission={sub}
-                              setUpdate={refetchSubmissions || (() => { })}
+                              setUpdate={refetchSubmissions || (() => {})}
                             />
                           </TableCell>
-                          <TableCell className="px-0 py-2 flex items-center gap-2 justify-end w-full">
+                          <TableCell className="flex w-full items-center justify-end gap-2 px-0 py-2">
                             <div className="flex items-center justify-between">
                               <Button
                                 variant="ghost"
@@ -371,7 +390,10 @@ export const SubmissionDrawer = ({
                               </Button>
                             </div>
                             {!isEditable && (
-                              <Tooltip content="The submission can no longer be edited due to a status change" contentProps={{ className: "z-[1000]" }}>
+                              <Tooltip
+                                content="The submission can no longer be edited due to a status change"
+                                contentProps={{ className: 'z-[1000]' }}
+                              >
                                 <Info className="h-4 w-4" />
                               </Tooltip>
                             )}
@@ -401,6 +423,8 @@ export const SubmissionDrawer = ({
                   token={token ?? null}
                   listingType={type ?? null}
                   isGodMode={isGodMode}
+                  showBack={submissions && submissions.length > 0}
+                  onBack={() => setShowSelectionView(true)}
                 />
                 <div className="flex w-full flex-col">
                   {user?.private && !editMode && (
@@ -429,11 +453,11 @@ export const SubmissionDrawer = ({
                         htmlFor="terms"
                         className="text-sm leading-none text-slate-600"
                       >
-                        I confirm that I have reviewed the scope of this track and
-                        that my submission adheres to the specified requirements.
-                        Submitting a project that does not meet the submission
-                        requirements, including potential spam, may result in
-                        restrictions on future submissions.
+                        I confirm that I have reviewed the scope of this track
+                        and that my submission adheres to the specified
+                        requirements. Submitting a project that does not meet
+                        the submission requirements, including potential spam,
+                        may result in restrictions on future submissions.
                       </label>
                     </div>
                   )}

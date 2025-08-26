@@ -71,10 +71,10 @@ export function ListingHeader({
     !isTemplate &&
     (type === 'sponsorship' || (!isProject && isWinnersAnnounced));
 
-  const userSubmission = submissions.find(
+  const userSubmissions = submissions.filter(
     (submission) => submission.userId === user?.id,
   );
-  const showYourSubmission = type !== 'sponsorship' && userSubmission;
+  const showYourSubmission = userSubmissions.length > 0;
 
   const typeToTooltip = {
     project:
@@ -176,7 +176,22 @@ export function ListingHeader({
   };
 
   const segments = router.asPath.split('/');
-  const isSubmissionActive = !isTemplate && segments.length === 5;
+  const isSingleSubmission = userSubmissions.length === 1;
+  const isUserSubmissionActive =
+    !isTemplate &&
+    segments.length === 5 &&
+    segments[segments.length - 2] === 'user-submissions';
+  const isSingleSubmissionActive =
+    !isTemplate &&
+    isSingleSubmission &&
+    segments.length === 5 &&
+    segments[segments.length - 2] ===
+      userSubmissions[0]?.sequentialId?.toString();
+
+  const isSubmissionActive =
+    !isTemplate &&
+    segments.length === 5 &&
+    segments[segments.length - 2] === 'submission';
   const dashboardPath = `/dashboard/${isHackathon ? 'hackathon' : 'listings'}/${listing.slug}`;
   const manageListingLink = isSubmissionActive
     ? `${dashboardPath}/submissions/${segments[segments.length - 2]}`
@@ -334,7 +349,7 @@ export function ListingHeader({
                   : `/templates/listings/${slug}/`
               }
               text="Details"
-              isActive={!isSubmissionActive}
+              isActive={!isSubmissionActive && !isUserSubmissionActive}
             />
 
             {showSubmissions && (
@@ -348,11 +363,15 @@ export function ListingHeader({
                 }
               />
             )}
-            {showYourSubmission && (
+            {showYourSubmission && userSubmissions.length > 0 && (
               <ListingTabLink
-                href={`${getBountyUrl(listing)}/${userSubmission?.sequentialId}`}
-                text="Your Submission"
-                isActive={isSubmissionActive}
+                href={
+                  userSubmissions.length === 1
+                    ? `${getBountyUrl(listing)}/${userSubmissions[0]?.sequentialId}`
+                    : `${getBountyUrl(listing)}/user-submissions`
+                }
+                text={`Your Submission${userSubmissions.length > 1 ? `s` : ''}`}
+                isActive={isUserSubmissionActive || isSingleSubmissionActive}
               />
             )}
           </div>
