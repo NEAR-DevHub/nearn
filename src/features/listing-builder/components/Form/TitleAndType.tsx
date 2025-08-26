@@ -169,6 +169,10 @@ function Type() {
   const form = useListingForm();
   const isEditing = useAtomValue(isEditingAtom);
   const hackathons = useAtomValue(hackathonsAtom);
+  const submissionLimit = useWatch({
+    control: form.control,
+    name: 'submissionLimit',
+  });
   const [prevCompType, setPrevCompType] = useState<CompensationType>('fixed');
   return (
     <FormField
@@ -213,6 +217,10 @@ function Type() {
                     } else {
                       form.setValue('rewardAmount', undefined);
                     }
+                  }
+
+                  if (e !== 'sponsorship' && submissionLimit === 'multiple') {
+                    form.setValue('multipleSubmissionRule', 'immediately');
                   }
 
                   if (!!form.getValues().id) form.saveDraft();

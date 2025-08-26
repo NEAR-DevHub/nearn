@@ -245,6 +245,8 @@ export const useListingForm = (
       type: true,
       compensationType: true,
       eligibility: true,
+      multipleSubmissionRule: true,
+      submissionLimit: true,
     });
 
   const validateRewards = () =>
