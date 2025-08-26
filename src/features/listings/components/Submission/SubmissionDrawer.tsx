@@ -2,7 +2,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { Info, Pencil } from 'lucide-react';
-import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { usePostHog } from 'posthog-js/react';
 import { useEffect, useState } from 'react';
@@ -321,9 +320,16 @@ export const SubmissionDrawer = ({
                       return (
                         <TableRow key={sub.id}>
                           <TableCell className="min-w-[250px] pr-0">
-                            <Link
-                              className="flex items-center"
-                              href={`/t/${sub?.user?.username}`}
+                            <div
+                              className={cn(
+                                'flex items-center',
+                                isEditable && 'cursor-pointer',
+                              )}
+                              onClick={() => {
+                                if (isEditable) {
+                                  handleEditSubmission(sub);
+                                }
+                              }}
                             >
                               <EarnAvatar
                                 id={sub?.user?.id}
@@ -351,9 +357,19 @@ export const SubmissionDrawer = ({
                                   )}
                                 </p>
                               </div>
-                            </Link>
+                            </div>
                           </TableCell>
-                          <TableCell className="w-full cursor-pointer justify-center py-2">
+                          <TableCell
+                            className={cn(
+                              'w-full justify-center py-2',
+                              isEditable && 'cursor-pointer',
+                            )}
+                            onClick={() => {
+                              if (isEditable) {
+                                handleEditSubmission(sub);
+                              }
+                            }}
+                          >
                             <span
                               className={cn(
                                 'inline-flex whitespace-nowrap rounded-full px-3 py-1 text-center text-sm font-medium',
