@@ -2,8 +2,10 @@ import {
   BountyType,
   CompensationType,
   type Hackathon,
+  MultipleSubmissionRule,
   Regions,
   status,
+  SubmissionLimitType,
 } from '@prisma/client';
 import { z } from 'zod';
 
@@ -253,6 +255,15 @@ export const createListingFormSchema = ({
         ),
       isPrivate: z.boolean().default(false),
       hackathonId: z.string().optional().nullable(),
+      submissionLimit: z
+        .nativeEnum(SubmissionLimitType)
+        .default('single')
+        .optional()
+        .nullable(),
+      multipleSubmissionRule: z
+        .nativeEnum(MultipleSubmissionRule)
+        .optional()
+        .nullable(),
 
       // values that will not be set on any API, but useful for response
       isPublished: z.boolean().optional().nullable(),
@@ -395,6 +406,32 @@ export const createListingRefinements = async (
         code: z.ZodIssueCode.custom,
         message: 'Sponsorship must be variable compensation',
         path: ['compensationType'],
+      });
+    }
+  }
+
+  // Validate submission limit settings
+  if (
+    data.type !== 'sponsorship' &&
+    data.multipleSubmissionRule === 'afterReview'
+  ) {
+    if ((!!pick && pick.multipleSubmissionRule) || !pick) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'After review is only allowed for `sponsorship` listings',
+        path: ['multipleSubmissionRule'],
+      });
+    }
+  }
+
+  // Validate that multipleSubmissionRule is only set when submissionLimit is 'multiple'
+  if (data.submissionLimit !== 'multiple' && data.multipleSubmissionRule) {
+    if ((!!pick && pick.multipleSubmissionRule) || !pick) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'Multiple submission rule can only be set when submission limit is "multiple"',
+        path: ['multipleSubmissionRule'],
       });
     }
   }

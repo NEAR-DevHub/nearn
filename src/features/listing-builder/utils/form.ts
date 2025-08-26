@@ -81,6 +81,12 @@ export const getListingDefaults = ({
       }
     }
   }
+  defaults['submissionLimit'] = 'single';
+  defaults['multipleSubmissionRule'] = 'immediately';
+  if (type === 'sponsorship') {
+    defaults['submissionLimit'] = 'multiple';
+    defaults['multipleSubmissionRule'] = 'afterReview';
+  }
 
   defaults['type'] = type;
   if (type === 'hackathon') {
@@ -182,6 +188,8 @@ export function transformListingToFormListing(
     isWinnersAnnounced: listing.isWinnersAnnounced,
     totalPaymentsMade: listing.BountyCounts.totalPaymentsMade,
     totalWinnersSelected: listing.BountyCounts.totalWinnersSelected,
+    submissionLimit: listing.submissionLimit,
+    multipleSubmissionRule: listing.multipleSubmissionRule,
   };
 }
 
