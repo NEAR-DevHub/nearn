@@ -15,6 +15,10 @@ async function handler(req: NextApiRequestWithUser, res: NextApiResponse) {
     return res.status(400).json({ error: 'Invalid or missing listingId' });
   }
 
+  if (!userId) {
+    return res.status(400).json({ error: 'User not found' });
+  }
+
   logger.debug(`Request query: ${safeStringify(req.query)}`);
 
   try {
