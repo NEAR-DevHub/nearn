@@ -1,5 +1,5 @@
 import { type ClassValue } from 'clsx';
-import { ArrowLeftIcon, Check, ChevronDown } from 'lucide-react';
+import { Check, ChevronDown, X } from 'lucide-react';
 import React, { type JSX } from 'react';
 import { type Control, useWatch } from 'react-hook-form';
 
@@ -67,8 +67,7 @@ interface EligibilityQuestionsProps {
   token: string | null;
   listingType: string | null;
   isGodMode: boolean;
-  showBack?: boolean;
-  onBack?: () => void;
+  onClose?: () => void;
 }
 
 export function EligibilityQuestionsForm({
@@ -81,8 +80,7 @@ export function EligibilityQuestionsForm({
   compensationType,
   token,
   isGodMode,
-  showBack = false,
-  onBack = () => {},
+  onClose,
 }: EligibilityQuestionsProps) {
   const tokenSelected = useWatch({
     control,
@@ -145,21 +143,16 @@ export function EligibilityQuestionsForm({
     <React.Fragment>
       <div className="h-full overflow-y-auto rounded-lg border border-slate-200 px-2 shadow-[0px_1px_3px_rgba(0,0,0,0.08),_0px_1px_2px_rgba(0,0,0,0.06)] md:px-4 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-track]:w-1.5 [&::-webkit-scrollbar]:w-1">
         <div className="mb-4 border-b border-slate-100 bg-white py-3">
-          <div className="flex flex-col">
-            {showBack && (
-              <Button
-                variant="link"
-                onClick={onBack}
-                className="w-fit p-0 text-slate-500"
-              >
-                <ArrowLeftIcon className="h-4 w-4" />
-                Back
-              </Button>
-            )}
+          <div className="flex items-center justify-between">
             <p className="text-lg font-medium text-slate-700">
               {isGodMode ? '[GOD MODE] ' : ''}
               {headerText}
             </p>
+            {onClose && (
+              <Button variant="ghost" size="sm" onClick={onClose}>
+                <X className="h-4 w-4" />
+              </Button>
+            )}
           </div>
           <p className="text-sm text-slate-500">{subheadingText}</p>
         </div>

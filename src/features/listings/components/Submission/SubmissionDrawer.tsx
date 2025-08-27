@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
-import { Info, Pencil } from 'lucide-react';
+import { Info, Pencil, X } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { usePostHog } from 'posthog-js/react';
 import { useEffect, useState } from 'react';
@@ -299,7 +299,14 @@ export const SubmissionDrawer = ({
         {showSelectionView && submissions ? (
           <div className="flex h-full flex-col">
             <div className="mb-6">
-              <h2 className="font- text-lg font-semibold">Your Submissions</h2>
+              <div className="flex items-center justify-between">
+                <h2 className="font- text-lg font-semibold">
+                  Your Submissions
+                </h2>
+                <Button variant="ghost" size="sm" onClick={handleClose}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
               <p className="mt-1 text-sm text-gray-500">
                 Several requests have already been submitted. Editing is
                 available for some of them
@@ -439,8 +446,7 @@ export const SubmissionDrawer = ({
                   token={token ?? null}
                   listingType={type ?? null}
                   isGodMode={isGodMode}
-                  showBack={submissions && submissions.length > 0}
-                  onBack={() => setShowSelectionView(true)}
+                  onClose={handleClose}
                 />
                 <div className="flex w-full flex-col">
                   {user?.private && !editMode && (
@@ -505,6 +511,15 @@ export const SubmissionDrawer = ({
                       )}
                     </Button>
                   </AuthWrapper>
+                  {!showSelectionView && (
+                    <Button
+                      variant="outline"
+                      className="mt-2 w-full"
+                      onClick={() => setShowSelectionView(true)}
+                    >
+                      Back
+                    </Button>
+                  )}
                   <p className="mt-2 text-center text-xs text-slate-400 sm:text-sm">
                     By submitting/applying to this listing, you agree to our{' '}
                     <button
