@@ -71,7 +71,6 @@ interface Props {
   submissions: SubmissionWithUser[];
   endTime: string;
   setUpdate: Dispatch<SetStateAction<boolean>>;
-  ownOnly?: boolean;
 }
 
 export const LikeAndComment = ({
@@ -189,9 +188,7 @@ export const SubmissionTable = ({
   submissions,
   endTime,
   setUpdate,
-  ownOnly = false,
 }: Props) => {
-  const isSponsorship = bounty.type === 'sponsorship';
   const [currentSort, setCurrentSort] = useState<{
     column: string;
     direction: 'asc' | 'desc' | null;
@@ -370,7 +367,7 @@ export const SubmissionTable = ({
   return (
     <>
       <div className="mt-10 flex min-h-screen w-full flex-col items-center md:items-start">
-        {isSponsorship || dayjs(endTime).valueOf() < Date.now() || ownOnly ? (
+        {dayjs(endTime).valueOf() < Date.now() || submissions.length > 0 ? (
           <div className="w-full max-w-4xl overflow-x-auto rounded-md border border-slate-200">
             <Table className="w-full">
               <TableHeader>

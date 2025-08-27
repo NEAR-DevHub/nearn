@@ -349,7 +349,11 @@ export function ListingHeader({
                   : `/templates/listings/${slug}/`
               }
               text="Details"
-              isActive={!isSubmissionActive && !isUserSubmissionActive}
+              isActive={
+                !isSubmissionActive &&
+                !isUserSubmissionActive &&
+                !isSingleSubmissionActive
+              }
             />
 
             {showSubmissions && (
