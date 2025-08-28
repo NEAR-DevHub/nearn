@@ -25,10 +25,12 @@ import { Tooltip as TooltipUI } from './tooltip';
 
 const FIREHOSE_ID = '68ef6576-d931-4405-82c4-6a8574ee0b3f';
 const INFRA_COMMITTEE_ID = 'c3b689b9-2551-4dda-8e8c-68037c25477c';
+const NF_FS = 'dfa80621-1840-47c7-8214-191573c97629';
 
 const CUSTOM_KYC_TEXT = {
   [FIREHOSE_ID]: `If your submission is selected for a prize, you'll need to complete identity verification (KYC/KYB) before any award can be issued. Our team will contact winning participants via email with instructions after winners are announced.`,
-  [INFRA_COMMITTEE_ID]: `If your submission is approved, you'll need to complete identity verification (KYC/KYB) before any award can be issued. Our team will contact approved recipients s via email with instructions`,
+  [NF_FS]: `If your submission is selected for a prize, you'll need to complete identity verification (KYC/KYB) before any award can be issued. Our team will contact winning participants via email with instructions after winners are announced.`,
+  [INFRA_COMMITTEE_ID]: `If your submission is approved, you'll need to complete identity verification (KYC/KYB) before any award can be issued. Our team will contact approved recipients via email with instructions.`,
 };
 
 interface KycComponentProps {
