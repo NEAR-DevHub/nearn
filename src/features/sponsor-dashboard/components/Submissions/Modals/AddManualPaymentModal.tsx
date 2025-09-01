@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 import { Info, Loader2 } from 'lucide-react';
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -24,9 +24,10 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { FormFieldWrapper } from '@/components/ui/form-field-wrapper';
 import { Textarea } from '@/components/ui/textarea';
+import { TokenInput } from '@/components/ui/token-input';
 import { Tooltip } from '@/components/ui/tooltip';
+import { cn } from '@/utils/cn';
 
 import { DEADLINE_FORMAT } from '@/features/listing-builder/components/Form/Deadline';
 import { type SubmissionWithListingUser } from '@/features/sponsor-dashboard/queries/dashboard-submissions';
@@ -47,6 +48,7 @@ interface AddManualPaymentModalProps {
 type FormData = {
   paymentDate: string;
   token: string;
+  fiatCurrency?: string;
   amount: number;
   notes: string;
   isPrivate: boolean;
@@ -68,7 +70,15 @@ export default function AddManualPaymentModal({
     },
   });
 
+  const fiatCurrency = form.watch('fiatCurrency');
   const token = form.watch('token');
+  useEffect(() => {
+    if (token === 'Fiat') {
+      form.setValue('fiatCurrency', 'USD');
+    } else {
+      form.setValue('fiatCurrency', undefined);
+    }
+  }, [token]);
 
   const isUpdating = submission && submission.paymentDetails?.manual;
 
@@ -77,6 +87,7 @@ export default function AddManualPaymentModal({
       form.reset({
         paymentDate: submission.paymentDetails.manual.paymentDate,
         token: submission.paymentDetails.manual.token,
+        fiatCurrency: submission.paymentDetails.manual.fiatCurrency,
         amount: submission.paymentDetails.manual.amount,
         notes: submission.paymentDetails.manual.notes,
         isPrivate: !submission.paymentDetails.manual.isPublic,
@@ -109,6 +120,7 @@ export default function AddManualPaymentModal({
             id: submission.id,
             amount: data.amount,
             token: data.token,
+            fiatCurrency: data.fiatCurrency,
             paymentDate: data.paymentDate,
             notes: data.notes,
             isPublic: !data.isPrivate,
@@ -192,17 +204,33 @@ export default function AddManualPaymentModal({
                 control={form.control}
                 name="token"
                 hideDescription
+                includeFiat
               />
-
-              <FormFieldWrapper
+              <FormField
                 control={form.control}
                 name={'amount' as any}
-                label="Payment Amount"
-                isRequired
-                isTokenInput
-                token={token ?? undefined}
+                render={({ field }) => (
+                  <FormItem className={cn('flex flex-col gap-2')}>
+                    <FormLabel isRequired>Payment Amount</FormLabel>
+                    <div>
+                      <FormControl>
+                        <TokenInput
+                          token={token}
+                          value={field.value}
+                          onChange={(e) => {
+                            field.onChange(e);
+                          }}
+                          fiatValue={fiatCurrency}
+                          onFiatChange={(e) => {
+                            form.setValue('fiatCurrency', e);
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage className="pt-1" />
+                    </div>
+                  </FormItem>
+                )}
               />
-
               <FormField
                 control={form.control}
                 name={'notes' as any}

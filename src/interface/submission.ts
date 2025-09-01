@@ -32,6 +32,7 @@ interface SubmissionWithUser {
     manual?: {
       amount: number;
       token: string;
+      fiatCurrency?: string;
       paymentDate: string;
       notes?: string;
       isPublic?: boolean;

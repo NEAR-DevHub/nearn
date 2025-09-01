@@ -8,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { FiatCurrencyLabel } from '@/components/ui/fiat-currency-select';
 import { Label } from '@/components/ui/label';
 import { tokenList } from '@/constants/tokenList';
 import { useUser } from '@/store/user';
@@ -21,6 +22,7 @@ interface ManualPaymentData {
   token: string;
   paymentDate: string;
   notes?: string;
+  fiatCurrency?: string;
 }
 
 interface PaymentDetailsModalProps {
@@ -83,16 +85,26 @@ export default function PaymentDetailsModal({
 
           <div className="flex items-center justify-between border-b border-slate-200 pb-2">
             <Label className="text-slate-500">Currency</Label>
-            <div className="flex items-center gap-2">
-              {token?.icon && (
-                <img
-                  src={token.icon}
-                  alt={paymentData.token}
-                  className="h-4 w-4 rounded-full"
-                />
-              )}
-              <p className="font-medium text-slate-900">{paymentData.token}</p>
-            </div>
+            {paymentData.token === 'Fiat' && paymentData.fiatCurrency ? (
+              <FiatCurrencyLabel
+                code={paymentData.fiatCurrency}
+                withoutDescription
+                className="text-base font-medium text-slate-900"
+              />
+            ) : (
+              <div className="flex items-center gap-2">
+                {token?.icon && (
+                  <img
+                    src={token.icon}
+                    alt={paymentData.token}
+                    className="h-4 w-4 rounded-full"
+                  />
+                )}
+                <p className="font-medium text-slate-900">
+                  {paymentData.token}
+                </p>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center justify-between">

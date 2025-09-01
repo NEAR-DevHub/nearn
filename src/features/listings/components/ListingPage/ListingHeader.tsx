@@ -188,12 +188,18 @@ export function ListingHeader({
     segments[segments.length - 2] ===
       userSubmissions[0]?.sequentialId?.toString();
 
-  const isSubmissionActive =
+  const isSubmissionsPageActive =
     !isTemplate &&
     segments.length === 5 &&
     segments[segments.length - 2] === 'submission';
+
+  const isSubmissionViewActive =
+    !isTemplate &&
+    segments.length === 5 &&
+    segments[segments.length - 2] !== 'user-submissions';
+
   const dashboardPath = `/dashboard/${isHackathon ? 'hackathon' : 'listings'}/${listing.slug}`;
-  const manageListingLink = isSubmissionActive
+  const manageListingLink = isSubmissionViewActive
     ? `${dashboardPath}/submissions/${segments[segments.length - 2]}`
     : `${dashboardPath}/submissions`;
 
@@ -350,9 +356,12 @@ export function ListingHeader({
               }
               text="Details"
               isActive={
-                !isSubmissionActive &&
+                !isSubmissionsPageActive &&
                 !isUserSubmissionActive &&
-                !isSingleSubmissionActive
+                !(
+                  isSingleSubmissionActive ||
+                  (isSubmissionViewActive && !isSingleSubmissionActive)
+                )
               }
             />
 
@@ -361,7 +370,10 @@ export function ListingHeader({
                 onClick={() => posthog.capture('submissions tab_listing')}
                 href={`${getBountyUrl(listing)}/submission`}
                 text="Submissions"
-                isActive={isSubmissionActive}
+                isActive={
+                  isSubmissionsPageActive ||
+                  (isSubmissionViewActive && !isSingleSubmissionActive)
+                }
                 subText={
                   isSubmissionNumberLoading ? '...' : submissionNumber + ''
                 }

@@ -71,7 +71,11 @@ export function TokenSelect() {
                   <CommandEmpty>No Token found.</CommandEmpty>
                   <CommandGroup>
                     {tokenList
-                      .filter((token) => token.tokenSymbol !== 'Other')
+                      .filter(
+                        (token) =>
+                          token.tokenSymbol !== 'Other' &&
+                          token.tokenSymbol !== 'Fiat',
+                      )
                       .map((token) => (
                         <CommandItem
                           value={token.tokenName}

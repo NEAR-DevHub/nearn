@@ -133,6 +133,14 @@ const submissionSchema = (
         });
       }
 
+      if (data.token === 'Fiat') {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['token'],
+          message: 'Fiat token is not allowed as a base token.',
+        });
+      }
+
       const hasEligibilityQuestions =
         Array.isArray(listing.eligibility) && listing.eligibility.length > 0;
 

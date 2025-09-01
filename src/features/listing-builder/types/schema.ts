@@ -446,12 +446,12 @@ export const createListingRefinements = async (
     }
   }
 
-  if (data.token === 'Other') {
+  if (data.token === 'Other' || data.token === 'Fiat') {
     if ((!!pick && pick.token) || !pick) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message:
-          '`Other` token is not allowed as a base token. `Other` is a sub token for `Any` token',
+          '`Other` and `Fiat` tokens are not allowed as a base token. `Other` is a sub token for `Any` token',
         path: ['token'],
       });
     }
