@@ -17,13 +17,21 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
   const userId = req.userId;
 
   logger.debug(`Request body: ${safeStringify(req.body)}`);
-  const { id, amount, token, paymentDate, notes, isPublic } = req.body;
+  const { id, amount, token, paymentDate, notes, isPublic, fiatCurrency } =
+    req.body;
 
   if (!id || !amount || !token || !paymentDate) {
     logger.warn('Required fields missing for manual payment');
     return res.status(400).json({
       error: 'Missing required fields',
       message: 'ID, amount, currency, and payment date are required',
+    });
+  }
+
+  if (token === 'Fiat' && !fiatCurrency) {
+    return res.status(400).json({
+      error: 'Fiat currency is required when token is Fiat',
+      message: 'Fiat currency is required when token is Fiat',
     });
   }
 
@@ -64,6 +72,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
     const manualPaymentDetails = {
       amount: parseFloat(amount),
       token,
+      fiatCurrency,
       paymentDate,
       notes: notes || '',
       isPublic: isPublic === true,

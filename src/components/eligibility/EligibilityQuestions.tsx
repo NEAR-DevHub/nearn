@@ -1,6 +1,6 @@
 import { type ClassValue } from 'clsx';
 import { Check, ChevronDown, X } from 'lucide-react';
-import React, { type JSX } from 'react';
+import React, { type JSX, useMemo } from 'react';
 import { type Control, useWatch } from 'react-hook-form';
 
 import { RichEditor } from '@/components/shared/RichEditor';
@@ -490,13 +490,23 @@ interface TokenSelectProps {
   control: Control<any>;
   name?: string;
   hideDescription?: boolean;
+  includeFiat?: boolean;
 }
 
 export function TokenSelect({
   control,
   name,
   hideDescription = false,
+  includeFiat = false,
 }: TokenSelectProps) {
+  const availableTokens = useMemo(() => {
+    return includeFiat
+      ? tokenList.filter((token) => token.tokenSymbol !== 'Any')
+      : tokenList.filter(
+          (token) =>
+            token.tokenSymbol !== 'Any' && token.tokenSymbol !== 'Fiat',
+        );
+  }, [includeFiat]);
   return (
     <FormField
       name={name ?? ('token' as any)}
@@ -549,32 +559,30 @@ export function TokenSelect({
                 <CommandList>
                   <CommandEmpty>No Token found.</CommandEmpty>
                   <CommandGroup>
-                    {tokenList
-                      .filter((token) => token.tokenSymbol !== 'Any')
-                      .map((token) => (
-                        <CommandItem
-                          value={token.tokenName}
-                          key={token.tokenSymbol}
-                          onSelect={() => {
-                            field.onChange(token.tokenSymbol);
-                          }}
-                        >
-                          <TokenLabel
-                            control={control}
-                            token={token}
-                            showIcon
-                            showName
-                          />
-                          <Check
-                            className={cn(
-                              'ml-auto',
-                              token.tokenSymbol === (field.value as string)
-                                ? 'opacity-100'
-                                : 'opacity-0',
-                            )}
-                          />
-                        </CommandItem>
-                      ))}
+                    {availableTokens.map((token) => (
+                      <CommandItem
+                        value={token.tokenName}
+                        key={token.tokenSymbol}
+                        onSelect={() => {
+                          field.onChange(token.tokenSymbol);
+                        }}
+                      >
+                        <TokenLabel
+                          control={control}
+                          token={token}
+                          showIcon
+                          showName
+                        />
+                        <Check
+                          className={cn(
+                            'ml-auto',
+                            token.tokenSymbol === (field.value as string)
+                              ? 'opacity-100'
+                              : 'opacity-0',
+                          )}
+                        />
+                      </CommandItem>
+                    ))}
                   </CommandGroup>
                 </CommandList>
               </Command>

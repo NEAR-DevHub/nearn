@@ -2,6 +2,7 @@ import React from 'react';
 
 import { tokenList } from '@/constants/tokenList';
 
+import { FiatCurrencySelect } from './fiat-currency-select';
 import { Input } from './input';
 import { LocalImage } from './local-image';
 
@@ -10,9 +11,11 @@ export const TokenInput = React.forwardRef<
   {
     token: string | undefined;
     onChange?: (e: any) => void;
+    fiatValue?: string | null;
+    onFiatChange?: (e: any) => void;
     value?: number | null;
   }
->(({ token, onChange, value, ...props }, ref) => {
+>(({ token, onChange, value, fiatValue, onFiatChange, ...props }, ref) => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
 
@@ -27,20 +30,32 @@ export const TokenInput = React.forwardRef<
     onChange?.(finalValue);
   };
 
+  const isFiat = token === 'Fiat';
+
   return (
     <div className="flex">
-      <div className="flex items-center gap-1 rounded-l-md border border-r-0 border-input bg-muted pl-3 pr-5">
-        <LocalImage
-          className="h-4 w-4 rounded-full"
-          alt="token"
-          src={
-            tokenList.filter((e) => e?.tokenSymbol === token)[0]?.icon ??
-            '/assets/dollar.svg'
-          }
-        />
-        <p className="text-sm font-medium text-slate-500 sm:text-base">
-          {token === 'Any' ? 'USD' : token}
-        </p>
+      <div className="flex">
+        {isFiat ? (
+          <FiatCurrencySelect
+            value={fiatValue ?? undefined}
+            onFiatChange={onFiatChange}
+            triggerClassName="  rounded-r-none border border-r-0 border-input bg-muted pl-3 pr-1 h-full py-0"
+          />
+        ) : (
+          <div className="flex items-center gap-1 rounded-l-md border border-r-0 border-input bg-muted pl-3 pr-5">
+            <LocalImage
+              className="h-4 w-4 rounded-full"
+              alt="token"
+              src={
+                tokenList.filter((e) => e?.tokenSymbol === token)[0]?.icon ??
+                '/assets/dollar.svg'
+              }
+            />
+            <p className="text-sm font-medium text-slate-500 sm:text-base">
+              {token === 'Any' ? 'USD' : token}
+            </p>
+          </div>
+        )}
       </div>
       <Input
         className="rounded-l-none"

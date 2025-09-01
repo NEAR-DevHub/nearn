@@ -25,6 +25,15 @@ export const OTHER: Token = {
   coingeckoSymbol: 'other',
 };
 
+export const FIAT: Token = {
+  tokenName: 'Fiat',
+  tokenSymbol: 'Fiat',
+  mintAddress: 'fiat',
+  icon: 'https://nearn.io/assets/anyTokens.svg',
+  decimals: 2,
+  coingeckoSymbol: 'fiat',
+};
+
 export const tokenList: Token[] = [
   {
     tokenName: 'USDC',
@@ -60,5 +69,6 @@ export const tokenList: Token[] = [
     coingeckoSymbol: 'aurora',
   },
   ANY_TOKEN,
+  FIAT,
   OTHER,
 ];
