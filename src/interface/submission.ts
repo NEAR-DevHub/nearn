@@ -48,7 +48,6 @@ interface SubmissionWithUser {
   listing?: Listing;
   ask?: number;
   label: SubmissionLabels;
-  notes?: string;
   totalEarnings?: number;
   token?: string;
   approvedBy?: string;

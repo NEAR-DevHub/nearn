@@ -14,10 +14,13 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import React, {
   type Dispatch,
   Fragment,
   type SetStateAction,
+  useEffect,
+  useRef,
   useState,
 } from 'react';
 import { MdOutlineAccountBalanceWallet, MdOutlineMail } from 'react-icons/md';
@@ -36,6 +39,7 @@ import { useClipboard } from '@/hooks/use-clipboard';
 import type { User } from '@/interface/user';
 import { getSubmissionUrl } from '@/utils/bounty-urls';
 import { cn } from '@/utils/cn';
+import { setupCommentLinking } from '@/utils/comment-highlighting';
 import { dayjs } from '@/utils/dayjs';
 import { getURLSanitized } from '@/utils/getURLSanitized';
 import { truncatePublicKey } from '@/utils/truncatePublicKey';
@@ -65,7 +69,6 @@ import { DisplayPayment } from './DisplayPayment';
 import NearTreasuryPaymentModal from './Modals/NearTreasuryPaymentModal';
 import { SelectWinnersGuide } from './Modals/SelectWinnersGuide';
 import { UpdatePaymentDateModal } from './Modals/UpdateDateModal';
-import { Notes } from './Notes';
 import { SelectLabel } from './SelectLabel';
 import { SelectWinner } from './SelectWinner';
 
@@ -210,8 +213,6 @@ export const DoneBy = ({
   );
 };
 
-type ActionTab = 'activity' | 'notes' | 'comments';
-
 export const SubmissionPanel = ({
   bounty,
   submissions,
@@ -237,6 +238,34 @@ export const SubmissionPanel = ({
   const { data: commentData, refetch: refetchCommentCount } = useCommentCount(
     selectedSubmission?.id,
   );
+  const { data: notesData, refetch: refetchNotes } = useCommentCount(
+    selectedSubmission?.id,
+    'INTERNAL_SUBMISSION_NOTES',
+  );
+  const searchParams = useSearchParams();
+  const activeTab = searchParams?.get('tab') || 'activity';
+
+  const commentsRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const hash = window.location.hash;
+
+    // Handle comments section scroll
+    if (hash === '#comments' && commentsRef.current) {
+      setTimeout(() => {
+        if (commentsRef.current) {
+          commentsRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+      return;
+    }
+
+    // Handle comment linking
+    const cleanup = setupCommentLinking();
+    return cleanup;
+  }, []);
+
   const {
     data: logs,
     fetchNextPage,
@@ -246,7 +275,6 @@ export const SubmissionPanel = ({
     refType: 'submission',
     refId: selectedSubmission?.id,
   });
-  const [activeTab, setActiveTab] = useState<ActionTab>('activity');
 
   const { onCopy: onCopyEmail } = useClipboard(
     selectedSubmission?.user?.email || '',
@@ -707,12 +735,7 @@ export const SubmissionPanel = ({
                 />
               </div>
               <div className="w-1/3 border-l">
-                <Tabs
-                  defaultValue="activity"
-                  value={activeTab}
-                  onValueChange={(tab) => setActiveTab(tab as ActionTab)}
-                  className="w-full"
-                >
+                <Tabs defaultValue={activeTab} className="w-full">
                   <TabsList className="grid h-auto w-full grid-cols-3 rounded-none">
                     <TabsTrigger
                       value="notes"
@@ -720,7 +743,12 @@ export const SubmissionPanel = ({
                         'h-auto rounded-none border-b-2 px-4 py-2 text-muted-foreground data-[state=active]:border-brand-green',
                       )}
                     >
-                      Notes
+                      Notes:{' '}
+                      {notesData?.count !== undefined ? (
+                        notesData.count
+                      ) : (
+                        <Loader2 className="size-4 animate-spin" />
+                      )}
                     </TabsTrigger>
                     <TabsTrigger
                       value="comments"
@@ -746,12 +774,32 @@ export const SubmissionPanel = ({
                   </TabsList>
 
                   <TabsContent value="notes" className="p-0">
-                    <div className="max-h-[32rem] overflow-y-auto px-4 py-4 scrollbar-thin scrollbar-track-slate-100 scrollbar-thumb-slate-300">
-                      <Notes
-                        key={selectedSubmission?.id}
-                        submissionId={selectedSubmission?.id ?? ''}
-                        initialNotes={selectedSubmission?.notes}
-                        slug={bounty?.slug}
+                    <div className="max-h-[30rem] overflow-y-auto px-4 py-4 scrollbar-thin scrollbar-track-slate-100 scrollbar-thumb-slate-300">
+                      <div className="flex items-center gap-2 text-slate-500">
+                        <span className="font-semibold">Internal Notes</span>
+                        <Tooltip content="Only visible to your sponsor team. Use this space to leave internal feedback, evaluation notes, or reminders.">
+                          <Info className="size-4 text-slate-300 hover:text-slate-400" />
+                        </Tooltip>
+                      </div>
+                      <div className="mb-6 mt-4" />
+                      <Comments
+                        key={selectedSubmission?.id ?? ''}
+                        hideCount
+                        isAnnounced={false}
+                        listingSlug={bounty?.slug ?? ''}
+                        listingType={bounty?.type ?? ''}
+                        poc={bounty?.poc as User}
+                        sponsorId={bounty?.sponsorId}
+                        isVerified={bounty?.sponsor?.isVerified}
+                        submissionAuthor={selectedSubmission?.user as User}
+                        refId={selectedSubmission?.id ?? ''}
+                        refType={'SUBMISSION'}
+                        type="INTERNAL_SUBMISSION_NOTES"
+                        count={notesData?.count ?? 0}
+                        setCount={() => {
+                          refetchNotes();
+                        }}
+                        take={2}
                       />
                     </div>
                   </TabsContent>
@@ -763,7 +811,17 @@ export const SubmissionPanel = ({
                           <Info className="size-4 text-slate-300 hover:text-slate-400" />
                         </Tooltip>
                       </div>
-                      <div className="mb-6 mt-4 border-b border-slate-200" />
+
+                      <div className="mt-4 flex items-center gap-2 rounded-md bg-amber-50 p-2 text-amber-600">
+                        <Info className="size-4 shrink-0" />
+                        <p className="text-sm">
+                          Visible to all contributors.
+                          <br />
+                          Keep it submission-related.
+                        </p>
+                      </div>
+
+                      <div className="mb-6 mt-4" />
                       <Comments
                         key={selectedSubmission?.id ?? ''}
                         hideCount

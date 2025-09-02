@@ -2,6 +2,8 @@ import dayjs from 'dayjs';
 import Papa from 'papaparse';
 
 import { isKYCEnabled } from '@/components/ui/KycComponent';
+import { PROJECT_NAME } from '@/constants/project';
+import type { Comment } from '@/interface/comments';
 import { getBountyUrl, getSubmissionUrl } from '@/utils/bounty-urls';
 import { getURLSanitized } from '@/utils/getURLSanitized';
 import { getURL } from '@/utils/validUrl';
@@ -36,6 +38,59 @@ function stripHtml(html: string): string {
     .trim();
 
   return text;
+}
+
+// Format internal notes with structure
+function formatInternalNotes(submission: SubmissionWithListingUser): string {
+  const internalNotes = (submission as any).Comments || [];
+  if (!internalNotes || internalNotes.length === 0) return '';
+
+  let formattedNotes = '';
+  let commentIndex = 0;
+
+  // Process only top-level comments (no replyToId)
+  const topLevelComments = internalNotes.filter(
+    (comment: Comment) => !comment.replyToId,
+  );
+
+  topLevelComments.forEach((comment: Comment, index: number) => {
+    commentIndex++;
+    const author =
+      comment.author?.name || comment.author?.username || PROJECT_NAME;
+    const date = dayjs(comment.createdAt).format('MMM D, YYYY h:mm A');
+
+    // Add comment header
+    formattedNotes += `Comment #${commentIndex}:\n`;
+    formattedNotes += `  @${author} (${date})\n`;
+
+    // Add comment content with proper indentation
+    const lines = comment.message.split('\n');
+    lines.forEach((line) => {
+      formattedNotes += `    ${line}\n`;
+    });
+
+    // Find and add replies
+    const replies = (comment as any).replies || [];
+    if (replies.length > 0) {
+      replies.forEach((reply: Comment) => {
+        const replyAuthor =
+          reply.author?.name || reply.author?.username || PROJECT_NAME;
+        const replyDate = dayjs(reply.createdAt).format('MMM D, YYYY h:mm A');
+        formattedNotes += `\n  --Reply from @${replyAuthor} (${replyDate})\n`;
+        const replyLines = reply.message.split('\n');
+        replyLines.forEach((line) => {
+          formattedNotes += `      ${line}\n`;
+        });
+      });
+    }
+
+    // Add separator between comments
+    if (index < topLevelComments.length - 1) {
+      formattedNotes += '\n';
+    }
+  });
+
+  return formattedNotes.trim();
 }
 
 /// This function first converts submissions to Map<Address, Submission>
@@ -211,7 +266,7 @@ export async function convertToCSV(
           'Link to Submission (Default Bounty Question)': getURLSanitized(
             submission.link ?? '',
           ),
-          Notes: submission.notes ?? '',
+          Notes: formatInternalNotes(submission),
           ...customAnswers,
         };
       });

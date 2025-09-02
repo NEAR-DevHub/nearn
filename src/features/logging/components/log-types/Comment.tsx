@@ -13,6 +13,8 @@ export default function Comment(props: LogProperties) {
 
   // Get submission and listing data
   const submissionUsername = event.submission?.user?.username;
+  const isInternalNotes = event.visibility === 'SPONSOR';
+  const commentText = isInternalNotes ? 'internal note' : 'comment';
 
   return (
     <div className="flex flex-col gap-1">
@@ -24,14 +26,14 @@ export default function Comment(props: LogProperties) {
             <a href={`/t/${repliedToUsername}`} className="text-slate-900">
               @{repliedToUsername}
             </a>{' '}
-            comment
+            {commentText}
           </>
         )}
 
         {/* Handle comment on submission */}
         {!repliedToUsername && submissionUsername && !isDeleted && (
           <>
-            Commented on{' '}
+            {isInternalNotes ? 'Added internal note to' : 'Commented on'}{' '}
             <a href={`/t/${submissionUsername}`} className="text-slate-900">
               @{submissionUsername}
             </a>{' '}
@@ -66,7 +68,7 @@ export default function Comment(props: LogProperties) {
         )}
 
         {/* Handle deleted comment */}
-        {isDeleted && <>Deleted comment</>}
+        {isDeleted && <>Deleted {commentText}</>}
       </p>
 
       {/* Show comment message for non-deleted comments */}

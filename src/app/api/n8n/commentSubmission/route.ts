@@ -50,7 +50,6 @@ export async function POST(request: Request) {
     logger.debug('Creating a new comment in the database');
     const result = await prisma.comment.create({
       data: {
-        authorId: submission.listing.poc.id,
         message: message as string,
         refId: submissionId,
         refType: 'SUBMISSION',

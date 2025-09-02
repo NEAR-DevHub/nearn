@@ -1,13 +1,16 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+import { type CommentType } from '@prisma/client';
+import type { NextApiResponse } from 'next';
 
 import logger from '@/lib/logger';
 import { prisma } from '@/prisma';
 import { safeStringify } from '@/utils/safeStringify';
 
+import { type NextApiRequestWithPotentialSponsor } from '@/features/auth/types';
+import { withPotentialSponsorAuth } from '@/features/auth/utils/withPotentialSponsorAuth';
 import { USERNAME_PATTERN } from '@/features/talent/constants';
 
-export default async function comment(
-  req: NextApiRequest,
+async function comment(
+  req: NextApiRequestWithPotentialSponsor,
   res: NextApiResponse,
 ) {
   logger.info(`Request Query: ${safeStringify(req.query)}`);
@@ -16,8 +19,23 @@ export default async function comment(
   const refId = params.id as string;
   const skip = params.skip ? parseInt(params.skip as string, 10) : 0;
   const take = params.take ? parseInt(params.take as string, 10) : 0;
+  const type = params.type ? (params.type as CommentType) : undefined;
 
   logger.debug(`Fetching comments for listingId=${refId}, skip=${skip}`);
+
+  if (type === 'INTERNAL_SUBMISSION_NOTES') {
+    const submission = await prisma.submission.findUnique({
+      where: {
+        id: refId,
+        listing: {
+          sponsorId: req.userSponsorId,
+        },
+      },
+    });
+    if (!submission) {
+      return res.status(404).json({ error: 'Submission not found' });
+    }
+  }
 
   try {
     const result = await prisma.comment.findMany({
@@ -26,9 +44,11 @@ export default async function comment(
         isActive: true,
         isArchived: false,
         replyToId: null,
-        type: {
-          not: 'SUBMISSION',
-        },
+        type: type
+          ? type
+          : {
+              notIn: ['SUBMISSION', 'INTERNAL_SUBMISSION_NOTES'],
+            },
       },
       orderBy: {
         createdAt: 'desc',
@@ -73,9 +93,11 @@ export default async function comment(
         isActive: true,
         isArchived: false,
         replyToId: null,
-        type: {
-          not: 'SUBMISSION',
-        },
+        type: type
+          ? type
+          : {
+              notIn: ['SUBMISSION', 'INTERNAL_SUBMISSION_NOTES'],
+            },
       },
     });
 
@@ -145,3 +167,5 @@ function extractUsernames(comments: any[]): Set<string> {
 
   return usernames;
 }
+
+export default withPotentialSponsorAuth(comment);
