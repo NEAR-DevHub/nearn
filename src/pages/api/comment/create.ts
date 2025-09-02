@@ -125,7 +125,7 @@ async function comment(req: NextApiRequestWithUser, res: NextApiResponse) {
         eventType: EventType.COMMENT_ADDED,
         actor: {
           id: userId,
-          type: 'SPONSOR',
+          type: type === 'INTERNAL_SUBMISSION_NOTES' ? 'SPONSOR' : 'USER',
         },
         data: {},
         entities: {

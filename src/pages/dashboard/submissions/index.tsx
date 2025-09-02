@@ -147,7 +147,6 @@ export default function SponsorListings() {
 
         return result;
       });
-      console.log(filtered);
     }
 
     if (currentSort.direction && currentSort.column) {
@@ -211,8 +210,6 @@ export default function SponsorListings() {
     return filtered;
   }, [allSubmissions, selectedTab, selectedStatus, searchText, currentSort]);
 
-  console.log('filteredSubmissions', filteredSubmissions);
-
   const exportMutation = useMutation({
     mutationFn: async () => {
       const response = await api.post(
@@ -246,7 +243,6 @@ export default function SponsorListings() {
       (currentPage + 1) * listingsPerPage,
     );
   }, [filteredSubmissions, currentPage, listingsPerPage]);
-  console.log('paginatedListings', paginatedListings);
 
   const hasGrants = useMemo(() => {
     return allSubmissions?.some(
