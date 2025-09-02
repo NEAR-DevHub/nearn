@@ -1,4 +1,4 @@
-import { type CommentRefType } from '@prisma/client';
+import { type CommentRefType, type CommentType } from '@prisma/client';
 import { useSetAtom } from 'jotai';
 import { ArrowRight, Loader2 } from 'lucide-react';
 import { usePostHog } from 'posthog-js/react';
@@ -30,9 +30,10 @@ interface Props {
   isVerified?: boolean;
   count: number;
   take?: number;
+  type?: CommentType;
   setCount: Dispatch<SetStateAction<number>>;
   isTemplate?: boolean;
-  onSuccess?: (newComment: Comment) => void;
+  onSuccess?: (newComment: Comment & { author: User }) => void;
   isDisabled?: boolean;
 }
 export const Comments = ({
@@ -45,6 +46,7 @@ export const Comments = ({
   listingType,
   listingSlug,
   isAnnounced,
+  type,
   isVerified = false,
   isTemplate = false,
   isDisabled = false,
@@ -88,6 +90,7 @@ export const Comments = ({
         params: {
           skip,
           take,
+          type,
         },
       });
       const allComments = commentsData.data.result as Comment[];
@@ -152,6 +155,7 @@ export const Comments = ({
         refType={refType}
         refId={refId}
         poc={poc}
+        type={type}
         onSuccess={(newComment) => {
           setCount((count) => count + 1);
           setComments((prevComments) => [newComment, ...prevComments]);
@@ -175,6 +179,7 @@ export const Comments = ({
               defaultSuggestions={defaultSuggestions}
               key={comment.id}
               comment={comment}
+              type={type}
               poc={poc}
               submissionAuthor={submissionAuthor}
               sponsorId={sponsorId}

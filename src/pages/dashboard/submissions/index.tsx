@@ -124,27 +124,30 @@ export default function SponsorListings() {
 
     if (searchText) {
       filtered = filtered.filter((submission) => {
+        if (submission.sequentialId.toString() === searchText) {
+          return true;
+        }
+        const lowerCaseSearchText = searchText.toLowerCase();
         const result =
           submission.listing.title
             ?.toLowerCase()
-            .includes(searchText.toLowerCase()) ||
-          submission.user.name
-            ?.toLowerCase()
-            .includes(searchText.toLowerCase()) ||
-          submission.user.email
-            ?.toLowerCase()
-            .includes(searchText.toLowerCase()) ||
+            .includes(lowerCaseSearchText) ||
+          submission.user.name?.toLowerCase().includes(lowerCaseSearchText) ||
+          submission.user.email?.toLowerCase().includes(lowerCaseSearchText) ||
           submission.user.publicKey
             ?.toLowerCase()
-            .includes(searchText.toLowerCase()) ||
+            .includes(lowerCaseSearchText) ||
           submission.user.username
             ?.toLowerCase()
-            .includes(searchText.toLowerCase()) ||
-          submission.notes?.toLowerCase().includes(searchText.toLowerCase()) ||
-          submission.sequentialId?.toString().includes(searchText);
+            .includes(lowerCaseSearchText) ||
+          (submission.internalNotes ?? []).some((comment) =>
+            comment.message?.toLowerCase().includes(lowerCaseSearchText),
+          ) ||
+          submission.sequentialId?.toString().includes(lowerCaseSearchText);
 
         return result;
       });
+      console.log(filtered);
     }
 
     if (currentSort.direction && currentSort.column) {
@@ -190,6 +193,8 @@ export default function SponsorListings() {
     return filtered;
   }, [allSubmissions, selectedTab, selectedStatus, searchText, currentSort]);
 
+  console.log('filteredSubmissions', filteredSubmissions);
+
   const exportMutation = useMutation({
     mutationFn: async () => {
       const response = await api.post(
@@ -223,6 +228,7 @@ export default function SponsorListings() {
       (currentPage + 1) * listingsPerPage,
     );
   }, [filteredSubmissions, currentPage, listingsPerPage]);
+  console.log('paginatedListings', paginatedListings);
 
   const hasGrants = useMemo(() => {
     return allSubmissions?.some(

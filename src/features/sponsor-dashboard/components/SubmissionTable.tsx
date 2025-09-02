@@ -55,6 +55,7 @@ import { EarnAvatar } from '@/features/talent/components/EarnAvatar';
 import { type SubmissionWithListingUser } from '../queries/dashboard-submissions';
 import { colorMap } from '../utils/statusColorMap';
 import { ListingTh } from './ListingTable';
+import { SubmissionNotesMinified } from './SubmissionNotesMinified';
 import { DeleteRestoreSubmissionModal } from './Submissions/Modals/DeleteRestoreSubmissionModal';
 import { EditSubmissionStatusModal } from './Submissions/Modals/EditSubmissionStatusModal';
 import { DoneBy } from './Submissions/SubmissionPanel';
@@ -499,14 +500,8 @@ export const SubmissionTable = ({
                     </TableCell>
                   )}
                   {visibleColumns.notes && (
-                    <TableCell
-                      className="cursor-pointer items-center py-2"
-                      onClick={(e) => handleClick(e, listingSubmissionLink)}
-                      onAuxClick={(e) => handleClick(e, listingSubmissionLink)}
-                    >
-                      <p className="whitespace-pre-wrap text-sm font-medium text-slate-500">
-                        {submission?.notes}
-                      </p>
+                    <TableCell className="items-center py-2">
+                      <SubmissionNotesMinified submission={submission} />
                     </TableCell>
                   )}
                   <TableCell>

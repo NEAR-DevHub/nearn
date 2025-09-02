@@ -1,4 +1,4 @@
-import { type CommentRefType } from '@prisma/client';
+import { type CommentRefType, type CommentType } from '@prisma/client';
 import { usePostHog } from 'posthog-js/react';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -18,6 +18,7 @@ interface Props {
   defaultSuggestions: Map<string, User>;
   refId: string;
   refType: CommentRefType;
+  type?: CommentType;
   isTemplate?: boolean;
   poc?: User | undefined;
   onSuccess?: (newComment: Comment) => void;
@@ -28,6 +29,7 @@ export const CommentForm = ({
   defaultSuggestions,
   refId,
   refType,
+  type,
   poc,
   isTemplate = false,
   isDisabled = false,
@@ -51,6 +53,7 @@ export const CommentForm = ({
         refType: refType,
         refId: refId,
         pocId: poc?.id,
+        type: type === 'INTERNAL_SUBMISSION_NOTES' ? type : undefined,
       });
       onSuccess?.(newCommentData.data);
       setNewComment('');

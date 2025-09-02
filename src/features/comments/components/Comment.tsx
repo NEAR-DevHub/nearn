@@ -1,4 +1,4 @@
-import type { CommentRefType } from '@prisma/client';
+import type { CommentRefType, CommentType } from '@prisma/client';
 import {
   AlertCircle,
   ChevronDown,
@@ -31,6 +31,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Tooltip } from '@/components/ui/tooltip';
+import { PROJECT_NAME } from '@/constants/project';
 import { useClipboard } from '@/hooks/use-clipboard';
 import { useDisclosure } from '@/hooks/use-disclosure';
 import { useMediaQuery } from '@/hooks/use-media-query';
@@ -58,6 +59,7 @@ interface Props {
   sponsorId: string | undefined;
   submissionAuthor: User | undefined;
   defaultSuggestions: Map<string, User>;
+  type?: CommentType;
   deleteComment: (commentId: string) => Promise<void>;
   listingSlug: string;
   listingType: string;
@@ -74,6 +76,7 @@ export const Comment = ({
   sponsorId,
   refId,
   refType,
+  type,
   poc,
   submissionAuthor,
   deleteComment,
@@ -163,6 +166,7 @@ export const Comment = ({
       message: msg,
       refType: refType,
       refId: refId,
+      type: type,
       replyToId: comment?.id ?? null,
       replyToUserId: comment?.authorId ?? null,
       pocId: poc?.id,
@@ -256,7 +260,7 @@ export const Comment = ({
           <EarnAvatar
             className={cn(isReply ? 'h-7 w-7' : 'h-9 w-9')}
             id={comment?.author?.id}
-            avatar={comment?.author?.photo}
+            avatar={comment?.author?.photo || '/favicon.ico'}
           />
         </Link>
 
@@ -274,7 +278,7 @@ export const Comment = ({
                 </p>
               ) : (
                 <p className="text-sm font-medium text-slate-800 md:text-base">
-                  {comment?.author?.username}
+                  {comment?.author?.username ?? PROJECT_NAME}
                 </p>
               )}
             </Link>
@@ -414,6 +418,7 @@ export const Comment = ({
                   defaultSuggestions={defaultSuggestions}
                   deleteComment={deleteReplyLvl1}
                   addNewReply={addNewReplyLvl1}
+                  type={type}
                   isReply
                   key={reply.id}
                   refType={refType}

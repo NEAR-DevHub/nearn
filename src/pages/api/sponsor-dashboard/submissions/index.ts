@@ -29,6 +29,17 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
         user: true,
         approvedByUser: true,
         paidByUser: true,
+        Comments: {
+          where: {
+            type: 'INTERNAL_SUBMISSION_NOTES',
+          },
+          include: {
+            author: true,
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+        },
       },
       orderBy: {
         sequentialId: 'desc',
@@ -48,6 +59,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
           submission.listing.isArchived
             ? 'Deleted'
             : submission.status,
+        internalNotes: submission.Comments,
       })),
     );
   } catch (err: any) {

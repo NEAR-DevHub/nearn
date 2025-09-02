@@ -58,6 +58,16 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         },
       };
     case 'SUBMISSION':
+      if (comment?.type === 'INTERNAL_SUBMISSION_NOTES') {
+        return {
+          redirect: {
+            destination: wrapWithCommentId(
+              `/dashboard/listings/${comment.submission?.listing?.slug}/submissions/${comment.submission?.sequentialId}?tab=notes`,
+            ),
+            permanent: true,
+          },
+        };
+      }
       return {
         redirect: {
           destination: wrapWithCommentId(

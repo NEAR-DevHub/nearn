@@ -1,6 +1,7 @@
 import { ActorType, type EventVisibility, type Prisma } from '@prisma/client';
 import type { NextApiResponse } from 'next';
 
+import { PROJECT_NAME } from '@/constants/project';
 import logger from '@/lib/logger';
 import { prisma } from '@/prisma';
 
@@ -383,9 +384,11 @@ async function submission(
               ...log.comment,
               author: {
                 ...log.comment.author,
-                name: log.comment.author.private
+                name: log.comment.author?.private
                   ? undefined
-                  : log.comment.author.name,
+                  : log.comment.author?.name ||
+                    log.comment.author?.username ||
+                    PROJECT_NAME,
                 private: undefined,
               },
             }
