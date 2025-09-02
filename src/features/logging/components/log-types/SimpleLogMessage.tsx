@@ -20,7 +20,7 @@ const options: HTMLReactParserOptions = {
           href={attribs.href}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-slate-900 no-underline"
+          className="inline-flex gap-1 text-slate-900 no-underline"
         >
           {domToReact(children, options)}
         </a>
@@ -33,7 +33,7 @@ const options: HTMLReactParserOptions = {
 
 export default function SimpleLogMessage({ message }: SimpleLogMessageProps) {
   return (
-    <div className={cn('inline-flex items-center gap-1 text-slate-500')}>
+    <div className={cn('text-slate-500')}>
       {parseHtml(message || '', options)}
     </div>
   );
