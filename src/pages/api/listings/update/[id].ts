@@ -1,4 +1,5 @@
 import { type Prisma } from '@prisma/client';
+import dayjs from 'dayjs';
 import { franc } from 'franc';
 import type { NextApiResponse } from 'next';
 
@@ -120,6 +121,7 @@ async function listing(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       isST: !!sponsor?.st,
       hackathons: hackathon ? [hackathon] : [],
       pastListing: listing as any,
+      isInReviewListing: dayjs().isAfter(listing.deadline),
     });
     const innerSchema = listingSchema._def.schema.omit({
       isPublished: true,

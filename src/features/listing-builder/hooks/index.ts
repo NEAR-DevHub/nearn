@@ -17,6 +17,7 @@ import {
   isDraftSavingAtom,
   isEditingAtom,
   isGodAtom,
+  isListingInReviewAtom,
   isSTAtom,
   saveDraftMutationAtom,
   skillsKeyAtom,
@@ -55,6 +56,7 @@ export const useListingForm = (
   const isGod = useAtomValue(isGodAtom);
   const isEditing = useAtomValue(isEditingAtom);
   const isST = useAtomValue(isSTAtom);
+  const isInReviewListing = useAtomValue(isListingInReviewAtom);
 
   const setDescriptionKey = useSetAtom(descriptionKeyAtom);
   const setSkillsKey = useSetAtom(skillsKeyAtom);
@@ -67,6 +69,7 @@ export const useListingForm = (
     isST,
     pastListing: defaultValues as any,
     hackathons: hackathons,
+    isInReviewListing,
   });
   if (!formMethods || !Object.keys(formMethods).length) {
     //eslint-disable-next-line
