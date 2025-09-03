@@ -192,8 +192,8 @@ export const FeedCardContainer = ({
                     ?.slice(0, 4)
                     .map((comment, index) => (
                       <EarnAvatar
-                        avatar={comment.author.photo ?? '/favicon.ico'}
-                        id={comment.author.name ?? PROJECT_NAME}
+                        avatar={comment?.author?.photo ?? '/favicon.ico'}
+                        id={comment?.author?.name ?? PROJECT_NAME}
                         key={index}
                         className="h-6 w-6 border border-white"
                       />
