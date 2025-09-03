@@ -6,6 +6,7 @@ import { IoMdHeart, IoMdHeartEmpty } from 'react-icons/io';
 
 import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 import { Skeleton } from '@/components/ui/skeleton';
+import { PROJECT_NAME } from '@/constants/project';
 import { useDisclosure } from '@/hooks/use-disclosure';
 import { api } from '@/lib/api';
 import { useUser } from '@/store/user';
@@ -191,8 +192,8 @@ export const FeedCardContainer = ({
                     ?.slice(0, 4)
                     .map((comment, index) => (
                       <EarnAvatar
-                        avatar={comment.author.photo!}
-                        id={comment.author.name!}
+                        avatar={comment.author.photo ?? '/favicon.ico'}
+                        id={comment.author.name ?? PROJECT_NAME}
                         key={index}
                         className="h-6 w-6 border border-white"
                       />
