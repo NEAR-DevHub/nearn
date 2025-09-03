@@ -65,6 +65,9 @@ async function handler(
       isActive: true,
       isArchived: false,
       replyToId: null,
+      type: {
+        not: 'INTERNAL_SUBMISSION_NOTES',
+      },
     };
 
     const commentsInclude: Prisma.CommentFindManyArgs = {
