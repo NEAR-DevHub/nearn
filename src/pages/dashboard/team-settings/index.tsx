@@ -158,7 +158,7 @@ const Index = () => {
         <InviteMembers isOpen={isOpen} onClose={handleInviteDialogClose} />
       )}
       <Banner stats={sponsorStats} isLoading={isStatsLoading} />
-      <div className="mb-4 flex justify-between">
+      <div className="mb-4 flex w-full flex-wrap items-center justify-between gap-y-3 xl:flex-nowrap">
         <div className="flex items-center gap-3">
           <p className="text-lg font-semibold text-slate-800">
             Team Management
@@ -168,7 +168,7 @@ const Index = () => {
             Manage who gets access to your sponsor profile
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 lg:justify-end">
           {isAdminLoggedIn && (
             <Button
               className="ph-no-captur h-9"

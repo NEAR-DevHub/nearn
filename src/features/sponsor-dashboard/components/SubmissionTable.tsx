@@ -203,7 +203,7 @@ export const SubmissionTable = ({
 
   return (
     <>
-      <div className="max-w-8xl w-full overflow-x-auto rounded-md border border-slate-200">
+      <div className="w-full overflow-x-auto rounded-md border border-slate-200">
         <Table>
           <TableHeader>
             <TableRow className="bg-slate-100 hover:bg-muted">

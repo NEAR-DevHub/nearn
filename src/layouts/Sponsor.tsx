@@ -362,14 +362,15 @@ export function SponsorLayout({
           {/* Content Area */}
           <div
             className={cn(
-              'w-full',
-              isCollapsible ? 'ml-20' : 'ml-0',
+              isCollapsible
+                ? 'ml-20 w-[calc(100vw-5rem)]'
+                : 'ml-0 w-[calc(100vw-16rem)]',
               className,
             )}
           >
             <div
               className={cn(
-                'w-full flex-1 py-5 pl-4 pr-8 transition-[margin-left] duration-300 ease-in-out',
+                'max-w-full flex-1 py-5 pl-4 pr-8 transition-[margin-left] duration-300 ease-in-out',
               )}
             >
               <>
