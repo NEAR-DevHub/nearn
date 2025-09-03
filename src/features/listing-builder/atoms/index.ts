@@ -18,6 +18,7 @@ const hackathonsAtom = atom<Hackathon[] | undefined>(undefined);
 const hideAutoSaveAtom = atom<boolean>(true);
 const descriptionKeyAtom = atom<string | number>(1);
 const skillsKeyAtom = atom<string | number>(1);
+const isListingInReviewAtom = atom<boolean>(false);
 
 interface SaveQueueState {
   isProcessing: boolean;
@@ -67,6 +68,7 @@ export {
   isDraftSavingAtom,
   isEditingAtom,
   isGodAtom,
+  isListingInReviewAtom,
   isSTAtom,
   listingStatusAtom,
   previewAtom,

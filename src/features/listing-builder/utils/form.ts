@@ -35,6 +35,7 @@ export const getListingDefaults = ({
     isEditing,
     isST,
     hackathons: hackathons,
+    isInReviewListing: false,
   });
 
   // Get the inner schema by unwrapping the ZodEffects

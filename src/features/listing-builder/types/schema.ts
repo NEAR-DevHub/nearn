@@ -37,6 +37,7 @@ interface ListingFormSchemaOptions {
   isST: boolean;
   pastListing?: Listing;
   hackathons?: Hackathon[];
+  isInReviewListing: boolean;
 }
 export const createListingFormSchema = ({
   isGod,
@@ -44,6 +45,7 @@ export const createListingFormSchema = ({
   isST,
   pastListing,
   hackathons,
+  isInReviewListing,
 }: ListingFormSchemaOptions) => {
   const eligibilityQuestionSchema = z.object({
     order: z.number(),
@@ -193,17 +195,23 @@ export const createListingFormSchema = ({
         .default(dayjs().add(7, 'day').format(DEADLINE_FORMAT).replace('Z', ''))
         .refine((date) => {
           if (isGod && isEditing) return true;
-          return isGod || dayjs(date).isAfter(dayjs());
+          // It can be in the past, if it is already in the past
+          return (
+            isGod ||
+            dayjs(date).isAfter(dayjs()) ||
+            dayjs(date).isSame(pastListing?.deadline) ||
+            isInReviewListing
+          );
         }, 'Deadline cannot be in the past')
         .refine((date) => {
           if (!isEditing || isGod || !pastListing?.deadline) return true;
           const newDeadline = dayjs(date);
           const pastDeadlineDate = dayjs(pastListing.deadline);
-          const maxDeadline = pastDeadlineDate.add(2, 'weeks');
+          const maxDeadline = pastDeadlineDate.add(3, 'months');
           return (
             newDeadline.isBefore(maxDeadline) || newDeadline.isSame(maxDeadline)
           );
-        }, 'Cannot extend deadline more than 2 weeks from original deadline'),
+        }, 'Cannot extend deadline more than 3 months from original deadline'),
       templateId: z.string().optional().nullable(),
       eligibility: z.array(eligibilityQuestionSchema).optional().nullable(),
       skills: skillsArraySchema,
