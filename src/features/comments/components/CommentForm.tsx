@@ -101,7 +101,11 @@ export const CommentForm = ({
         <div className="relative mt-0.5 w-full">
           <UserSuggestionTextarea
             defaultSuggestions={defaultSuggestions}
-            placeholder="Write a comment"
+            placeholder={
+              type === 'INTERNAL_SUBMISSION_NOTES'
+                ? 'Write a note'
+                : 'Write a comment'
+            }
             value={newComment}
             setValue={setNewComment}
             onKeyDown={handleKeyDown}
