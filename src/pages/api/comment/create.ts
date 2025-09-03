@@ -39,7 +39,7 @@ async function comment(req: NextApiRequestWithUser, res: NextApiResponse) {
         return res.status(403).json({ error: 'User is not a sponsor' });
       }
 
-      const submission = await prisma.submission.findUniqueOrThrow({
+      const submission = await prisma.submission.findUnique({
         where: {
           id: refId,
           listing: {
