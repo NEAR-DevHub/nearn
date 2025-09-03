@@ -192,7 +192,7 @@ export default async function listings(
               isArchived: false,
               replyToId: null,
               type: {
-                not: 'SUBMISSION',
+                notIn: ['SUBMISSION', 'INTERNAL_SUBMISSION_NOTES'],
               },
             },
           },
