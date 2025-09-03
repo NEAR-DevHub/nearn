@@ -98,7 +98,7 @@ export function Banner({
           sponsor?.isArchived ? 'grayscale' : ''
         }`}
       >
-        <div className="flex items-center gap-6">
+        <div className="flex flex-wrap items-center gap-6">
           <div className="flex flex-shrink-0 items-center gap-3">
             <Link href={`/${sponsor?.slug}`} target="_blank">
               <EarnAvatar
@@ -135,28 +135,30 @@ export function Banner({
               )}
             </div>
           </div>
-          <div className="h-14 w-0.5 border-r border-slate-200" />
-          <StatsTooltip
-            label={!isHackathon ? 'Rewarded' : 'Total Prizes'}
-            tooltipText={tooltipTextReward}
-            value={stats?.totalRewardAmount}
-            isLoading={isLoading}
-            isMonetary
-          />
+          <div className="hidden h-14 w-0.5 border-r border-slate-200 lg:block" />
+          <div className="flex items-center gap-6">
+            <StatsTooltip
+              label={!isHackathon ? 'Rewarded' : 'Total Prizes'}
+              tooltipText={tooltipTextReward}
+              value={stats?.totalRewardAmount}
+              isLoading={isLoading}
+              isMonetary
+            />
 
-          <StatsTooltip
-            label={!isHackathon ? 'Listings' : 'Tracks'}
-            tooltipText={tooltipTextListings}
-            value={stats?.totalListingsAndGrants}
-            isLoading={isLoading}
-          />
+            <StatsTooltip
+              label={!isHackathon ? 'Listings' : 'Tracks'}
+              tooltipText={tooltipTextListings}
+              value={stats?.totalListingsAndGrants}
+              isLoading={isLoading}
+            />
 
-          <StatsTooltip
-            label="Submissions"
-            tooltipText={tooltipTextSubmissions}
-            value={stats?.totalSubmissionsAndApplications}
-            isLoading={isLoading}
-          />
+            <StatsTooltip
+              label="Submissions"
+              tooltipText={tooltipTextSubmissions}
+              value={stats?.totalSubmissionsAndApplications}
+              isLoading={isLoading}
+            />
+          </div>
 
           <Link href={`/${sponsor?.slug}`} target="_blank" className="ml-auto">
             <Button variant="outline" className="text-slate-500">
