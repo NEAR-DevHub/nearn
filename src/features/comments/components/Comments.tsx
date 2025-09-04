@@ -1,8 +1,14 @@
 import { type CommentRefType, type CommentType } from '@prisma/client';
 import { useSetAtom } from 'jotai';
-import { ArrowRight, Loader2 } from 'lucide-react';
+import { ArrowRight, Loader2, Pin } from 'lucide-react';
 import { usePostHog } from 'posthog-js/react';
-import { type Dispatch, type SetStateAction, useEffect, useState } from 'react';
+import {
+  type Dispatch,
+  type SetStateAction,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 
 import { ErrorInfo } from '@/components/shared/ErrorInfo';
 import { Loading } from '@/components/shared/Loading';
@@ -128,6 +134,13 @@ export const Comments = ({
     });
   }, []);
 
+  const [pinnedComments, unpinnedComments] = useMemo(() => {
+    const pinnedComments = comments.filter((comment) => comment.pinnedAt);
+    const unpinnedComments = comments.filter((comment) => !comment.pinnedAt);
+
+    return [pinnedComments, unpinnedComments];
+  }, [comments]);
+
   if (isLoading && !comments?.length) return <Loading />;
 
   if (error) return <ErrorInfo />;
@@ -166,14 +179,48 @@ export const Comments = ({
         isTemplate={isTemplate}
         isDisabled={isDisabled}
       />
-      <div
-        className={cn(
-          'flex w-full flex-col items-start gap-5',
-          comments.length > 0 && 'pb-4',
+      {/* Pinned Comments Section */}
+      <>
+        {pinnedComments.length > 0 && (
+          <div className="mb-4 w-full rounded-lg border border-slate-200 p-3">
+            <div className="mb-3 flex items-center gap-1 text-slate-500">
+              <Pin className="h-4 w-4 -rotate-[35deg]" />
+              <p className="text-sm font-medium">Pinned Comments</p>
+            </div>
+            <div className="flex flex-col gap-5">
+              {pinnedComments.map((comment) => (
+                <CommentUI
+                  isAnnounced={isAnnounced}
+                  listingSlug={listingSlug}
+                  listingType={listingType}
+                  defaultSuggestions={defaultSuggestions}
+                  powAuthorId={powAuthorId}
+                  key={comment.id}
+                  comment={comment}
+                  type={type}
+                  poc={poc}
+                  submissionAuthor={submissionAuthor}
+                  sponsorId={sponsorId}
+                  refType={refType}
+                  refId={refId}
+                  deleteComment={deleteComment}
+                  isVerified={isVerified}
+                  isTemplate={isTemplate}
+                  isDisabled={isDisabled}
+                />
+              ))}
+            </div>
+          </div>
         )}
-      >
-        {comments?.map((comment) => {
-          return (
+
+        {/* Regular Comments */}
+        <div
+          className={cn(
+            'flex w-full flex-col items-start gap-5',
+            unpinnedComments.length > 0 && 'pb-4',
+          )}
+        >
+          {unpinnedComments.map((comment) => (
             <CommentUI
               isAnnounced={isAnnounced}
               listingSlug={listingSlug}
@@ -193,9 +240,9 @@ export const Comments = ({
               isTemplate={isTemplate}
               isDisabled={isDisabled}
             />
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      </>
       {!!comments.length && comments.length !== count && (
         <div className="flex w-full justify-center rounded-md">
           <Button

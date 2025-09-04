@@ -332,11 +332,6 @@ export const Comment = ({
                 {date}
               </p>
             </Tooltip>
-            {comment.pinnedAt && (
-              <Tooltip content="Pinned comment">
-                <Pin className="h-3 w-3 text-slate-400" />
-              </Tooltip>
-            )}
           </div>
           <p className="mt-0 max-w-[15rem] overflow-clip pb-2 text-sm text-slate-500 sm:max-w-[20rem] md:max-w-[17rem] md:text-base lg:max-w-[29rem] xl:max-w-[46rem]">
             <CommentParser
@@ -515,12 +510,12 @@ export const Comment = ({
                   >
                     {comment.pinnedAt ? (
                       <>
-                        <PinOff className="mr-2 h-4 w-4" />
+                        <PinOff className="mr-2 h-4 w-4 -rotate-[35deg]" />
                         Unpin
                       </>
                     ) : (
                       <>
-                        <Pin className="mr-2 h-4 w-4" />
+                        <Pin className="mr-2 h-4 w-4 -rotate-[35deg]" />
                         Pin
                       </>
                     )}
