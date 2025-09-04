@@ -61,5 +61,11 @@ export const userSelectOptions: Prisma.UserSelect = {
       id: true,
     },
   },
-  emailSettings: true,
+  NotificationSettings: {
+    select: {
+      id: true,
+      channel: true,
+      type: true,
+    },
+  },
 };

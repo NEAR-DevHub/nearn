@@ -8,28 +8,29 @@ import { type NextApiRequestWithUser } from '@/features/auth/types';
 import { withAuth } from '@/features/auth/utils/withAuth';
 
 async function handler(req: NextApiRequestWithUser, res: NextApiResponse) {
-  const { categories } = req.body;
+  const { settings } = req.body;
   const userId = req.userId;
 
   logger.debug(`Request body: ${safeStringify(req.body)}`);
 
   try {
     logger.debug(`Deleting existing email settings for user ID: ${userId}`);
-    await prisma.emailSettings.deleteMany({
+    await prisma.notificationSettings.deleteMany({
       where: {
         userId: userId as string,
       },
     });
 
     logger.debug(
-      `Creating new email settings for categories: ${safeStringify(categories)}`,
+      `Creating new email settings for categories: ${safeStringify(settings)}`,
     );
     await Promise.all(
-      categories.map((category: any) =>
-        prisma.emailSettings.create({
+      settings.map((setting: any) =>
+        prisma.notificationSettings.create({
           data: {
             userId: userId as string,
-            category,
+            channel: setting[0],
+            type: setting[1],
           },
         }),
       ),
@@ -40,7 +41,7 @@ async function handler(req: NextApiRequestWithUser, res: NextApiResponse) {
       select: { email: true },
     });
 
-    if (user && user.email && categories.length > 0) {
+    if (user && user.email && settings.length > 0) {
       logger.debug(`Removing unsubscribe entry for email: ${user.email}`);
       await prisma.unsubscribedEmail.deleteMany({
         where: {

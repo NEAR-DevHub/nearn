@@ -404,26 +404,26 @@ model Session {
 }
 
 model User {
-  id                   String               @id @default(uuid())
+  id                   String                 @id @default(uuid())
   publicKey            String?
-  email                String               @unique
-  username             String?              @unique
-  photo                String?              @db.Text
-  name                 String?              @db.VarChar(255)
-  createdAt            DateTime             @default(now())
-  updatedAt            DateTime             @updatedAt
-  isVerified           Boolean              @default(false)
-  role                 String               @default("USER")
-  isTalentFilled       Boolean              @default(false)
-  interests            String?              @db.Text
-  bio                  String?              @db.Text
-  twitter              String?              @db.Text
-  discord              String?              @db.Text
-  github               String?              @db.Text
-  linkedin             String?              @db.Text
-  website              String?              @db.Text
-  telegram             String?              @db.Text
-  community            String?              @db.Text
+  email                String                 @unique
+  username             String?                @unique
+  photo                String?                @db.Text
+  name                 String?                @db.VarChar(255)
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  isVerified           Boolean                @default(false)
+  role                 String                 @default("USER")
+  isTalentFilled       Boolean                @default(false)
+  interests            String?                @db.Text
+  bio                  String?                @db.Text
+  twitter              String?                @db.Text
+  discord              String?                @db.Text
+  github               String?                @db.Text
+  linkedin             String?                @db.Text
+  website              String?                @db.Text
+  telegram             String?                @db.Text
+  community            String?                @db.Text
   experience           String?
   superteamLevel       String?
   location             String?
@@ -431,20 +431,20 @@ model User {
   workPrefernce        String?
   currentEmployer      String?
   notifications        Json?
-  private              Boolean              @default(false)
+  private              Boolean                @default(false)
   skills               Json?
   currentSponsorId     String?
   emailVerified        DateTime?
   hackathonId          String?
-  featureModalShown    Boolean              @default(false)
+  featureModalShown    Boolean                @default(false)
   surveysShown         Json?
-  stRecommended        Boolean              @default(false)
-  acceptedTOS          Boolean              @default(false)
+  stRecommended        Boolean                @default(false)
+  acceptedTOS          Boolean                @default(false)
   stLead               String?
-  currentSponsor       Sponsors?            @relation(fields: [currentSponsorId], references: [id])
+  currentSponsor       Sponsors?              @relation(fields: [currentSponsorId], references: [id])
   UserSponsors         UserSponsors[]
-  poc                  Bounties[]           @relation("poc")
-  templates            BountiesTemplates[]  @relation("poc")
+  poc                  Bounties[]             @relation("poc")
+  templates            BountiesTemplates[]    @relation("poc")
   Comment              Comment[]
   Submission           Submission[]
   Grants               Grants[]
@@ -453,16 +453,17 @@ model User {
   PoW                  PoW[]
   accounts             Account[]
   sessions             Session[]
-  Hackathon            Hackathon?           @relation(fields: [hackathonId], references: [id])
-  emailSettings        EmailSettings[]
+  Hackathon            Hackathon?             @relation(fields: [hackathonId], references: [id])
+  NotificationSettings NotificationSettings[]
   TalentRankings       TalentRankings[]
   Scouts               Scouts[]
   GrantApplication     GrantApplication[]
   SubscribeHackathon   SubscribeHackathon[]
-  isBlocked            Boolean              @default(false)
+  isBlocked            Boolean                @default(false)
   EventLog             EventLog[]
-  SubmissionPaidBy     Submission[]         @relation("PaidBy")
-  SubmissionApprovedBy Submission[]         @relation("ApprovedBy")
+  SubmissionPaidBy     Submission[]           @relation("PaidBy")
+  SubmissionApprovedBy Submission[]           @relation("ApprovedBy")
+  Notification         Notification[]
 
   @@index([currentSponsorId])
   @@index([hackathonId])
@@ -538,17 +539,6 @@ model PoW {
   @@index([userId, displayOrder])
 }
 
-model EmailSettings {
-  id       Int    @id @default(autoincrement())
-  userId   String
-  category String
-  user     User   @relation(fields: [userId], references: [id])
-
-  @@index([userId, category])
-  @@index([userId])
-  @@index([category])
-}
-
 model UserSponsors {
   userId    String
   sponsorId String
@@ -577,21 +567,6 @@ model UserInvites {
 
   @@index([senderId])
   @@index([sponsorId])
-}
-
-model emailLogs {
-  id        String    @id @default(uuid())
-  email     String?
-  type      EmailType
-  bountyId  String?
-  userId    String?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-
-  @@index([bountyId, type])
-  @@index([userId, type])
-  @@index([type, createdAt(sort: Desc)])
-  @@index([email, type])
 }
 
 model ResendLogs {
@@ -698,11 +673,12 @@ model EventLog {
   visibility EventVisibility
   createdAt  DateTime        @default(now())
 
-  listing    Bounties?   @relation(fields: [listingId], references: [id])
-  submission Submission? @relation(fields: [submissionId], references: [id])
-  sponsor    Sponsors?   @relation(fields: [sponsorId], references: [id])
-  actor      User?       @relation(fields: [actorId], references: [id])
-  comment    Comment?    @relation(fields: [commentId], references: [id])
+  listing      Bounties?      @relation(fields: [listingId], references: [id])
+  submission   Submission?    @relation(fields: [submissionId], references: [id])
+  sponsor      Sponsors?      @relation(fields: [sponsorId], references: [id])
+  actor        User?          @relation(fields: [actorId], references: [id])
+  comment      Comment?       @relation(fields: [commentId], references: [id])
+  Notification Notification[]
 
   @@index([listingId, eventTime(sort: Desc)])
   @@index([submissionId, eventTime(sort: Desc)])
@@ -714,13 +690,44 @@ model EventLog {
   @@index([visibility, eventTime(sort: Desc)])
 }
 
-enum EventCategory {
-  SPONSOR
-  SUBMISSION
-  LISTING
-  COMMENT
-  TREASURY
-  SYSTEM
+model Notification {
+  id      String @id @default(uuid())
+  userId  String
+  eventId String
+
+  readAt      DateTime?
+  emailSentAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user  User     @relation(fields: [userId], references: [id])
+  event EventLog @relation(fields: [eventId], references: [id])
+
+  @@index([userId])
+  @@index([eventId])
+  @@index([userId, readAt(sort: Desc)])
+  @@index([userId, emailSentAt(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([eventId, createdAt(sort: Desc)])
+  @@index([userId, eventId])
+}
+
+model NotificationSettings {
+  id      String @id @default(uuid())
+  channel String
+  type    String
+  userId  String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, channel, type])
+  @@index([userId, channel, type])
+  @@index([userId])
+  @@index([channel])
+  @@index([type])
 }
 
 enum ActorType {
@@ -744,22 +751,6 @@ enum TalentRankingSkills {
   CONTENT
   OTHER
   ALL
-}
-
-enum EmailType {
-  BOUNTY_REVIEW
-  BOUNTY_DEADLINE
-  BOUNTY_DEADLINE_WEEK
-  BOUNTY_CLOSE_DEADLINE
-  NO_VERIFICATION
-  NO_ACTIVITY
-  NO_REVIEW_SPONSOR_1
-  NO_REVIEW_SPONSOR_2
-  ROLLING_15_DAYS
-  ROLLING_30_DAYS
-  NEW_LISTING
-  ROLLING_UNPUBLISH
-  UNFILLED_PROFILE
 }
 
 enum Role {

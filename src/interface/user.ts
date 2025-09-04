@@ -1,4 +1,4 @@
-import type { EmailSettings } from '@prisma/client';
+import type { NotificationSettings } from '@prisma/client';
 
 import type { SponsorType } from '@/interface/sponsor';
 import type { UserSponsor } from '@/interface/userSponsor';
@@ -60,7 +60,7 @@ interface User {
   surveysShown?: Record<string, boolean>;
   stRecommended?: boolean;
   acceptedTOS?: boolean;
-  emailSettings?: EmailSettings[];
+  NotificationSettings?: NotificationSettings[];
   stLead?: string;
   isBlocked?: boolean;
 }
