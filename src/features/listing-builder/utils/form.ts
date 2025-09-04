@@ -83,7 +83,6 @@ export const getListingDefaults = ({
     }
   }
   defaults['submissionLimit'] = 'single';
-  defaults['multipleSubmissionRule'] = 'immediately';
   if (type === 'sponsorship') {
     defaults['submissionLimit'] = 'multiple';
     defaults['multipleSubmissionRule'] = 'afterReview';
