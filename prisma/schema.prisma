@@ -164,6 +164,7 @@ model Comment {
   type             CommentType       @default(NORMAL)
   like             Json?
   likeCount        Int               @default(0)
+  pinnedAt         DateTime?
   author           User?             @relation(fields: [authorId], references: [id])
   repliedTo        Comment?          @relation("CommentReplies", fields: [replyToId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   replies          Comment[]         @relation("CommentReplies")
@@ -182,6 +183,7 @@ model Comment {
   @@index([refType, type])
   @@index([updatedAt(sort: Desc)])
   @@index([likeCount])
+  @@index([pinnedAt(sort: Desc)])
 }
 
 model Grants {

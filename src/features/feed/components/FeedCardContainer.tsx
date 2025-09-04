@@ -38,6 +38,8 @@ interface FeedCardContainerProps {
   commentCount?: number;
   cardType: 'submission' | 'pow' | 'grant-application';
   link: string;
+  sponsorId?: string;
+  authorId?: string;
   userId: string;
   recentCommenters?: FeedDataProps['recentCommenters'];
 }
@@ -49,6 +51,8 @@ export const FeedCardContainer = ({
   type,
   name,
   photo,
+  sponsorId,
+  authorId,
   username,
   id,
   like,
@@ -218,7 +222,8 @@ export const FeedCardContainer = ({
                   listingType={''}
                   submissionAuthor={undefined}
                   poc={undefined}
-                  sponsorId={undefined}
+                  sponsorId={sponsorId}
+                  powAuthorId={authorId}
                   isVerified={false}
                   refId={id}
                   refType={convertFeedPostTypeToCommentRefType(cardType)}

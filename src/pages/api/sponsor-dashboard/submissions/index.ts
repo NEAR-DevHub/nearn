@@ -36,9 +36,14 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
           include: {
             author: true,
           },
-          orderBy: {
-            createdAt: 'desc',
-          },
+          orderBy: [
+            {
+              pinnedAt: 'desc',
+            },
+            {
+              createdAt: 'desc',
+            },
+          ],
         },
       },
       orderBy: {

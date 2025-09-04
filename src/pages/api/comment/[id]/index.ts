@@ -50,9 +50,14 @@ async function comment(
               notIn: ['SUBMISSION', 'INTERNAL_SUBMISSION_NOTES'],
             },
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      orderBy: [
+        {
+          pinnedAt: 'desc',
+        },
+        {
+          createdAt: 'desc',
+        },
+      ],
       skip: skip ?? 0,
       take,
       include: {
@@ -81,7 +86,7 @@ async function comment(
             },
           },
           orderBy: {
-            updatedAt: 'asc',
+            createdAt: 'asc',
           },
         },
       },

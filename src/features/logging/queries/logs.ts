@@ -87,7 +87,12 @@ export function eventFilters(
       EventType.SUBMISSION_PAYMENT_DATE_EDITED,
       EventType.SUBMISSION_TREASURY_CREATED,
     ],
-    comments: [EventType.COMMENT_ADDED, EventType.COMMENT_DELETED],
+    comments: [
+      EventType.COMMENT_ADDED,
+      EventType.COMMENT_DELETED,
+      EventType.COMMENT_PINNED,
+      EventType.COMMENT_UNPINNED,
+    ],
   };
 
   return mapping[category];

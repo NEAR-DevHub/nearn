@@ -127,6 +127,7 @@ export function SubmissionCard({ sub, type, commentCount }: SubCardProps) {
       id={sub?.id}
       like={sub?.like}
       commentLink={link}
+      sponsorId={sub?.sponsorId}
       cardType="submission"
       link={link}
       userId={sub?.userId}
