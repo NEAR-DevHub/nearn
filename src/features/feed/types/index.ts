@@ -4,6 +4,7 @@ import { type Rewards } from '@/features/listings/types';
 
 export interface FeedDataProps {
   id: string;
+  authorId?: string;
   sponsorSlug: string;
   bountySequentialId: number;
   sequentialId: number;
@@ -22,8 +23,8 @@ export interface FeedDataProps {
   name: string;
   photo: string;
   username: string;
-  listingId: number;
-  sponsorId: number;
+  listingId: string;
+  sponsorId: string;
   listingTitle: string;
   rewards: Rewards | undefined;
   listingType: 'bounty' | 'hackathon' | 'project' | 'sponsorship';

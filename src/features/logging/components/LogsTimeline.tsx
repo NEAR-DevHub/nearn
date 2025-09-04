@@ -16,6 +16,8 @@ import {
   MessageSquare,
   NotepadText,
   Pencil,
+  Pin,
+  PinOff,
   Plus,
   RefreshCcw,
   Trash,
@@ -76,6 +78,8 @@ const eventIcons: Record<EventType, React.ReactNode> = {
   [EventType.TREASURY_PROPOSAL_EXPIRED]: <RefreshCcw className="h-4 w-4" />,
   [EventType.SYSTEM_STATUS_CHANGED]: <RefreshCcw className="h-4 w-4" />,
   [EventType.SYSTEM_STATUS_IN_REVIEW]: <RefreshCcw className="h-4 w-4" />,
+  [EventType.COMMENT_PINNED]: <Pin className="h-4 w-4" />,
+  [EventType.COMMENT_UNPINNED]: <PinOff className="h-4 w-4" />,
   [EventType.PLATFORM_ADMIN_ARCHIVED_OR_UNARCHIVED]: (
     <Archive className="h-4 w-4" />
   ),

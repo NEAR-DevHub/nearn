@@ -5,6 +5,8 @@ import {
   Copy,
   Heart,
   Loader2,
+  Pin,
+  PinOff,
   Trash,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -47,6 +49,7 @@ import { AuthWrapper } from '@/features/auth/components/AuthWrapper';
 import { EarnAvatar } from '@/features/talent/components/EarnAvatar';
 
 import { useCommentLike } from '../mutations/useCommentLike';
+import { useCommentPin } from '../mutations/useCommentPin';
 import { formatFromNow } from '../utils';
 import { CommentParser } from './CommentParser';
 import { UserSuggestionTextarea } from './UserSuggestionTextarea';
@@ -57,6 +60,7 @@ interface Props {
   refId: string;
   refType: CommentRefType;
   sponsorId: string | undefined;
+  powAuthorId: string | undefined;
   submissionAuthor: User | undefined;
   defaultSuggestions: Map<string, User>;
   type?: CommentType;
@@ -86,6 +90,7 @@ export const Comment = ({
   listingSlug,
   isReply = false,
   isAnnounced,
+  powAuthorId,
   isVerified = false,
   isTemplate = false,
   isDisabled = false,
@@ -93,6 +98,7 @@ export const Comment = ({
   const { user } = useUser();
   const posthog = usePostHog();
   const commentLikeMutation = useCommentLike();
+  const commentPinMutation = useCommentPin();
 
   const {
     isOpen: deleteIsOpen,
@@ -238,6 +244,34 @@ export const Comment = ({
 
   const isMobile = useMediaQuery('(max-width: 768px)');
 
+  // Check if user can pin the comment
+  const canPin =
+    !isReply &&
+    !isTemplate &&
+    !isDisabled &&
+    // For BOUNTY and SUBMISSION comments, check if user is the sponsor
+    (((refType === 'BOUNTY' || refType === 'SUBMISSION') &&
+      user?.UserSponsors?.some((sponsor) => sponsor.sponsorId === sponsorId)) ||
+      // For POW comments, check if user is the POW creator
+      (refType === 'POW' && powAuthorId === user?.id) ||
+      // GOD mode
+      user?.role === 'GOD');
+
+  const handlePin = async () => {
+    if (!user || commentPinMutation.isPending) return;
+
+    try {
+      await commentPinMutation.mutateAsync({
+        commentId: comment.id,
+        type: comment.type,
+        action: comment.pinnedAt ? 'unpin' : 'pin',
+      });
+      window.dispatchEvent(new Event('update-comments'));
+    } catch (error) {
+      console.error('Failed to pin/unpin comment:', error);
+    }
+  };
+
   return (
     <>
       <div
@@ -298,6 +332,11 @@ export const Comment = ({
                 {date}
               </p>
             </Tooltip>
+            {comment.pinnedAt && (
+              <Tooltip content="Pinned comment">
+                <Pin className="h-3 w-3 text-slate-400" />
+              </Tooltip>
+            )}
           </div>
           <p className="mt-0 max-w-[15rem] overflow-clip pb-2 text-sm text-slate-500 sm:max-w-[20rem] md:max-w-[17rem] md:text-base lg:max-w-[29rem] xl:max-w-[46rem]">
             <CommentParser
@@ -415,6 +454,7 @@ export const Comment = ({
                   isAnnounced={isAnnounced}
                   listingSlug={listingSlug}
                   listingType={listingType}
+                  powAuthorId={powAuthorId}
                   defaultSuggestions={defaultSuggestions}
                   deleteComment={deleteReplyLvl1}
                   addNewReply={addNewReplyLvl1}
@@ -439,7 +479,8 @@ export const Comment = ({
         >
           {(comment.authorId === user?.id ||
             comment.refType === 'BOUNTY' ||
-            comment.refType === 'SUBMISSION') && (
+            comment.refType === 'SUBMISSION' ||
+            canPin) && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
@@ -465,6 +506,26 @@ export const Comment = ({
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="min-w-[10rem] p-1" align="end">
+                {canPin && (
+                  <DropdownMenuItem
+                    className="ph-no-capture rounded-sm text-sm font-medium text-slate-600 md:text-base"
+                    onClick={handlePin}
+                    tabIndex={-1}
+                    disabled={commentPinMutation.isPending}
+                  >
+                    {comment.pinnedAt ? (
+                      <>
+                        <PinOff className="mr-2 h-4 w-4" />
+                        Unpin
+                      </>
+                    ) : (
+                      <>
+                        <Pin className="mr-2 h-4 w-4" />
+                        Pin
+                      </>
+                    )}
+                  </DropdownMenuItem>
+                )}
                 {(comment.refType === 'BOUNTY' ||
                   comment.refType === 'SUBMISSION') && (
                   <DropdownMenuItem

@@ -21,6 +21,7 @@ interface Props {
   refId: string;
   refType: CommentRefType;
   sponsorId: string | undefined;
+  powAuthorId?: string;
   poc: User | undefined;
   submissionAuthor: User | undefined;
   hideCount?: boolean;
@@ -40,6 +41,7 @@ export const Comments = ({
   refId,
   refType,
   sponsorId,
+  powAuthorId,
   poc,
   submissionAuthor,
   hideCount = false,
@@ -177,6 +179,7 @@ export const Comments = ({
               listingSlug={listingSlug}
               listingType={listingType}
               defaultSuggestions={defaultSuggestions}
+              powAuthorId={powAuthorId}
               key={comment.id}
               comment={comment}
               type={type}

@@ -70,6 +70,8 @@ function getDefaultVisibility(eventType: EventType): EventVisibility {
     [EventType.AUTOMATION_LOG]: 'SPONSOR',
     [EventType.PLATFORM_ADMIN_SUBMISSION_STATUS_EDITED]: 'TALENT',
     [EventType.SYSTEM_STATUS_IN_REVIEW]: 'PUBLIC',
+    [EventType.COMMENT_PINNED]: 'PUBLIC',
+    [EventType.COMMENT_UNPINNED]: 'PUBLIC',
   };
 
   return mapping[eventType];

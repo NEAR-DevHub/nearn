@@ -2,6 +2,29 @@ import { EventType } from '@/features/logging/types/event-data';
 
 import { type LogProperties } from '.';
 
+export function CommentPinnedUnpinned(props: LogProperties) {
+  const { event } = props;
+  const isPinned = event.eventType === EventType.COMMENT_PINNED;
+  const comment = event.comment;
+  const isInternalNotes = event.visibility === 'SPONSOR';
+  const message = comment?.message;
+
+  return (
+    <div className="flex flex-col gap-1">
+      <p className="items-center gap-1 text-slate-500">
+        {isInternalNotes ? 'Note' : 'Comment'}{' '}
+        {isPinned ? 'pinned' : 'unpinned'}
+      </p>
+
+      {message && (
+        <div className="whitespace-pre-wrap rounded-md bg-slate-50 px-2 py-1 text-slate-600">
+          {message}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Comment(props: LogProperties) {
   const { event } = props;
   const isDeleted = event.eventType === EventType.COMMENT_DELETED;
