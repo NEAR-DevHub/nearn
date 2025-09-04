@@ -21,6 +21,15 @@ async function handler(req: NextApiRequestWithUser, res: NextApiResponse) {
       },
     });
 
+    if (
+      !settings.every(
+        (setting: [string, string]) =>
+          setting[0] === 'email' || setting[0] === 'onSite',
+      )
+    ) {
+      return res.status(400).json({ message: 'Invalid channel' });
+    }
+
     logger.debug(
       `Creating new email settings for categories: ${safeStringify(settings)}`,
     );
