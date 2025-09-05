@@ -152,7 +152,7 @@ export default function AddManualPaymentModal({
           <DialogTitle className="text-slate text-xl font-bold">
             {isUpdating ? 'Update Manual Payment' : 'Add Manual Payment'}
           </DialogTitle>
-          <DialogDescription className="text-xs text-slate-500">
+          <DialogDescription className="text-sm text-slate-500">
             Make the payment via your preferred channel, then enter the
             transaction manually.
           </DialogDescription>
