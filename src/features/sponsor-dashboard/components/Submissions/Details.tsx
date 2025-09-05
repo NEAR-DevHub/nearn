@@ -32,7 +32,7 @@ export const Details = ({
     <div
       className={cn(
         'flex h-[34rem] w-full',
-        externalView ? 'h-full max-w-3xl' : 'border-r border-slate-200',
+        externalView ? 'h-full max-w-3xl' : '',
       )}
     >
       <div

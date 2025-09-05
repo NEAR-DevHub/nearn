@@ -29,7 +29,11 @@ export const Default = ({
       {meta}
       <Header />
       <div className="flex flex-1 flex-col">{children}</div>
-      {!hideFooter && <Footer />}
+      {!hideFooter && (
+        <div className="relative z-20">
+          <Footer />
+        </div>
+      )}
     </div>
   );
 };

@@ -365,6 +365,7 @@ export function SponsorLayout({
               isCollapsible
                 ? 'ml-20 w-[calc(100vw-5rem)]'
                 : 'ml-0 w-[calc(100vw-16rem)]',
+              'relative z-0',
               className,
             )}
           >
