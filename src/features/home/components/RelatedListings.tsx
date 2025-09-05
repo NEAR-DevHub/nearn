@@ -45,14 +45,21 @@ export const RelatedListings = ({
     enabled: (relatedListings?.length ?? 0) < SHOW_LIMIT,
   });
 
+  const withoutDuplicates = useMemo(() => {
+    return [
+      ...(relatedListings ? relatedListings : []),
+      ...(liveListings ? liveListings : []),
+    ].filter(
+      (listing, index, self) =>
+        index === self.findIndex((t) => t?.id === listing?.id),
+    );
+  }, [relatedListings, liveListings, listingId]);
+
   return (
     <div>
       {children}
       <div className="mt-1 flex w-full flex-col">
-        {[
-          ...(relatedListings ? relatedListings : []),
-          ...(liveListings ? liveListings : []),
-        ]?.map((listing) => (
+        {withoutDuplicates?.map((listing) => (
           <ListingCardMini bounty={listing} key={listing?.id} />
         ))}
       </div>

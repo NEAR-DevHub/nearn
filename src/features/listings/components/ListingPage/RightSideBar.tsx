@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { TriangleAlert } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import Countdown from 'react-countdown';
 
 import { CountDownRenderer } from '@/components/shared/countdownRenderer';
 import { ExternalImage } from '@/components/ui/cloudinary-image';
@@ -23,6 +23,10 @@ import { CompensationAmount } from './CompensationAmount';
 import { ExtraInfoSection } from './ExtraInfoSection';
 import { ListingWinners } from './ListingWinners';
 import { PrizesList } from './PrizesList';
+
+const Countdown = dynamic(() => import('react-countdown'), {
+  ssr: false,
+});
 
 function digitsInLargestString(numbers: string[]): number {
   const largest = numbers.reduce((max, current) => {
@@ -220,7 +224,7 @@ export function RightSideBar({
                     <div className="flex flex-col items-start">
                       <p className="text-lg font-medium text-black md:text-xl">
                         <Countdown
-                          date={deadline}
+                          date={deadline ?? new Date()}
                           renderer={CountDownRenderer}
                           zeroPadDays={1}
                         />
@@ -241,7 +245,7 @@ export function RightSideBar({
                   <div className="flex flex-col items-start">
                     <p className="text-lg font-medium text-black md:text-xl">
                       <Countdown
-                        date={Hackathon?.startDate}
+                        date={Hackathon?.startDate ?? new Date()}
                         renderer={CountDownRenderer}
                         zeroPadDays={1}
                       />

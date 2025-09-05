@@ -8,7 +8,7 @@ export function getBountyUrlBySponsorAndId(
   sponsor: string | undefined,
   id: string | undefined,
 ) {
-  return `${getURL()}${sponsor}/${id}`;
+  return `${getURL()}${sponsor}/${id}/`;
 }
 
 export function getBountyUrl(listing: Listing | undefined) {

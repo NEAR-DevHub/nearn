@@ -8,7 +8,6 @@ import React, { useState } from 'react';
 
 import { SurveyModal } from '@/components/shared/Survey';
 import { Button } from '@/components/ui/button';
-import { Tooltip } from '@/components/ui/tooltip';
 import { useDisclosure } from '@/hooks/use-disclosure';
 import { useUser } from '@/store/user';
 import { cn } from '@/utils/cn';
@@ -47,22 +46,25 @@ const InfoWrapper = ({
   regionTooltipLabel: string;
   hackathonStartDate: dayjs.Dayjs | null;
 }) => {
-  return (
-    <Tooltip
-      disabled={hasHackathonStarted && isUserEligibleByRegion}
-      content={
-        !isUserEligibleByRegion
-          ? regionTooltipLabel
-          : !hasHackathonStarted
-            ? `This track will open for submissions on ${hackathonStartDate?.format('DD MMMM, YYYY')}`
-            : null
-      }
-      contentProps={{ className: 'rounded-md' }}
-      triggerClassName="w-full"
-    >
-      {children}
-    </Tooltip>
-  );
+  const shouldShowTooltip = !(hasHackathonStarted && isUserEligibleByRegion);
+  const tooltipContent = !isUserEligibleByRegion
+    ? regionTooltipLabel
+    : !hasHackathonStarted
+      ? `This track will open for submissions on ${hackathonStartDate?.format('DD MMMM, YYYY')}`
+      : null;
+
+  if (shouldShowTooltip && tooltipContent) {
+    return (
+      <div className="group relative w-full">
+        {children}
+        <div className="pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 transform whitespace-nowrap rounded-md bg-gray-50 px-3 py-1.5 text-xs text-slate-700 opacity-0 shadow-md transition-opacity group-hover:opacity-100">
+          {tooltipContent}
+        </div>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
 };
 
 export const SubmissionActionButton = ({
