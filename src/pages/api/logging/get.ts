@@ -1,12 +1,16 @@
-import { ActorType, type EventVisibility, type Prisma } from '@prisma/client';
+import { type EventVisibility, type Prisma } from '@prisma/client';
 import type { NextApiResponse } from 'next';
 
-import { PROJECT_NAME } from '@/constants/project';
 import logger from '@/lib/logger';
 import { prisma } from '@/prisma';
 
 import { type NextApiRequestWithPotentialSponsor } from '@/features/auth/types';
 import { withPotentialSponsorAuth } from '@/features/auth/utils/withPotentialSponsorAuth';
+import {
+  type Log,
+  prepareLogData,
+  prismaLogInclude,
+} from '@/features/logging/queries';
 import {
   type EventType,
   isRoleAtLeast,
@@ -291,70 +295,7 @@ async function submission(
     // Get paginated logs
     const logs = await prisma.eventLog.findMany({
       where: whereClause,
-      include: {
-        submission: {
-          select: {
-            sequentialId: true,
-            user: {
-              select: {
-                username: true,
-              },
-            },
-          },
-        },
-        listing: {
-          select: {
-            sequentialId: true,
-            slug: true,
-            type: true,
-            title: true,
-            poc: {
-              select: {
-                username: true,
-              },
-            },
-          },
-        },
-        sponsor: {
-          select: {
-            name: true,
-            slug: true,
-            logo: true,
-          },
-        },
-        actor: {
-          select: {
-            username: true,
-            name: true,
-            photo: true,
-            private: true,
-          },
-        },
-        comment: {
-          select: {
-            id: true,
-            author: {
-              select: {
-                username: true,
-                name: true,
-                photo: true,
-                private: true,
-              },
-            },
-            message: true,
-            repliedTo: {
-              select: {
-                id: true,
-                author: {
-                  select: {
-                    username: true,
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
+      include: prismaLogInclude,
       orderBy: {
         eventTime: sort,
       },
@@ -363,43 +304,7 @@ async function submission(
     });
 
     const processedLogs = logs.map((log) => {
-      const isAtLeastSponsor = isRoleAtLeast(visibility, 'SPONSOR');
-      const isAtLeastPlatformAdmin = isRoleAtLeast(
-        visibility,
-        'PLATFORM_ADMIN',
-      );
-      const actorHidden =
-        (log.actorType === ActorType.SPONSOR && !isAtLeastSponsor) ||
-        (log.actorType === ActorType.PLATFORM_ADMIN && !isAtLeastPlatformAdmin);
-
-      return {
-        ...log,
-        actor:
-          log.actor && !actorHidden
-            ? {
-                ...log.actor,
-                name: log.actor.private ? undefined : log.actor.name,
-                private: undefined,
-              }
-            : undefined,
-        submissionId: !isAtLeastSponsor ? undefined : log.submissionId,
-        // We don't want to expose who behind the scenes for sponsors and platform admins
-        actorId: actorHidden ? undefined : log.actorId,
-        comment: log.comment
-          ? {
-              ...log.comment,
-              author: {
-                ...log.comment.author,
-                name: log.comment.author?.private
-                  ? undefined
-                  : log.comment.author?.name ||
-                    log.comment.author?.username ||
-                    PROJECT_NAME,
-                private: undefined,
-              },
-            }
-          : undefined,
-      };
+      return prepareLogData(log as unknown as Log, visibility);
     });
 
     return res.status(200).json({

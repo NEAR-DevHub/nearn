@@ -334,39 +334,41 @@ model Submission {
 }
 
 model Sponsors {
-  id                String              @id @default(uuid())
-  name              String              @unique
-  slug              String              @unique
-  logo              String?
-  banner            String?
-  url               String?
-  industry          String
-  twitter           String?
-  bio               String?
-  linkedin          String?
-  discord           String?
-  telegram          String?
-  github            String?
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-  isArchived        Boolean             @default(false)
-  isActive          Boolean             @default(true)
-  entityName        String?
-  isVerified        Boolean             @default(false)
-  isCaution         Boolean             @default(false)
-  st                Boolean             @default(false)
-  nearTreasury      Json?
-  listingCounter    Int                 @default(0)
-  submissionCounter Int                 @default(0)
-  about             String?             @db.LongText
-  Hackathon         Hackathon?
-  UserSponsors      UserSponsors[]
-  Bounties          Bounties[]
-  Templates         BountiesTemplates[]
-  Grants            Grants[]
-  User              User[]
-  UserInvites       UserInvites[]
-  EventLog          EventLog[]
+  id                   String                 @id @default(uuid())
+  name                 String                 @unique
+  slug                 String                 @unique
+  logo                 String?
+  banner               String?
+  url                  String?
+  industry             String
+  twitter              String?
+  bio                  String?
+  linkedin             String?
+  discord              String?
+  telegram             String?
+  github               String?
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  isArchived           Boolean                @default(false)
+  isActive             Boolean                @default(true)
+  entityName           String?
+  isVerified           Boolean                @default(false)
+  isCaution            Boolean                @default(false)
+  st                   Boolean                @default(false)
+  nearTreasury         Json?
+  listingCounter       Int                    @default(0)
+  submissionCounter    Int                    @default(0)
+  about                String?                @db.LongText
+  Hackathon            Hackathon?
+  UserSponsors         UserSponsors[]
+  Bounties             Bounties[]
+  Templates            BountiesTemplates[]
+  Grants               Grants[]
+  User                 User[]
+  UserInvites          UserInvites[]
+  EventLog             EventLog[]
+  NotificationSettings NotificationSettings[]
+  Notification         Notification[]
 
   @@index([id, slug])
   @@index([isVerified, st])
@@ -514,21 +516,22 @@ model TalentRankings {
 }
 
 model PoW {
-  id           String    @id @default(uuid())
+  id           String     @id @default(uuid())
   userId       String
   title        String
-  description  String    @db.Text
+  description  String     @db.Text
   skills       Json?
   link         String
-  createdAt    DateTime  @default(now())
+  createdAt    DateTime   @default(now())
   subSkills    Json?
-  updatedAt    DateTime  @updatedAt
+  updatedAt    DateTime   @updatedAt
   like         Json?
-  likeCount    Int       @default(0)
-  user         User      @relation(fields: [userId], references: [id])
-  ogImage      String?   @db.Text
-  displayOrder Int       @default(0)
+  likeCount    Int        @default(0)
+  user         User       @relation(fields: [userId], references: [id])
+  ogImage      String?    @db.Text
+  displayOrder Int        @default(0)
   Comments     Comment[]
+  EventLog     EventLog[]
 
   @@index([userId])
   @@index([createdAt])
@@ -660,6 +663,7 @@ model EventLog {
   submissionId String?
   sponsorId    String?
   commentId    String?
+  powId        String?
 
   eventType String
   subType   String?
@@ -678,10 +682,12 @@ model EventLog {
   sponsor      Sponsors?      @relation(fields: [sponsorId], references: [id])
   actor        User?          @relation(fields: [actorId], references: [id])
   comment      Comment?       @relation(fields: [commentId], references: [id])
+  pow          PoW?           @relation(fields: [powId], references: [id])
   Notification Notification[]
 
   @@index([listingId, eventTime(sort: Desc)])
   @@index([submissionId, eventTime(sort: Desc)])
+  @@index([powId, eventTime(sort: Desc)])
   @@index([sponsorId, eventTime(sort: Desc)])
   @@index([commentId, eventTime(sort: Desc)])
   @@index([actorId, eventTime(sort: Desc)])
@@ -691,43 +697,51 @@ model EventLog {
 }
 
 model Notification {
-  id      String @id @default(uuid())
-  userId  String
-  eventId String
+  id        String  @id @default(uuid())
+  userId    String
+  eventId   String?
+  channel   String
+  type      String
+  sponsorId String?
 
-  readAt      DateTime?
-  emailSentAt DateTime?
+  deliveredAt DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  user  User     @relation(fields: [userId], references: [id])
-  event EventLog @relation(fields: [eventId], references: [id])
+  user    User      @relation(fields: [userId], references: [id])
+  event   EventLog? @relation(fields: [eventId], references: [id])
+  sponsor Sponsors? @relation(fields: [sponsorId], references: [id])
 
   @@index([userId])
   @@index([eventId])
-  @@index([userId, readAt(sort: Desc)])
-  @@index([userId, emailSentAt(sort: Desc)])
+  @@index([sponsorId])
+  @@index([channel])
+  @@index([type])
+  @@index([userId, deliveredAt(sort: Desc)])
   @@index([userId, createdAt(sort: Desc)])
   @@index([eventId, createdAt(sort: Desc)])
   @@index([userId, eventId])
 }
 
 model NotificationSettings {
-  id      String @id @default(uuid())
-  channel String
-  type    String
-  userId  String
+  id        String  @id @default(uuid())
+  channel   String
+  type      String
+  userId    String
+  sponsorId String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id])
+  user    User      @relation(fields: [userId], references: [id])
+  sponsor Sponsors? @relation(fields: [sponsorId], references: [id])
 
   @@unique([userId, channel, type])
   @@index([userId, channel, type])
   @@index([userId])
   @@index([channel])
   @@index([type])
+  @@index([sponsorId])
 }
 
 enum ActorType {

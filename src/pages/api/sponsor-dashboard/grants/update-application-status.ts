@@ -11,7 +11,6 @@ import { safeStringify } from '@/utils/safeStringify';
 import { type NextApiRequestWithSponsor } from '@/features/auth/types';
 import { checkGrantSponsorAuth } from '@/features/auth/utils/checkGrantSponsorAuth';
 import { withSponsorAuth } from '@/features/auth/utils/withSponsorAuth';
-import { sendEmailNotification } from '@/features/emails/utils/sendEmailNotification';
 import { convertGrantApplicationToAirtable } from '@/features/grants/utils/convertGrantApplicationToAirtable';
 
 const MAX_RECORDS = 10;
@@ -187,17 +186,6 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
             increment: totalIncrementAmountInUSD,
           },
         },
-      });
-    }
-
-    if (result[0]?.grant.isNative === true && !result[0]?.grant.airtableId) {
-      result.forEach(async (r) => {
-        sendEmailNotification({
-          type: isApproved ? 'grantApproved' : 'grantRejected',
-          id: r.id,
-          userId: r.userId,
-          triggeredBy: userId,
-        });
       });
     }
 

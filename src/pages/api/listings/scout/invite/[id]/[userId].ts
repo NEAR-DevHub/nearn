@@ -7,7 +7,8 @@ import { safeStringify } from '@/utils/safeStringify';
 import { type NextApiRequestWithSponsor } from '@/features/auth/types';
 import { checkListingSponsorAuth } from '@/features/auth/utils/checkListingSponsorAuth';
 import { withSponsorAuth } from '@/features/auth/utils/withSponsorAuth';
-import { sendEmailNotification } from '@/features/emails/utils/sendEmailNotification';
+import { eventLogger } from '@/features/logging/services/event-logger';
+import { EventType } from '@/features/logging/types/event-data';
 
 async function scoutInvite(
   req: NextApiRequestWithSponsor,
@@ -24,7 +25,6 @@ async function scoutInvite(
   }
 
   try {
-    const sponsorUserId = req.userId;
     const userSponsorId = req.userSponsorId;
 
     const { error } = await checkListingSponsorAuth(userSponsorId, id);
@@ -74,14 +74,19 @@ async function scoutInvite(
       return res.status(404).send('Scout Not Found');
     }
 
-    logger.debug(
-      `Sending scout invite email for listing ID: ${id} and user ID: ${userId}`,
-    );
-    sendEmailNotification({
-      type: 'scoutInvite',
-      id: id,
-      userId,
-      triggeredBy: sponsorUserId,
+    await eventLogger.log({
+      eventType: EventType.SCOUT_INVITE,
+      actor: {
+        id: req.userId,
+        type: 'SPONSOR',
+      },
+      entities: {
+        sponsorId: req.userSponsorId,
+        listingId: id,
+      },
+      data: {
+        scoutUserId: userId,
+      },
     });
 
     logger.debug(`Updating scout invitation status for scout ID: ${scout.id}`);

@@ -3,7 +3,6 @@ import dayjs from 'dayjs';
 import { franc } from 'franc';
 import type { NextApiResponse } from 'next';
 
-import earncognitoClient from '@/lib/earncognitoClient';
 import logger from '@/lib/logger';
 import { prisma } from '@/prisma';
 import { cleanSkills } from '@/utils/cleanSkills';
@@ -14,7 +13,6 @@ import { safeStringify } from '@/utils/safeStringify';
 import { type NextApiRequestWithSponsor } from '@/features/auth/types';
 import { checkListingSponsorAuth } from '@/features/auth/utils/checkListingSponsorAuth';
 import { withSponsorAuth } from '@/features/auth/utils/withSponsorAuth';
-import { sendEmailNotification } from '@/features/emails/utils/sendEmailNotification';
 import { BONUS_REWARD_POSITION } from '@/features/listing-builder/constants';
 import {
   backendListingRefinements,
@@ -365,22 +363,6 @@ async function listing(req: NextApiRequestWithSponsor, res: NextApiResponse) {
     }
     logger.debug(`Update Listing Successful`, { id });
 
-    try {
-      logger.info('Sending Discord Listing Update message', {
-        id,
-        discordStatus: 'Updated',
-      });
-      await earncognitoClient.post(`/discord/listing-update`, {
-        listingId: result.id,
-        status: 'Updated',
-      });
-      logger.info('Sent Discord Listing Update message', {
-        id,
-      });
-    } catch (err) {
-      logger.error('Discord Listing Update Message Error', err);
-    }
-
     const deadlineChanged =
       listing.deadline?.toString() !== result.deadline?.toString();
     if (deadlineChanged)
@@ -389,17 +371,6 @@ async function listing(req: NextApiRequestWithSponsor, res: NextApiResponse) {
         previousDeadline: listing.deadline,
         newDeadline: result.deadline,
       });
-    if (deadlineChanged && result.isPublished && userId) {
-      logger.debug(`Sending email notification for deadline extension`, {
-        id,
-      });
-      sendEmailNotification({
-        type: 'deadlineExtended',
-        id: id as string,
-        triggeredBy: req.userId,
-      });
-      logger.debug(`Sent email notification for deadline extension`, { id });
-    }
 
     logger.info(`Listing Updation API Fully Successful with ID: ${id}`);
 
