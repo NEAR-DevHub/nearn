@@ -58,7 +58,10 @@ export function NotificationsPopover() {
           onSelectionChange={setSelectedSponsorIds}
           onTalentToggle={setShowTalentNotifications}
         />
-        <NotificationsListWithFilters sponsorIds={selectedSponsorIds} />
+        <NotificationsListWithFilters
+          sponsorIds={selectedSponsorIds}
+          showTalent={showTalentNotifications}
+        />
       </PopoverContent>
     </Popover>
   );

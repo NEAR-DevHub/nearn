@@ -155,7 +155,7 @@ export function getNotificationAction(
     case NotificationType.SPONSOR_MEMBER_ACCEPTED:
       return {
         message: `joined to the team`,
-        link: `/dashboard/team-s`,
+        link: `/dashboard/team-settings`,
       };
 
     case NotificationType.COMMENT_PINNED:

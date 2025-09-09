@@ -17,10 +17,12 @@ import { Notification as NotificationComponent } from './Notification';
 
 interface NotificationsListProps {
   sponsorIds?: string[];
+  showTalent?: boolean;
 }
 
 export function NotificationsListWithFilters({
   sponsorIds,
+  showTalent,
 }: NotificationsListProps) {
   const [activeTab, setActiveTab] = useState<'Unread' | 'Read'>('Unread');
   const {
@@ -30,7 +32,11 @@ export function NotificationsListWithFilters({
     isFetchingNextPage,
     isLoading,
     isError,
-  } = useNotificationsInfinite({ read: activeTab === 'Read', sponsorIds });
+  } = useNotificationsInfinite({
+    read: activeTab === 'Read',
+    sponsorIds,
+    showTalent,
+  });
 
   const { mutate: markAsRead } = useMarkNotificationsAsRead();
   const observerRef = useRef<IntersectionObserver | null>(null);
