@@ -15,7 +15,7 @@ async function notifications(
   req: NextApiRequestWithPotentialSponsor,
   res: NextApiResponse,
 ) {
-  const { page, limit, read, sponsorIds } = req.query;
+  const { page, limit, read, sponsorIds, showSponsor, showTalent } = req.query;
 
   if (!req.authorized) {
     return res.status(401).json({ error: 'Unauthorized' });
@@ -33,20 +33,41 @@ async function notifications(
       : {
           deliveredAt: null,
         };
-  const sponsorIdFilter: Prisma.NotificationWhereInput = sponsorIds
-    ? {
-        event: {
-          sponsorId: {
-            in: sponsorIds as string[],
+  const sponsorIdFilter: Prisma.NotificationWhereInput =
+    sponsorIds && sponsorIds.length > 0
+      ? {
+          event: {
+            sponsorId: {
+              in: sponsorIds as string[],
+            },
           },
-        },
-      }
-    : {};
+        }
+      : {};
+
+  const sponsorFilter: Prisma.NotificationWhereInput =
+    showSponsor === 'true'
+      ? {
+          event: {
+            sponsorId: null,
+          },
+        }
+      : {};
+
+  const talentFilter: Prisma.NotificationWhereInput =
+    showTalent === 'true'
+      ? {
+          event: {
+            sponsorId: {
+              not: null,
+            },
+          },
+        }
+      : {};
 
   const whereClause: Prisma.NotificationWhereInput = {
     userId: req.userId,
     channel: 'inApp',
-    AND: [readFilter, sponsorIdFilter],
+    AND: [readFilter, sponsorIdFilter, sponsorFilter, talentFilter],
   };
 
   const notifications = await prisma.notification.findMany({

@@ -53,6 +53,7 @@ const fetchNotifications = async (
         read: params.read,
         sponsorIds: params.sponsorIds,
         showTalent: params.showTalent,
+        showSponsor: params.sponsorIds?.length === 0,
       },
     },
   );

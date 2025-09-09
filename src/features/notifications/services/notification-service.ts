@@ -112,7 +112,6 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
         event.actorId,
         event.submission?.userId,
         event.id,
-        event.sponsorId,
       );
     } else if (
       event.comment?.refType === 'SUBMISSION' &&
@@ -131,7 +130,6 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
         event.actorId,
         event.pow?.userId,
         event.id,
-        event.sponsorId,
       );
     }
 
@@ -141,7 +139,6 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
         event.actorId,
         event.comment.repliedTo.authorId,
         event.id,
-        event.sponsorId,
       );
     }
 
@@ -175,12 +172,9 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
           NotificationType.COMMENT_MENTIONED_YOU,
           event.actorId,
           user.id,
-          event.id,
         ),
       ),
     );
-
-    // Mentioned handled separately
   },
   [EventType.LISTING_WINNERS_ANNOUNCED]: async (event) => {
     const submittersAndWatchers = await fetchSubmittersAndWatchers(
@@ -195,7 +189,6 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
           event.actorId,
           user.id,
           event.id,
-          event.sponsorId,
         ),
       ),
     );
@@ -217,7 +210,6 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
           event.actorId,
           winner.userId,
           event.id,
-          event.sponsorId,
         ),
       ),
     );
@@ -228,12 +220,7 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
     );
     await Promise.all(
       submittersAndWatchers.map((user) =>
-        createNotification(
-          EventType.LISTING_EDITED,
-          event.actorId,
-          user.id,
-          event.id,
-        ),
+        createNotification(EventType.LISTING_EDITED, event.actorId, user.id),
       ),
     );
   },
@@ -243,7 +230,6 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
       event.actorId,
       event.submission?.userId,
       event.id,
-      event.sponsorId,
     );
   },
   [EventType.SUBMISSION_PAID]: async (event) => {
@@ -252,7 +238,6 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
       event.actorId,
       event.submission?.userId,
       event.id,
-      event.sponsorId,
     );
   },
   [EventType.TREASURY_PROPOSAL_REJECTED]: async (event) => {
@@ -287,7 +272,6 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
         event.actorId,
         event.submission?.userId,
         event.id,
-        event.sponsorId,
       ),
     ]);
   },
@@ -297,7 +281,6 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
       event.actorId,
       event.submission?.userId,
       event.id,
-      event.sponsorId,
     );
   },
   [EventType.SPONSOR_MEMBER_INVITED]: async (event) => {
@@ -323,7 +306,6 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
       event.actorId,
       member.id,
       event.id,
-      event.sponsorId,
     );
   },
   [EventType.SPONSOR_MEMBER_ACCEPTED]: async (event) => {
@@ -359,12 +341,7 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
       );
       await Promise.all(
         submittersAndWatchers.map((user) =>
-          createNotification(
-            EventType.COMMENT_PINNED,
-            event.actorId,
-            user.id,
-            event.id,
-          ),
+          createNotification(EventType.COMMENT_PINNED, event.actorId, user.id),
         ),
       );
     } else if (event.visibility === 'SPONSOR') {
@@ -388,6 +365,7 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
             event.actorId,
             member.userId,
             event.id,
+            event.sponsorId,
           ),
         ),
       );
@@ -404,7 +382,6 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
       event.actorId,
       data.scoutUserId,
       event.id,
-      event.sponsorId,
     );
   },
   // We don't need to send notifications for these events
