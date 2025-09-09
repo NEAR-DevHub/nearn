@@ -305,25 +305,25 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
       return;
     }
 
-    const members = await prisma.userSponsors.findMany({
+    const eventDataInvite =
+      event.data as EventDataMap[EventType.SPONSOR_MEMBER_INVITED];
+
+    const member = await prisma.user.findFirst({
       where: {
-        sponsorId: event.sponsorId,
-      },
-      select: {
-        userId: true,
+        email: eventDataInvite.invitedEmail,
       },
     });
 
-    await Promise.all(
-      members.map((member) =>
-        createNotification(
-          EventType.SPONSOR_MEMBER_INVITED,
-          event.actorId,
-          member.userId,
-          event.id,
-          event.sponsorId,
-        ),
-      ),
+    if (!member) {
+      return;
+    }
+
+    await createNotification(
+      EventType.SPONSOR_MEMBER_INVITED,
+      event.actorId,
+      member.id,
+      event.id,
+      event.sponsorId,
     );
   },
   [EventType.SPONSOR_MEMBER_ACCEPTED]: async (event) => {

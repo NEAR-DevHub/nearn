@@ -109,15 +109,30 @@ async function comment(req: NextApiRequestWithUser, res: NextApiResponse) {
         },
         select: {
           listingId: true,
+          listing: {
+            select: {
+              sponsorId: true,
+            },
+          },
         },
       });
       entities = {
         submissionId: refId,
         listingId: submissionListingId?.listingId,
+        sponsorId: submissionListingId?.listing?.sponsorId,
       };
     } else if (refType === 'BOUNTY') {
+      const bountyListingId = await prisma.bounties.findUnique({
+        where: {
+          id: refId,
+        },
+        select: {
+          sponsorId: true,
+        },
+      });
       entities = {
         listingId: refId,
+        sponsorId: bountyListingId?.sponsorId,
       };
     } else if (refType === 'POW') {
       entities = {

@@ -47,6 +47,11 @@ export const userSelectOptions: Prisma.UserSelect = {
   UserSponsors: {
     select: {
       sponsorId: true,
+      sponsor: {
+        select: {
+          name: true,
+        },
+      },
       role: true,
     },
   },

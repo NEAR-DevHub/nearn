@@ -37,7 +37,8 @@ export interface NotificationsResponse {
 interface UseNotificationsParams {
   limit?: number;
   read?: boolean;
-  sponsorId?: string;
+  sponsorIds?: string[];
+  showTalent?: boolean;
 }
 
 const fetchNotifications = async (
@@ -50,7 +51,8 @@ const fetchNotifications = async (
         page: params.page || 1,
         limit: params.limit || 20,
         read: params.read,
-        sponsorId: params.sponsorId,
+        sponsorIds: params.sponsorIds,
+        showTalent: params.showTalent,
       },
     },
   );

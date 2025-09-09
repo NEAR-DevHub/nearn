@@ -15,7 +15,7 @@ async function notifications(
   req: NextApiRequestWithPotentialSponsor,
   res: NextApiResponse,
 ) {
-  const { page, limit, read, sponsorId } = req.query;
+  const { page, limit, read, sponsorIds } = req.query;
 
   if (!req.authorized) {
     return res.status(401).json({ error: 'Unauthorized' });
@@ -33,10 +33,12 @@ async function notifications(
       : {
           deliveredAt: null,
         };
-  const sponsorIdFilter: Prisma.NotificationWhereInput = sponsorId
+  const sponsorIdFilter: Prisma.NotificationWhereInput = sponsorIds
     ? {
         event: {
-          sponsorId: sponsorId as string,
+          sponsorId: {
+            in: sponsorIds as string[],
+          },
         },
       }
     : {};

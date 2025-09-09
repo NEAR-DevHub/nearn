@@ -1,4 +1,11 @@
+import dayjs from 'dayjs';
+
 import { PROJECT_NAME } from '@/constants/project';
+
+import {
+  type EventDataMap,
+  EventType,
+} from '@/features/logging/types/event-data';
 
 import { type Notification } from '../queries/useNotifications';
 import { NotificationType } from '../types';
@@ -6,270 +13,185 @@ import { NotificationType } from '../types';
 interface NotificationData {
   message: string;
   subtitle?: string;
+  link: string;
 }
 
-export function getNotificationData(
+export function getNotificationAction(
   notification: Notification | null,
 ): NotificationData {
   if (!notification || !notification.event)
-    return { message: 'New notification' };
+    return { message: 'New notification', link: '/' };
 
   const event = notification.event;
-
-  const actorName = event.actor?.username || 'Someone';
-  const listingTitle = event.listing?.title || 'a listing';
-  const teamName = event.sponsor?.name || 'the team';
+  const isNote = event.visibility === 'SPONSOR';
 
   switch (notification.type) {
     case NotificationType.SUBMISSION_CREATED:
       return {
-        message: `${actorName} send submission in ${listingTitle}`,
+        message: 'send submission',
+        link: `/${event.sponsor?.slug}/${event.listing?.sequentialId}/${event.submission?.sequentialId}`,
         subtitle: event.submission?.sequentialId
-          ? `Submission ID: ${event.submission.sequentialId}`
+          ? `#${event.submission.sequentialId}`
           : undefined,
       };
 
     case NotificationType.SUBMISSION_EDITED:
       return {
-        message: `${actorName} updated submission in ${listingTitle}`,
+        message: `updated submission`,
+        link: `/${event.sponsor?.slug}/${event.listing?.sequentialId}/${event.submission?.sequentialId}`,
         subtitle: event.submission?.sequentialId
-          ? `Submission ID: ${event.submission.sequentialId}`
+          ? `#${event.submission.sequentialId}`
           : undefined,
       };
 
     case NotificationType.LISTING_COMMENT:
       return {
-        message: `${actorName} commented in ${listingTitle}`,
+        message: `commented`,
+        link: `/comment/${event.commentId}`,
         subtitle: event.comment?.message,
       };
 
     case NotificationType.SUBMISSION_COMMENT:
       return {
-        message: `${actorName} commented your submission in ${listingTitle}`,
+        message: `commented your submission`,
+        link: `/comment/${event.commentId}`,
         subtitle: event.comment?.message,
       };
 
     case NotificationType.POW_COMMENT:
       return {
-        message: `${actorName} commented your proof of work`,
+        message: `commented your proof of work`,
+        link: `/comment/${event.commentId}`,
         subtitle: event.comment?.message,
       };
 
     case NotificationType.NOTE_CREATED:
       return {
-        message: `${actorName} added note in ${listingTitle} in Submission ${event.submission?.sequentialId || 'ID'}`,
+        message: `added note`,
+        link: `/comment/${event.commentId}`,
         subtitle: event.comment?.message,
       };
 
     case NotificationType.COMMENT_REPLY:
-      if (event.comment?.refType === 'BOUNTY') {
-        return {
-          message: `${actorName} replied to your comment in ${listingTitle}`,
-          subtitle: event.comment?.message,
-        };
-      } else if (
-        event.comment?.refType === 'SUBMISSION' &&
-        event.visibility === 'PUBLIC'
-      ) {
-        return {
-          message: `${actorName} replied to your comment in ${listingTitle} in your submission`,
-          subtitle: event.comment?.message,
-        };
-      } else if (
-        event.comment?.refType === 'SUBMISSION' &&
-        event.visibility === 'SPONSOR'
-      ) {
-        return {
-          message: `${actorName} replied to your note in ${listingTitle} in Submission ${event.submission?.sequentialId || 'ID'}`,
-          subtitle: event.comment?.message,
-        };
-      } else if (event.comment?.refType === 'POW') {
-        return {
-          message: `${actorName} replied to your comment on your proof of work`,
-          subtitle: event.comment?.message,
-        };
-      }
       return {
-        message: `${actorName} replied to your comment`,
+        message: `replied to your ${isNote ? 'note' : 'comment'}`,
+        link: `/comment/${event.commentId}`,
         subtitle: event.comment?.message,
       };
 
     case NotificationType.COMMENT_LIKE:
-      if (event.comment?.refType === 'BOUNTY') {
-        return {
-          message: `${actorName} liked your comment in ${listingTitle}`,
-        };
-      } else if (
-        event.comment?.refType === 'SUBMISSION' &&
-        event.visibility === 'PUBLIC'
-      ) {
-        return {
-          message: `${actorName} liked your comment in ${listingTitle} in your submission`,
-        };
-      } else if (
-        event.comment?.refType === 'SUBMISSION' &&
-        event.visibility === 'SPONSOR'
-      ) {
-        return {
-          message: `${actorName} liked your note in ${listingTitle} in Submission ${event.submission?.sequentialId || 'ID'}`,
-        };
-      } else if (event.comment?.refType === 'POW') {
-        return {
-          message: `${actorName} liked your proof of work`,
-        };
-      }
       return {
-        message: `${actorName} liked your comment`,
+        message: `liked your ${isNote ? 'note' : 'comment'}`,
+        link: `/comment/${event.commentId}`,
       };
 
     case NotificationType.COMMENT_MENTIONED_YOU:
-      if (event.comment?.refType === 'BOUNTY') {
-        return {
-          message: `${actorName} mentioned you in a comment in ${listingTitle}`,
-          subtitle: event.comment?.message,
-        };
-      } else if (
-        event.comment?.refType === 'SUBMISSION' &&
-        event.visibility === 'PUBLIC'
-      ) {
-        return {
-          message: `${actorName} mentioned you in a comment in ${listingTitle} in your submission`,
-          subtitle: event.comment?.message,
-        };
-      } else if (
-        event.comment?.refType === 'SUBMISSION' &&
-        event.visibility === 'SPONSOR'
-      ) {
-        return {
-          message: `${actorName} mentioned you in a note in ${listingTitle} in Submission ${event.submission?.sequentialId || 'ID'}`,
-          subtitle: event.comment?.message,
-        };
-      }
       return {
-        message: `${actorName} mentioned you in a comment`,
-        subtitle: event.comment?.message,
+        message: `mentioned you in a ${isNote ? 'note' : 'comment'}`,
+        link: `/comment/${event.commentId}`,
       };
 
     case NotificationType.LISTING_WINNERS_ANNOUNCED:
       return {
-        message: `${actorName} Announced winners in ${listingTitle}`,
+        message: `announced winners`,
+        link: `/${event.sponsor?.slug}/${event.listing?.sequentialId}`,
       };
 
     case NotificationType.WINNER_NOTIFICATION:
       return {
-        message: `Congrats! You were selected as a winner for ${listingTitle}`,
+        message: `selected you as a winner. Congrats!`,
+        link: `/${event.sponsor?.slug}/${event.listing?.sequentialId}`,
       };
 
     case NotificationType.LISTING_EDITED:
+      const eventDataEdit =
+        event.data as EventDataMap[EventType.LISTING_EDITED];
+      const deadline = eventDataEdit.changes.find(
+        (change) => change.field === 'deadline',
+      );
+      if (deadline) {
+        return {
+          message: `updated listing - new deadline: ${dayjs(deadline.newValue as Date).format('MMM D, YYYY h:mm A')}`,
+          link: `/${event.sponsor?.slug}/${event.listing?.sequentialId}`,
+        };
+      }
       return {
-        message: `${actorName} updated ${listingTitle}`,
+        message: `updated listing`,
+        link: `/${event.sponsor?.slug}/${event.listing?.sequentialId}`,
       };
 
     case NotificationType.DEADLINE_IN_3_DAYS:
       return {
-        message: `${PROJECT_NAME} Reminder: ${listingTitle} deadline is in 3 days`,
+        message: `${PROJECT_NAME} Reminder: ${event.listing?.title} deadline is in 3 days`,
+        link: `/${event.sponsor?.slug}/${event.listing?.sequentialId}`,
       };
 
     case NotificationType.SUBMISSION_APPROVED:
       return {
-        message: `Congrats! Your submission is approved for ${listingTitle}`,
+        message: `approved your submission`,
+        link: `/${event.sponsor?.slug}/${event.listing?.sequentialId}/${event.submission?.sequentialId}`,
       };
 
     case NotificationType.SUBMISSION_PAID:
       return {
-        message: `${actorName} marked as paid your submission ${listingTitle}`,
+        message: `marked your submission as paid`,
+        link: `/${event.sponsor?.slug}/${event.listing?.sequentialId}/${event.submission?.sequentialId}`,
       };
 
     case NotificationType.SUBMISSION_REJECTED:
       return {
-        message: `${actorName} has rejected your submission to ${listingTitle}`,
+        message: `rejected your submission`,
+        link: `/${event.sponsor?.slug}/${event.listing?.sequentialId}/${event.submission?.sequentialId}`,
       };
 
     case NotificationType.SPONSOR_MEMBER_INVITED:
+      const eventDataInvite =
+        event.data as EventDataMap[EventType.SPONSOR_MEMBER_INVITED];
       return {
-        message: `${actorName} invited you to the ${teamName} team`,
+        message: `invited you to the team`,
+        link: `/signup?invite=${eventDataInvite.token}`,
       };
 
     case NotificationType.SPONSOR_MEMBER_ACCEPTED:
       return {
-        message: `${actorName} joined to the ${teamName} team`,
+        message: `joined to the team`,
+        link: `/dashboard/team-s`,
       };
 
     case NotificationType.COMMENT_PINNED:
       return {
-        message: `${actorName} pinned a comment in ${listingTitle}`,
+        message: `pinned a ${isNote ? 'note' : 'comment'}`,
+        link: `/comment/${event.commentId}`,
       };
 
     case NotificationType.SCOUT_INVITE:
       return {
-        message: `${actorName} invited you to scout for ${teamName}`,
+        message: `invited you to participate`,
+        link: `/${event.sponsor?.slug}/${event.listing?.sequentialId}`,
       };
 
     case NotificationType.TREASURY_PROPOSAL_STATUS_CHANGED:
-      return {
-        message: `Treasury proposal status changed for ${listingTitle}`,
-      };
-
-    default:
-      return { message: 'New notification' };
-  }
-}
-
-export function getNotificationMessage(notification: Notification): string {
-  const { message } = getNotificationData(notification);
-  return message;
-}
-
-export function getNotificationIcon(
-  notificationType: NotificationType,
-): string {
-  switch (notificationType) {
-    case NotificationType.SUBMISSION_CREATED:
-    case NotificationType.SUBMISSION_EDITED:
-      return '📝';
-
-    case NotificationType.LISTING_COMMENT:
-    case NotificationType.SUBMISSION_COMMENT:
-    case NotificationType.POW_COMMENT:
-    case NotificationType.NOTE_CREATED:
-    case NotificationType.COMMENT_REPLY:
-    case NotificationType.COMMENT_MENTIONED_YOU:
-      return '💬';
-
-    case NotificationType.COMMENT_LIKE:
-      return '👍';
-
-    case NotificationType.LISTING_WINNERS_ANNOUNCED:
-    case NotificationType.WINNER_NOTIFICATION:
-      return '🏆';
-
-    case NotificationType.LISTING_EDITED:
-      return '✏️';
-
-    case NotificationType.DEADLINE_IN_3_DAYS:
-      return '⏰';
-
-    case NotificationType.SUBMISSION_APPROVED:
-      return '✅';
-
-    case NotificationType.SUBMISSION_PAID:
-      return '💰';
-
-    case NotificationType.SUBMISSION_REJECTED:
-      return '❌';
-
-    case NotificationType.SPONSOR_MEMBER_INVITED:
-    case NotificationType.SPONSOR_MEMBER_ACCEPTED:
-    case NotificationType.SCOUT_INVITE:
-      return '👥';
-
-    case NotificationType.COMMENT_PINNED:
-      return '📌';
-
-    case NotificationType.TREASURY_PROPOSAL_STATUS_CHANGED:
-      return '🏦';
-
-    default:
-      return '🔔';
+      switch (event.eventType) {
+        case EventType.TREASURY_PROPOSAL_EXPIRED:
+          return {
+            message: `updated treasury proposal - expired`,
+            link: `/${event.sponsor?.slug}/${event.listing?.sequentialId}/${event.submission?.sequentialId}`,
+          };
+        case EventType.TREASURY_PROPOSAL_REJECTED:
+          return {
+            message: `updated treasury proposal - rejected`,
+            link: `/${event.sponsor?.slug}/${event.listing?.sequentialId}/${event.submission?.sequentialId}`,
+          };
+        case EventType.TREASURY_PROPOSAL_APPROVED:
+          return {
+            message: `updated treasury proposal - approved`,
+            link: `/${event.sponsor?.slug}/${event.listing?.sequentialId}/${event.submission?.sequentialId}`,
+          };
+        default:
+          return {
+            message: `updated treasury proposal`,
+            link: `/${event.sponsor?.slug}/${event.listing?.sequentialId}/${event.submission?.sequentialId}`,
+          };
+      }
   }
 }

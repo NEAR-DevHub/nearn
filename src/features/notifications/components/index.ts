@@ -1,2 +1,2 @@
-export { NotificationsList } from './NotificationsList';
+export { NotificationsListWithFilters } from './NotificationsList';
 export { NotificationsPopover } from './NotificationsPopover';

@@ -1,7 +1,7 @@
 'use client';
 
 import { Bell } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,37 +10,30 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { useUser } from '@/store/user';
 
-import {
-  type Notification,
-  useNotificationsInfinite,
-} from '../queries/useNotifications';
-import { NotificationsList } from './NotificationsList';
+import { useNotificationsInfinite } from '../queries/useNotifications';
+import { AccountFilter } from './AccountFilter';
+import { NotificationsListWithFilters } from './NotificationsList';
 
 export function NotificationsPopover() {
-  const router = useRouter();
-  const { data } = useNotificationsInfinite({ read: false, limit: 10 });
+  const { user } = useUser();
+  const [selectedSponsorIds, setSelectedSponsorIds] = useState<
+    string[] | undefined
+  >(undefined);
+  const [showTalentNotifications, setShowTalentNotifications] = useState(true);
+
+  const { data } = useNotificationsInfinite({
+    read: false,
+    limit: 10,
+    sponsorIds: selectedSponsorIds,
+    showTalent: showTalentNotifications,
+  });
 
   const unreadCount =
     data?.pages
       .flatMap((page) => page.notifications)
       .filter((n) => !n.deliveredAt).length || 0;
-
-  const handleNotificationClick = (notification: Notification) => {
-    if (!notification.event) return;
-
-    const event = notification.event;
-
-    if (event.listing?.slug) {
-      router.push(`/listings/${event.listing.type}/${event.listing.slug}`);
-    } else if (event.submission?.sequentialId && event.listing?.slug) {
-      router.push(
-        `/listings/${event.listing.type}/${event.listing.slug}/submission/${event.submission.sequentialId}`,
-      );
-    } else if (event.sponsor?.slug) {
-      router.push(`/sponsor/${event.sponsor.slug}`);
-    }
-  };
 
   return (
     <Popover>
@@ -50,15 +43,22 @@ export function NotificationsPopover() {
           {unreadCount > 0 && (
             <Badge
               variant="destructive"
-              className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full p-0 text-xs"
+              className="absolute right-0 top-0 flex h-4 w-4 items-center justify-center rounded-full p-0 text-xs"
             >
               {unreadCount > 99 ? '99+' : unreadCount}
             </Badge>
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-96 p-0">
-        <NotificationsList onNotificationClick={handleNotificationClick} />
+      <PopoverContent align="end" className="flex w-[440px] flex-col gap-3 p-0">
+        <AccountFilter
+          userSponsors={user?.UserSponsors || []}
+          selectedSponsorIds={selectedSponsorIds}
+          showTalent={showTalentNotifications}
+          onSelectionChange={setSelectedSponsorIds}
+          onTalentToggle={setShowTalentNotifications}
+        />
+        <NotificationsListWithFilters sponsorIds={selectedSponsorIds} />
       </PopoverContent>
     </Popover>
   );

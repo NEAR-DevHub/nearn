@@ -200,6 +200,7 @@ export interface EventDataMap {
     invitedEmail: string;
     invitedUserId?: string;
     role: Role;
+    token?: string;
   };
 
   [EventType.SPONSOR_MEMBER_REMOVED]: {

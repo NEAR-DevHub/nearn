@@ -106,6 +106,7 @@ async function sendInvites(
         invitedEmail: email,
         invitedUserId: invitedUser?.id ?? undefined,
         role: memberType,
+        token,
       },
       entities: {
         sponsorId: user.currentSponsor.id,
