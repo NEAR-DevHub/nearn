@@ -406,66 +406,67 @@ model Session {
 }
 
 model User {
-  id                   String                 @id @default(uuid())
-  publicKey            String?
-  email                String                 @unique
-  username             String?                @unique
-  photo                String?                @db.Text
-  name                 String?                @db.VarChar(255)
-  createdAt            DateTime               @default(now())
-  updatedAt            DateTime               @updatedAt
-  isVerified           Boolean                @default(false)
-  role                 String                 @default("USER")
-  isTalentFilled       Boolean                @default(false)
-  interests            String?                @db.Text
-  bio                  String?                @db.Text
-  twitter              String?                @db.Text
-  discord              String?                @db.Text
-  github               String?                @db.Text
-  linkedin             String?                @db.Text
-  website              String?                @db.Text
-  telegram             String?                @db.Text
-  community            String?                @db.Text
-  experience           String?
-  superteamLevel       String?
-  location             String?
-  cryptoExperience     String?
-  workPrefernce        String?
-  currentEmployer      String?
-  notifications        Json?
-  private              Boolean                @default(false)
-  skills               Json?
-  currentSponsorId     String?
-  emailVerified        DateTime?
-  hackathonId          String?
-  featureModalShown    Boolean                @default(false)
-  surveysShown         Json?
-  stRecommended        Boolean                @default(false)
-  acceptedTOS          Boolean                @default(false)
-  stLead               String?
-  currentSponsor       Sponsors?              @relation(fields: [currentSponsorId], references: [id])
-  UserSponsors         UserSponsors[]
-  poc                  Bounties[]             @relation("poc")
-  templates            BountiesTemplates[]    @relation("poc")
-  Comment              Comment[]
-  Submission           Submission[]
-  Grants               Grants[]
-  UserInvites          UserInvites[]
-  SubscribeBounty      SubscribeBounty[]
-  PoW                  PoW[]
-  accounts             Account[]
-  sessions             Session[]
-  Hackathon            Hackathon?             @relation(fields: [hackathonId], references: [id])
-  NotificationSettings NotificationSettings[]
-  TalentRankings       TalentRankings[]
-  Scouts               Scouts[]
-  GrantApplication     GrantApplication[]
-  SubscribeHackathon   SubscribeHackathon[]
-  isBlocked            Boolean                @default(false)
-  EventLog             EventLog[]
-  SubmissionPaidBy     Submission[]           @relation("PaidBy")
-  SubmissionApprovedBy Submission[]           @relation("ApprovedBy")
-  Notification         Notification[]
+  id                     String                 @id @default(uuid())
+  publicKey              String?
+  email                  String                 @unique
+  username               String?                @unique
+  photo                  String?                @db.Text
+  name                   String?                @db.VarChar(255)
+  createdAt              DateTime               @default(now())
+  updatedAt              DateTime               @updatedAt
+  isVerified             Boolean                @default(false)
+  role                   String                 @default("USER")
+  isTalentFilled         Boolean                @default(false)
+  interests              String?                @db.Text
+  bio                    String?                @db.Text
+  twitter                String?                @db.Text
+  discord                String?                @db.Text
+  github                 String?                @db.Text
+  linkedin               String?                @db.Text
+  website                String?                @db.Text
+  telegram               String?                @db.Text
+  community              String?                @db.Text
+  experience             String?
+  superteamLevel         String?
+  location               String?
+  cryptoExperience       String?
+  workPrefernce          String?
+  currentEmployer        String?
+  notifications          Json?
+  private                Boolean                @default(false)
+  skills                 Json?
+  currentSponsorId       String?
+  emailVerified          DateTime?
+  hackathonId            String?
+  featureModalShown      Boolean                @default(false)
+  surveysShown           Json?
+  stRecommended          Boolean                @default(false)
+  acceptedTOS            Boolean                @default(false)
+  stLead                 String?
+  currentSponsor         Sponsors?              @relation(fields: [currentSponsorId], references: [id])
+  UserSponsors           UserSponsors[]
+  poc                    Bounties[]             @relation("poc")
+  templates              BountiesTemplates[]    @relation("poc")
+  Comment                Comment[]
+  Submission             Submission[]
+  Grants                 Grants[]
+  UserInvites            UserInvites[]
+  SubscribeBounty        SubscribeBounty[]
+  PoW                    PoW[]
+  accounts               Account[]
+  sessions               Session[]
+  Hackathon              Hackathon?             @relation(fields: [hackathonId], references: [id])
+  NotificationSettings   NotificationSettings[]
+  TalentRankings         TalentRankings[]
+  Scouts                 Scouts[]
+  GrantApplication       GrantApplication[]
+  SubscribeHackathon     SubscribeHackathon[]
+  isBlocked              Boolean                @default(false)
+  EventLog               EventLog[]
+  SubmissionPaidBy       Submission[]           @relation("PaidBy")
+  SubmissionApprovedBy   Submission[]           @relation("ApprovedBy")
+  ReceivedNotifications  Notification[]
+  TriggeredNotifications Notification[]         @relation("Actor")
 
   @@index([currentSponsorId])
   @@index([hackathonId])
@@ -700,20 +701,24 @@ model Notification {
   id        String  @id @default(uuid())
   userId    String
   eventId   String?
+  actorId   String?
   channel   String
   type      String
   sponsorId String?
+  data      Json?
 
   deliveredAt DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
   user    User      @relation(fields: [userId], references: [id])
+  actor   User?     @relation(name: "Actor", fields: [actorId], references: [id])
   event   EventLog? @relation(fields: [eventId], references: [id])
   sponsor Sponsors? @relation(fields: [sponsorId], references: [id])
 
   @@index([userId])
   @@index([eventId])
+  @@index([actorId])
   @@index([sponsorId])
   @@index([channel])
   @@index([type])
