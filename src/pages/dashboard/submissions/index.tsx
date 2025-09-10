@@ -181,6 +181,24 @@ export default function SponsorListings() {
               : 0;
             return (createdAtB - createdAtA) * factor;
 
+          case 'approvedAt':
+            const approvedAtA = a.approveDate
+              ? new Date(a.approveDate).getTime()
+              : 0;
+            const approvedAtB = b.approveDate
+              ? new Date(b.approveDate).getTime()
+              : 0;
+            return (approvedAtB - approvedAtA) * factor;
+
+          case 'paidAt':
+            const paidAtA = a.paymentDate
+              ? new Date(a.paymentDate).getTime()
+              : 0;
+            const paidAtB = b.paymentDate
+              ? new Date(b.paymentDate).getTime()
+              : 0;
+            return (paidAtB - paidAtA) * factor;
+
           default:
             return 0;
         }

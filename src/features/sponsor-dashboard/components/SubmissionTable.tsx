@@ -259,10 +259,24 @@ export const SubmissionTable = ({
                 </SortableTH>
               )}
               {visibleColumns.approvedDate && (
-                <ListingTh className="text-nowrap">Approved Date</ListingTh>
+                <SortableTH
+                  column="approvedAt"
+                  currentSort={currentSort}
+                  setSort={onSort}
+                  className={cn(thClassName)}
+                >
+                  Approved Date
+                </SortableTH>
               )}
               {visibleColumns.paymentDate && (
-                <ListingTh className="text-nowrap">Payment Date</ListingTh>
+                <SortableTH
+                  column="paidAt"
+                  currentSort={currentSort}
+                  setSort={onSort}
+                  className={cn(thClassName)}
+                >
+                  Payment Date
+                </SortableTH>
               )}
               {visibleColumns.notes && (
                 <ListingTh className="text-nowrap">Notes</ListingTh>
