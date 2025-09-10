@@ -32,6 +32,8 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
         Comments: {
           where: {
             type: 'INTERNAL_SUBMISSION_NOTES',
+            isActive: true,
+            isArchived: false,
           },
           include: {
             author: true,

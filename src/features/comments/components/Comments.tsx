@@ -41,6 +41,7 @@ interface Props {
   setCount: Dispatch<SetStateAction<number>>;
   isTemplate?: boolean;
   onSuccess?: (newComment: Comment & { author: User }) => void;
+  onCommentsChanged?: (comments: Comment[]) => void;
   isDisabled?: boolean;
 }
 export const Comments = ({
@@ -61,6 +62,7 @@ export const Comments = ({
   count,
   take = 10,
   setCount,
+  onCommentsChanged,
   onSuccess,
 }: Props) => {
   const posthog = usePostHog();
@@ -83,6 +85,7 @@ export const Comments = ({
       setComments((prevComments) => {
         const newComments = [...prevComments];
         newComments.splice(commentIndex, 1);
+        onCommentsChanged?.(newComments);
         return newComments;
       });
       setCount((count) => count - 1);
@@ -103,8 +106,10 @@ export const Comments = ({
       });
       const allComments = commentsData.data.result as Comment[];
 
+      const newComments = [...comments, ...allComments];
       setCount(commentsData.data.count);
-      setComments([...comments, ...allComments]);
+      setComments(newComments);
+      onCommentsChanged?.(newComments);
       setDefaultSuggestions((prevSuggestions) => {
         const newSuggestions = new Map(prevSuggestions);
         if (submissionAuthor && submissionAuthor.id) {
@@ -173,7 +178,9 @@ export const Comments = ({
         type={type}
         onSuccess={(newComment) => {
           setCount((count) => count + 1);
-          setComments((prevComments) => [newComment, ...prevComments]);
+          const newComments = [newComment, ...comments];
+          setComments(newComments);
+          onCommentsChanged?.(newComments);
           onSuccess?.(newComment);
         }}
         isTemplate={isTemplate}

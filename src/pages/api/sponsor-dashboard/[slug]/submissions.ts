@@ -75,6 +75,9 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
             author: true,
           },
           where: {
+            isActive: true,
+            isArchived: false,
+            repliedTo: null,
             type: 'INTERNAL_SUBMISSION_NOTES',
           },
         },

@@ -286,7 +286,9 @@ export const Comment = ({
         }}
       >
         <Link
-          href={`${getURL()}t/${comment?.author?.username}`}
+          href={
+            comment?.author?.username ? `/t/${comment?.author?.username}` : '/'
+          }
           className={cn('block', isReply ? 'min-w-8' : 'min-w-10')}
           tabIndex={-1}
           target="_blank"

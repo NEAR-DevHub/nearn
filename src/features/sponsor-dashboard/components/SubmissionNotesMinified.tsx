@@ -92,8 +92,8 @@ export const SubmissionNotesMinified = ({
                 count={count}
                 setCount={setCount}
                 take={100}
-                onSuccess={(newComment) => {
-                  setLastComment(newComment as any);
+                onCommentsChanged={(comments) => {
+                  setLastComment(comments[0] as any);
                 }}
               />
             </div>
