@@ -1,3 +1,4 @@
+import { type Rewards } from '@/features/listings/types';
 import { EventType } from '@/features/logging/types/event-data';
 
 export const NotificationChannel = {
@@ -16,7 +17,6 @@ export const NotificationType = {
   POW_COMMENT: 'POW_COMMENT',
   NOTE_CREATED: 'NOTE_CREATED',
   COMMENT_REPLY: 'COMMENT_REPLY',
-  COMMENT_LIKE: 'COMMENT_LIKE',
   COMMENT_MENTIONED_YOU: 'COMMENT_MENTIONED_YOU',
   [EventType.COMMENT_PINNED]: EventType.COMMENT_PINNED,
   [EventType.LISTING_WINNERS_ANNOUNCED]: EventType.LISTING_WINNERS_ANNOUNCED,
@@ -30,7 +30,33 @@ export const NotificationType = {
   [EventType.SPONSOR_MEMBER_INVITED]: EventType.SPONSOR_MEMBER_INVITED,
   [EventType.SPONSOR_MEMBER_ACCEPTED]: EventType.SPONSOR_MEMBER_ACCEPTED,
   [EventType.SCOUT_INVITE]: EventType.SCOUT_INVITE,
+  LIKE: 'LIKE',
 } as const;
+
+export type NotificationDataMap = {
+  [key in Exclude<
+    NotificationType,
+    'LIKE' | 'WINNER_NOTIFICATION' | 'SUBMISSION_APPROVED'
+  >]: undefined;
+} & {
+  [NotificationType.LIKE]: {
+    refId: string;
+    type: 'submission' | 'poW' | 'comment' | 'grantApplication';
+  };
+  [NotificationType.WINNER_NOTIFICATION]: {
+    token: string;
+    rewards: Rewards;
+    winnerPosition: keyof Rewards;
+  };
+  [EventType.SUBMISSION_APPROVED]: {
+    token: string;
+    rewards: Rewards;
+    winnerPosition: keyof Rewards;
+  };
+};
+
+export type NotificationData<T extends NotificationType> =
+  NotificationDataMap[T];
 
 export type NotificationType =
   (typeof NotificationType)[keyof typeof NotificationType];

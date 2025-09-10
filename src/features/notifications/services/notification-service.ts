@@ -1,12 +1,17 @@
 import { prisma } from '@/prisma';
 
+import { type Rewards } from '@/features/listings/types';
 import { type Log } from '@/features/logging/queries/logs';
 import {
   type EventDataMap,
   EventType,
 } from '@/features/logging/types/event-data';
 
-import { type NotificationChannel, NotificationType } from '../types';
+import {
+  type NotificationChannel,
+  type NotificationData,
+  NotificationType,
+} from '../types';
 
 async function checkNotificationChannelsForEvent(
   _eventType: NotificationType,
@@ -24,12 +29,13 @@ async function checkNotificationChannelsForEvent(
   // return eventSettings.map(setting => setting.channel as NotificationChannel);
 }
 
-export async function createNotification(
+export async function createNotification<T extends NotificationType>(
   notificationType: NotificationType,
   actorId?: string | null,
   receiverId?: string,
   eventId?: string,
   sponsorId?: string | null,
+  data?: NotificationData<T>,
 ) {
   if (actorId === receiverId || !actorId || !receiverId) {
     return;
@@ -43,11 +49,12 @@ export async function createNotification(
   for (const channel of channels) {
     await prisma.notification.create({
       data: {
-        eventId: eventId,
+        ...(eventId ? { eventId } : { actorId }),
         userId: receiverId,
         type: notificationType,
         channel,
         sponsorId: sponsorId ?? undefined,
+        data: data ?? undefined,
       },
     });
   }
@@ -172,6 +179,7 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
           NotificationType.COMMENT_MENTIONED_YOU,
           event.actorId,
           user.id,
+          event.id,
         ),
       ),
     );
@@ -200,6 +208,14 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
       },
       select: {
         userId: true,
+        token: true,
+        listing: {
+          select: {
+            rewards: true,
+            token: true,
+          },
+        },
+        winnerPosition: true,
       },
     });
 
@@ -210,6 +226,12 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
           event.actorId,
           winner.userId,
           event.id,
+          undefined,
+          {
+            token: winner.token ?? winner.listing.token!,
+            rewards: winner.listing.rewards as Rewards,
+            winnerPosition: winner.winnerPosition!,
+          },
         ),
       ),
     );
@@ -220,16 +242,42 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
     );
     await Promise.all(
       submittersAndWatchers.map((user) =>
-        createNotification(EventType.LISTING_EDITED, event.actorId, user.id),
+        createNotification(
+          EventType.LISTING_EDITED,
+          event.actorId,
+          user.id,
+          event.id,
+        ),
       ),
     );
   },
   [EventType.SUBMISSION_APPROVED]: async (event) => {
+    const submission = await prisma.submission.findUnique({
+      where: {
+        id: event.submissionId!,
+      },
+      select: {
+        token: true,
+        listing: {
+          select: {
+            rewards: true,
+            token: true,
+          },
+        },
+        winnerPosition: true,
+      },
+    });
     await createNotification(
       EventType.SUBMISSION_APPROVED,
       event.actorId,
       event.submission?.userId,
       event.id,
+      undefined,
+      {
+        token: submission?.token ?? submission?.listing.token!,
+        rewards: submission?.listing.rewards as Rewards,
+        winnerPosition: submission?.winnerPosition!,
+      },
     );
   },
   [EventType.SUBMISSION_PAID]: async (event) => {
@@ -416,4 +464,22 @@ export const createNotificationFromEvent = async (event: Log) => {
     return;
   }
   await mappingFunction(event);
+};
+
+export const createNotificationNonEventRelated = async <
+  T extends NotificationType,
+>(
+  type: T,
+  receiverId: string,
+  actorId?: string,
+  data?: NotificationData<T>,
+) => {
+  await createNotification(
+    type,
+    actorId,
+    receiverId,
+    undefined,
+    undefined,
+    data,
+  );
 };

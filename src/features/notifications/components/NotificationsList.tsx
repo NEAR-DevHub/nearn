@@ -4,6 +4,7 @@ import { Loader2 } from 'lucide-react';
 import router from 'next/router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { ExternalImage } from '@/components/ui/cloudinary-image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/utils/cn';
@@ -115,6 +116,23 @@ export function NotificationsListWithFilters({
       </TabsList>
       <TabsContent value={activeTab}>
         <ScrollArea className="h-[400px]">
+          {notifications.length === 0 && (
+            <div className="flex h-[400px] flex-col justify-center text-center">
+              <ExternalImage
+                className="mx-auto w-32"
+                alt={'talent empty'}
+                src={'/bg/notify-none.svg'}
+              />
+              <p className="mt-5 font-semibold text-slate-600">
+                You are all caught up!
+              </p>
+              <p className="mt-2 text-sm text-slate-600">
+                You will be notified here about comments,
+                <br /> submission updates, event changes, and messages
+              </p>
+            </div>
+          )}
+
           {notifications.map((notification) => {
             const { link: primaryLink } = getNotificationAction(notification);
             return (

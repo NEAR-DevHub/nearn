@@ -1,4 +1,5 @@
 import dayjs from 'dayjs';
+import { Dot } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -18,22 +19,27 @@ export function Notification({
 }) {
   const event = notification.event;
 
-  const now = dayjs();
-  const eventTime = dayjs(event?.eventTime);
-  const date = now.isSame(eventTime, 'day')
-    ? formatFromNow(eventTime.fromNow())
-    : eventTime.format('HH:mm');
+  const notificationTime = dayjs(notification.createdAt);
+  const date = notificationTime.isToday()
+    ? formatFromNow(notificationTime.fromNow())
+    : notificationTime.format('HH:mm');
   const utcOffset = -(new Date().getTimezoneOffset() / 60).toFixed(1);
   const offsetString = utcOffset > 0 ? `+${utcOffset}` : utcOffset;
-  const fullDate = eventTime.format(`MMM D, YYYY h:mm A [UTC${offsetString}]`);
+  const fullDate = notificationTime.format(
+    `MMM D, YYYY h:mm A [UTC${offsetString}]`,
+  );
 
-  const name = event?.actor
-    ? (event.actor.name ?? event.actor.username)
-    : event?.sponsor?.name;
-  const photo = event?.actor ? event.actor.photo : event?.sponsor?.logo;
-
-  let username = name;
-  let icon = photo;
+  let username;
+  let icon;
+  if (event) {
+    username = event?.actor
+      ? (event.actor.name ?? event.actor.username)
+      : event?.sponsor?.name;
+    icon = event?.actor ? event.actor.photo : event?.sponsor?.logo;
+  } else {
+    username = notification.actor?.name ?? notification.actor?.username;
+    icon = notification.actor?.photo;
+  }
 
   if (
     event?.actorType === 'SYSTEM' ||
@@ -44,7 +50,7 @@ export function Notification({
       event?.actorType === 'SYSTEM' ? PROJECT_NAME : `${PROJECT_NAME} Admin`;
   }
 
-  const { message, subtitle } = getNotificationAction(notification);
+  const { message, subtitle, showActor } = getNotificationAction(notification);
 
   return (
     <div className="flex items-start gap-2 p-4">
@@ -59,7 +65,9 @@ export function Notification({
         <div className="flex w-full gap-2">
           <div className="min-w-0 flex-1">
             <p className="text-slate-600">
-              <span className="font-medium text-slate-900">{username}</span>{' '}
+              {showActor !== false && (
+                <span className="font-medium text-slate-900">{username} </span>
+              )}
               {message}
               {event?.listing && (
                 <>
@@ -119,8 +127,11 @@ export function Notification({
       <Tooltip
         contentProps={{ className: 'z-[1000]' }}
         content={fullDate}
-        triggerClassName="flex-shrink-0 ml-auto"
+        triggerClassName="flex flex-shrink-0 ml-auto"
       >
+        {notification.deliveredAt === null && (
+          <Dot className="h-4 w-4 scale-150 text-red-500" />
+        )}
         <span className="text-sm font-medium text-slate-400">{date}</span>
       </Tooltip>
     </div>

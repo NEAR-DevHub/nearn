@@ -1,6 +1,15 @@
+import {
+  type Comment,
+  type GrantApplication,
+  type PoW,
+  type Submission,
+} from '@prisma/client';
 import { type InputJsonValue } from '@prisma/client/runtime/library';
 
 import { prisma } from '@/prisma';
+
+import { createNotificationNonEventRelated } from '@/features/notifications/services/notification-service';
+import { NotificationType } from '@/features/notifications/types';
 
 interface LikeEntry {
   id: string;
@@ -100,6 +109,7 @@ export async function updateLike(
   const likeCount = newLikes.length;
 
   let updateLike: unknown;
+  let receiverId: string | undefined;
 
   if (model === 'submission') {
     updateLike = await prisma.submission.update({
@@ -111,6 +121,7 @@ export async function updateLike(
         likeCount,
       },
     });
+    receiverId = (updateLike as Submission).userId as string;
   } else if (model === 'poW') {
     updateLike = await prisma.poW.update({
       where: {
@@ -121,6 +132,7 @@ export async function updateLike(
         likeCount,
       },
     });
+    receiverId = (updateLike as PoW).userId as string;
   } else if (model === 'grantApplication') {
     updateLike = await prisma.grantApplication.update({
       where: {
@@ -131,6 +143,7 @@ export async function updateLike(
         likeCount,
       },
     });
+    receiverId = (updateLike as GrantApplication).userId as string;
   } else if (model === 'comment') {
     updateLike = await prisma.comment.update({
       where: {
@@ -141,6 +154,19 @@ export async function updateLike(
         likeCount,
       },
     });
+    receiverId = (updateLike as Comment).authorId as string;
+  }
+
+  if (likeCount > (result?.likeCount || 0) && receiverId) {
+    await createNotificationNonEventRelated(
+      NotificationType.LIKE,
+      receiverId,
+      userId,
+      {
+        refId: itemId,
+        type: model,
+      },
+    );
   }
 
   return {

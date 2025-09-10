@@ -12,7 +12,10 @@ import {
 } from '@/components/ui/popover';
 import { useUser } from '@/store/user';
 
-import { useNotificationsInfinite } from '../queries/useNotifications';
+import {
+  useMarkNotificationsAsRead,
+  useNotificationsInfinite,
+} from '../queries/useNotifications';
 import { AccountFilter } from './AccountFilter';
 import { NotificationsListWithFilters } from './NotificationsList';
 
@@ -29,14 +32,21 @@ export function NotificationsPopover() {
     sponsorIds: selectedSponsorIds,
     showTalent: showTalentNotifications,
   });
+  const { mutate: markAsRead } = useMarkNotificationsAsRead();
 
-  const unreadCount =
-    data?.pages
-      .flatMap((page) => page.notifications)
-      .filter((n) => !n.deliveredAt).length || 0;
+  const notifications = data?.pages.flatMap((page) => page.notifications) || [];
+  const unreadCount = notifications.filter((n) => !n.deliveredAt).length || 0;
 
   return (
-    <Popover>
+    <Popover
+      onOpenChange={(open) => {
+        if (unreadCount > 0 && !open) {
+          markAsRead(
+            notifications.filter((n) => !n.deliveredAt).map((n) => n.id),
+          );
+        }
+      }}
+    >
       <PopoverTrigger asChild>
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-5 w-5" />
@@ -50,7 +60,10 @@ export function NotificationsPopover() {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="flex w-[440px] flex-col gap-3 p-0">
+      <PopoverContent
+        align="end"
+        className="flex w-[440px] flex-col gap-3 rounded-xl p-0"
+      >
         <AccountFilter
           userSponsors={user?.UserSponsors || []}
           selectedSponsorIds={selectedSponsorIds}

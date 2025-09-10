@@ -78,13 +78,19 @@ async function notifications(
     AND: [readFilter, sponsorIdFilter, sponsorFilter, talentFilter],
   };
 
-  console.log(JSON.stringify(whereClause, null, 2));
-
   const notifications = await prisma.notification.findMany({
     where: whereClause,
     include: {
       event: {
         include: prismaLogInclude,
+      },
+      actor: {
+        select: {
+          username: true,
+          name: true,
+          photo: true,
+          private: true,
+        },
       },
     },
     skip: (pageNumber - 1) * limitNumber,
@@ -111,7 +117,15 @@ async function notifications(
     notifications: notifications.map((notification) => {
       return {
         ...notification,
-        event: prepareLogData(notification.event as unknown as Log, visibility),
+        actor: {
+          ...notification.actor,
+          name: notification.actor?.private
+            ? undefined
+            : notification.actor?.name,
+        },
+        event: notification.event
+          ? prepareLogData(notification.event as unknown as Log, visibility)
+          : null,
       };
     }),
     pagination: {

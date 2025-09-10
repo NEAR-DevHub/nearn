@@ -238,7 +238,7 @@ export interface EventDataMap {
     }>;
   };
 
-  [EventType.LISTING_COMPLETED]: Record<string, never>; // TODO: except for sponsorship manual
+  [EventType.LISTING_COMPLETED]: Record<string, never>;
   [EventType.LISTING_UNPUBLISHED]: Record<string, never>;
   [EventType.LISTING_WINNERS_ANNOUNCED]: {
     winners: Array<{

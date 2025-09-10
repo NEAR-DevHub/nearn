@@ -8,7 +8,7 @@ import { api } from '@/lib/api';
 
 import { type Log } from '@/features/logging/queries/logs';
 
-import { type NotificationType } from '../types';
+import { type NotificationDataMap, type NotificationType } from '../types';
 
 export interface Notification {
   id: string;
@@ -20,6 +20,13 @@ export interface Notification {
   createdAt: string;
   updatedAt: string;
   event: Log | null;
+  actor?: {
+    username: string;
+    name?: string;
+    photo: string;
+    private: boolean;
+  };
+  data?: NotificationDataMap[NotificationType];
   type: NotificationType;
 }
 
