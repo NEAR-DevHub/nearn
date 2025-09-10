@@ -237,6 +237,12 @@ async function submission(
                 },
               ]
             : []),
+          {
+            data: {
+              path: '$.message',
+              string_contains: searchText,
+            },
+          },
         ],
       }
     : {};
