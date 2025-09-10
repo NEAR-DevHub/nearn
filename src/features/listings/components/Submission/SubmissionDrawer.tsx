@@ -137,20 +137,8 @@ export const SubmissionDrawer = ({
   };
 
   useEffect(() => {
-    if (
-      editMode &&
-      submissions &&
-      submissions.length > 1 &&
-      !selectedSubmission
-    ) {
+    if (editMode && submissions && !selectedSubmission) {
       setShowSelectionView(true);
-    } else if (
-      editMode &&
-      submissions &&
-      submissions.length === 1 &&
-      !selectedSubmission
-    ) {
-      setSelectedSubmission(submissions[0]);
     }
   }, [editMode, submissions, selectedSubmission]);
 
@@ -511,7 +499,7 @@ export const SubmissionDrawer = ({
                       )}
                     </Button>
                   </AuthWrapper>
-                  {!showSelectionView && (
+                  {!showSelectionView && submissions && (
                     <Button
                       variant="outline"
                       className="mt-2 w-full"

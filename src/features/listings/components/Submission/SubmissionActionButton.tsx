@@ -127,7 +127,6 @@ export const SubmissionActionButton = ({
 
   const bountyDraftStatus = getListingDraftStatus(status, isPublished);
 
-  const isSponsorship = type === 'sponsorship';
   const isProject = type === 'project';
   const isMultipleSubmission = submissionLimit === 'multiple';
 
@@ -177,11 +176,11 @@ export const SubmissionActionButton = ({
       return 'submit';
     }
 
-    if (isSubmitted && submissionStatus === 'Rejected' && !isSponsorship)
-      return 'rejected';
-    if (isSubmitted && submissionStatus === 'Rejected' && isSponsorship)
-      return 'submit';
+    if (isSubmitted && submissionStatus === 'Rejected') return 'rejected';
     if (isSubmitted) {
+      if (submission?.label !== 'New' || submissionStatus !== 'Pending')
+        return 'freeze';
+
       return 'edit';
     }
     return 'submit';
@@ -203,6 +202,12 @@ export const SubmissionActionButton = ({
     case 'edit':
       buttonText = isProject ? 'Edit Application' : 'Edit Submission';
       isBtnDisabled = false;
+      btnLoadingText = null;
+      break;
+    case 'freeze':
+      buttonText = 'Edit Locked';
+      buttonBG = 'bg-gray-500';
+      isBtnDisabled = true;
       btnLoadingText = null;
       break;
 

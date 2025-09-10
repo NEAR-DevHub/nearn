@@ -66,7 +66,6 @@ async function updateSubmission(
   }
 
   if (
-    listing.type === 'sponsorship' &&
     (existingSubmission.status !== 'Pending' ||
       existingSubmission.label !== 'New') &&
     !isGod
