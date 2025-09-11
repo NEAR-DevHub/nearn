@@ -5,10 +5,10 @@ import { Info, MessageSquare } from 'lucide-react';
 import { useState } from 'react';
 
 import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from '@/components/ui/hover-card';
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { Tooltip } from '@/components/ui/tooltip';
 import { PROJECT_NAME } from '@/constants/project';
 import type { User } from '@/interface/user';
@@ -34,11 +34,12 @@ export const SubmissionNotesMinified = ({
   );
   const [lastComment, setLastComment] = useState(submission.internalNotes[0]);
   const hasMultipleComments = count > 1;
+  const [open, setOpen] = useState(false);
 
   return (
     <div className={cn('max-w-xs', className)}>
-      <HoverCard>
-        <HoverCardTrigger asChild>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
           {lastComment && (
             <div className="group cursor-pointer">
               <div className="flex items-start gap-2">
@@ -62,8 +63,8 @@ export const SubmissionNotesMinified = ({
               </div>
             </div>
           )}
-        </HoverCardTrigger>
-        <HoverCardContent
+        </PopoverTrigger>
+        <PopoverContent
           className="w-96"
           side="left"
           align="start"
@@ -98,8 +99,8 @@ export const SubmissionNotesMinified = ({
               />
             </div>
           </div>
-        </HoverCardContent>
-      </HoverCard>
+        </PopoverContent>
+      </Popover>
     </div>
   );
 };
