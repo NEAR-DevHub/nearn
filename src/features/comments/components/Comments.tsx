@@ -192,7 +192,7 @@ export const Comments = ({
           <div className="mb-4 w-full rounded-lg border border-slate-200 p-3">
             <div className="mb-3 flex items-center gap-1 text-slate-500">
               <Pin className="h-4 w-4 -rotate-[35deg]" />
-              <p className="text-sm font-medium">Pinned Comments</p>
+              <p className="text-sm font-medium">{`Pinned ${type === 'INTERNAL_SUBMISSION_NOTES' ? 'Notes' : 'Comments'}`}</p>
             </div>
             <div className="flex flex-col gap-5">
               {pinnedComments.map((comment) => (
