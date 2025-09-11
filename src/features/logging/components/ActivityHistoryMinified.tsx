@@ -85,7 +85,7 @@ export const ActivityHistoryMinified = ({
         >
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-slate-500">
-              <span className="font-semibold">Activity History</span>
+              <span className="font-semibold">Submission Activity</span>
             </div>
             <div className="max-h-96 overflow-y-auto scrollbar-thin scrollbar-track-slate-100 scrollbar-thumb-slate-300">
               <LogsTimeline
