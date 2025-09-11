@@ -1,3 +1,5 @@
+import { NotificationRelationType } from '@prisma/client';
+
 import { prisma } from '@/prisma';
 
 import { type Rewards } from '@/features/listings/types';
@@ -31,13 +33,19 @@ async function checkNotificationChannelsForEvent(
 
 export async function createNotification<T extends NotificationType>(
   notificationType: NotificationType,
-  actorId?: string | null,
-  receiverId?: string,
-  eventId?: string,
-  sponsorId?: string | null,
+  notificationRelationType: NotificationRelationType,
+  receiverId: string,
+  entities: {
+    actorId?: string | null;
+    listingId?: string | null;
+    submissionId?: string | null;
+    commentId?: string | null;
+    powId?: string | null;
+    sponsorId?: string | null;
+  } = {},
   data?: NotificationData<T>,
 ) {
-  if (actorId === receiverId || !actorId || !receiverId) {
+  if (entities.actorId === receiverId) {
     return;
   }
 
@@ -49,12 +57,12 @@ export async function createNotification<T extends NotificationType>(
   for (const channel of channels) {
     await prisma.notification.create({
       data: {
-        ...(eventId ? { eventId } : { actorId }),
-        userId: receiverId,
+        receiverId,
+        notificationRelationType,
         type: notificationType,
         channel,
-        sponsorId: sponsorId ?? undefined,
         data: data ?? undefined,
+        ...entities,
       },
     });
   }
@@ -82,33 +90,46 @@ async function fetchSubmittersAndWatchers(
   });
 }
 
+const getEntities = (event: Log) => {
+  return {
+    sponsorId: event.sponsorId,
+    listingId: event.listingId,
+    submissionId: event.submissionId,
+    commentId: event.commentId,
+    powId: event.powId,
+    actorId: event.actorId,
+  };
+};
+
 const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
   [EventType.SUBMISSION_CREATED]: async (event) => {
     await createNotification(
       EventType.SUBMISSION_CREATED,
-      event.actorId,
-      event.listing?.pocId,
-      event.id,
-      event.sponsorId,
+      NotificationRelationType.SPONSOR,
+      event.listing?.pocId!,
+      {
+        sponsorId: event.sponsorId,
+        listingId: event.listingId,
+        submissionId: event.submissionId,
+        actorId: event.actorId,
+      },
     );
   },
   [EventType.SUBMISSION_EDITED]: async (event) => {
     await createNotification(
       EventType.SUBMISSION_EDITED,
-      event.actorId,
-      event.listing?.pocId,
-      event.id,
-      event.sponsorId,
+      NotificationRelationType.SPONSOR,
+      event.listing?.pocId!,
+      getEntities(event),
     );
   },
   [EventType.COMMENT_ADDED]: async (event) => {
     if (event.comment?.refType === 'BOUNTY') {
       await createNotification(
         NotificationType.LISTING_COMMENT,
-        event.actorId,
-        event.listing?.pocId,
-        event.id,
-        event.sponsorId,
+        NotificationRelationType.SPONSOR,
+        event.listing?.pocId!,
+        getEntities(event),
       );
     } else if (
       event.comment?.refType === 'SUBMISSION' &&
@@ -116,9 +137,9 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
     ) {
       await createNotification(
         NotificationType.SUBMISSION_COMMENT,
-        event.actorId,
-        event.submission?.userId,
-        event.id,
+        NotificationRelationType.TALENT,
+        event.listing?.pocId!,
+        getEntities(event),
       );
     } else if (
       event.comment?.refType === 'SUBMISSION' &&
@@ -126,26 +147,25 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
     ) {
       await createNotification(
         NotificationType.NOTE_CREATED,
-        event.actorId,
-        event.listing?.pocId,
-        event.id,
-        event.sponsorId,
+        NotificationRelationType.SPONSOR,
+        event.listing?.pocId!,
+        getEntities(event),
       );
     } else if (event.comment?.refType === 'POW') {
       await createNotification(
         NotificationType.POW_COMMENT,
-        event.actorId,
-        event.pow?.userId,
-        event.id,
+        NotificationRelationType.SPONSOR,
+        event.pow?.userId!,
+        getEntities(event),
       );
     }
 
     if (event.comment?.repliedTo) {
       await createNotification(
         NotificationType.COMMENT_REPLY,
-        event.actorId,
-        event.comment.repliedTo.authorId,
-        event.id,
+        NotificationRelationType.TALENT,
+        event.comment.repliedTo.authorId!,
+        getEntities(event),
       );
     }
 
@@ -177,9 +197,9 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
       taggedUsers.map((user) =>
         createNotification(
           NotificationType.COMMENT_MENTIONED_YOU,
-          event.actorId,
+          NotificationRelationType.TALENT,
           user.id,
-          event.id,
+          getEntities(event),
         ),
       ),
     );
@@ -194,9 +214,9 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
       submittersAndWatchers.map((user) =>
         createNotification(
           EventType.LISTING_WINNERS_ANNOUNCED,
-          event.actorId,
+          NotificationRelationType.TALENT,
           user.id,
-          event.id,
+          getEntities(event),
         ),
       ),
     );
@@ -223,10 +243,9 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
       winners.map((winner) =>
         createNotification(
           NotificationType.WINNER_NOTIFICATION,
-          event.actorId,
+          NotificationRelationType.TALENT,
           winner.userId,
-          event.id,
-          undefined,
+          getEntities(event),
           {
             token: winner.token ?? winner.listing.token!,
             rewards: winner.listing.rewards as Rewards,
@@ -244,9 +263,10 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
       submittersAndWatchers.map((user) =>
         createNotification(
           EventType.LISTING_EDITED,
-          event.actorId,
+          NotificationRelationType.TALENT,
           user.id,
-          event.id,
+          getEntities(event),
+          event.data as EventDataMap[EventType.LISTING_EDITED] as NotificationData<EventType.LISTING_EDITED>,
         ),
       ),
     );
@@ -269,10 +289,9 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
     });
     await createNotification(
       EventType.SUBMISSION_APPROVED,
-      event.actorId,
-      event.submission?.userId,
-      event.id,
-      undefined,
+      NotificationRelationType.TALENT,
+      event.submission?.userId!,
+      getEntities(event),
       {
         token: submission?.token ?? submission?.listing.token!,
         rewards: submission?.listing.rewards as Rewards,
@@ -283,52 +302,58 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
   [EventType.SUBMISSION_PAID]: async (event) => {
     await createNotification(
       EventType.SUBMISSION_PAID,
-      event.actorId,
-      event.submission?.userId,
-      event.id,
+      NotificationRelationType.TALENT,
+      event.submission?.userId!,
+      getEntities(event),
     );
   },
   [EventType.TREASURY_PROPOSAL_REJECTED]: async (event) => {
     await createNotification(
       NotificationType.TREASURY_PROPOSAL_STATUS_CHANGED,
-      event.actorId,
-      event.listing?.pocId,
-      event.id,
-      event.sponsorId,
+      NotificationRelationType.SPONSOR,
+      event.listing?.pocId!,
+      getEntities(event),
+      {
+        status: 'rejected',
+      },
     );
   },
   [EventType.TREASURY_PROPOSAL_EXPIRED]: async (event) => {
     await createNotification(
       NotificationType.TREASURY_PROPOSAL_STATUS_CHANGED,
-      event.actorId,
-      event.listing?.pocId,
-      event.id,
-      event.sponsorId,
+      NotificationRelationType.SPONSOR,
+      event.listing?.pocId!,
+      getEntities(event),
+      {
+        status: 'expired',
+      },
     );
   },
   [EventType.TREASURY_PROPOSAL_APPROVED]: async (event) => {
     await Promise.all([
       createNotification(
         NotificationType.TREASURY_PROPOSAL_STATUS_CHANGED,
-        event.actorId,
-        event.listing?.pocId,
-        event.id,
-        event.sponsorId,
+        NotificationRelationType.SPONSOR,
+        event.listing?.pocId!,
+        getEntities(event),
+        {
+          status: 'approved',
+        },
       ),
       createNotification(
         EventType.SUBMISSION_PAID,
-        event.actorId,
-        event.submission?.userId,
-        event.id,
+        NotificationRelationType.TALENT,
+        event.submission?.userId!,
+        getEntities(event),
       ),
     ]);
   },
   [EventType.SUBMISSION_REJECTED]: async (event) => {
     await createNotification(
       EventType.SUBMISSION_REJECTED,
-      event.actorId,
-      event.submission?.userId,
-      event.id,
+      NotificationRelationType.TALENT,
+      event.submission?.userId!,
+      getEntities(event),
     );
   },
   [EventType.SPONSOR_MEMBER_INVITED]: async (event) => {
@@ -351,9 +376,12 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
 
     await createNotification(
       EventType.SPONSOR_MEMBER_INVITED,
-      event.actorId,
-      member.id,
-      event.id,
+      NotificationRelationType.TALENT,
+      member.id!,
+      getEntities(event),
+      {
+        token: eventDataInvite.token,
+      },
     );
   },
   [EventType.SPONSOR_MEMBER_ACCEPTED]: async (event) => {
@@ -374,10 +402,9 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
       members.map((member) =>
         createNotification(
           EventType.SPONSOR_MEMBER_ACCEPTED,
-          event.actorId,
-          member.userId,
-          event.id,
-          event.sponsorId,
+          NotificationRelationType.SPONSOR,
+          member.userId!,
+          getEntities(event),
         ),
       ),
     );
@@ -389,7 +416,12 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
       );
       await Promise.all(
         submittersAndWatchers.map((user) =>
-          createNotification(EventType.COMMENT_PINNED, event.actorId, user.id),
+          createNotification(
+            EventType.COMMENT_PINNED,
+            NotificationRelationType.TALENT,
+            user.id!,
+            getEntities(event),
+          ),
         ),
       );
     } else if (event.visibility === 'SPONSOR') {
@@ -410,10 +442,9 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
         members.map((member) =>
           createNotification(
             EventType.COMMENT_PINNED,
-            event.actorId,
-            member.userId,
-            event.id,
-            event.sponsorId,
+            NotificationRelationType.SPONSOR,
+            member.userId!,
+            getEntities(event),
           ),
         ),
       );
@@ -427,9 +458,9 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
 
     await createNotification(
       EventType.SCOUT_INVITE,
-      event.actorId,
-      data.scoutUserId,
-      event.id,
+      NotificationRelationType.TALENT,
+      data.scoutUserId!,
+      getEntities(event),
     );
   },
   // We don't need to send notifications for these events
@@ -464,22 +495,4 @@ export const createNotificationFromEvent = async (event: Log) => {
     return;
   }
   await mappingFunction(event);
-};
-
-export const createNotificationNonEventRelated = async <
-  T extends NotificationType,
->(
-  type: T,
-  receiverId: string,
-  actorId?: string,
-  data?: NotificationData<T>,
-) => {
-  await createNotification(
-    type,
-    actorId,
-    receiverId,
-    undefined,
-    undefined,
-    data,
-  );
 };

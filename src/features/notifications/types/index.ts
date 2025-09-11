@@ -36,13 +36,13 @@ export const NotificationType = {
 export type NotificationDataMap = {
   [key in Exclude<
     NotificationType,
-    'LIKE' | 'WINNER_NOTIFICATION' | 'SUBMISSION_APPROVED'
+    | 'WINNER_NOTIFICATION'
+    | 'SUBMISSION_APPROVED'
+    | 'LISTING_EDITED'
+    | 'SPONSOR_MEMBER_INVITED'
+    | 'TREASURY_PROPOSAL_STATUS_CHANGED'
   >]: undefined;
 } & {
-  [NotificationType.LIKE]: {
-    refId: string;
-    type: 'submission' | 'poW' | 'comment' | 'grantApplication';
-  };
   [NotificationType.WINNER_NOTIFICATION]: {
     token: string;
     rewards: Rewards;
@@ -52,6 +52,18 @@ export type NotificationDataMap = {
     token: string;
     rewards: Rewards;
     winnerPosition: keyof Rewards;
+  };
+  [NotificationType.LISTING_EDITED]: {
+    changes: {
+      field: string;
+      newValue: string;
+    }[];
+  };
+  [NotificationType.SPONSOR_MEMBER_INVITED]: {
+    token?: string;
+  };
+  [NotificationType.TREASURY_PROPOSAL_STATUS_CHANGED]: {
+    status: 'approved' | 'rejected' | 'expired';
   };
 };
 

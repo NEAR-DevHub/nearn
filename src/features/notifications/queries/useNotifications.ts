@@ -1,3 +1,4 @@
+import { type CommentRefType, type CommentType } from '@prisma/client';
 import {
   useInfiniteQuery,
   useMutation,
@@ -6,32 +7,79 @@ import {
 
 import { api } from '@/lib/api';
 
-import { type Log } from '@/features/logging/queries/logs';
-
 import { type NotificationDataMap, type NotificationType } from '../types';
 
-export interface Notification {
+export interface Notification<T extends NotificationType> {
   id: string;
-  userId: string;
-  eventId: string | null;
-  channel: string;
+  receiverId: string;
+  actorId: string | null;
+  listingId: string | null;
+  submissionId: string | null;
+  commentId: string | null;
+  powId: string | null;
   sponsorId: string | null;
+  channel: string;
+  type: T;
+  data: NotificationDataMap[T];
   deliveredAt: string | null;
   createdAt: string;
   updatedAt: string;
-  event: Log | null;
   actor?: {
     username: string;
     name?: string;
     photo: string;
     private: boolean;
   };
-  data?: NotificationDataMap[NotificationType];
-  type: NotificationType;
+  submission?: {
+    sequentialId: number;
+    userId: string;
+    user: {
+      username: string;
+    };
+  };
+  listing?: {
+    id: string;
+    sequentialId: number;
+    type: 'bounty' | 'sponsorship' | 'project' | 'hackathon';
+    title: string;
+    slug: string;
+    pocId: string;
+    poc: {
+      username: string;
+    };
+  };
+  comment?: {
+    id: string;
+    author: {
+      username: string;
+      private: boolean;
+      name?: string;
+      photo: string;
+    };
+    message: string;
+    type: CommentType;
+    refType: CommentRefType;
+    repliedTo?: {
+      id: string;
+      authorId: string;
+      author: {
+        username: string;
+      };
+    };
+  };
+  sponsor?: {
+    name: string;
+    slug: string;
+    logo: string;
+  };
+  pow?: {
+    id: string;
+    userId: string;
+  };
 }
 
 export interface NotificationsResponse {
-  notifications: Notification[];
+  notifications: Notification<NotificationType>[];
   pagination: {
     page: number;
     limit: number;

@@ -1,15 +1,10 @@
-import { type Prisma } from '@prisma/client';
+import { NotificationRelationType, type Prisma } from '@prisma/client';
 import { type NextApiResponse } from 'next';
 
 import { prisma } from '@/prisma';
 
 import { type NextApiRequestWithPotentialSponsor } from '@/features/auth/types';
 import { withPotentialSponsorAuth } from '@/features/auth/utils/withPotentialSponsorAuth';
-import {
-  type Log,
-  prepareLogData,
-  prismaLogInclude,
-} from '@/features/logging/queries';
 
 async function notifications(
   req: NextApiRequestWithPotentialSponsor,
@@ -59,21 +54,23 @@ async function notifications(
   const sponsorFilter: Prisma.NotificationWhereInput =
     showSponsors === 'false'
       ? {
-          sponsorId: null,
+          notificationRelationType: {
+            not: NotificationRelationType.SPONSOR,
+          },
         }
       : {};
 
   const talentFilter: Prisma.NotificationWhereInput =
     showTalent === 'false'
       ? {
-          sponsorId: {
-            not: null,
+          notificationRelationType: {
+            not: NotificationRelationType.TALENT,
           },
         }
       : {};
 
   const whereClause: Prisma.NotificationWhereInput = {
-    userId: req.userId,
+    receiverId: req.userId,
     channel: 'inApp',
     AND: [readFilter, sponsorIdFilter, sponsorFilter, talentFilter],
   };
@@ -81,8 +78,39 @@ async function notifications(
   const notifications = await prisma.notification.findMany({
     where: whereClause,
     include: {
-      event: {
-        include: prismaLogInclude,
+      submission: {
+        select: {
+          id: true,
+          sequentialId: true,
+          userId: true,
+          user: {
+            select: {
+              username: true,
+            },
+          },
+        },
+      },
+      listing: {
+        select: {
+          id: true,
+          sequentialId: true,
+          slug: true,
+          type: true,
+          title: true,
+          pocId: true,
+          poc: {
+            select: {
+              username: true,
+            },
+          },
+        },
+      },
+      sponsor: {
+        select: {
+          name: true,
+          slug: true,
+          logo: true,
+        },
       },
       actor: {
         select: {
@@ -90,6 +118,39 @@ async function notifications(
           name: true,
           photo: true,
           private: true,
+        },
+      },
+      comment: {
+        select: {
+          id: true,
+          author: {
+            select: {
+              username: true,
+              name: true,
+              photo: true,
+              private: true,
+            },
+          },
+          refType: true,
+          type: true,
+          message: true,
+          repliedTo: {
+            select: {
+              id: true,
+              authorId: true,
+              author: {
+                select: {
+                  username: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      pow: {
+        select: {
+          id: true,
+          userId: true,
         },
       },
     },
@@ -106,13 +167,6 @@ async function notifications(
     where: whereClause,
   });
 
-  const isGod = req.role === 'GOD';
-  const visibility = isGod
-    ? 'PLATFORM_ADMIN'
-    : req.userSponsorId
-      ? 'SPONSOR'
-      : 'TALENT';
-
   return res.status(200).json({
     notifications: notifications.map((notification) => {
       return {
@@ -123,9 +177,6 @@ async function notifications(
             ? undefined
             : notification.actor?.name,
         },
-        event: notification.event
-          ? prepareLogData(notification.event as unknown as Log, visibility)
-          : null,
       };
     }),
     pagination: {

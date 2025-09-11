@@ -39,7 +39,7 @@ async function markAsRead(
         id: {
           in: notificationIds,
         },
-        userId: req.userId,
+        receiverId: req.userId,
         deliveredAt: null,
       },
       data: {

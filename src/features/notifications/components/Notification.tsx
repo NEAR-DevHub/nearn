@@ -9,16 +9,15 @@ import { PROJECT_NAME } from '@/constants/project';
 import { formatFromNow } from '@/features/comments/utils';
 import { getListingIcon } from '@/features/listings/utils/getListingIcon';
 
-import { type Notification as NotificationType } from '../queries/useNotifications';
+import { type Notification as NotificationData } from '../queries/useNotifications';
+import { type NotificationType } from '../types';
 import { getNotificationAction } from '../utils/notification-messages';
 
 export function Notification({
   notification,
 }: {
-  notification: NotificationType;
+  notification: NotificationData<NotificationType>;
 }) {
-  const event = notification.event;
-
   const notificationTime = dayjs(notification.createdAt);
   const date = notificationTime.isToday()
     ? formatFromNow(notificationTime.fromNow())
@@ -29,25 +28,16 @@ export function Notification({
     `MMM D, YYYY h:mm A [UTC${offsetString}]`,
   );
 
-  let username;
-  let icon;
-  if (event) {
-    username = event?.actor
-      ? (event.actor.name ?? event.actor.username)
-      : event?.sponsor?.name;
-    icon = event?.actor ? event.actor.photo : event?.sponsor?.logo;
-  } else {
-    username = notification.actor?.name ?? notification.actor?.username;
-    icon = notification.actor?.photo;
-  }
+  let username = notification?.actor
+    ? (notification.actor.name ?? notification.actor.username)
+    : notification?.sponsor?.name;
+  let icon = notification?.actor
+    ? notification.actor.photo
+    : notification?.sponsor?.logo;
 
-  if (
-    event?.actorType === 'SYSTEM' ||
-    (event?.actorType === 'PLATFORM_ADMIN' && !event?.actor)
-  ) {
+  if (!notification.actor && !notification.sponsor) {
     icon = '/favicon.ico';
-    username =
-      event?.actorType === 'SYSTEM' ? PROJECT_NAME : `${PROJECT_NAME} Admin`;
+    username = PROJECT_NAME;
   }
 
   const { message, subtitle, showActor } = getNotificationAction(notification);
@@ -69,12 +59,12 @@ export function Notification({
                 <span className="font-medium text-slate-900">{username} </span>
               )}
               {message}
-              {event?.listing && (
+              {notification?.listing && (
                 <>
                   {' '}
                   <span className="text-slate-500">in</span>{' '}
                   <Link
-                    href={`/${event.sponsor?.slug}/${event.listing.sequentialId}/`}
+                    href={`/${notification?.sponsor?.slug}/${notification?.listing.sequentialId}/`}
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -84,8 +74,8 @@ export function Notification({
                     <Tooltip
                       content={
                         <p>
-                          {event.listing.type.charAt(0).toUpperCase() +
-                            event.listing.type.slice(1)}
+                          {notification?.listing.type.charAt(0).toUpperCase() +
+                            notification?.listing.type.slice(1)}
                         </p>
                       }
                       triggerClassName="inline-flex h-fit gap-1 p-0"
@@ -94,28 +84,28 @@ export function Notification({
                         className="size-4 flex-shrink-0 translate-y-0.5 rounded-full"
                         width={16}
                         height={16}
-                        alt={`New ${event.listing.type}`}
-                        src={getListingIcon(event.listing.type!)}
-                        title={event.listing.type}
+                        alt={`New ${notification?.listing.type}`}
+                        src={getListingIcon(notification?.listing.type!)}
+                        title={notification?.listing.type}
                       />
                     </Tooltip>{' '}
-                    <span>{event.listing.title}</span>
+                    <span>{notification?.listing.title}</span>
                   </Link>
                 </>
               )}
-              {event?.submission && event?.listing && (
+              {notification?.submission && notification?.listing && (
                 <>
                   {' '}
                   <span className="text-slate-500">for</span>{' '}
                   <Link
-                    href={`/${event.sponsor?.slug}/${event.listing.sequentialId}/${event.submission.sequentialId}`}
+                    href={`/${notification?.sponsor?.slug}/${notification?.listing.sequentialId}/${notification?.submission.sequentialId}`}
                     className="font-medium text-slate-900 hover:underline"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
                     }}
                   >
-                    #{event.submission.sequentialId}
+                    #{notification?.submission.sequentialId}
                   </Link>
                 </>
               )}
