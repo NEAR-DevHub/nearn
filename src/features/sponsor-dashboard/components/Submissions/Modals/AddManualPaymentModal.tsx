@@ -73,9 +73,9 @@ export default function AddManualPaymentModal({
   const fiatCurrency = form.watch('fiatCurrency');
   const token = form.watch('token');
   useEffect(() => {
-    if (token === 'Fiat') {
+    if (token === 'Fiat' && !fiatCurrency) {
       form.setValue('fiatCurrency', 'USD');
-    } else {
+    } else if (token !== 'Fiat') {
       form.setValue('fiatCurrency', undefined);
     }
   }, [token]);
