@@ -157,7 +157,7 @@ export async function updateLike(
       },
     });
     receiverId = (updateLike as PoW).userId as string;
-    notificationRelationType = NotificationRelationType.SPONSOR;
+    notificationRelationType = NotificationRelationType.TALENT;
     entities.powId = itemId;
   } else if (model === 'grantApplication') {
     updateLike = await prisma.grantApplication.update({
@@ -170,7 +170,7 @@ export async function updateLike(
       },
     });
     receiverId = (updateLike as GrantApplication).userId as string;
-    notificationRelationType = NotificationRelationType.SPONSOR;
+    notificationRelationType = NotificationRelationType.TALENT;
   } else if (model === 'comment') {
     updateLike = await prisma.comment.update({
       where: {

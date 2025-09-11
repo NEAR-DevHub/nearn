@@ -138,7 +138,7 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
       await createNotification(
         NotificationType.SUBMISSION_COMMENT,
         NotificationRelationType.TALENT,
-        event.listing?.pocId!,
+        event.submission?.userId!,
         getEntities(event),
       );
     } else if (
