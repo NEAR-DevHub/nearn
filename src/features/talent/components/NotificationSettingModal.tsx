@@ -7,6 +7,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { api } from '@/lib/api';
 import { useUser } from '@/store/user';
+import { NotificationRelationType } from '@prisma/client';
+import { EventType } from '@/features/logging/types/event-data';
+import { NotificationType } from '@/features/notifications/types';
 
 interface AlertOptionProps {
   title: string;
@@ -14,6 +17,27 @@ interface AlertOptionProps {
   type: string;
   selectedCategories: [string, string][];
   onCategoryChange: (channel: string, type: string) => void;
+}
+
+const sections = {
+  [NotificationRelationType.SPONSOR]: [
+    {
+      title: 'New submissions received for your listing',
+      type: EventType.SUBMISSION_CREATED,
+    },
+    {
+      title: 'Submission edited',
+      type: EventType.SUBMISSION_EDITED,
+    },
+    {
+      title: 'Comments Received on your listing',
+      type: NotificationType.LISTING_COMMENT,
+    },
+    {
+      title: 'Deadline related reminders',
+      type: NotificationType.DEADLINE_IN_3_DAYS,
+    },
+  ]
 }
 
 const AlertOption = ({
@@ -41,7 +65,7 @@ const AlertOption = ({
   </div>
 );
 
-export const EmailSettingsModal = ({
+export const NotificationSettingsModal = ({
   isOpen,
   onClose,
 }: {
@@ -63,9 +87,9 @@ export const EmailSettingsModal = ({
         ([oldChannel, oldType]) => oldChannel === channel && oldType === type,
       )
         ? prev.filter(
-            ([oldChannel, oldType]) =>
-              oldChannel !== channel || oldType !== type,
-          )
+          ([oldChannel, oldType]) =>
+            oldChannel !== channel || oldType !== type,
+        )
         : [...prev, [channel, type]],
     );
   };

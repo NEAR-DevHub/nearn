@@ -1,5 +1,8 @@
 import { type Rewards } from '@/features/listings/types';
 import { EventType } from '@/features/logging/types/event-data';
+import { NotificationRelationType } from '@prisma/client';
+import { type } from 'os';
+import { string } from 'zod';
 
 export const NotificationChannel = {
   EMAIL: 'email',
