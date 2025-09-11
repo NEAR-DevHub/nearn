@@ -300,7 +300,7 @@ export const SubmissionActionButton = ({
                   className={cn(
                     'h-12 flex-1 gap-4 text-lg',
                     'disabled:opacity-70',
-                    'mb-12 md:mb-5',
+                    'mb-12 md:mb-0',
                     buttonBG,
                     'hover:opacity-90',
                     buttonState === 'edit' &&
