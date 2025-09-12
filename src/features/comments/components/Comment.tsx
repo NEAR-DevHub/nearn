@@ -327,7 +327,12 @@ export const Comment = ({
 
             {comment?.authorId === submissionAuthor?.id ? (
               <p className="flex items-center gap-0.5 pb-0.5 text-xs font-medium text-brand-green-50 md:text-sm">
-                Author
+                Talent
+              </p>
+            ) : comment.authorId === poc?.id ? (
+              <p className="flex items-center gap-0.5 pb-0.5 text-xs font-medium text-blue-500 md:text-sm">
+                {isVerified && <VerifiedBadge />}
+                Creator
               </p>
             ) : comment?.author?.currentSponsorId === sponsorId ? (
               <p className="flex items-center gap-0.5 pb-0.5 text-xs font-medium text-blue-500 md:text-sm">

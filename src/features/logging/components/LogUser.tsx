@@ -54,6 +54,8 @@ export default function LogUser({
       event.actorType === 'SYSTEM' ? PROJECT_NAME : `${PROJECT_NAME} Admin`;
   }
 
+  const isTalent = event?.submission?.user?.username === event.actor?.username;
+
   return (
     <div className="flex items-center gap-2">
       <Image
@@ -65,7 +67,10 @@ export default function LogUser({
       />
 
       <span className="font-medium text-slate-900">{username}</span>
-      {event.actorType === 'SPONSOR' && !hideActorRole && (
+      {!hideActorRole && isTalent && (
+        <span className="text-sm font-medium text-brand-green-50">Talent</span>
+      )}
+      {event.actorType === 'SPONSOR' && !hideActorRole && !isTalent && (
         <span className="text-sm font-medium text-blue-600">
           {event.actor?.username === event.listing?.poc?.username
             ? 'Creator'
