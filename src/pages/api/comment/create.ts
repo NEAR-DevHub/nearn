@@ -24,6 +24,9 @@ async function comment(req: NextApiRequestWithUser, res: NextApiResponse) {
     const refType = req.body.refType as CommentRefType;
     let { type } = req.body as { type: CommentType | undefined };
     if (!type) type = 'NORMAL';
+    if (message.trim().length === 0) {
+      return res.status(400).json({ error: 'Message is required' });
+    }
 
     if (type === 'INTERNAL_SUBMISSION_NOTES') {
       const data = await prisma.user.findUnique({

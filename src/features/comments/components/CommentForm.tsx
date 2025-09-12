@@ -91,7 +91,7 @@ export const CommentForm = ({
   }, [newComment]);
 
   useEffect(() => {
-    setIsCollapsed(!newComment);
+    setIsCollapsed(!newComment.trim().length);
   }, [newComment]);
 
   return (

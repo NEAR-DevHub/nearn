@@ -167,6 +167,12 @@ export const Comment = ({
 
   const addNewReplyLvl1 = async (msg: string) => {
     posthog.capture('publish_comment');
+    if (msg.trim().length === 0) {
+      setNewReplyError(true);
+      setNewReplyLoading(false);
+      return;
+    }
+
     setNewReplyError(false);
     const newReplyData = await api.post('/api/comment/create', {
       message: msg,
@@ -413,7 +419,7 @@ export const Comment = ({
               <div
                 className={cn(
                   'flex w-full justify-end gap-4 transition-all duration-200',
-                  !newReply && 'hidden',
+                  (!newReply || newReply.trim().length === 0) && 'hidden',
                 )}
               >
                 <AuthWrapper>
