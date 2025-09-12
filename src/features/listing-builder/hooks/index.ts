@@ -144,7 +144,14 @@ export const useListingForm = (
         }, 0);
       }
     }
-  }, [queueRefRef, isEditing]);
+  }, [
+    getValues,
+    saveDraftMutation,
+    formMethods,
+    setHideAutoSave,
+    setDraftSaving,
+    isEditing,
+  ]);
 
   const debouncedSaveRef = useRef<ReturnType<typeof debounce>>(undefined);
 
@@ -156,7 +163,10 @@ export const useListingForm = (
 
   const onChange = useCallback(() => {
     setHideAutoSave(true);
-    if (!isEditing) debouncedSaveRef.current?.();
+    if (!isEditing) {
+      debouncedSaveRef.current?.cancel();
+      debouncedSaveRef.current?.();
+    }
   }, [isEditing]);
 
   const submitListing = useCallback(async () => {

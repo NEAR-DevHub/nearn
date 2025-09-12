@@ -142,6 +142,8 @@ export const SubmissionDrawer = ({
     }
   }, [editMode, submissions, selectedSubmission]);
 
+  const isAtLeastOneSpam = submissions?.some((sub) => sub.label === 'Spam');
+
   useEffect(() => {
     const fetchData = async () => {
       if (editMode && selectedSubmission?.id && !showSelectionView) {
@@ -310,7 +312,7 @@ export const SubmissionDrawer = ({
                   <TableBody>
                     {submissions.map((sub) => {
                       const submissionStatus = sponsorshipSubmissionStatus(sub);
-                      const isEditable = canEdit(sub);
+                      const isEditable = canEdit(sub) && !isAtLeastOneSpam;
 
                       return (
                         <TableRow key={sub.id}>
@@ -348,7 +350,7 @@ export const SubmissionDrawer = ({
                                 </div>
                                 <p className="truncate text-xs font-medium text-slate-500">
                                   {dayjs(sub.createdAt).format(
-                                    "D MMM' YY h:MM A",
+                                    "D MMM' YY h:mm A",
                                   )}
                                 </p>
                               </div>
@@ -402,7 +404,7 @@ export const SubmissionDrawer = ({
                             </div>
                             {!isEditable && (
                               <Tooltip
-                                content="The submission can no longer be edited due to a status change"
+                                content="The submission can no longer be edited due to a status change or spam flag"
                                 contentProps={{ className: 'z-[1000]' }}
                               >
                                 <Info className="h-4 w-4" />

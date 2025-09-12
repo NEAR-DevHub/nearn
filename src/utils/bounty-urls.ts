@@ -30,5 +30,5 @@ export function getSubmissionUrl(
   submission: SubmissionWithUser | undefined,
   listing: Listing | undefined,
 ) {
-  return `${getBountyUrl(listing)}/${submission?.sequentialId}`;
+  return `${getBountyUrl(listing)}${submission?.sequentialId}/`;
 }

@@ -61,7 +61,15 @@ async function updateSubmission(
     throw new Error('User does not have permission to update this submission');
   }
 
-  if (existingSubmission.label === 'Spam' && !isGod) {
+  const anySpamSubmissions = await prisma.submission.findMany({
+    where: {
+      userId: user.id,
+      listingId: listing.id,
+      label: 'Spam',
+    },
+  });
+
+  if (anySpamSubmissions.length > 0 && !isGod) {
     throw new Error('User submissions has been flagged as spam');
   }
 

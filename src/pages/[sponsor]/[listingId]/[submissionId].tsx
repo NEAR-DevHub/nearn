@@ -231,7 +231,7 @@ function Content({
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
                   <Link
-                    href={`${getBountyUrl(bounty)}/submission`}
+                    href={`${getBountyUrl(bounty)}submission/`}
                     className="flex items-center"
                   >
                     <ChevronLeft className="mr-1 h-6 w-6" />

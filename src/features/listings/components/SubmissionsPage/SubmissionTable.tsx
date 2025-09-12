@@ -486,7 +486,7 @@ export const SubmissionTable = ({
                                 </div>
                                 <p className="truncate text-xs font-medium text-slate-500">
                                   {dayjs(submission.createdAt).format(
-                                    "D MMM' YY h:MM A",
+                                    "D MMM' YY h:mm A",
                                   )}
                                 </p>
                               </div>

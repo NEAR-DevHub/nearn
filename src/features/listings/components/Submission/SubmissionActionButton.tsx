@@ -170,7 +170,12 @@ export const SubmissionActionButton = ({
   let btnLoadingText;
 
   function getButtonState() {
-    if (isSubmitted && submission?.label === 'Spam') return 'spam';
+    if (
+      isSubmitted &&
+      (submission?.label === 'Spam' ||
+        allSubmissions.some((sub) => sub.label === 'Spam'))
+    )
+      return 'spam';
 
     if (isMultipleSubmission) {
       return 'submit';

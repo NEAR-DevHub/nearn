@@ -368,7 +368,7 @@ export function ListingHeader({
             {showSubmissions && (
               <ListingTabLink
                 onClick={() => posthog.capture('submissions tab_listing')}
-                href={`${getBountyUrl(listing)}/submission`}
+                href={`${getBountyUrl(listing)}submission/`}
                 text="Submissions"
                 isActive={
                   isSubmissionsPageActive ||
@@ -383,8 +383,8 @@ export function ListingHeader({
               <ListingTabLink
                 href={
                   userSubmissions.length === 1
-                    ? `${getBountyUrl(listing)}/${userSubmissions[0]?.sequentialId}`
-                    : `${getBountyUrl(listing)}/user-submissions`
+                    ? `${getBountyUrl(listing)}${userSubmissions[0]?.sequentialId}/`
+                    : `${getBountyUrl(listing)}user-submissions/`
                 }
                 text={`Your Submission${userSubmissions.length > 1 ? `s` : ''}`}
                 isActive={isUserSubmissionActive || isSingleSubmissionActive}
