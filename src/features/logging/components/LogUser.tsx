@@ -56,7 +56,8 @@ export default function LogUser({
 
   const isTalent =
     event?.submission?.user?.username === event.actor?.username &&
-    event.actorType !== 'PLATFORM_ADMIN';
+    event.actorType !== 'PLATFORM_ADMIN' &&
+    event.actorType !== 'SYSTEM';
 
   return (
     <div className="flex items-center gap-2">
