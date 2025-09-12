@@ -6,7 +6,6 @@ import { usePostHog } from 'posthog-js/react';
 import { IoSearchOutline } from 'react-icons/io5';
 
 import { Button } from '@/components/ui/button';
-import { ExternalImage } from '@/components/ui/cloudinary-image';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PROJECT_NAME } from '@/constants/project';
 import { useUser } from '@/store/user';
@@ -98,23 +97,6 @@ export const DesktopNavbar = ({ onLoginOpen, onSearchOpen }: Props) => {
                     />
                   );
                 })}
-                <Link
-                  href={'/firehose'}
-                  className={cn(
-                    'flex items-center py-2 font-medium',
-                    '-mx-3 h-8 lg:h-14',
-                    'lg:border-b',
-                    router.asPath === '/firehose/'
-                      ? 'lg:border-brand-green'
-                      : 'lg:border-transparent',
-                  )}
-                >
-                  <ExternalImage
-                    alt="Redacted Logo"
-                    src="hackathon/fff/logo.png"
-                    className="h-8 object-contain"
-                  />
-                </Link>
               </div>
             </div>
           </div>
