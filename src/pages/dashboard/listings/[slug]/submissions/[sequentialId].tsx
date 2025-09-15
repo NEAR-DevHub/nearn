@@ -13,7 +13,6 @@ import { ExternalImage } from '@/components/ui/cloudinary-image';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDisclosure } from '@/hooks/use-disclosure';
-import type { SubmissionWithUser } from '@/interface/submission';
 import { SponsorLayout } from '@/layouts/Sponsor';
 import { useUser } from '@/store/user';
 import { cn } from '@/utils/cn';
@@ -198,7 +197,7 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
 
   const filteredSubmissions = useMemo(() => {
     if (!submissions) return [];
-    return submissions.filter((submission: SubmissionWithUser) => {
+    return submissions.filter((submission: SubmissionWithListingUser) => {
       const name = submission.user.name?.toLowerCase() || '';
       const email = submission.user.email?.toLowerCase() || '';
       const username = submission.user.username?.toLowerCase() || '';
@@ -218,7 +217,9 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
         twitter.includes(searchLower) ||
         discord.includes(searchLower) ||
         link.includes(searchLower) ||
-        submission.notes?.toLowerCase().includes(searchLower);
+        (submission.internalNotes ?? []).some((note) =>
+          note.message?.toLowerCase().includes(searchLower),
+        );
 
       let matchesLabel = false;
 

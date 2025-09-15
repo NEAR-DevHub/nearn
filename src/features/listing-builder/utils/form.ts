@@ -35,6 +35,7 @@ export const getListingDefaults = ({
     isEditing,
     isST,
     hackathons: hackathons,
+    isInReviewListing: false,
   });
 
   // Get the inner schema by unwrapping the ZodEffects
@@ -80,6 +81,11 @@ export const getListingDefaults = ({
         defaults[key] = undefined;
       }
     }
+  }
+  defaults['submissionLimit'] = 'single';
+  if (type === 'sponsorship') {
+    defaults['submissionLimit'] = 'multiple';
+    defaults['multipleSubmissionRule'] = 'afterReview';
   }
 
   defaults['type'] = type;
@@ -182,6 +188,8 @@ export function transformListingToFormListing(
     isWinnersAnnounced: listing.isWinnersAnnounced,
     totalPaymentsMade: listing.BountyCounts.totalPaymentsMade,
     totalWinnersSelected: listing.BountyCounts.totalWinnersSelected,
+    submissionLimit: listing.submissionLimit,
+    multipleSubmissionRule: listing.multipleSubmissionRule,
   };
 }
 

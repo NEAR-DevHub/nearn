@@ -32,6 +32,7 @@ interface SubmissionWithUser {
     manual?: {
       amount: number;
       token: string;
+      fiatCurrency?: string;
       paymentDate: string;
       notes?: string;
       isPublic?: boolean;
@@ -47,7 +48,6 @@ interface SubmissionWithUser {
   listing?: Listing;
   ask?: number;
   label: SubmissionLabels;
-  notes?: string;
   totalEarnings?: number;
   token?: string;
   approvedBy?: string;

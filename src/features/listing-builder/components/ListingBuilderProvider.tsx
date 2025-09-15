@@ -1,4 +1,5 @@
 import { type BountyType, type Hackathon } from '@prisma/client';
+import dayjs from 'dayjs';
 import { Provider, useSetAtom } from 'jotai';
 import { useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -20,6 +21,7 @@ import {
   hackathonsAtom,
   isEditingAtom,
   isGodAtom,
+  isListingInReviewAtom,
   isSTAtom,
   listingStatusAtom,
   previewAtom,
@@ -181,6 +183,10 @@ function ListingBuilderProvider({
           [isSTAtom, isST],
           [hackathonsAtom, hackathons],
           [listingStatusAtom, listingToStatus(defaultListing)],
+          [
+            isListingInReviewAtom,
+            isEditing && listing && dayjs().isAfter(listing.deadline),
+          ],
           [
             draftQueueAtom,
             {

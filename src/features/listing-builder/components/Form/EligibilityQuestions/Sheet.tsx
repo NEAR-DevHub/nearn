@@ -1,3 +1,4 @@
+import { useAtomValue } from 'jotai';
 import { FilePen, Info } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
@@ -11,6 +12,8 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   Select,
   SelectContent,
@@ -29,9 +32,9 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Tooltip } from '@/components/ui/tooltip';
 import { cn } from '@/utils/cn';
 
+import { isEditingAtom } from '@/features/listing-builder/atoms';
 import { useListingForm } from '@/features/listing-builder/hooks';
 
 import { EligibilityQuestionsForm } from './QuestionsForm';
@@ -42,50 +45,134 @@ function SubmissionLimit() {
     control: form.control,
     name: 'type',
   });
+  const submissionLimit = useWatch({
+    control: form.control,
+    name: 'submissionLimit',
+  });
+  const multipleSubmissionRule = useWatch({
+    control: form.control,
+    name: 'multipleSubmissionRule',
+  });
+  const isUpdating = useAtomValue(isEditingAtom);
 
-  const value = type === 'sponsorship' ? 'multiple' : 'single';
-  const tooltip =
-    type === 'sponsorship'
-      ? 'Multiple submissions are allowed, but only after the first one is approved or rejected. Support for additional options is coming soon.'
-      : 'Only one submission per user is allowed for this listing type. Support for multiple submissions is coming soon.';
+  const isSponorship = type === 'sponsorship';
+  const effectiveSubmissionLimit = submissionLimit || 'single';
 
   return (
-    <div className="flex items-center justify-between">
-      <div className="">
-        <div className="flex items-center gap-1">
-          <p className="text-sm font-medium text-slate-500">Submission Limit</p>
-          <Tooltip
-            contentProps={{ style: { zIndex: 1000 } }}
-            content={
-              <p className="text-xs text-slate-500">
-                Contributors can submit only one submission for bounties and
-                projects. For sponsorships, additional submissions can be sent
-                after the previous one is approved or rejected.
-              </p>
-            }
-          >
-            <Info className="h-3 w-3 text-slate-400" />
-          </Tooltip>
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-between">
+        <div className="">
+          <div className="flex items-center gap-1">
+            <p className="text-sm font-medium text-slate-600">
+              Submission Limit
+            </p>
+          </div>
+          <p className="text-xs text-slate-500">
+            Set how many times a contributor can submit during
+            <br />
+            the listing period
+          </p>
         </div>
-        <p className="text-xs text-slate-500">
-          Set how many times a contributor can submit during the listing period
-        </p>
+        <FormField
+          control={form.control}
+          name="submissionLimit"
+          render={({ field }) => (
+            <FormItem className="w-fit">
+              <Select
+                disabled={isUpdating}
+                value={effectiveSubmissionLimit}
+                onValueChange={(value) => {
+                  field.onChange(value);
+                  // Reset multipleSubmissionRule when changing to single
+                  if (value === 'single') {
+                    form.setValue('multipleSubmissionRule', null);
+                  }
+                }}
+              >
+                <SelectTrigger className="w-52">
+                  <SelectValue placeholder="Select a limit" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem className="w-52" value="single">
+                    Only one submission
+                  </SelectItem>
+                  <SelectItem className="w-52" value="multiple">
+                    Multiple submissions
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
       </div>
-      <Select value={value} disabled>
-        <SelectTrigger className="w-52">
-          <Tooltip content={tooltip} contentProps={{ className: 'z-[1000]' }}>
-            <SelectValue placeholder="Select a limit" />
-          </Tooltip>
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem className="w-52" value="multiple">
-            Multiple submissions
-          </SelectItem>
-          <SelectItem className="w-52" value="single">
-            Only one submission
-          </SelectItem>
-        </SelectContent>
-      </Select>
+
+      {effectiveSubmissionLimit === 'multiple' && (
+        <div className="space-y-3">
+          <div>
+            <p className="text-sm font-medium text-slate-600">
+              Multiple Submission Rules
+            </p>
+            <p className="text-xs text-slate-500">
+              When multiple submissions are allowed, decide when participants
+              can submit again
+            </p>
+          </div>
+
+          <FormField
+            control={form.control}
+            name="multipleSubmissionRule"
+            render={({ field }) => (
+              <FormItem className="space-y-3">
+                <RadioGroup
+                  value={
+                    multipleSubmissionRule ||
+                    (isSponorship ? 'afterReview' : 'immediately')
+                  }
+                  onValueChange={field.onChange}
+                  disabled={isUpdating}
+                >
+                  <div className="flex items-start space-x-2">
+                    <RadioGroupItem value="immediately" id="immediately" />
+                    <div className="grid leading-none">
+                      <Label
+                        htmlFor="immediately"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        Immediately
+                      </Label>
+                      <p className="text-xs text-slate-500">
+                        Contributors can submit again without waiting for
+                        approval or rejection
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <RadioGroupItem
+                      disabled={type !== 'sponsorship'}
+                      value="afterReview"
+                      id="afterReview"
+                    />
+                    <div className="grid leading-none">
+                      <Label
+                        htmlFor="afterReview"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        After review
+                      </Label>
+                      <p className="text-xs text-slate-500">
+                        Contributors can only submit another entry once their
+                        previous one is approved or rejected
+                      </p>
+                    </div>
+                  </div>
+                </RadioGroup>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+      )}
     </div>
   );
 }

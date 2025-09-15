@@ -1,9 +1,13 @@
+import { type CommentType } from '@prisma/client';
 import { useQuery } from '@tanstack/react-query';
 
 import { api } from '@/lib/api';
 
-export const commentCountQuery = (submissionId: string | undefined) => ({
-  queryKey: ['comment-count', submissionId],
+export const commentCountQuery = (
+  submissionId: string | undefined,
+  type?: CommentType,
+) => ({
+  queryKey: ['comment-count', submissionId, type],
   queryFn: async () => {
     if (!submissionId) {
       return { count: 0 };
@@ -13,6 +17,7 @@ export const commentCountQuery = (submissionId: string | undefined) => ({
       params: {
         skip: 0,
         take: 1,
+        type: type,
       },
     });
 
@@ -21,6 +26,9 @@ export const commentCountQuery = (submissionId: string | undefined) => ({
   enabled: !!submissionId,
 });
 
-export const useCommentCount = (submissionId: string | undefined) => {
-  return useQuery(commentCountQuery(submissionId));
+export const useCommentCount = (
+  submissionId: string | undefined,
+  type?: CommentType,
+) => {
+  return useQuery(commentCountQuery(submissionId, type));
 };

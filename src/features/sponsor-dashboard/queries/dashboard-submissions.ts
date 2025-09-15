@@ -1,7 +1,8 @@
+import { type Comment } from '@prisma/client';
 import { queryOptions } from '@tanstack/react-query';
-import { type User } from 'next-auth';
 
 import { type SubmissionWithUser } from '@/interface/submission';
+import { type User } from '@/interface/user';
 import { api } from '@/lib/api';
 
 import { type Listing } from '@/features/listings/types';
@@ -10,6 +11,7 @@ export type SubmissionWithListingUser = SubmissionWithUser & {
   listing: Listing;
   approvedByUser: User;
   paidByUser: User;
+  internalNotes: (Comment & { author: User })[];
 };
 
 const fetchSubmissions = async (): Promise<SubmissionWithListingUser[]> => {

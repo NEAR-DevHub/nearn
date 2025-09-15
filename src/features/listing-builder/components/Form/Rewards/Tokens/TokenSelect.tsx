@@ -64,14 +64,18 @@ export function TokenSelect() {
                 </Button>
               </FormControl>
             </PopoverTrigger>
-            <PopoverContent className="w-[33rem] p-0">
+            <PopoverContent className="z-[1000] w-[33rem] p-0">
               <Command>
                 <CommandInput placeholder="Search token..." className="h-9" />
                 <CommandList>
                   <CommandEmpty>No Token found.</CommandEmpty>
                   <CommandGroup>
                     {tokenList
-                      .filter((token) => token.tokenSymbol !== 'Other')
+                      .filter(
+                        (token) =>
+                          token.tokenSymbol !== 'Other' &&
+                          token.tokenSymbol !== 'Fiat',
+                      )
                       .map((token) => (
                         <CommandItem
                           value={token.tokenName}

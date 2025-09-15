@@ -2,8 +2,10 @@ import {
   BountyType,
   CompensationType,
   type Hackathon,
+  MultipleSubmissionRule,
   Regions,
   status,
+  SubmissionLimitType,
 } from '@prisma/client';
 import { z } from 'zod';
 
@@ -35,6 +37,7 @@ interface ListingFormSchemaOptions {
   isST: boolean;
   pastListing?: Listing;
   hackathons?: Hackathon[];
+  isInReviewListing: boolean;
 }
 export const createListingFormSchema = ({
   isGod,
@@ -42,6 +45,7 @@ export const createListingFormSchema = ({
   isST,
   pastListing,
   hackathons,
+  isInReviewListing,
 }: ListingFormSchemaOptions) => {
   const eligibilityQuestionSchema = z.object({
     order: z.number(),
@@ -191,17 +195,23 @@ export const createListingFormSchema = ({
         .default(dayjs().add(7, 'day').format(DEADLINE_FORMAT).replace('Z', ''))
         .refine((date) => {
           if (isGod && isEditing) return true;
-          return isGod || dayjs(date).isAfter(dayjs());
+          // It can be in the past, if it is already in the past
+          return (
+            isGod ||
+            dayjs(date).isAfter(dayjs()) ||
+            dayjs(date).isSame(pastListing?.deadline) ||
+            isInReviewListing
+          );
         }, 'Deadline cannot be in the past')
         .refine((date) => {
           if (!isEditing || isGod || !pastListing?.deadline) return true;
           const newDeadline = dayjs(date);
           const pastDeadlineDate = dayjs(pastListing.deadline);
-          const maxDeadline = pastDeadlineDate.add(2, 'weeks');
+          const maxDeadline = pastDeadlineDate.add(3, 'months');
           return (
             newDeadline.isBefore(maxDeadline) || newDeadline.isSame(maxDeadline)
           );
-        }, 'Cannot extend deadline more than 2 weeks from original deadline'),
+        }, 'Cannot extend deadline more than 3 months from original deadline'),
       templateId: z.string().optional().nullable(),
       eligibility: z.array(eligibilityQuestionSchema).optional().nullable(),
       skills: skillsArraySchema,
@@ -253,6 +263,15 @@ export const createListingFormSchema = ({
         ),
       isPrivate: z.boolean().default(false),
       hackathonId: z.string().optional().nullable(),
+      submissionLimit: z
+        .nativeEnum(SubmissionLimitType)
+        .default('single')
+        .optional()
+        .nullable(),
+      multipleSubmissionRule: z
+        .nativeEnum(MultipleSubmissionRule)
+        .optional()
+        .nullable(),
 
       // values that will not be set on any API, but useful for response
       isPublished: z.boolean().optional().nullable(),
@@ -399,6 +418,32 @@ export const createListingRefinements = async (
     }
   }
 
+  // Validate submission limit settings
+  if (
+    data.type !== 'sponsorship' &&
+    data.multipleSubmissionRule === 'afterReview'
+  ) {
+    if ((!!pick && pick.multipleSubmissionRule) || !pick) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'After review is only allowed for `sponsorship` listings',
+        path: ['multipleSubmissionRule'],
+      });
+    }
+  }
+
+  // Validate that multipleSubmissionRule is only set when submissionLimit is 'multiple'
+  if (data.submissionLimit !== 'multiple' && data.multipleSubmissionRule) {
+    if ((!!pick && pick.multipleSubmissionRule) || !pick) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'Multiple submission rule can only be set when submission limit is "multiple"',
+        path: ['multipleSubmissionRule'],
+      });
+    }
+  }
+
   if (data.token === 'Any' && data.compensationType !== 'variable') {
     if ((!!pick && pick.compensationType) || !pick) {
       ctx.addIssue({
@@ -409,12 +454,12 @@ export const createListingRefinements = async (
     }
   }
 
-  if (data.token === 'Other') {
+  if (data.token === 'Other' || data.token === 'Fiat') {
     if ((!!pick && pick.token) || !pick) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message:
-          '`Other` token is not allowed as a base token. `Other` is a sub token for `Any` token',
+          '`Other` and `Fiat` tokens are not allowed as a base token. `Other` is a sub token for `Any` token',
         path: ['token'],
       });
     }

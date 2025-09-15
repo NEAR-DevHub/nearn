@@ -84,7 +84,7 @@ export const ShareProfile = ({ isOpen, onClose, username, id }: Props) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="h-max py-5">
+      <DialogContent className="py-5">
         <div className="px-0 py-3 md:px-6">
           <h2 className="text-base font-medium text-slate-900 md:text-lg">
             Share Profile

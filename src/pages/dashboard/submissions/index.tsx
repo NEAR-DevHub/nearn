@@ -124,24 +124,26 @@ export default function SponsorListings() {
 
     if (searchText) {
       filtered = filtered.filter((submission) => {
+        if (submission.sequentialId.toString() === searchText) {
+          return true;
+        }
+        const lowerCaseSearchText = searchText.toLowerCase();
         const result =
           submission.listing.title
             ?.toLowerCase()
-            .includes(searchText.toLowerCase()) ||
-          submission.user.name
-            ?.toLowerCase()
-            .includes(searchText.toLowerCase()) ||
-          submission.user.email
-            ?.toLowerCase()
-            .includes(searchText.toLowerCase()) ||
+            .includes(lowerCaseSearchText) ||
+          submission.user.name?.toLowerCase().includes(lowerCaseSearchText) ||
+          submission.user.email?.toLowerCase().includes(lowerCaseSearchText) ||
           submission.user.publicKey
             ?.toLowerCase()
-            .includes(searchText.toLowerCase()) ||
+            .includes(lowerCaseSearchText) ||
           submission.user.username
             ?.toLowerCase()
-            .includes(searchText.toLowerCase()) ||
-          submission.notes?.toLowerCase().includes(searchText.toLowerCase()) ||
-          submission.sequentialId?.toString().includes(searchText);
+            .includes(lowerCaseSearchText) ||
+          (submission.internalNotes ?? []).some((comment) =>
+            comment.message?.toLowerCase().includes(lowerCaseSearchText),
+          ) ||
+          submission.sequentialId?.toString().includes(lowerCaseSearchText);
 
         return result;
       });
@@ -301,7 +303,7 @@ export default function SponsorListings() {
   return (
     <SponsorLayout>
       <Banner stats={sponsorStats} isLoading={isStatsLoading} />
-      <div className="mb-4 flex w-full items-center justify-between">
+      <div className="mb-4 flex w-full flex-wrap items-center justify-between gap-y-3 xl:flex-nowrap">
         <div className="flex items-center whitespace-nowrap">
           <p className="text-lg font-semibold text-slate-800">Submissions </p>
           <Separator className="mx-3 h-6 w-px bg-slate-300" />
@@ -309,8 +311,8 @@ export default function SponsorListings() {
             The one place to manage your submissions
           </p>
         </div>
-        <div className="flex w-full items-center justify-end gap-3">
-          <div>
+        <div className="flex w-full items-center gap-3 lg:justify-end">
+          <div className="flex items-center gap-3">
             <span className="mr-2 text-sm text-slate-500">
               Filter by status
             </span>

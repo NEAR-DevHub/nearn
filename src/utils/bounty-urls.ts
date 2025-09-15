@@ -8,7 +8,7 @@ export function getBountyUrlBySponsorAndId(
   sponsor: string | undefined,
   id: string | undefined,
 ) {
-  return `${getURL()}${sponsor}/${id}`;
+  return `${getURL()}${sponsor}/${id}/`;
 }
 
 export function getBountyUrl(listing: Listing | undefined) {
@@ -30,5 +30,5 @@ export function getSubmissionUrl(
   submission: SubmissionWithUser | undefined,
   listing: Listing | undefined,
 ) {
-  return `${getBountyUrl(listing)}/${submission?.sequentialId}`;
+  return `${getBountyUrl(listing)}${submission?.sequentialId}/`;
 }

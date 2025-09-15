@@ -16,8 +16,9 @@ export interface Comment {
   submissionId?: string;
   author: User;
   refId: string;
-  refType: 'BOUNTY' | 'SUBMISSION';
+  refType: 'BOUNTY' | 'SUBMISSION' | 'POW';
   like?: Array<{ id: string; date: number }>;
   likeCount: number;
   createdAt: Date;
+  pinnedAt?: Date | null;
 }

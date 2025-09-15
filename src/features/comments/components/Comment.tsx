@@ -1,10 +1,12 @@
-import type { CommentRefType } from '@prisma/client';
+import type { CommentRefType, CommentType } from '@prisma/client';
 import {
   AlertCircle,
   ChevronDown,
   Copy,
   Heart,
   Loader2,
+  Pin,
+  PinOff,
   Trash,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -31,6 +33,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Tooltip } from '@/components/ui/tooltip';
+import { PROJECT_NAME } from '@/constants/project';
 import { useClipboard } from '@/hooks/use-clipboard';
 import { useDisclosure } from '@/hooks/use-disclosure';
 import { useMediaQuery } from '@/hooks/use-media-query';
@@ -46,6 +49,7 @@ import { AuthWrapper } from '@/features/auth/components/AuthWrapper';
 import { EarnAvatar } from '@/features/talent/components/EarnAvatar';
 
 import { useCommentLike } from '../mutations/useCommentLike';
+import { useCommentPin } from '../mutations/useCommentPin';
 import { formatFromNow } from '../utils';
 import { CommentParser } from './CommentParser';
 import { UserSuggestionTextarea } from './UserSuggestionTextarea';
@@ -56,8 +60,10 @@ interface Props {
   refId: string;
   refType: CommentRefType;
   sponsorId: string | undefined;
+  powAuthorId: string | undefined;
   submissionAuthor: User | undefined;
   defaultSuggestions: Map<string, User>;
+  type?: CommentType;
   deleteComment: (commentId: string) => Promise<void>;
   listingSlug: string;
   listingType: string;
@@ -74,6 +80,7 @@ export const Comment = ({
   sponsorId,
   refId,
   refType,
+  type,
   poc,
   submissionAuthor,
   deleteComment,
@@ -83,6 +90,7 @@ export const Comment = ({
   listingSlug,
   isReply = false,
   isAnnounced,
+  powAuthorId,
   isVerified = false,
   isTemplate = false,
   isDisabled = false,
@@ -90,6 +98,7 @@ export const Comment = ({
   const { user } = useUser();
   const posthog = usePostHog();
   const commentLikeMutation = useCommentLike();
+  const commentPinMutation = useCommentPin();
 
   const {
     isOpen: deleteIsOpen,
@@ -158,11 +167,18 @@ export const Comment = ({
 
   const addNewReplyLvl1 = async (msg: string) => {
     posthog.capture('publish_comment');
+    if (msg.trim().length === 0) {
+      setNewReplyError(true);
+      setNewReplyLoading(false);
+      return;
+    }
+
     setNewReplyError(false);
     const newReplyData = await api.post('/api/comment/create', {
       message: msg,
       refType: refType,
       refId: refId,
+      type: type,
       replyToId: comment?.id ?? null,
       replyToUserId: comment?.authorId ?? null,
       pocId: poc?.id,
@@ -234,6 +250,34 @@ export const Comment = ({
 
   const isMobile = useMediaQuery('(max-width: 768px)');
 
+  // Check if user can pin the comment
+  const canPin =
+    !isReply &&
+    !isTemplate &&
+    !isDisabled &&
+    // For BOUNTY and SUBMISSION comments, check if user is the sponsor
+    (((refType === 'BOUNTY' || refType === 'SUBMISSION') &&
+      user?.UserSponsors?.some((sponsor) => sponsor.sponsorId === sponsorId)) ||
+      // For POW comments, check if user is the POW creator
+      (refType === 'POW' && powAuthorId === user?.id) ||
+      // GOD mode
+      user?.role === 'GOD');
+
+  const handlePin = async () => {
+    if (!user || commentPinMutation.isPending) return;
+
+    try {
+      await commentPinMutation.mutateAsync({
+        commentId: comment.id,
+        type: comment.type,
+        action: comment.pinnedAt ? 'unpin' : 'pin',
+      });
+      window.dispatchEvent(new Event('update-comments'));
+    } catch (error) {
+      console.error('Failed to pin/unpin comment:', error);
+    }
+  };
+
   return (
     <>
       <div
@@ -248,7 +292,9 @@ export const Comment = ({
         }}
       >
         <Link
-          href={`${getURL()}t/${comment?.author?.username}`}
+          href={
+            comment?.author?.username ? `/t/${comment?.author?.username}` : '/'
+          }
           className={cn('block', isReply ? 'min-w-8' : 'min-w-10')}
           tabIndex={-1}
           target="_blank"
@@ -256,7 +302,7 @@ export const Comment = ({
           <EarnAvatar
             className={cn(isReply ? 'h-7 w-7' : 'h-9 w-9')}
             id={comment?.author?.id}
-            avatar={comment?.author?.photo}
+            avatar={comment?.author?.photo || '/favicon.ico'}
           />
         </Link>
 
@@ -274,14 +320,19 @@ export const Comment = ({
                 </p>
               ) : (
                 <p className="text-sm font-medium text-slate-800 md:text-base">
-                  {comment?.author?.username}
+                  {comment?.author?.username ?? PROJECT_NAME}
                 </p>
               )}
             </Link>
 
             {comment?.authorId === submissionAuthor?.id ? (
               <p className="flex items-center gap-0.5 pb-0.5 text-xs font-medium text-brand-green-50 md:text-sm">
-                Author
+                Talent
+              </p>
+            ) : comment.authorId === poc?.id ? (
+              <p className="flex items-center gap-0.5 pb-0.5 text-xs font-medium text-blue-500 md:text-sm">
+                {isVerified && <VerifiedBadge />}
+                Creator
               </p>
             ) : comment?.author?.currentSponsorId === sponsorId ? (
               <p className="flex items-center gap-0.5 pb-0.5 text-xs font-medium text-blue-500 md:text-sm">
@@ -373,7 +424,7 @@ export const Comment = ({
               <div
                 className={cn(
                   'flex w-full justify-end gap-4 transition-all duration-200',
-                  !newReply && 'hidden',
+                  (!newReply || newReply.trim().length === 0) && 'hidden',
                 )}
               >
                 <AuthWrapper>
@@ -411,9 +462,11 @@ export const Comment = ({
                   isAnnounced={isAnnounced}
                   listingSlug={listingSlug}
                   listingType={listingType}
+                  powAuthorId={powAuthorId}
                   defaultSuggestions={defaultSuggestions}
                   deleteComment={deleteReplyLvl1}
                   addNewReply={addNewReplyLvl1}
+                  type={type}
                   isReply
                   key={reply.id}
                   refType={refType}
@@ -434,7 +487,8 @@ export const Comment = ({
         >
           {(comment.authorId === user?.id ||
             comment.refType === 'BOUNTY' ||
-            comment.refType === 'SUBMISSION') && (
+            comment.refType === 'SUBMISSION' ||
+            canPin) && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
@@ -460,6 +514,26 @@ export const Comment = ({
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="min-w-[10rem] p-1" align="end">
+                {canPin && (
+                  <DropdownMenuItem
+                    className="ph-no-capture rounded-sm text-sm font-medium text-slate-600 md:text-base"
+                    onClick={handlePin}
+                    tabIndex={-1}
+                    disabled={commentPinMutation.isPending}
+                  >
+                    {comment.pinnedAt ? (
+                      <>
+                        <PinOff className="mr-2 h-4 w-4 -rotate-[35deg]" />
+                        Unpin
+                      </>
+                    ) : (
+                      <>
+                        <Pin className="mr-2 h-4 w-4 -rotate-[35deg]" />
+                        Pin
+                      </>
+                    )}
+                  </DropdownMenuItem>
+                )}
                 {(comment.refType === 'BOUNTY' ||
                   comment.refType === 'SUBMISSION') && (
                   <DropdownMenuItem

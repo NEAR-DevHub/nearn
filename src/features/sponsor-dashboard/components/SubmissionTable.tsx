@@ -50,11 +50,13 @@ import { SubmissionDrawer } from '@/features/listings/components/Submission/Subm
 import { sponsorshipSubmissionStatus } from '@/features/listings/components/SubmissionsPage/SubmissionTable';
 import { getListingIcon } from '@/features/listings/utils/getListingIcon';
 import { getListingTypeLabel } from '@/features/listings/utils/status';
+import { ActivityHistoryMinified } from '@/features/logging/components/ActivityHistoryMinified';
 import { EarnAvatar } from '@/features/talent/components/EarnAvatar';
 
 import { type SubmissionWithListingUser } from '../queries/dashboard-submissions';
 import { colorMap } from '../utils/statusColorMap';
 import { ListingTh } from './ListingTable';
+import { SubmissionNotesMinified } from './SubmissionNotesMinified';
 import { DeleteRestoreSubmissionModal } from './Submissions/Modals/DeleteRestoreSubmissionModal';
 import { EditSubmissionStatusModal } from './Submissions/Modals/EditSubmissionStatusModal';
 import { DoneBy } from './Submissions/SubmissionPanel';
@@ -80,7 +82,8 @@ type ColumnKey =
   | 'submissionDate'
   | 'approvedDate'
   | 'paymentDate'
-  | 'notes';
+  | 'notes'
+  | 'activity';
 
 const columnLabels: Record<ColumnKey, string> = {
   contributor: 'Contributor',
@@ -91,6 +94,7 @@ const columnLabels: Record<ColumnKey, string> = {
   approvedDate: 'Approved Date',
   paymentDate: 'Payment Date',
   notes: 'Notes',
+  activity: 'Activity',
 };
 
 export const SubmissionTh = ({
@@ -153,6 +157,7 @@ export const SubmissionTable = ({
     approvedDate: false,
     paymentDate: true,
     notes: false,
+    activity: false,
   };
 
   const { visibleColumns, toggleColumn } = useColumnVisibility<ColumnKey>(
@@ -202,7 +207,7 @@ export const SubmissionTable = ({
 
   return (
     <>
-      <div className="max-w-8xl w-full overflow-x-auto rounded-md border border-slate-200">
+      <div className="w-full overflow-x-auto rounded-md border border-slate-200">
         <Table>
           <TableHeader>
             <TableRow className="bg-slate-100 hover:bg-muted">
@@ -280,6 +285,9 @@ export const SubmissionTable = ({
               )}
               {visibleColumns.notes && (
                 <ListingTh className="text-nowrap">Notes</ListingTh>
+              )}
+              {visibleColumns.activity && (
+                <ListingTh className="text-nowrap">Activity</ListingTh>
               )}
               <ListingTh className="pl-6">Actions</ListingTh>
               <TableHead className="sticky right-0 z-50 flex items-center bg-slate-100 group-hover:bg-muted">
@@ -513,14 +521,13 @@ export const SubmissionTable = ({
                     </TableCell>
                   )}
                   {visibleColumns.notes && (
-                    <TableCell
-                      className="cursor-pointer items-center py-2"
-                      onClick={(e) => handleClick(e, listingSubmissionLink)}
-                      onAuxClick={(e) => handleClick(e, listingSubmissionLink)}
-                    >
-                      <p className="whitespace-pre-wrap text-sm font-medium text-slate-500">
-                        {submission?.notes}
-                      </p>
+                    <TableCell className="items-center py-2">
+                      <SubmissionNotesMinified submission={submission} />
+                    </TableCell>
+                  )}
+                  {visibleColumns.activity && (
+                    <TableCell className="items-center py-2">
+                      <ActivityHistoryMinified submission={submission} />
                     </TableCell>
                   )}
                   <TableCell>

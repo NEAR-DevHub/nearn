@@ -4,7 +4,7 @@ import {
 } from '@/features/logging/types/event-data';
 
 import { type Log } from '../../queries/logs';
-import Comment from './Comment';
+import Comment, { CommentPinnedUnpinned } from './Comment';
 import CreateListing from './ListingCreated';
 import ListingEdit from './ListingEdit';
 import Paid from './Paid';
@@ -68,6 +68,8 @@ const LOG_IMPLEMENTATION_MAPPING: Record<
   [EventType.SUBMISSION_MANUAL_PAYMENT_UPDATED]: SubmissionManualPaymentUpdated,
   [EventType.COMMENT_ADDED]: Comment,
   [EventType.COMMENT_DELETED]: Comment,
+  [EventType.COMMENT_PINNED]: CommentPinnedUnpinned,
+  [EventType.COMMENT_UNPINNED]: CommentPinnedUnpinned,
   [EventType.TREASURY_PROPOSAL_APPROVED]: TreasuryProposal,
   [EventType.TREASURY_PROPOSAL_REJECTED]: TreasuryProposal,
   [EventType.TREASURY_PROPOSAL_EXPIRED]: TreasuryProposal,

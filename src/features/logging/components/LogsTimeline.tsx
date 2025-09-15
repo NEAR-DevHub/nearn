@@ -16,6 +16,8 @@ import {
   MessageSquare,
   NotepadText,
   Pencil,
+  Pin,
+  PinOff,
   Plus,
   RefreshCcw,
   Trash,
@@ -76,6 +78,8 @@ const eventIcons: Record<EventType, React.ReactNode> = {
   [EventType.TREASURY_PROPOSAL_EXPIRED]: <RefreshCcw className="h-4 w-4" />,
   [EventType.SYSTEM_STATUS_CHANGED]: <RefreshCcw className="h-4 w-4" />,
   [EventType.SYSTEM_STATUS_IN_REVIEW]: <RefreshCcw className="h-4 w-4" />,
+  [EventType.COMMENT_PINNED]: <Pin className="h-4 w-4 -rotate-[35deg]" />,
+  [EventType.COMMENT_UNPINNED]: <PinOff className="h-4 w-4 -rotate-[35deg]" />,
   [EventType.PLATFORM_ADMIN_ARCHIVED_OR_UNARCHIVED]: (
     <Archive className="h-4 w-4" />
   ),
@@ -110,6 +114,24 @@ export default function LogsTimeline({
       {} as Record<string, typeof logs>,
     );
 
+    for (const key of Object.keys(groups)) {
+      groups[key] =
+        groups[key]?.filter((log) => {
+          if (
+            log.eventType === EventType.SUBMISSION_TOGGLED_WINNER &&
+            log.listing?.type !== 'bounty'
+          ) {
+            return false;
+          } else if (
+            log.eventType === EventType.SUBMISSION_APPROVED &&
+            log.listing?.type !== 'sponsorship'
+          ) {
+            return false;
+          }
+
+          return true;
+        }) ?? [];
+    }
     return { groupedLogs: groups, sortedDates: Object.keys(groups) };
   }, [logs]);
 
@@ -142,6 +164,10 @@ export default function LogsTimeline({
         const isLastDate = dateIndex === sortedDates.length - 1;
         const hasMultipleLogs = logs && logs.length > 1;
 
+        if (!logs || logs.length === 0) {
+          return null;
+        }
+
         return (
           <div key={dateKey} className="relative">
             <h3 className="mb-2 text-sm font-medium text-slate-500">
@@ -152,17 +178,6 @@ export default function LogsTimeline({
                 logs.map((log, index) => {
                   const isLastLog = index === logs.length - 1;
                   const showLine = hasMultipleLogs && !isLastLog;
-                  if (
-                    log.eventType === EventType.SUBMISSION_TOGGLED_WINNER &&
-                    log.listing?.type !== 'bounty'
-                  ) {
-                    return null;
-                  } else if (
-                    log.eventType === EventType.SUBMISSION_APPROVED &&
-                    log.listing?.type !== 'sponsorship'
-                  ) {
-                    return null;
-                  }
 
                   return (
                     <div key={log.id} className="relative flex gap-3">

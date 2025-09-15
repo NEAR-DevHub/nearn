@@ -189,7 +189,6 @@ export const SubmissionTable = ({
   endTime,
   setUpdate,
 }: Props) => {
-  const isSponsorship = bounty.type === 'sponsorship';
   const [currentSort, setCurrentSort] = useState<{
     column: string;
     direction: 'asc' | 'desc' | null;
@@ -368,7 +367,7 @@ export const SubmissionTable = ({
   return (
     <>
       <div className="mt-10 flex min-h-screen w-full flex-col items-center md:items-start">
-        {isSponsorship || dayjs(endTime).valueOf() < Date.now() ? (
+        {dayjs(endTime).valueOf() < Date.now() || submissions.length > 0 ? (
           <div className="w-full max-w-4xl overflow-x-auto rounded-md border border-slate-200">
             <Table className="w-full">
               <TableHeader>
@@ -487,7 +486,7 @@ export const SubmissionTable = ({
                                 </div>
                                 <p className="truncate text-xs font-medium text-slate-500">
                                   {dayjs(submission.createdAt).format(
-                                    "D MMM' YY h:MM A",
+                                    "D MMM' YY h:mm A",
                                   )}
                                 </p>
                               </div>

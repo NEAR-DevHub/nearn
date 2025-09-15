@@ -50,6 +50,8 @@ export interface Listing {
   maxRewardAsk?: number;
   winnersAnnouncedAt?: string;
   hackathonId?: string;
+  submissionLimit?: 'single' | 'multiple';
+  multipleSubmissionRule?: 'immediately' | 'afterReview';
   _count?: {
     Comments?: number;
   };

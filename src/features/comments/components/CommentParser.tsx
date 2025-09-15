@@ -77,7 +77,7 @@ export const CommentParser = ({
             <a
               key={index}
               href={href}
-              className="text-blue-600 hover:text-blue-700 hover:underline"
+              className="break-all text-blue-600 hover:text-blue-700 hover:underline"
               target="_blank"
               rel="nofollow noreferrer"
             >

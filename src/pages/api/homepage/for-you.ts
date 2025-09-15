@@ -125,7 +125,7 @@ export async function getForYouListings({ statusFilter, userId }: ForYouProps) {
               isActive: true,
               isArchived: false,
               replyToId: null,
-              type: { not: 'SUBMISSION' },
+              type: { notIn: ['SUBMISSION', 'INTERNAL_SUBMISSION_NOTES'] },
             },
           },
         },

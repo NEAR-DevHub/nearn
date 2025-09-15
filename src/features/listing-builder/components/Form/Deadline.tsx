@@ -12,6 +12,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { useUser } from '@/store/user';
 
 import { hackathonsAtom, isEditingAtom } from '../../atoms';
 import { useListingForm } from '../../hooks';
@@ -26,6 +27,9 @@ export const DEADLINE_FORMAT = 'YYYY-MM-DDTHH:mm:ss.SSS[Z]';
 
 export function Deadline() {
   const form = useListingForm();
+  const { user } = useUser();
+  const isGodMode = user?.role === 'GOD';
+
   const deadline = useWatch({
     name: 'deadline',
     control: form.control,
@@ -41,20 +45,32 @@ export function Deadline() {
   const hackathons = useAtomValue(hackathonsAtom);
 
   const [maxDeadline, setMaxDeadline] = useState<Date | undefined>(undefined);
-  const [minDeadline] = useState<Date | undefined>(new Date());
+  const [minDeadline] = useState<Date | undefined>(
+    dayjs().add(1, 'day').startOf('day').toDate(),
+  );
 
   const isEditing = useAtomValue(isEditingAtom);
 
   useEffect(() => {
-    if (isEditing && deadline) {
-      const originalDeadline = dayjs(deadline);
-      const threeMonthsLater = originalDeadline.add(3, 'months');
-      setMaxDeadline(threeMonthsLater.toDate());
+    if (isEditing) {
+      if (deadline) {
+        const originalDeadline = dayjs(deadline);
+        const threeMonthsLater = originalDeadline.add(3, 'months');
+        setMaxDeadline(threeMonthsLater.endOf('day').toDate());
+        if (isGodMode) {
+          setMaxDeadline(undefined);
+          return;
+        }
+      }
+    }
+    if (!isEditing) {
+      const threeMonthsLater = dayjs().add(3, 'months');
+      setMaxDeadline(threeMonthsLater.endOf('day').toDate());
     }
     return () => {
       setMaxDeadline(undefined);
     };
-  }, [isEditing]);
+  }, [isEditing, isGodMode]);
 
   const handleDeadlineSelection = (days: number) => {
     return dayjs().add(days, 'day').format(DEADLINE_FORMAT).replace('Z', '');

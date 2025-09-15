@@ -17,6 +17,7 @@ import {
   isDraftSavingAtom,
   isEditingAtom,
   isGodAtom,
+  isListingInReviewAtom,
   isSTAtom,
   saveDraftMutationAtom,
   skillsKeyAtom,
@@ -55,6 +56,7 @@ export const useListingForm = (
   const isGod = useAtomValue(isGodAtom);
   const isEditing = useAtomValue(isEditingAtom);
   const isST = useAtomValue(isSTAtom);
+  const isInReviewListing = useAtomValue(isListingInReviewAtom);
 
   const setDescriptionKey = useSetAtom(descriptionKeyAtom);
   const setSkillsKey = useSetAtom(skillsKeyAtom);
@@ -67,6 +69,7 @@ export const useListingForm = (
     isST,
     pastListing: defaultValues as any,
     hackathons: hackathons,
+    isInReviewListing,
   });
   if (!formMethods || !Object.keys(formMethods).length) {
     //eslint-disable-next-line
@@ -141,7 +144,14 @@ export const useListingForm = (
         }, 0);
       }
     }
-  }, [queueRefRef, isEditing]);
+  }, [
+    getValues,
+    saveDraftMutation,
+    formMethods,
+    setHideAutoSave,
+    setDraftSaving,
+    isEditing,
+  ]);
 
   const debouncedSaveRef = useRef<ReturnType<typeof debounce>>(undefined);
 
@@ -153,7 +163,10 @@ export const useListingForm = (
 
   const onChange = useCallback(() => {
     setHideAutoSave(true);
-    if (!isEditing) debouncedSaveRef.current?.();
+    if (!isEditing) {
+      debouncedSaveRef.current?.cancel();
+      debouncedSaveRef.current?.();
+    }
   }, [isEditing]);
 
   const submitListing = useCallback(async () => {
@@ -245,6 +258,8 @@ export const useListingForm = (
       type: true,
       compensationType: true,
       eligibility: true,
+      multipleSubmissionRule: true,
+      submissionLimit: true,
     });
 
   const validateRewards = () =>

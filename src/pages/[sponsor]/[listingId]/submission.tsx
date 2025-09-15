@@ -21,6 +21,7 @@ const SubmissionPage = ({
   slug: string;
   bounty: Listing;
   submission: SubmissionWithUser[];
+  userOnly?: boolean;
 }) => {
   const { data, refetch } = useQuery(
     listingSubmissionsQuery(
@@ -31,6 +32,7 @@ const SubmissionPage = ({
       },
     ),
   );
+
   const { bounty, submission } = data ?? {
     bounty: bountyB,
     submission: submissionB,

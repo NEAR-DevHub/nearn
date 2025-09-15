@@ -42,13 +42,21 @@ async function handler(
       isActive: true,
       isArchived: false,
       replyToId: null,
+      type: {
+        not: 'INTERNAL_SUBMISSION_NOTES',
+      },
     };
 
     const commentsInclude: Prisma.CommentFindManyArgs = {
       where: commentsWhere,
-      orderBy: {
-        createdAt: 'desc',
-      },
+      orderBy: [
+        {
+          pinnedAt: 'desc',
+        },
+        {
+          createdAt: 'desc',
+        },
+      ],
       take: 3,
       select: {
         author: {
@@ -80,6 +88,7 @@ async function handler(
               id: true,
               title: true,
               rewards: true,
+              sponsorId: true,
               sequentialId: true,
               type: true,
               slug: true,
@@ -133,6 +142,7 @@ async function handler(
               sub.listing.winnersAnnouncedAt
                 ? sub.listing.winnersAnnouncedAt
                 : sub.createdAt,
+            sponsorId: sub.listing.sponsorId,
             link: sub.listing.isWinnersAnnounced ? sub.link : null,
             tweet: sub.listing.isWinnersAnnounced ? sub.tweet : null,
             otherInfo: sub.listing.isWinnersAnnounced ? sub.otherInfo : null,
@@ -172,6 +182,7 @@ async function handler(
         const poWInclude: Prisma.PoWInclude = {
           user: {
             select: {
+              id: true,
               name: true,
               photo: true,
               username: true,
@@ -197,6 +208,7 @@ async function handler(
         if (pow) {
           feedPost = [pow].map((pow) => ({
             id: pow.id,
+            authorId: pow.userId,
             createdAt: pow.createdAt,
             description: pow.description,
             title: pow.title,

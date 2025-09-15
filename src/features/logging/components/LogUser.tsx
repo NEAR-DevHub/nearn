@@ -24,10 +24,13 @@ export default function LogUser({
   onSubmissionClick,
 }: Properties) {
   const now = dayjs();
-  const date = now.isSame(dayjs(event.eventTime), 'day')
-    ? formatFromNow(dayjs(event.eventTime).fromNow())
-    : dayjs(event.eventTime).format('HH:mm');
-  const fullDate = dayjs(event.eventTime).format('MMM D, YYYY h:mm A');
+  const eventTime = dayjs(event.eventTime);
+  const date = now.isSame(eventTime, 'day')
+    ? formatFromNow(eventTime.fromNow())
+    : eventTime.format('HH:mm');
+  const utcOffset = -(new Date().getTimezoneOffset() / 60).toFixed(1);
+  const offsetString = utcOffset > 0 ? `+${utcOffset}` : utcOffset;
+  const fullDate = eventTime.format(`MMM D, YYYY h:mm A [UTC${offsetString}]`);
 
   const name = event.actor
     ? (event.actor.name ?? event.actor.username)
@@ -51,6 +54,11 @@ export default function LogUser({
       event.actorType === 'SYSTEM' ? PROJECT_NAME : `${PROJECT_NAME} Admin`;
   }
 
+  const isTalent =
+    event.submission &&
+    event?.submission?.user?.username === event.actor?.username &&
+    event.actorType !== 'PLATFORM_ADMIN';
+
   return (
     <div className="flex items-center gap-2">
       <Image
@@ -62,7 +70,10 @@ export default function LogUser({
       />
 
       <span className="font-medium text-slate-900">{username}</span>
-      {event.actorType === 'SPONSOR' && !hideActorRole && (
+      {!hideActorRole && isTalent && (
+        <span className="text-sm font-medium text-brand-green-50">Talent</span>
+      )}
+      {event.actorType === 'SPONSOR' && !hideActorRole && !isTalent && (
         <span className="text-sm font-medium text-blue-600">
           {event.actor?.username === event.listing?.poc?.username
             ? 'Creator'

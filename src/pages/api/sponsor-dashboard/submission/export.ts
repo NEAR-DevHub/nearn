@@ -57,6 +57,26 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
         },
         approvedByUser: true,
         paidByUser: true,
+        Comments: {
+          where: {
+            type: 'INTERNAL_SUBMISSION_NOTES',
+            replyToId: null,
+          },
+          include: {
+            author: true,
+            replies: {
+              include: {
+                author: true,
+              },
+              orderBy: {
+                createdAt: 'asc',
+              },
+            },
+          },
+          orderBy: {
+            createdAt: 'asc',
+          },
+        },
       },
       orderBy: {
         createdAt: 'asc',

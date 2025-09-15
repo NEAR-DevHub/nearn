@@ -18,6 +18,7 @@ interface PowCardProps {
     username: string;
     id: string;
     like: any;
+    authorId: string;
     userId: string;
     likeCount: number;
     ogImage: string;
@@ -60,6 +61,7 @@ export function PowCard({ pow, type, commentCount }: PowCardProps) {
       name={name}
       photo={photo}
       username={username}
+      authorId={pow?.authorId}
       id={pow?.id}
       like={pow?.like}
       cardType="pow"

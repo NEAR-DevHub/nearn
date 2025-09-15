@@ -37,10 +37,7 @@ import { tweetEmbedLink } from '@/utils/socialEmbeds';
 import { getURL } from '@/utils/validUrl';
 
 import { type Listing } from '@/features/listings/types';
-import {
-  formatDeadline,
-  isDeadlineOver,
-} from '@/features/listings/utils/deadline';
+import { formatDeadline } from '@/features/listings/utils/deadline';
 import { getColorStyles } from '@/features/listings/utils/getColorStyles';
 import { getListingIcon } from '@/features/listings/utils/getListingIcon';
 import { getListingStatus } from '@/features/listings/utils/status';
@@ -141,8 +138,6 @@ ${socialListingLink('twitter')}
     exportMutation.mutate();
   };
 
-  const pastDeadline = isDeadlineOver(bounty?.deadline);
-
   return (
     <>
       <ListingStatusModal
@@ -227,44 +222,38 @@ ${socialListingLink('twitter')}
             <ExternalLink className="h-4 w-4" />
             View Listing
           </Button>
-          {!!(
-            (session?.user?.role === 'GOD' && bounty?.type !== 'grant') ||
-            (bounty?.isPublished && !pastDeadline && bounty.type !== 'grant')
-          ) && (
-            <>
-              <Link
-                className="hover:no-underline"
-                href={
-                  bounty
-                    ? `/dashboard/${isHackathonPage ? 'hackathon' : 'listings'}/${bounty.slug}/edit/`
-                    : ''
-                }
-              >
-                <Button variant="ghost" className="text-slate-500">
-                  <Pencil className="h-4 w-4" />
-                  Edit
-                </Button>
-              </Link>
-              {session?.user?.role === 'GOD' && (
-                <Button
-                  variant="ghost"
-                  className="text-slate-500"
-                  onClick={deleteModalOnOpen}
-                >
-                  {bounty?.isArchived || !bounty?.isActive ? (
-                    <>
-                      <RefreshCw className="h-4 w-4" />
-                      Restore
-                    </>
-                  ) : (
-                    <>
-                      <Trash className="h-4 w-4" />
-                      Delete
-                    </>
-                  )}
-                </Button>
+
+          <Link
+            className="hover:no-underline"
+            href={
+              bounty
+                ? `/dashboard/${isHackathonPage ? 'hackathon' : 'listings'}/${bounty.slug}/edit/`
+                : ''
+            }
+          >
+            <Button variant="ghost" className="text-slate-500">
+              <Pencil className="h-4 w-4" />
+              Edit
+            </Button>
+          </Link>
+          {session?.user?.role === 'GOD' && (
+            <Button
+              variant="ghost"
+              className="text-slate-500"
+              onClick={deleteModalOnOpen}
+            >
+              {bounty?.isArchived || !bounty?.isActive ? (
+                <>
+                  <RefreshCw className="h-4 w-4" />
+                  Restore
+                </>
+              ) : (
+                <>
+                  <Trash className="h-4 w-4" />
+                  Delete
+                </>
               )}
-            </>
+            </Button>
           )}
           {bounty?.type === 'sponsorship' && !bounty.isWinnersAnnounced && (
             <Button onClick={onOpen}>Complete Sponsorship</Button>

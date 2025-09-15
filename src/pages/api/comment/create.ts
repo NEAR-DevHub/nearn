@@ -1,6 +1,7 @@
 import { type CommentRefType } from '@prisma/client';
 import type { NextApiResponse } from 'next';
 
+import { PROJECT_NAME } from '@/constants/project';
 import logger from '@/lib/logger';
 import { prisma } from '@/prisma';
 import { safeStringify } from '@/utils/safeStringify';
@@ -11,7 +12,7 @@ import { sendEmailNotification } from '@/features/emails/utils/sendEmailNotifica
 import { eventLogger } from '@/features/logging/services/event-logger';
 import { EventType } from '@/features/logging/types/event-data';
 
-type CommentType = 'NORMAL' | 'SUBMISSION';
+type CommentType = 'NORMAL' | 'SUBMISSION' | 'INTERNAL_SUBMISSION_NOTES';
 
 async function comment(req: NextApiRequestWithUser, res: NextApiResponse) {
   const userId = req.userId;
@@ -23,6 +24,41 @@ async function comment(req: NextApiRequestWithUser, res: NextApiResponse) {
     const refType = req.body.refType as CommentRefType;
     let { type } = req.body as { type: CommentType | undefined };
     if (!type) type = 'NORMAL';
+    if (message.trim().length === 0) {
+      return res.status(400).json({ error: 'Message is required' });
+    }
+
+    if (type === 'INTERNAL_SUBMISSION_NOTES') {
+      const data = await prisma.user.findUnique({
+        where: {
+          id: userId,
+        },
+        select: {
+          currentSponsorId: true,
+        },
+      });
+
+      if (!data?.currentSponsorId) {
+        return res.status(403).json({ error: 'User is not a sponsor' });
+      }
+
+      const submission = await prisma.submission.findUnique({
+        where: {
+          id: refId,
+          listing: {
+            sponsorId: data.currentSponsorId,
+          },
+        },
+        select: {
+          listingId: true,
+        },
+      });
+      if (!submission) {
+        return res
+          .status(403)
+          .json({ error: 'User is not a sponsor of this submission' });
+      }
+    }
 
     logger.debug('Creating a new comment in the database');
     const result = await prisma.comment.create({
@@ -92,13 +128,15 @@ async function comment(req: NextApiRequestWithUser, res: NextApiResponse) {
         eventType: EventType.COMMENT_ADDED,
         actor: {
           id: userId,
-          type: 'USER',
+          type: type === 'INTERNAL_SUBMISSION_NOTES' ? 'SPONSOR' : 'USER',
         },
         data: {},
         entities: {
           ...entities,
           commentId: result.id,
         },
+        visibility:
+          type === 'INTERNAL_SUBMISSION_NOTES' ? 'SPONSOR' : undefined,
       });
     }
 
@@ -136,7 +174,8 @@ async function comment(req: NextApiRequestWithUser, res: NextApiResponse) {
             id: refId,
             userId: taggedUser.id,
             otherInfo: {
-              personName: result.author.name,
+              personName:
+                result.author?.name || result.author?.username || PROJECT_NAME,
               type: refType,
             },
             triggeredBy: userId,

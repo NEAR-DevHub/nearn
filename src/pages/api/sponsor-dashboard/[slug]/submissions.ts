@@ -70,6 +70,17 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
             },
           },
         },
+        Comments: {
+          include: {
+            author: true,
+          },
+          where: {
+            isActive: true,
+            isArchived: false,
+            repliedTo: null,
+            type: 'INTERNAL_SUBMISSION_NOTES',
+          },
+        },
         listing: true,
         approvedByUser: true,
         paidByUser: true,
@@ -124,9 +135,10 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
 
     submissionsWithSortKey.sort((a, b) => a.sortKey - b.sortKey);
 
-    const sortedSubmissions = submissionsWithSortKey.map(
-      (item) => item.submission,
-    );
+    const sortedSubmissions = submissionsWithSortKey.map((item) => ({
+      ...item.submission,
+      internalNotes: item.submission.Comments,
+    }));
 
     logger.info(
       `Fetched ${sortedSubmissions.length} submissions for slug ${slug}`,

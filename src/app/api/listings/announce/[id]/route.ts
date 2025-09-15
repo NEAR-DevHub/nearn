@@ -133,10 +133,19 @@ export async function POST(
         amount = Math.ceil(rewards[winnerPosition as keyof Rewards] ?? 0);
       }
 
+      console.log({
+        token: listing.token,
+        amount,
+        usdValue: listing.usdValue,
+        rewardAmount: listing.rewardAmount,
+      });
+
       const rewardInUSD =
         listing.token === 'Any'
           ? amount
           : (listing.usdValue! / listing.rewardAmount!) * amount;
+
+      console.log({ rewardInUSD });
 
       promises.push(
         prisma.submission.update({

@@ -109,12 +109,17 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
         const oldRewards = isSponsorship
           ? (listing.rewards as Rewards) || {}
           : {};
+
         await prisma.bounties.update({
           where: { id: bountyId },
           data: {
             rewards: { ...(oldRewards as Rewards), [position]: ask },
-            rewardAmount: { increment: ask },
-            usdValue: { increment: usdValue },
+            rewardAmount: listing.rewardAmount
+              ? { increment: ask }
+              : { set: ask },
+            usdValue: listing.usdValue
+              ? { increment: usdValue }
+              : { set: usdValue },
           },
         });
       }

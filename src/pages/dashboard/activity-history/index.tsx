@@ -197,7 +197,7 @@ export default function ActivityHistory() {
     <SponsorLayout>
       <Banner stats={sponsorStats} isLoading={isStatsLoading} />
 
-      <div className="flex w-full items-center justify-between">
+      <div className="flex w-full flex-wrap items-center justify-between gap-y-3 xl:flex-nowrap">
         <div className="flex items-center whitespace-nowrap">
           <p className="text-lg font-semibold text-slate-800">
             Activity History{' '}
@@ -206,7 +206,7 @@ export default function ActivityHistory() {
           <p className="text-slate-500">The one place to track all activity</p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex w-full items-center gap-2 lg:justify-end">
           <Popover>
             <PopoverTrigger asChild>
               <Button
@@ -309,7 +309,7 @@ export default function ActivityHistory() {
       </div>
       <Tabs
         defaultValue="all"
-        className="mt-5"
+        className="mt-5 overflow-x-auto"
         value={activeTab}
         onValueChange={setActiveTab}
       >
