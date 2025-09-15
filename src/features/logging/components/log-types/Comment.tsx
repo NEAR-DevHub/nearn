@@ -17,7 +17,7 @@ export function CommentPinnedUnpinned(props: LogProperties) {
       </p>
 
       {message && (
-        <div className="whitespace-pre-wrap rounded-md bg-slate-50 px-2 py-1 text-slate-600">
+        <div className="whitespace-pre-wrap break-all rounded-md bg-slate-50 px-2 py-1 text-slate-600">
           {message}
         </div>
       )}
@@ -96,7 +96,7 @@ export default function Comment(props: LogProperties) {
 
       {/* Show comment message for non-deleted comments */}
       {message && (
-        <div className="whitespace-pre-wrap rounded-md bg-slate-50 px-2 py-1 text-slate-600">
+        <div className="whitespace-pre-wrap break-all rounded-md bg-slate-50 px-2 py-1 text-slate-600">
           {message}
         </div>
       )}
