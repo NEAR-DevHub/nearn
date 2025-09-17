@@ -1,8 +1,5 @@
 import { type Rewards } from '@/features/listings/types';
 import { EventType } from '@/features/logging/types/event-data';
-import { NotificationRelationType } from '@prisma/client';
-import { type } from 'os';
-import { string } from 'zod';
 
 export const NotificationChannel = {
   EMAIL: 'email',
@@ -34,6 +31,10 @@ export const NotificationType = {
   [EventType.SPONSOR_MEMBER_ACCEPTED]: EventType.SPONSOR_MEMBER_ACCEPTED,
   [EventType.SCOUT_INVITE]: EventType.SCOUT_INVITE,
   LIKE: 'LIKE',
+
+  WEEKLY_ROUNDUP: 'WEEKLY_ROUNDUP',
+  NEW_LISTING_FOR_SKILLS: 'NEW_LISTING_FOR_SKILLS',
+  PRODUCT_UPDATES_AND_NEWS: 'PRODUCT_UPDATES_AND_NEWS',
 } as const;
 
 export type NotificationDataMap = {

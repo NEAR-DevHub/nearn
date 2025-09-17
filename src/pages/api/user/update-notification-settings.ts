@@ -7,67 +7,105 @@ import { safeStringify } from '@/utils/safeStringify';
 import { type NextApiRequestWithUser } from '@/features/auth/types';
 import { withAuth } from '@/features/auth/utils/withAuth';
 
+interface NotificationSettingInput {
+  channel: string;
+  type: string;
+  sponsorId?: string | null;
+  listingScope?: string | null;
+}
+
 async function handler(req: NextApiRequestWithUser, res: NextApiResponse) {
-  const { settings } = req.body;
+  const { settings } = req.body as { settings: NotificationSettingInput[] };
   const userId = req.userId;
 
   logger.debug(`Request body: ${safeStringify(req.body)}`);
 
   try {
-    logger.debug(`Deleting existing email settings for user ID: ${userId}`);
+    // Validate input
+    if (!Array.isArray(settings)) {
+      return res.status(400).json({ message: 'Settings must be an array' });
+    }
+
+    const validChannels = ['email', 'inApp'];
+    const validListingScopes = ['mine', 'all'];
+
+    for (const setting of settings) {
+      if (!validChannels.includes(setting.channel)) {
+        return res
+          .status(400)
+          .json({ message: `Invalid channel: ${setting.channel}` });
+      }
+
+      if (
+        setting.listingScope &&
+        !validListingScopes.includes(setting.listingScope)
+      ) {
+        return res
+          .status(400)
+          .json({ message: `Invalid listing scope: ${setting.listingScope}` });
+      }
+
+      if (!setting.type) {
+        return res
+          .status(400)
+          .json({ message: 'Notification type is required' });
+      }
+    }
+
+    // Delete existing notification settings for the user
+    logger.debug(
+      `Deleting existing notification settings for user ID: ${userId}`,
+    );
     await prisma.notificationSettings.deleteMany({
       where: {
         userId: userId as string,
       },
     });
 
-    if (
-      !settings.every(
-        (setting: [string, string]) =>
-          setting[0] === 'email' || setting[0] === 'onSite',
-      )
-    ) {
-      return res.status(400).json({ message: 'Invalid channel' });
-    }
-
+    // Create new notification settings
     logger.debug(
-      `Creating new email settings for categories: ${safeStringify(settings)}`,
-    );
-    await Promise.all(
-      settings.map((setting: any) =>
-        prisma.notificationSettings.create({
-          data: {
-            userId: userId as string,
-            channel: setting[0],
-            type: setting[1],
-          },
-        }),
-      ),
+      `Creating new notification settings: ${safeStringify(settings)}`,
     );
 
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { email: true },
+    const createData = settings.map((setting) => ({
+      userId: userId as string,
+      channel: setting.channel,
+      type: setting.type,
+      sponsorId: setting.sponsorId || null,
+      listingScope: setting.sponsorId ? setting.listingScope || 'mine' : null,
+    }));
+
+    await prisma.notificationSettings.createMany({
+      data: createData,
     });
 
-    if (user && user.email && settings.length > 0) {
-      logger.debug(`Removing unsubscribe entry for email: ${user.email}`);
-      await prisma.unsubscribedEmail.deleteMany({
-        where: {
-          email: user.email,
-        },
+    // Remove from unsubscribed emails if user has enabled any email notifications
+    const hasEmailNotifications = settings.some((s) => s.channel === 'email');
+    if (hasEmailNotifications) {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { email: true },
       });
+
+      if (user?.email) {
+        logger.debug(`Removing unsubscribe entry for email: ${user.email}`);
+        await prisma.unsubscribedEmail.deleteMany({
+          where: {
+            email: user.email,
+          },
+        });
+      }
     }
 
     logger.info(
-      `Email preferences updated successfully for user ID: ${userId}`,
+      `Notification settings updated successfully for user ID: ${userId}`,
     );
     res
       .status(200)
-      .json({ message: 'Email preferences updated successfully!' });
+      .json({ message: 'Notification settings updated successfully!' });
   } catch (error: any) {
     logger.error(
-      `Failed to update email preferences for user ID: ${userId} - ${safeStringify(
+      `Failed to update notification settings for user ID: ${userId} - ${safeStringify(
         error,
       )}`,
     );

@@ -231,5 +231,12 @@ export function getNotificationAction(
             link: `/${notification?.sponsor?.slug}/${notification?.listing?.sequentialId}/${notification?.submission?.sequentialId}`,
           };
       }
+    case NotificationType.WEEKLY_ROUNDUP:
+    case NotificationType.NEW_LISTING_FOR_SKILLS:
+    case NotificationType.PRODUCT_UPDATES_AND_NEWS:
+      return {
+        message: 'placeholder',
+        link: '/',
+      };
   }
 }

@@ -71,6 +71,8 @@ export const userSelectOptions: Prisma.UserSelect = {
       id: true,
       channel: true,
       type: true,
+      listingScope: true,
+      sponsorId: true,
     },
   },
 };

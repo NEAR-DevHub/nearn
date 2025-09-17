@@ -16,19 +16,19 @@ import {
 } from '../types';
 
 async function checkNotificationChannelsForEvent(
-  _eventType: NotificationType,
-  _receiverId?: string,
+  eventType: NotificationType,
+  receiverId: string,
+  sponsorId: string | null,
 ): Promise<NotificationChannel[]> {
-  return ['inApp'];
+  const eventSettings = await prisma.notificationSettings.findMany({
+    where: {
+      userId: receiverId,
+      type: eventType,
+      sponsorId: sponsorId,
+    },
+  });
 
-  // const eventSettings = await prisma.notificationSettings.findMany({
-  //   where: {
-  //     userId: receiverId,
-  //     type: eventType,
-  //   }
-  // });
-
-  // return eventSettings.map(setting => setting.channel as NotificationChannel);
+  return eventSettings.map((setting) => setting.channel as NotificationChannel);
 }
 
 export async function createNotification<T extends NotificationType>(
@@ -52,6 +52,9 @@ export async function createNotification<T extends NotificationType>(
   const channels = await checkNotificationChannelsForEvent(
     notificationType,
     receiverId,
+    notificationRelationType === NotificationRelationType.SPONSOR
+      ? entities.sponsorId!
+      : null,
   );
 
   for (const channel of channels) {

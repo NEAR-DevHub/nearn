@@ -742,11 +742,12 @@ model Notification {
 }
 
 model NotificationSettings {
-  id        String  @id @default(uuid())
-  channel   String
-  type      String
-  userId    String
-  sponsorId String?
+  id           String  @id @default(uuid())
+  channel      String
+  type         String
+  userId       String
+  sponsorId    String?
+  listingScope String? @default("mine")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -754,8 +755,8 @@ model NotificationSettings {
   user    User      @relation(fields: [userId], references: [id])
   sponsor Sponsors? @relation(fields: [sponsorId], references: [id])
 
-  @@unique([userId, channel, type])
-  @@index([userId, channel, type])
+  @@unique([userId, channel, type, sponsorId])
+  @@index([userId, channel, type, sponsorId])
   @@index([userId])
   @@index([channel])
   @@index([type])

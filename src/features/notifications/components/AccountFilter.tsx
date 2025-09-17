@@ -82,7 +82,7 @@ export function AccountFilter({
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="start"
-        className="w-[250px] p-1.5 text-slate-600"
+        className="z-[1000] w-[250px] p-1.5 text-slate-600"
       >
         <div className="flex items-center space-x-3 p-1.5">
           <Checkbox
