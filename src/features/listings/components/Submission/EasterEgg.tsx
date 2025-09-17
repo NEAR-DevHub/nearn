@@ -1,10 +1,8 @@
-import Image from 'next/image';
 import Pride from 'react-canvas-confetti/dist/presets/pride';
 import { type TDecorateOptionsFn } from 'react-canvas-confetti/dist/types';
 
 import { ExternalImage } from '@/components/ui/cloudinary-image';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { ASSET_URL } from '@/constants/ASSET_URL';
 import { useBreakpoint } from '@/hooks/use-breakpoint';
 
 interface Props {
@@ -74,24 +72,6 @@ export const EasterEgg = ({ isOpen, onClose, isProject }: Props) => {
           <p className="mt-5 text-center text-2xl text-white opacity-60 md:text-3xl">
             Sending some vibes your way 💃 💃
           </p>
-        </div>
-        <div className="mx-auto mt-auto flex h-auto flex-col items-end md:w-full lg:w-1/2">
-          <Image
-            src={ASSET_URL + '/memes/JohnCenaVibingToCupid.gif'}
-            alt="John Cena Vibing to Cupid"
-            style={{
-              width: '100%',
-              height: '100%',
-              marginTop: 'auto',
-              display: 'block',
-            }}
-            width="1000"
-            height="1200"
-            priority
-            loading="eager"
-            quality={80}
-            className="scale-150 md:scale-125"
-          />
         </div>
         <audio
           src={'/assets/JohnCenaVibingToCupid.mp3'}
