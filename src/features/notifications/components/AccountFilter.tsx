@@ -69,7 +69,7 @@ export function AccountFilter({
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          className="w-full justify-start gap-1 rounded-b-none border-b px-4 py-3 text-sm font-normal text-slate-500 hover:bg-transparent hover:text-slate-500"
+          className="w-full justify-start gap-1 rounded-b-none px-4 py-3 text-sm font-normal text-slate-500 hover:bg-transparent hover:text-slate-500"
         >
           Accounts
           <ChevronDown

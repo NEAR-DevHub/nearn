@@ -1,6 +1,6 @@
 'use client';
 
-import { Bell } from 'lucide-react';
+import { Bell, Settings } from 'lucide-react';
 import { useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +11,8 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { useUser } from '@/store/user';
+
+import { NotificationSettingsModal } from '@/features/talent/components/NotificationSettingModal';
 
 import {
   useMarkNotificationsAsRead,
@@ -32,6 +34,7 @@ export function NotificationsPopover() {
     sponsorIds: selectedSponsorIds,
     showTalent: showTalentNotifications,
   });
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const { mutate: markAsRead } = useMarkNotificationsAsRead();
 
   const notifications = data?.pages.flatMap((page) => page.notifications) || [];
@@ -47,6 +50,10 @@ export function NotificationsPopover() {
         }
       }}
     >
+      <NotificationSettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+      />
       <PopoverTrigger asChild>
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-5 w-5" />
@@ -64,13 +71,25 @@ export function NotificationsPopover() {
         align="end"
         className="flex w-[440px] flex-col gap-3 rounded-xl p-0"
       >
-        <AccountFilter
-          userSponsors={user?.UserSponsors || []}
-          selectedSponsorIds={selectedSponsorIds}
-          showTalent={showTalentNotifications}
-          onSelectionChange={setSelectedSponsorIds}
-          onTalentToggle={setShowTalentNotifications}
-        />
+        <div className="flex items-center justify-between border-b">
+          <AccountFilter
+            userSponsors={user?.UserSponsors || []}
+            selectedSponsorIds={selectedSponsorIds}
+            showTalent={showTalentNotifications}
+            onSelectionChange={setSelectedSponsorIds}
+            onTalentToggle={setShowTalentNotifications}
+          />
+          <Button
+            variant="ghost"
+            size="icon"
+            className="mr-5 h-5 w-5 p-0"
+            onClick={() => {
+              setIsSettingsOpen(true);
+            }}
+          >
+            <Settings className="h-5 w-5 text-slate-500" />
+          </Button>
+        </div>
         <NotificationsListWithFilters
           sponsorIds={selectedSponsorIds}
           showTalent={showTalentNotifications}

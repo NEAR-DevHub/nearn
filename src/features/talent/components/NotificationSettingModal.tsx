@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Select,
   SelectContent,
@@ -24,6 +25,7 @@ import { NotificationType } from '@/features/notifications/types';
 interface AlertOptionProps {
   title: string;
   channels: string[];
+  disabled?: string[];
   alertType: 'SPONSOR' | 'TALENT' | 'GENERAL';
   alertId: number;
   userSponsors?: SponsorWithSettings[];
@@ -103,10 +105,12 @@ const sections = {
     {
       title: 'New listings added for my skills',
       type: NotificationType.NEW_LISTING_FOR_SKILLS,
+      disabled: ['inApp'],
     },
     {
       title: 'Weekly roundup of new listings',
       type: NotificationType.WEEKLY_ROUNDUP,
+      disabled: ['inApp'],
     },
     {
       title: 'New comments on my Proof of Work',
@@ -129,6 +133,7 @@ const sections = {
     {
       title: 'Product updates and newsletters',
       type: NotificationType.PRODUCT_UPDATES_AND_NEWS,
+      disabled: ['inApp'],
     },
   ],
 };
@@ -142,6 +147,7 @@ const AlertOption = ({
   alertId,
   userSponsors,
   isExpandable,
+  disabled,
   getGeneralCheckboxState,
   getGeneralListingScope,
 }: AlertOptionProps) => {
@@ -204,12 +210,13 @@ const AlertOption = ({
         return (
           <div key={channel} className="flex w-12 justify-center">
             <Checkbox
-              className="data-[state=unchecked]:border-slate-200"
+              className="data-[state=unchecked]:border-slate-200 disabled:bg-slate-100"
               checked={
                 checkboxState.indeterminate
                   ? 'indeterminate'
                   : checkboxState.checked
               }
+              disabled={disabled?.includes(channel)}
               onCheckedChange={(checked) => {
                 const updateSettingData =
                   channel === 'email'
@@ -659,28 +666,30 @@ export const NotificationSettingsModal = ({
                       </p>
                     </div>
                   </div>
-                  {sections[NotificationRelationType.SPONSOR].map(
-                    (item, index) => (
-                      <AlertOption
-                        key={index}
-                        title={item.title}
-                        channels={['email', 'onSite']}
-                        getNotificationSetting={getNotificationSetting}
-                        updateSetting={updateSetting}
-                        alertId={index}
-                        alertType="SPONSOR"
-                        userSponsors={user?.UserSponsors?.map(
-                          (userSponsor: any) => ({
-                            id: userSponsor.sponsorId,
-                            name: userSponsor.sponsor.name,
-                          }),
-                        )}
-                        isExpandable={true}
-                        getGeneralCheckboxState={getGeneralCheckboxState}
-                        getGeneralListingScope={getGeneralListingScope}
-                      />
-                    ),
-                  )}
+                  <ScrollArea className="max-h-[500px]">
+                    {sections[NotificationRelationType.SPONSOR].map(
+                      (item, index) => (
+                        <AlertOption
+                          key={index}
+                          title={item.title}
+                          channels={['email', 'inApp']}
+                          getNotificationSetting={getNotificationSetting}
+                          updateSetting={updateSetting}
+                          alertId={index}
+                          alertType="SPONSOR"
+                          userSponsors={user?.UserSponsors?.map(
+                            (userSponsor: any) => ({
+                              id: userSponsor.sponsorId,
+                              name: userSponsor.sponsor.name,
+                            }),
+                          )}
+                          isExpandable={true}
+                          getGeneralCheckboxState={getGeneralCheckboxState}
+                          getGeneralListingScope={getGeneralListingScope}
+                        />
+                      ),
+                    )}
+                  </ScrollArea>
                 </div>
               )}
               {showTalentAlerts && (
@@ -703,7 +712,8 @@ export const NotificationSettingsModal = ({
                       <AlertOption
                         key={index}
                         title={item.title}
-                        channels={['email', 'onSite']}
+                        channels={['email', 'inApp']}
+                        disabled={item.disabled}
                         getNotificationSetting={getNotificationSetting}
                         updateSetting={updateSetting}
                         alertId={index}
@@ -733,7 +743,8 @@ export const NotificationSettingsModal = ({
                       key={index}
                       title={item.title}
                       alertType="GENERAL"
-                      channels={['email', 'onSite']}
+                      channels={['email', 'inApp']}
+                      disabled={item.disabled}
                       getNotificationSetting={getNotificationSetting}
                       updateSetting={updateSetting}
                       alertId={index}
