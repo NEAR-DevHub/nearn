@@ -99,6 +99,10 @@ const sections = {
       ],
     },
     {
+      title: 'Deadline related reminders',
+      type: NotificationType.DEADLINE_IN_3_DAYS,
+    },
+    {
       title: 'Listing winners announced',
       type: NotificationType.LISTING_WINNERS_ANNOUNCED,
     },

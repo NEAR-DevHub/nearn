@@ -19,6 +19,7 @@ async function checkNotificationChannelsForEvent(
   eventType: NotificationType,
   receiverId: string,
   sponsorId: string | null,
+  pocId: string | null,
 ): Promise<NotificationChannel[]> {
   const eventSettings = await prisma.notificationSettings.findMany({
     where: {
@@ -28,7 +29,13 @@ async function checkNotificationChannelsForEvent(
     },
   });
 
-  return eventSettings.map((setting) => setting.channel as NotificationChannel);
+  const isPoc = pocId === receiverId;
+
+  return eventSettings
+    .filter((setting) => {
+      return setting.listingScope === 'mine' ? isPoc : true;
+    })
+    .map((setting) => setting.channel as NotificationChannel);
 }
 
 export async function createNotification<T extends NotificationType>(
@@ -49,31 +56,64 @@ export async function createNotification<T extends NotificationType>(
     return;
   }
 
-  const channels = await checkNotificationChannelsForEvent(
-    notificationType,
-    receiverId,
-    notificationRelationType === NotificationRelationType.SPONSOR
-      ? entities.sponsorId!
-      : null,
-  );
-
-  for (const channel of channels) {
-    await prisma.notification.create({
-      data: {
-        receiverId,
-        notificationRelationType,
-        type: notificationType,
-        channel,
-        data: data ?? undefined,
-        ...entities,
+  let receivers = [receiverId];
+  let pocId = null;
+  if (receiverId === 'SPONSOR') {
+    const members = await prisma.userSponsors.findMany({
+      where: {
+        sponsorId: entities.sponsorId!,
+        userId: entities.actorId
+          ? {
+              not: entities.actorId,
+            }
+          : {},
+      },
+      select: {
+        userId: true,
       },
     });
+    receivers = members.map((member) => member.userId!);
+    if (entities.listingId) {
+      const poc = await prisma.bounties.findUnique({
+        select: {
+          pocId: true,
+        },
+        where: {
+          id: entities.listingId,
+        },
+      });
+      pocId = poc?.pocId;
+    }
+  }
+
+  for (const receiverId of receivers) {
+    const channels = await checkNotificationChannelsForEvent(
+      notificationType,
+      receiverId,
+      notificationRelationType === NotificationRelationType.SPONSOR
+        ? entities.sponsorId!
+        : null,
+      pocId ?? null,
+    );
+
+    for (const channel of channels) {
+      await prisma.notification.create({
+        data: {
+          receiverId,
+          notificationRelationType,
+          type: notificationType,
+          channel,
+          data: data ?? undefined,
+          ...entities,
+        },
+      });
+    }
   }
 }
 
 const noNotification = null;
 
-async function fetchSubmittersAndWatchers(
+export async function fetchSubmittersAndWatchers(
   listingId: string | null,
   filterOutWinner: boolean = false,
 ) {
@@ -109,7 +149,7 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
     await createNotification(
       EventType.SUBMISSION_CREATED,
       NotificationRelationType.SPONSOR,
-      event.listing?.pocId!,
+      'SPONSOR',
       {
         sponsorId: event.sponsorId,
         listingId: event.listingId,
@@ -122,7 +162,7 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
     await createNotification(
       EventType.SUBMISSION_EDITED,
       NotificationRelationType.SPONSOR,
-      event.listing?.pocId!,
+      'SPONSOR',
       getEntities(event),
     );
   },
@@ -131,7 +171,7 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
       await createNotification(
         NotificationType.LISTING_COMMENT,
         NotificationRelationType.SPONSOR,
-        event.listing?.pocId!,
+        'SPONSOR',
         getEntities(event),
       );
     } else if (
@@ -151,7 +191,7 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
       await createNotification(
         NotificationType.NOTE_CREATED,
         NotificationRelationType.SPONSOR,
-        event.listing?.pocId!,
+        'SPONSOR',
         getEntities(event),
       );
     } else if (event.comment?.refType === 'POW') {
@@ -314,7 +354,7 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
     await createNotification(
       NotificationType.TREASURY_PROPOSAL_STATUS_CHANGED,
       NotificationRelationType.SPONSOR,
-      event.listing?.pocId!,
+      'SPONSOR',
       getEntities(event),
       {
         status: 'rejected',
@@ -325,7 +365,7 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
     await createNotification(
       NotificationType.TREASURY_PROPOSAL_STATUS_CHANGED,
       NotificationRelationType.SPONSOR,
-      event.listing?.pocId!,
+      'SPONSOR',
       getEntities(event),
       {
         status: 'expired',
@@ -337,7 +377,7 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
       createNotification(
         NotificationType.TREASURY_PROPOSAL_STATUS_CHANGED,
         NotificationRelationType.SPONSOR,
-        event.listing?.pocId!,
+        'SPONSOR',
         getEntities(event),
         {
           status: 'approved',
@@ -391,25 +431,11 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
     if (!event.sponsorId) {
       return;
     }
-
-    const members = await prisma.userSponsors.findMany({
-      where: {
-        sponsorId: event.sponsorId,
-      },
-      select: {
-        userId: true,
-      },
-    });
-
-    await Promise.all(
-      members.map((member) =>
-        createNotification(
-          EventType.SPONSOR_MEMBER_ACCEPTED,
-          NotificationRelationType.SPONSOR,
-          member.userId!,
-          getEntities(event),
-        ),
-      ),
+    createNotification(
+      EventType.SPONSOR_MEMBER_ACCEPTED,
+      NotificationRelationType.SPONSOR,
+      'SPONSOR',
+      getEntities(event),
     );
   },
   [EventType.COMMENT_PINNED]: async (event) => {
@@ -432,24 +458,11 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
         return;
       }
 
-      const members = await prisma.userSponsors.findMany({
-        where: {
-          sponsorId: event.sponsorId,
-        },
-        select: {
-          userId: true,
-        },
-      });
-
-      await Promise.all(
-        members.map((member) =>
-          createNotification(
-            EventType.COMMENT_PINNED,
-            NotificationRelationType.SPONSOR,
-            member.userId!,
-            getEntities(event),
-          ),
-        ),
+      createNotification(
+        EventType.COMMENT_PINNED,
+        NotificationRelationType.SPONSOR,
+        'SPONSOR',
+        getEntities(event),
       );
     }
   },
