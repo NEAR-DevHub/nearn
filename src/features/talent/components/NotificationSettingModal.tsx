@@ -73,11 +73,15 @@ const sections = {
     },
     {
       title: 'Deadline related reminders',
-      type: NotificationType.DEADLINE_IN_3_DAYS,
+      type: [],
     },
     {
       title: 'Notes received on submission',
       type: NotificationType.NOTE_CREATED,
+    },
+    {
+      title: 'NEAR Treasury Related Notifications',
+      types: [NotificationType.TREASURY_PROPOSAL_STATUS_CHANGED],
     },
     {
       title: 'New member joined your team',
@@ -103,8 +107,11 @@ const sections = {
       type: NotificationType.DEADLINE_IN_3_DAYS,
     },
     {
-      title: 'Listing winners announced',
-      type: NotificationType.LISTING_WINNERS_ANNOUNCED,
+      title: 'Listing related notifications',
+      types: [
+        NotificationType.LISTING_WINNERS_ANNOUNCED,
+        NotificationType.LISTING_EDITED,
+      ],
     },
     {
       title: 'New listings added for my skills',
@@ -119,6 +126,14 @@ const sections = {
     {
       title: 'New comments on my Proof of Work',
       type: NotificationType.POW_COMMENT,
+    },
+    {
+      title: 'Sponsor invitation',
+      types: [NotificationType.SPONSOR_MEMBER_INVITED],
+    },
+    {
+      title: 'Scout invitation',
+      types: [NotificationType.SCOUT_INVITE],
     },
   ],
   GENERAL: [
