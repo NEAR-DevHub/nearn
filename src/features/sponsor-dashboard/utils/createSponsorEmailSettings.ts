@@ -8,7 +8,7 @@ export async function createSponsorEmailSettings(userId: string) {
     'replyOrTagComment',
   ]);
 
-  for (const channel of ['email', 'onSite']) {
+  for (const channel of ['email', 'inApp']) {
     for (const category of categories) {
       await prisma.notificationSettings.deleteMany({
         where: {

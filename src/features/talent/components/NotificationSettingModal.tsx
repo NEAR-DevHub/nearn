@@ -73,7 +73,7 @@ const sections = {
     },
     {
       title: 'Deadline related reminders',
-      type: [],
+      types: [NotificationType.DEADLINE_EXCEEDED_BY_WEEK],
     },
     {
       title: 'Notes received on submission',

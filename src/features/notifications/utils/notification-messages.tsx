@@ -178,6 +178,12 @@ export function getNotificationAction(
         link: `/${notification?.sponsor?.slug}/${notification?.listing?.sequentialId}`,
       };
 
+    case NotificationType.DEADLINE_EXCEEDED_BY_WEEK:
+      return {
+        message: `${PROJECT_NAME} Reminder: ${notification?.listing?.title} deadline exceeded by week. Please announce your selection/s on ${PROJECT_NAME} soon!`,
+        link: `/${notification?.sponsor?.slug}/${notification?.listing?.sequentialId}`,
+      };
+
     case NotificationType.LIKE:
       let link = '';
       let name: string = '';
