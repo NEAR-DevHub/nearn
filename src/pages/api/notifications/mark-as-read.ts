@@ -40,6 +40,7 @@ async function markAsRead(
           in: notificationIds,
         },
         receiverId: req.userId,
+        channel: 'inApp',
         deliveredAt: null,
       },
       data: {
