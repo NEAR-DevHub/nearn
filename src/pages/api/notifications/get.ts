@@ -5,6 +5,7 @@ import { prisma } from '@/prisma';
 
 import { type NextApiRequestWithPotentialSponsor } from '@/features/auth/types';
 import { withPotentialSponsorAuth } from '@/features/auth/utils/withPotentialSponsorAuth';
+import { notificationInclude } from '@/features/notifications/queries/useNotifications';
 
 async function notifications(
   req: NextApiRequestWithPotentialSponsor,
@@ -79,83 +80,7 @@ async function notifications(
 
   const notifications = await prisma.notification.findMany({
     where: whereClause,
-    include: {
-      submission: {
-        select: {
-          id: true,
-          sequentialId: true,
-          userId: true,
-          user: {
-            select: {
-              username: true,
-            },
-          },
-        },
-      },
-      listing: {
-        select: {
-          id: true,
-          sequentialId: true,
-          slug: true,
-          type: true,
-          title: true,
-          pocId: true,
-          poc: {
-            select: {
-              username: true,
-            },
-          },
-        },
-      },
-      sponsor: {
-        select: {
-          name: true,
-          slug: true,
-          logo: true,
-        },
-      },
-      actor: {
-        select: {
-          username: true,
-          name: true,
-          photo: true,
-          private: true,
-        },
-      },
-      comment: {
-        select: {
-          id: true,
-          author: {
-            select: {
-              username: true,
-              name: true,
-              photo: true,
-              private: true,
-            },
-          },
-          refType: true,
-          type: true,
-          message: true,
-          repliedTo: {
-            select: {
-              id: true,
-              authorId: true,
-              author: {
-                select: {
-                  username: true,
-                },
-              },
-            },
-          },
-        },
-      },
-      pow: {
-        select: {
-          id: true,
-          userId: true,
-        },
-      },
-    },
+    include: notificationInclude,
     skip: (pageNumber - 1) * limitNumber,
     take: limitNumber,
     orderBy: [

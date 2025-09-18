@@ -99,7 +99,6 @@ const sections = {
         NotificationType.SUBMISSION_APPROVED,
         NotificationType.SUBMISSION_REJECTED,
         NotificationType.SUBMISSION_PAID,
-        NotificationType.WINNER_NOTIFICATION,
       ],
     },
     {
@@ -126,10 +125,6 @@ const sections = {
     {
       title: 'New comments on my Proof of Work',
       type: NotificationType.POW_COMMENT,
-    },
-    {
-      title: 'Sponsor invitation',
-      types: [NotificationType.SPONSOR_MEMBER_INVITED],
     },
     {
       title: 'Scout invitation',

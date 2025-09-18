@@ -263,40 +263,6 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
         ),
       ),
     );
-
-    const winners = await prisma.submission.findMany({
-      where: {
-        listingId: event.listing?.id,
-        isWinner: true,
-      },
-      select: {
-        userId: true,
-        token: true,
-        listing: {
-          select: {
-            rewards: true,
-            token: true,
-          },
-        },
-        winnerPosition: true,
-      },
-    });
-
-    await Promise.all(
-      winners.map((winner) =>
-        createNotification(
-          NotificationType.WINNER_NOTIFICATION,
-          NotificationRelationType.TALENT,
-          winner.userId,
-          getEntities(event),
-          {
-            token: winner.token ?? winner.listing.token!,
-            rewards: winner.listing.rewards as Rewards,
-            winnerPosition: winner.winnerPosition!,
-          },
-        ),
-      ),
-    );
   },
   [EventType.LISTING_EDITED]: async (event) => {
     const submittersAndWatchers = await fetchSubmittersAndWatchers(
@@ -343,11 +309,15 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
     );
   },
   [EventType.SUBMISSION_PAID]: async (event) => {
+    const eventData = event.data as EventDataMap[EventType.SUBMISSION_PAID];
     await createNotification(
       EventType.SUBMISSION_PAID,
       NotificationRelationType.TALENT,
       event.submission?.userId!,
       getEntities(event),
+      {
+        link: eventData.link,
+      },
     );
   },
   [EventType.TREASURY_PROPOSAL_REJECTED]: async (event) => {

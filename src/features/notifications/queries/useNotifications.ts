@@ -1,4 +1,8 @@
-import { type CommentRefType, type CommentType } from '@prisma/client';
+import {
+  type CommentRefType,
+  type CommentType,
+  type Prisma,
+} from '@prisma/client';
 import {
   useInfiniteQuery,
   useMutation,
@@ -6,6 +10,8 @@ import {
 } from '@tanstack/react-query';
 
 import { api } from '@/lib/api';
+
+import { type Rewards } from '@/features/listings/types';
 
 import { type NotificationDataMap, type NotificationType } from '../types';
 
@@ -33,6 +39,8 @@ export interface Notification<T extends NotificationType> {
   submission?: {
     sequentialId: number;
     userId: string;
+    token: string;
+    winnerPosition: number;
     user: {
       username: string;
     };
@@ -43,10 +51,19 @@ export interface Notification<T extends NotificationType> {
     type: 'bounty' | 'sponsorship' | 'project' | 'hackathon';
     title: string;
     slug: string;
+    token: string;
+    rewards: Rewards;
     pocId: string;
+    isPublished: boolean;
+    isPrivate: boolean;
+    pocSocials: string;
     poc: {
       username: string;
     };
+  };
+  receiver: {
+    name: string;
+    username: string;
   };
   comment?: {
     id: string;
@@ -75,8 +92,101 @@ export interface Notification<T extends NotificationType> {
   pow?: {
     id: string;
     userId: string;
+    title: string;
   };
 }
+
+export const notificationInclude: Prisma.NotificationInclude = {
+  submission: {
+    select: {
+      id: true,
+      sequentialId: true,
+      userId: true,
+      token: true,
+      winnerPosition: true,
+      user: {
+        select: {
+          username: true,
+        },
+      },
+    },
+  },
+  listing: {
+    select: {
+      id: true,
+      sequentialId: true,
+      slug: true,
+      type: true,
+      title: true,
+      rewards: true,
+      token: true,
+      pocId: true,
+      isPrivate: true,
+      isPublished: true,
+      pocSocials: true,
+      poc: {
+        select: {
+          username: true,
+        },
+      },
+    },
+  },
+  sponsor: {
+    select: {
+      name: true,
+      slug: true,
+      logo: true,
+    },
+  },
+  actor: {
+    select: {
+      username: true,
+      name: true,
+      photo: true,
+      private: true,
+    },
+  },
+  comment: {
+    select: {
+      id: true,
+      author: {
+        select: {
+          username: true,
+          name: true,
+          photo: true,
+          private: true,
+        },
+      },
+      refType: true,
+      type: true,
+      message: true,
+      repliedTo: {
+        select: {
+          id: true,
+          authorId: true,
+          author: {
+            select: {
+              username: true,
+            },
+          },
+        },
+      },
+    },
+  },
+  receiver: {
+    select: {
+      name: true,
+      username: true,
+    },
+  },
+  pow: {
+    select: {
+      id: true,
+      userId: true,
+      title: true,
+    },
+  },
+};
 
 export interface NotificationsResponse {
   notifications: Notification<NotificationType>[];

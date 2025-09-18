@@ -90,22 +90,6 @@ export function getNotificationAction(
         link: `/${notification?.sponsor?.slug}/${notification?.listing?.sequentialId}`,
       };
 
-    case NotificationType.WINNER_NOTIFICATION:
-      const dataWinner =
-        notification.data as NotificationDataMap['WINNER_NOTIFICATION'];
-      return {
-        message: `Congrats! You were selected as a winner`,
-        showActor: false,
-        link: `/${notification?.sponsor?.slug}/${notification?.listing?.sequentialId}`,
-        subtitle: (
-          <WinnerFeedImage
-            token={dataWinner.token}
-            rewards={dataWinner.rewards}
-            winnerPosition={dataWinner.winnerPosition}
-          />
-        ),
-      };
-
     case NotificationType.LISTING_EDITED:
       const eventDataEdit =
         notification.data as NotificationDataMap['LISTING_EDITED'];

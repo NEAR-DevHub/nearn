@@ -1,17 +1,12 @@
 import crypto from 'crypto';
 import type { NextApiResponse } from 'next';
 
-import { PROJECT_NAME } from '@/constants/project';
 import logger from '@/lib/logger';
 import { prisma } from '@/prisma';
 import { safeStringify } from '@/utils/safeStringify';
-import { getURL } from '@/utils/validUrl';
 
 import { type NextApiRequestWithSponsor } from '@/features/auth/types';
 import { withSponsorAuth } from '@/features/auth/utils/withSponsorAuth';
-import { InviteMemberTemplate } from '@/features/emails/components/inviteMemberTemplate';
-import { fromEmail, replyToEmail } from '@/features/emails/utils/fromEmails';
-import { resend } from '@/features/emails/utils/resend';
 import { eventLogger } from '@/features/logging/services/event-logger';
 import { EventType } from '@/features/logging/types/event-data';
 
@@ -111,19 +106,6 @@ async function sendInvites(
       entities: {
         sponsorId: user.currentSponsor.id,
       },
-    });
-
-    logger.debug(`Sending invite email to: ${email}`);
-    await resend.emails.send({
-      from: fromEmail,
-      to: [email],
-      subject: `${user.name} has invited you to join ${user.currentSponsor.name}'s profile on ${PROJECT_NAME}`,
-      react: InviteMemberTemplate({
-        sponsorName: user.currentSponsor.name,
-        senderName: user.name ?? user.username ?? '',
-        link: `${getURL()}signup?invite=${token}`,
-      }),
-      replyTo: replyToEmail,
     });
 
     logger.info(`Invite sent successfully to ${email} by user ${userId}`);

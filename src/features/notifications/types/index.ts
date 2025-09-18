@@ -20,7 +20,6 @@ export const NotificationType = {
   COMMENT_MENTIONED_YOU: 'COMMENT_MENTIONED_YOU',
   [EventType.COMMENT_PINNED]: EventType.COMMENT_PINNED,
   [EventType.LISTING_WINNERS_ANNOUNCED]: EventType.LISTING_WINNERS_ANNOUNCED,
-  WINNER_NOTIFICATION: 'WINNER_NOTIFICATION',
   [EventType.LISTING_EDITED]: EventType.LISTING_EDITED,
   DEADLINE_IN_3_DAYS: 'DEADLINE_IN_3_DAYS',
   [EventType.SUBMISSION_APPROVED]: EventType.SUBMISSION_APPROVED,
@@ -40,18 +39,13 @@ export const NotificationType = {
 export type NotificationDataMap = {
   [key in Exclude<
     NotificationType,
-    | 'WINNER_NOTIFICATION'
     | 'SUBMISSION_APPROVED'
     | 'LISTING_EDITED'
     | 'SPONSOR_MEMBER_INVITED'
     | 'TREASURY_PROPOSAL_STATUS_CHANGED'
+    | 'SUBMISSION_PAID'
   >]: undefined;
 } & {
-  [NotificationType.WINNER_NOTIFICATION]: {
-    token: string;
-    rewards: Rewards;
-    winnerPosition: keyof Rewards;
-  };
   [EventType.SUBMISSION_APPROVED]: {
     token: string;
     rewards: Rewards;
@@ -68,6 +62,9 @@ export type NotificationDataMap = {
   };
   [NotificationType.TREASURY_PROPOSAL_STATUS_CHANGED]: {
     status: 'approved' | 'rejected' | 'expired';
+  };
+  [NotificationType.SUBMISSION_PAID]: {
+    link: string;
   };
 };
 
