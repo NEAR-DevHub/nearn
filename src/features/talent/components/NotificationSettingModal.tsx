@@ -362,7 +362,6 @@ const useNotificationState = (user: User) => {
           user?.UserSponsors &&
           user.UserSponsors.length > 0
         ) {
-          console.log(userData);
           user.UserSponsors.forEach((userSponsor: any) => {
             if (userData) {
               newState[key]![userSponsor?.sponsorId ?? 'general'] = {

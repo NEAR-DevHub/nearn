@@ -76,8 +76,6 @@ async function notifications(
     AND: [readFilter, sponsorIdFilter, sponsorFilter, talentFilter],
   };
 
-  console.log(JSON.stringify(whereClause, null, 2));
-
   const notifications = await prisma.notification.findMany({
     where: whereClause,
     include: notificationInclude,
