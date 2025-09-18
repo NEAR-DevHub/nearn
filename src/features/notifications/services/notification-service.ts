@@ -33,7 +33,7 @@ async function checkNotificationChannelsForEvent(
 
   return eventSettings
     .filter((setting) => {
-      return setting.listingScope === 'mine' ? isPoc : true;
+      return setting.listingScope === 'mine' && sponsorId ? isPoc : true;
     })
     .map((setting) => setting.channel as NotificationChannel);
 }
