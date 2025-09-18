@@ -656,36 +656,40 @@ export const NotificationSettingsModal = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-xl p-2">
-        <div className="p-6">
-          <h2 className="text-xl font-bold">Notification Settings</h2>
-          <p className="font-medium text-slate-400">
-            Tell us which notification you would like to receive!
-          </p>
-          {!isInitialized ? (
-            <div className="flex items-center justify-center py-8">
-              <p className="text-slate-500">Loading notification settings...</p>
-            </div>
-          ) : (
-            <>
-              {showSponsorAlerts && (
-                <div className="mt-8 space-y-3">
-                  <div className="mb-3 grid grid-cols-[1fr_auto] items-center gap-4">
-                    <p className="text-sm font-medium tracking-[0.8px] text-slate-400">
-                      SPONSOR ALERTS
-                    </p>
-                    <div className="flex gap-4">
-                      <p className="w-20 text-center text-sm text-slate-400">
-                        Listings
+        <div className="h-full">
+          <div className="px-6 pt-6">
+            <h2 className="text-xl font-bold">Notification Settings</h2>
+            <p className="font-medium text-slate-400">
+              Tell us which notification you would like to receive!
+            </p>
+          </div>
+          <ScrollArea className="h-full max-h-[900px] px-6 scrollbar-thin">
+            {!isInitialized ? (
+              <div className="flex items-center justify-center py-8">
+                <p className="text-slate-500">
+                  Loading notification settings...
+                </p>
+              </div>
+            ) : (
+              <>
+                {showSponsorAlerts && (
+                  <div className="mt-8 space-y-3">
+                    <div className="mb-3 grid grid-cols-[1fr_auto] items-center gap-4">
+                      <p className="text-sm font-medium tracking-[0.8px] text-slate-400">
+                        SPONSOR ALERTS
                       </p>
-                      <p className="w-12 text-center text-sm text-slate-400">
-                        Email
-                      </p>
-                      <p className="w-12 text-center text-sm text-slate-400">
-                        In-App
-                      </p>
+                      <div className="flex gap-4">
+                        <p className="w-20 text-center text-sm text-slate-400">
+                          Listings
+                        </p>
+                        <p className="w-12 text-center text-sm text-slate-400">
+                          Email
+                        </p>
+                        <p className="w-12 text-center text-sm text-slate-400">
+                          In-App
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <ScrollArea className="max-h-[500px]">
                     {sections[NotificationRelationType.SPONSOR].map(
                       (item, index) => (
                         <AlertOption
@@ -708,71 +712,71 @@ export const NotificationSettingsModal = ({
                         />
                       ),
                     )}
-                  </ScrollArea>
-                </div>
-              )}
-              {showTalentAlerts && (
-                <div className="mt-6 space-y-3">
-                  <div className="mb-3 grid grid-cols-[1fr_auto] items-center gap-4">
-                    <p className="text-sm font-medium tracking-[0.8px] text-slate-400">
-                      TALENT ALERTS
-                    </p>
-                    <div className="flex gap-4">
-                      <p className="w-12 text-center text-sm text-slate-400">
-                        Email
-                      </p>
-                      <p className="w-12 text-center text-sm text-slate-400">
-                        In-App
-                      </p>
-                    </div>
                   </div>
-                  {sections[NotificationRelationType.TALENT].map(
-                    (item, index) => (
+                )}
+                {showTalentAlerts && (
+                  <div className="mt-6 space-y-3">
+                    <div className="mb-3 grid grid-cols-[1fr_auto] items-center gap-4">
+                      <p className="text-sm font-medium tracking-[0.8px] text-slate-400">
+                        TALENT ALERTS
+                      </p>
+                      <div className="flex gap-4">
+                        <p className="w-12 text-center text-sm text-slate-400">
+                          Email
+                        </p>
+                        <p className="w-12 text-center text-sm text-slate-400">
+                          In-App
+                        </p>
+                      </div>
+                    </div>
+                    {sections[NotificationRelationType.TALENT].map(
+                      (item, index) => (
+                        <AlertOption
+                          key={index}
+                          title={item.title}
+                          channels={['email', 'inApp']}
+                          disabled={item.disabled}
+                          getNotificationSetting={getNotificationSetting}
+                          updateSetting={updateSetting}
+                          alertId={index}
+                          alertType="TALENT"
+                        />
+                      ),
+                    )}
+                  </div>
+                )}
+                {(showTalentAlerts || showSponsorAlerts) && (
+                  <div className="mt-6 space-y-3">
+                    <div className="mb-3 grid grid-cols-[1fr_auto] items-center gap-4">
+                      <p className="text-sm font-medium tracking-[0.8px] text-slate-400">
+                        GENERAL ALERTS
+                      </p>
+                      <div className="flex gap-4">
+                        <p className="w-12 text-center text-sm text-slate-400">
+                          Email
+                        </p>
+                        <p className="w-12 text-center text-sm text-slate-400">
+                          In-App
+                        </p>
+                      </div>
+                    </div>
+                    {sections['GENERAL'].map((item, index) => (
                       <AlertOption
                         key={index}
                         title={item.title}
+                        alertType="GENERAL"
                         channels={['email', 'inApp']}
                         disabled={item.disabled}
                         getNotificationSetting={getNotificationSetting}
                         updateSetting={updateSetting}
                         alertId={index}
-                        alertType="TALENT"
                       />
-                    ),
-                  )}
-                </div>
-              )}
-              {(showTalentAlerts || showSponsorAlerts) && (
-                <div className="mt-6 space-y-3">
-                  <div className="mb-3 grid grid-cols-[1fr_auto] items-center gap-4">
-                    <p className="text-sm font-medium tracking-[0.8px] text-slate-400">
-                      GENERAL ALERTS
-                    </p>
-                    <div className="flex gap-4">
-                      <p className="w-12 text-center text-sm text-slate-400">
-                        Email
-                      </p>
-                      <p className="w-12 text-center text-sm text-slate-400">
-                        In-App
-                      </p>
-                    </div>
+                    ))}
                   </div>
-                  {sections['GENERAL'].map((item, index) => (
-                    <AlertOption
-                      key={index}
-                      title={item.title}
-                      alertType="GENERAL"
-                      channels={['email', 'inApp']}
-                      disabled={item.disabled}
-                      getNotificationSetting={getNotificationSetting}
-                      updateSetting={updateSetting}
-                      alertId={index}
-                    />
-                  ))}
-                </div>
-              )}
-            </>
-          )}
+                )}
+              </>
+            )}
+          </ScrollArea>
         </div>
 
         {isInitialized && (
