@@ -33,6 +33,12 @@ export function getNotificationAction(
           : undefined,
       };
 
+    case NotificationType.SUBMISSION_RECEIVED:
+      return {
+        message: 'Sponsor received your submission',
+        link: `/${notification?.sponsor?.slug}/${notification?.listing?.sequentialId}/${notification?.submission?.sequentialId}`,
+      };
+
     case NotificationType.SUBMISSION_EDITED:
       return {
         message: `updated submission`,

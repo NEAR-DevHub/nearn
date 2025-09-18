@@ -1,3 +1,8 @@
+import {
+  type WeeklyRoundupListing,
+  type WeeklyRoundupSkill,
+} from '@/email-templates/Listing/weeklyRoundupTemplate';
+
 import { type Rewards } from '@/features/listings/types';
 import { EventType } from '@/features/logging/types/event-data';
 
@@ -11,6 +16,7 @@ export type NotificationChannel =
 
 export const NotificationType = {
   [EventType.SUBMISSION_CREATED]: EventType.SUBMISSION_CREATED,
+  SUBMISSION_RECEIVED: 'SUBMISSION_RECEIVED',
   [EventType.SUBMISSION_EDITED]: EventType.SUBMISSION_EDITED,
   LISTING_COMMENT: 'LISTING_COMMENT',
   SUBMISSION_COMMENT: 'SUBMISSION_COMMENT',
@@ -44,6 +50,7 @@ export type NotificationDataMap = {
     | 'SPONSOR_MEMBER_INVITED'
     | 'TREASURY_PROPOSAL_STATUS_CHANGED'
     | 'SUBMISSION_PAID'
+    | 'WEEKLY_ROUNDUP'
   >]: undefined;
 } & {
   [EventType.SUBMISSION_APPROVED]: {
@@ -65,6 +72,10 @@ export type NotificationDataMap = {
   };
   [NotificationType.SUBMISSION_PAID]: {
     link: string;
+  };
+  [NotificationType.WEEKLY_ROUNDUP]: {
+    listings: WeeklyRoundupListing[];
+    userSkills: WeeklyRoundupSkill[];
   };
 };
 

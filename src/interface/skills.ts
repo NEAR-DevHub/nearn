@@ -109,6 +109,22 @@ export const allSkills = Object.keys(skillSubSkillMap) as [
   keyof typeof skillSubSkillMap,
 ];
 
+export const developmentSkills: ParentSkills[] = [
+  'Frontend',
+  'Backend',
+  'Blockchain',
+  'Mobile',
+];
+
+export const nonDevelopmentSubSkills: SubSkillsType[] = Object.entries(
+  skillSubSkillMap,
+).reduce((acc, [key, value]) => {
+  if (!developmentSkills.includes(key as ParentSkills)) {
+    return acc.concat(value.map((subSkill) => subSkill.value));
+  }
+  return acc;
+}, [] as SubSkillsType[]);
+
 const skillSchema = z
   .object({
     skills: z.enum(

@@ -8,12 +8,12 @@ import { getURL } from '@/utils/validUrl';
 import { PROJECT_NAME } from '../../constants/project';
 import { styles } from '../styles';
 
-interface Skill {
+export interface WeeklyRoundupSkill {
   skills: string;
   subskills: string[];
 }
 
-interface Listing {
+export interface WeeklyRoundupListing {
   id: string;
   title: string;
   sponsor: string;
@@ -30,11 +30,11 @@ interface Listing {
 
 interface TemplateProps {
   name: string;
-  listings: Listing[];
-  userSkills: Skill[];
+  listings: WeeklyRoundupListing[];
+  userSkills: WeeklyRoundupSkill[];
 }
 
-const getReward = (listing: Listing) => {
+const getReward = (listing: WeeklyRoundupListing) => {
   const formatNumber = (number: number) =>
     new Intl.NumberFormat('en-US', { maximumSignificantDigits: 3 }).format(
       number,
@@ -60,7 +60,7 @@ const getReward = (listing: Listing) => {
   }
 };
 
-const ListingItem = ({ listing }: { listing: Listing }) => (
+const ListingItem = ({ listing }: { listing: WeeklyRoundupListing }) => (
   <li style={styles.text}>
     <div>
       <a
@@ -83,14 +83,14 @@ export const WeeklyRoundupTemplate = ({
   listings,
   userSkills,
 }: TemplateProps) => {
-  const groupedListings: Record<string, Listing[]> = {};
+  const groupedListings: Record<string, WeeklyRoundupListing[]> = {};
   const usedListings = new Set<string>();
 
   userSkills.forEach((userSkill) => {
     const skillListings = listings.filter(
       (listing) =>
         listing.skills.some(
-          (skill: Skill) => skill.skills === userSkill.skills,
+          (skill: WeeklyRoundupSkill) => skill.skills === userSkill.skills,
         ) && !usedListings.has(listing.id),
     );
 

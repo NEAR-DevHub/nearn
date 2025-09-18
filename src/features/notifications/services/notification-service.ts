@@ -157,6 +157,13 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
         actorId: event.actorId,
       },
     );
+
+    await createNotification(
+      NotificationType.SUBMISSION_RECEIVED,
+      NotificationRelationType.TALENT,
+      event.submission?.userId!,
+      { ...getEntities(event), actorId: undefined },
+    );
   },
   [EventType.SUBMISSION_EDITED]: async (event) => {
     await createNotification(

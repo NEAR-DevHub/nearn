@@ -3,10 +3,12 @@ import { DeadlineThreeDaysTemplate } from '@/email-templates/Deadline/deadline3d
 import { LikeTemplate } from '@/email-templates/likeTemplate';
 import { ListingEditedTemplate } from '@/email-templates/Listing/listingEditedTemplate';
 import { ScoutInviteTemplate } from '@/email-templates/Listing/scoutInviteTemplate';
+import { WeeklyRoundupTemplate } from '@/email-templates/Listing/weeklyRoundupTemplate';
 import { SponsorMemberAcceptedTemplate } from '@/email-templates/Sponsor/sponsorMemberAcceptedTemplate';
 import { SubmissionCreatedTemplate } from '@/email-templates/Submission/submissionCreatedTemplate';
 import { SubmissionEditedTemplate } from '@/email-templates/Submission/submissionEditedTemplate';
 import { SubmissionRejectedTemplate } from '@/email-templates/Submission/submissionRejectedTemplate';
+import { SubmissionTemplate } from '@/email-templates/Submission/submissionTemplate';
 import { TreasuryProposalStatusChangedTemplate } from '@/email-templates/Treasury/treasuryProposalStatusChangedTemplate';
 import { PaymentReceivedTemplate } from '@/email-templates/Winners/paymentReceivedTemplate';
 import { WinnersAnnouncedTemplate } from '@/email-templates/Winners/winnersAnnouncedTemplate';
@@ -204,12 +206,33 @@ export async function prepareReactEmail<T extends NotificationType>(
       break;
 
     case NotificationType.WEEKLY_ROUNDUP:
+      const eventDataWeeklyRoundup =
+        notification.data as NotificationDataMap['WEEKLY_ROUNDUP'];
+      component = (
+        <WeeklyRoundupTemplate
+          name={notification.receiver.name}
+          listings={eventDataWeeklyRoundup.listings}
+          userSkills={eventDataWeeklyRoundup.userSkills}
+        />
+      );
+      subject = `Weekly listing roundup`;
       break;
 
     case NotificationType.NEW_LISTING_FOR_SKILLS:
       break;
 
     case NotificationType.PRODUCT_UPDATES_AND_NEWS:
+      break;
+
+    case NotificationType.SUBMISSION_RECEIVED:
+      component = (
+        <SubmissionTemplate
+          listingName={notification.listing?.title!}
+          type={notification.listing?.type!}
+          name={notification.receiver.name}
+        />
+      );
+      subject = `Submission received!`;
       break;
   }
 
