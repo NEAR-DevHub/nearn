@@ -198,8 +198,8 @@ export async function prepareReactEmail<T extends NotificationType>(
         likeSubject = `${notification.actor?.username} liked your submission`;
       } else if (notification.pow) {
         likeSubject = `${notification.actor?.username} liked your proof of work`;
-      } else if (notification.listing) {
-        likeSubject = `${notification.actor?.username} liked your listing`;
+      } else if (notification.commentId) {
+        likeSubject = `${notification.actor?.username} liked your comment`;
       }
       component = <LikeTemplate notification={notification} />;
       subject = likeSubject;

@@ -21,16 +21,15 @@ export const LikeTemplate = <T extends NotificationType>({
   let title;
   let link;
 
-  if (notification.listingId) {
+  if (notification.commentId) {
     title = (
       <strong>
-        {notification.actor?.name || notification.actor?.username} liked your
-        listing{' '}
+        {notification.actor?.name || notification.actor?.username} liked your{' '}
         <a
-          href={`${getBountyUrl({ ...notification.listing, sponsor: notification.sponsor } as any)}`}
+          href={`${getURL()}comment/${notification.commentId}`}
           style={styles.link}
         >
-          {notification.listing?.title}
+          comment
         </a>
       </strong>
     );

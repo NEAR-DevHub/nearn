@@ -20,7 +20,7 @@ export const SponsorMemberAcceptedTemplate = <T extends NotificationType>({
       <p style={styles.greetings}>Hi {notification.receiver.name},</p>
       <p style={styles.textWithMargin}>
         Great news! {notification.actor?.name || notification.actor?.username}{' '}
-        has accepted your invitation to join{' '}
+        has accepted invitation to join{' '}
         <span style={{ fontWeight: 'semibold' }}>
           {notification.sponsor?.name}
         </span>
