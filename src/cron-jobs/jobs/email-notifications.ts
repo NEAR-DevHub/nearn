@@ -30,7 +30,7 @@ export async function sendEmailNotifications(): Promise<CronJobResult> {
         channel: NotificationChannel.EMAIL,
         deliveredAt: null,
       },
-      include: notificationInclude,
+      include: { ...notificationInclude, receiver: true },
     });
 
     for (const notification of notifications) {
