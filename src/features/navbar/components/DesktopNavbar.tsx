@@ -11,6 +11,8 @@ import { PROJECT_NAME } from '@/constants/project';
 import { useUser } from '@/store/user';
 import { cn } from '@/utils/cn';
 
+import { NotificationsPopover } from '@/features/notifications/components';
+
 import { LISTING_NAV_ITEMS } from '../constants';
 import { NavLink } from './NavLink';
 import { UserMenu } from './UserMenu';
@@ -128,6 +130,7 @@ export const DesktopNavbar = ({ onLoginOpen, onSearchOpen }: Props) => {
                   </Link>
                 </Button>
               )}
+              <NotificationsPopover />
               <UserMenu />
             </div>
           )}

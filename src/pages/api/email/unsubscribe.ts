@@ -46,8 +46,8 @@ export default async function handler(
       data: { email },
     });
 
-    await prisma.emailSettings.deleteMany({
-      where: { user: { email } },
+    await prisma.notificationSettings.deleteMany({
+      where: { user: { email }, channel: 'email' },
     });
 
     if (req.method === 'GET') {

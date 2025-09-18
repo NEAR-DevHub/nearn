@@ -8,6 +8,9 @@ import {
 import logger from '@/lib/logger';
 import { prisma } from '@/prisma';
 
+import { createNotificationFromEvent } from '@/features/notifications/services/notification-service';
+
+import { type Log as LogType, prismaLogInclude } from '../queries';
 import { type EventDataMap, EventType } from '../types/event-data';
 
 export interface Log<T extends EventType> {
@@ -17,6 +20,7 @@ export interface Log<T extends EventType> {
   entities?: {
     listingId?: string;
     submissionId?: string;
+    powId?: string;
     sponsorId?: string;
     commentId?: string;
   };
@@ -26,8 +30,8 @@ export interface Log<T extends EventType> {
 }
 
 export interface EventLogger {
-  log<T extends EventType>(params: Log<T>): Promise<void>;
-  bulkLog(events: Array<Log<EventType>>): Promise<void>;
+  log<T extends EventType>(params: Log<T>): Promise<LogType | undefined>;
+  bulkLog(events: Array<Log<EventType>>): Promise<LogType[]>;
 }
 
 /**
@@ -60,6 +64,7 @@ function getDefaultVisibility(eventType: EventType): EventVisibility {
     [EventType.SPONSOR_TREASURY_ADDED]: 'SPONSOR',
     [EventType.SPONSOR_TREASURY_REMOVED]: 'SPONSOR',
     [EventType.SPONSOR_MEMBER_INVITED]: 'SPONSOR',
+    [EventType.SCOUT_INVITE]: 'SPONSOR',
     [EventType.SPONSOR_MEMBER_REMOVED]: 'SPONSOR',
     [EventType.SPONSOR_MEMBER_INVITE_REMOVED]: 'SPONSOR',
     [EventType.SPONSOR_MEMBER_ACCEPTED]: 'SPONSOR',
@@ -84,11 +89,12 @@ class EventLoggerService implements EventLogger {
     this.prisma = prismaClient;
   }
 
-  async log<T extends EventType>(params: Log<T>): Promise<void> {
-    await this.bulkLog([params]);
+  async log<T extends EventType>(params: Log<T>): Promise<LogType | undefined> {
+    const log = await this.bulkLog([params]);
+    return log[0];
   }
 
-  async bulkLog(events: Array<Log<EventType>>): Promise<void> {
+  async bulkLog(events: Array<Log<EventType>>): Promise<LogType[]> {
     // Process events and check for GOD role when actorType is SPONSOR
     const processedEvents = await Promise.all(
       events.map(async (event) => {
@@ -146,6 +152,7 @@ class EventLoggerService implements EventLogger {
           actorType: finalActorType,
           listingId: event.entities?.listingId || null,
           submissionId: event.entities?.submissionId || null,
+          powId: event.entities?.powId || null,
           sponsorId: event.entities?.sponsorId || null,
           commentId: event.entities?.commentId || null,
           data: event.data as Prisma.JsonObject,
@@ -156,11 +163,21 @@ class EventLoggerService implements EventLogger {
     );
 
     try {
-      await this.prisma.eventLog.createMany({
-        data: processedEvents,
-        skipDuplicates: true,
+      const logs = await this.prisma.$transaction(async (tx) => {
+        const logs: LogType[] = [];
+        for (const event of processedEvents) {
+          const log = await tx.eventLog.create({
+            data: event,
+            include: prismaLogInclude,
+          });
+          logs.push(log as unknown as LogType);
+          await createNotificationFromEvent(log as unknown as LogType);
+        }
+        return logs;
       });
+
       logger.info(`Successfully logged ${events.length} events`);
+      return logs;
     } catch (error) {
       console.error('Failed to bulk log events:', error);
       throw new Error(

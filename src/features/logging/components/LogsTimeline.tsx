@@ -87,6 +87,7 @@ const eventIcons: Record<EventType, React.ReactNode> = {
     <Pencil className="h-4 w-4" />
   ),
   [EventType.AUTOMATION_LOG]: <RefreshCcw className="h-4 w-4" />,
+  [EventType.SCOUT_INVITE]: <UserCog className="h-4 w-4" />,
 };
 
 export default function LogsTimeline({

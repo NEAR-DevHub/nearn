@@ -100,19 +100,23 @@ async function handler(req: NextApiRequestWithUser, res: NextApiResponse) {
       'productAndNewsletter',
     ]);
 
-    for (const category of categories) {
-      await prisma.emailSettings.deleteMany({
-        where: {
-          userId,
-          category,
-        },
-      });
-      await prisma.emailSettings.create({
-        data: {
-          user: { connect: { id: userId as string } },
-          category: category as string,
-        },
-      });
+    for (const channel of ['email', 'inApp']) {
+      for (const category of categories) {
+        await prisma.notificationSettings.deleteMany({
+          where: {
+            userId,
+            channel,
+            type: category,
+          },
+        });
+        await prisma.notificationSettings.create({
+          data: {
+            user: { connect: { id: userId as string } },
+            channel,
+            type: category as string,
+          },
+        });
+      }
     }
 
     logger.info(

@@ -19,7 +19,7 @@ import { useDisclosure } from '@/hooks/use-disclosure';
 import { useLogout, useUser } from '@/store/user';
 
 import { EarnAvatar } from '@/features/talent/components/EarnAvatar';
-import { EmailSettingsModal } from '@/features/talent/components/EmailSettingsModal';
+import { NotificationSettingsModal } from '@/features/talent/components/NotificationSettingModal';
 
 export function UserMenu() {
   const router = useRouter();
@@ -56,7 +56,7 @@ export function UserMenu() {
 
   return (
     <>
-      <EmailSettingsModal isOpen={isOpen} onClose={handleClose} />
+      <NotificationSettingsModal isOpen={isOpen} onClose={handleClose} />
       {user &&
         !user.currentSponsorId &&
         !user.isTalentFilled &&
@@ -161,7 +161,7 @@ export function UserMenu() {
               }}
               className="text-sm text-slate-500"
             >
-              Email Preferences
+              Notification Preferences
             </DropdownMenuItem>
           )}
 

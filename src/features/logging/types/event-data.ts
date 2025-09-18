@@ -45,7 +45,7 @@ export enum EventType {
   PLATFORM_ADMIN_SUBMISSION_STATUS_EDITED = 'PLATFORM_ADMIN_SUBMISSION_STATUS_EDITED',
   SYSTEM_STATUS_CHANGED = 'SYSTEM_STATUS_CHANGED',
   SYSTEM_STATUS_IN_REVIEW = 'SYSTEM_STATUS_IN_REVIEW',
-
+  SCOUT_INVITE = 'SCOUT_INVITE',
   AUTOMATION_LOG = 'AUTOMATION_LOG',
 }
 
@@ -200,6 +200,7 @@ export interface EventDataMap {
     invitedEmail: string;
     invitedUserId?: string;
     role: Role;
+    token?: string;
   };
 
   [EventType.SPONSOR_MEMBER_REMOVED]: {
@@ -237,7 +238,7 @@ export interface EventDataMap {
     }>;
   };
 
-  [EventType.LISTING_COMPLETED]: Record<string, never>; // TODO: except for sponsorship manual
+  [EventType.LISTING_COMPLETED]: Record<string, never>;
   [EventType.LISTING_UNPUBLISHED]: Record<string, never>;
   [EventType.LISTING_WINNERS_ANNOUNCED]: {
     winners: Array<{
@@ -349,6 +350,10 @@ export interface EventDataMap {
         | PlatformAdminSubmissionFieldValueMap[PlatformAdminEditableSubmissionFields]
         | null;
     }>;
+  };
+
+  [EventType.SCOUT_INVITE]: {
+    scoutUserId?: string;
   };
 
   [EventType.AUTOMATION_LOG]: {

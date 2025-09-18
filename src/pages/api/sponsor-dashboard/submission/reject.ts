@@ -6,7 +6,6 @@ import { prisma } from '@/prisma';
 import { type NextApiRequestWithSponsor } from '@/features/auth/types';
 import { checkListingSponsorAuth } from '@/features/auth/utils/checkListingSponsorAuth';
 import { withSponsorAuth } from '@/features/auth/utils/withSponsorAuth';
-import { sendEmailNotification } from '@/features/emails/utils/sendEmailNotification';
 import { eventLogger } from '@/features/logging/services/event-logger';
 import { EventType } from '@/features/logging/types/event-data';
 
@@ -105,12 +104,6 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
             sponsorId: req.userSponsorId,
           },
           data: {},
-        });
-        sendEmailNotification({
-          type: 'submissionRejected',
-          id: submission.id,
-          userId: submission.userId,
-          triggeredBy: req.userId,
         });
       } catch (err) {
         logger.warn(

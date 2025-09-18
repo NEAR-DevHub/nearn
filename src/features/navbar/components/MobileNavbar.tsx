@@ -13,6 +13,8 @@ import { useDisclosure } from '@/hooks/use-disclosure';
 import { useUser } from '@/store/user';
 import { cn } from '@/utils/cn';
 
+import { NotificationsPopover } from '@/features/notifications/components';
+
 import {
   CATEGORY_NAV_ITEMS,
   LISTING_NAV_ITEMS,
@@ -190,7 +192,12 @@ export const MobileNavbar = ({ onLoginOpen }: Props) => {
               />
             </Link>
           </div>
-          {status === 'authenticated' && session && <UserMenu />}
+          {status === 'authenticated' && session && (
+            <div className="flex items-center gap-2">
+              <NotificationsPopover />
+              <UserMenu />
+            </div>
+          )}
           {status === 'unauthenticated' && !session && (
             <Button
               variant="ghost"

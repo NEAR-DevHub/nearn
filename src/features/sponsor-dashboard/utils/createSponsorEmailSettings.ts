@@ -8,18 +8,22 @@ export async function createSponsorEmailSettings(userId: string) {
     'replyOrTagComment',
   ]);
 
-  for (const category of categories) {
-    await prisma.emailSettings.deleteMany({
-      where: {
-        userId,
-        category,
-      },
-    });
-    await prisma.emailSettings.create({
-      data: {
-        user: { connect: { id: userId } },
-        category,
-      },
-    });
+  for (const channel of ['email', 'inApp']) {
+    for (const category of categories) {
+      await prisma.notificationSettings.deleteMany({
+        where: {
+          userId,
+          channel,
+          type: category,
+        },
+      });
+      await prisma.notificationSettings.create({
+        data: {
+          user: { connect: { id: userId } },
+          channel,
+          type: category,
+        },
+      });
+    }
   }
 }

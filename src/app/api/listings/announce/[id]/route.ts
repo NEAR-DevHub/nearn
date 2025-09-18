@@ -1,8 +1,6 @@
-import { waitUntil } from '@vercel/functions';
 import { headers } from 'next/headers';
 import { type NextRequest, NextResponse } from 'next/server';
 
-import earncognitoClient from '@/lib/earncognitoClient';
 import logger from '@/lib/logger';
 import { prisma } from '@/prisma';
 import { dayjs } from '@/utils/dayjs';
@@ -11,7 +9,6 @@ import { safeStringify } from '@/utils/safeStringify';
 
 import { checkListingSponsorAuth } from '@/features/auth/utils/checkListingSponsorAuth';
 import { getSponsorSession } from '@/features/auth/utils/getSponsorSession';
-import { sendEmailNotification } from '@/features/emails/utils/sendEmailNotification';
 import { BONUS_REWARD_POSITION } from '@/features/listing-builder/constants';
 import { type Rewards } from '@/features/listings/types';
 import { isDeadlineOver } from '@/features/listings/utils/deadline';
@@ -234,55 +231,6 @@ export async function POST(
         },
       });
     }
-
-    waitUntil(
-      (async () => {
-        try {
-          await earncognitoClient.post(`/discord/winners-announced`, {
-            listingId: listing?.id,
-          });
-        } catch (err) {
-          logger.error('Discord Listing Update Message Error', err);
-        }
-
-        if (listing.type !== 'sponsorship') {
-          logger.debug('Sending winner announcement email notifications');
-          sendEmailNotification({
-            type: 'announceWinners',
-            id,
-            triggeredBy: userId,
-          });
-        }
-
-        if (
-          listing?.sponsor?.st &&
-          listing.type !== 'project' &&
-          listing.isFndnPaying
-        ) {
-          sendEmailNotification({
-            type: 'STWinners',
-            id,
-            triggeredBy: userId,
-          });
-        } else {
-          sendEmailNotification({
-            type: 'nonSTWinners',
-            id,
-            triggeredBy: userId,
-          });
-        }
-
-        try {
-          await earncognitoClient.post(`/airtable/sync-announced-listings`, {
-            listingId: listing?.id,
-          });
-        } catch (err) {
-          logger.error('Airatable Listing Sync Message Error', err);
-        }
-
-        logger.info(`ALl Non Blocking Tasks Triggered`);
-      })(),
-    );
 
     logger.info(`Winners announced successfully for bounty ID: ${id}`);
     return NextResponse.json({ message: 'Success' }, { status: 200 });
