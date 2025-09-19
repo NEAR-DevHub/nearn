@@ -93,7 +93,7 @@ export function RewardsSheet() {
       >
         <SheetHeader className="shrink-0 space-y-6 p-6 pb-0">
           <SheetTitle>Add Rewards</SheetTitle>
-          <TokenSelect />
+          <TokenSelect disableAny={type !== 'sponsorship'} />
           {(type === 'project' || type === 'sponsorship') && (
             <PaymentType isDisabled={type === 'sponsorship'} />
           )}

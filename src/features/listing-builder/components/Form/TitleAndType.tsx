@@ -201,6 +201,8 @@ function Type() {
                   if (e === 'sponsorship') {
                     form.setValue('compensationType', 'variable');
                     form.setValue('rewardAmount', undefined);
+                    form.setValue('rewards', undefined);
+                    form.setValue('maxBonusSpots', 0);
                   } else if (e !== 'project') {
                     form.setValue('compensationType', 'fixed');
                     form.setValue(
@@ -217,6 +219,10 @@ function Type() {
                     } else {
                       form.setValue('rewardAmount', undefined);
                     }
+                  }
+
+                  if (e !== 'sponsorship' && values.token === 'Any') {
+                    form.setValue('token', 'USDC');
                   }
 
                   if (e !== 'sponsorship' && submissionLimit === 'multiple') {
