@@ -8,6 +8,15 @@ import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
+import {
+  Tabs,
+  TabsContent,
+  TabsContents,
+  TabsHighlight,
+  TabsHighlightItem,
+  TabsList,
+  TabsTrigger,
+} from '@/components/animate-ui/primitives/animate/tabs';
 import { ImagePicker } from '@/components/shared/ImagePicker';
 import { MinimalTiptapEditor } from '@/components/tiptap';
 import { Button } from '@/components/ui/button';
@@ -23,7 +32,6 @@ import {
 import { FormFieldWrapper } from '@/components/ui/form-field-wrapper';
 import { Input } from '@/components/ui/input';
 import { MultiSelect } from '@/components/ui/multi-select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CHAIN_NAME, PROJECT_NAME } from '@/constants/project';
 import { Default } from '@/layouts/Default';
 import { Meta } from '@/layouts/Meta';
@@ -504,37 +512,45 @@ export default function EditPage() {
           </p>
         </div>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList
-            className={cn(
-              'relative mb-8 w-full justify-start gap-4',
-              'before:absolute before:bottom-[-2px] before:left-0 before:right-0 before:h-[2px] before:w-full before:bg-slate-200',
-            )}
-          >
-            <TabsTrigger
-              value="edit"
+          <TabsHighlight>
+            <TabsList
               className={cn(
-                'data-[state=active]:bg-transparent data-[state=hover]:bg-brand-green-50 data-[state=active]:text-slate-500 after:data-[state=active]:bg-brand-green-50 hover:text-slate-500',
-                'hover:after:absolute hover:after:bottom-[-6px] hover:after:left-0 hover:after:h-[2px] hover:after:w-full hover:after:bg-brand-green-50',
+                'relative mb-8 flex w-full justify-start gap-4 text-slate-500',
+                'before:absolute before:bottom-[-6px] before:left-0 before:right-0 before:h-[2px] before:w-full before:bg-slate-200',
               )}
             >
-              Sponsor Information
-            </TabsTrigger>
-            <TabsTrigger
-              value="integrations"
-              className={cn(
-                'data-[state=active]:bg-transparent data-[state=hover]:bg-brand-green-50 data-[state=active]:text-slate-500 after:data-[state=active]:bg-brand-green-50 hover:text-slate-500',
-                'hover:after:absolute hover:after:bottom-[-6px] hover:after:left-0 hover:after:h-[2px] hover:after:w-full hover:after:bg-brand-green-50',
-              )}
-            >
-              Integrations
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="edit">
-            <EditSponsor />
-          </TabsContent>
-          <TabsContent value="integrations">
-            <Integrations />
-          </TabsContent>
+              <TabsHighlightItem value="edit">
+                <TabsTrigger
+                  value="edit"
+                  className={cn(
+                    'data-[active=true]:bg-transparent data-[hover=true]:bg-brand-green-50 data-[active=true]:text-slate-500 data-[active=true]:after:bg-brand-green-50 hover:text-slate-500',
+                    'after:absolute after:bottom-[-6px] after:left-0 after:h-[2px] after:w-full hover:after:bg-brand-green-50',
+                    'after:transition-colors after:duration-500',
+                  )}
+                >
+                  Sponsor Information
+                </TabsTrigger>
+              </TabsHighlightItem>
+              <TabsHighlightItem
+                value="integrations"
+                className={cn(
+                  'data-[active=true]:bg-transparent data-[hover=true]:bg-brand-green-50 data-[active=true]:text-slate-500 data-[active=true]:after:bg-brand-green-50 hover:text-slate-500',
+                  'after:absolute after:bottom-[-6px] after:left-0 after:h-[2px] after:w-full hover:after:bg-brand-green-50',
+                  'after:transition-colors after:duration-500',
+                )}
+              >
+                <TabsTrigger value="integrations">Integrations</TabsTrigger>
+              </TabsHighlightItem>
+            </TabsList>
+          </TabsHighlight>
+          <TabsContents>
+            <TabsContent value="edit">
+              <EditSponsor />
+            </TabsContent>
+            <TabsContent value="integrations">
+              <Integrations />
+            </TabsContent>
+          </TabsContents>
         </Tabs>
       </div>
     </Default>
