@@ -1,9 +1,7 @@
+import { Link, Section, Text } from '@react-email/components';
 import React from 'react';
 
-import { Salutation } from '@/components/email-templates/salutation';
-import { UnsubscribeLine } from '@/components/email-templates/unsubscribeLine';
-
-import { styles } from '../styles';
+import { Email } from '@/email-templates/BasicEmail';
 
 interface TemplateProps {
   name: string;
@@ -17,19 +15,21 @@ export const DeadlineThreeDaysTemplate = ({
   link,
 }: TemplateProps) => {
   return (
-    <div style={styles.container}>
-      <p style={styles.greetings}>Hey {name},</p>
-      <p style={styles.textWithMargin}>
-        Friendly reminder that the listing &quot;
-        <span style={{ fontWeight: 400 }}>{listingName}&quot;</span>{' '}
-        you&nbsp;had indicated&nbsp;interest in will close in 3 days!{' '}
-        <a href={link} style={styles.link}>
-          Click here
-        </a>{' '}
-        to take another look.
-      </p>
-      <Salutation />
-      <UnsubscribeLine />
-    </div>
+    <Email
+      userName={name}
+      preview={`Reminder: "${listingName}" closes in 3 days`}
+    >
+      <Section>
+        <Text className="text-base text-slate-600">
+          Friendly reminder that the listing &quot;
+          <span className="font-normal">{listingName}</span>&quot; you had
+          indicated interest in will close in 3 days!{' '}
+          <Link href={link} className="font-medium text-slate-900 underline">
+            Click here
+          </Link>{' '}
+          to take another look.
+        </Text>
+      </Section>
+    </Email>
   );
 };

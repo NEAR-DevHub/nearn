@@ -1,11 +1,9 @@
+import { Section, Text } from '@react-email/components';
 import React from 'react';
 
-import { Salutation } from '@/components/email-templates/salutation';
-import { UnsubscribeLine } from '@/components/email-templates/unsubscribeLine';
+import { Email } from '@/email-templates/BasicEmail';
 
 import { type Notification } from '@/features/notifications/queries/useNotifications';
-
-import { styles } from '../styles';
 
 interface TemplateProps {
   notification: Notification<'TREASURY_PROPOSAL_STATUS_CHANGED'>;
@@ -21,43 +19,45 @@ export const TreasuryProposalStatusChangedTemplate = ({
       : status === 'rejected'
         ? 'rejected'
         : 'expired';
-  const statusColor =
+  const statusColorClass =
     status === 'approved'
-      ? '#059669'
+      ? 'text-green-600'
       : status === 'rejected'
-        ? '#DC2626'
-        : '#F59E0B';
+        ? 'text-red-600'
+        : 'text-amber-500';
 
   return (
-    <div style={styles.container}>
-      <p style={styles.greetings}>Hi {notification.receiver.name},</p>
-      <p style={styles.textWithMargin}>
-        Your treasury proposal has been{' '}
-        <span style={{ color: statusColor, fontWeight: 'semibold' }}>
-          {statusText}
-        </span>
-        .
-      </p>
-      {status === 'approved' && (
-        <p style={styles.textWithMargin}>
-          We noticed that treasury payment has been approved. No extra steps are
-          required.
-        </p>
-      )}
-      {status === 'rejected' && (
-        <p style={styles.textWithMargin}>
-          Unfortunately, your payment proposal has been rejected. Please provide
-          another method of payment.
-        </p>
-      )}
-      {status === 'expired' && (
-        <p style={styles.textWithMargin}>
-          Your payment proposal has expired due to inactivity. Please submit a
-          new proposal or pay submission using another method.
-        </p>
-      )}
-      <Salutation />
-      <UnsubscribeLine />
-    </div>
+    <Email
+      userName={notification.receiver.name}
+      preview={`Your treasury proposal has been ${statusText}`}
+    >
+      <Section>
+        <Text className="mb-4 text-base text-slate-600">
+          Your treasury proposal has been{' '}
+          <span className={`${statusColorClass} font-semibold`}>
+            {statusText}
+          </span>
+          .
+        </Text>
+        {status === 'approved' && (
+          <Text className="text-base text-slate-600">
+            We noticed that treasury payment has been approved. No extra steps
+            are required.
+          </Text>
+        )}
+        {status === 'rejected' && (
+          <Text className="text-base text-slate-600">
+            Unfortunately, your payment proposal has been rejected. Please
+            provide another method of payment.
+          </Text>
+        )}
+        {status === 'expired' && (
+          <Text className="text-base text-slate-600">
+            Your payment proposal has expired due to inactivity. Please submit a
+            new proposal or pay submission using another method.
+          </Text>
+        )}
+      </Section>
+    </Email>
   );
 };

@@ -1,9 +1,7 @@
+import { Link, Section, Text } from '@react-email/components';
 import React from 'react';
 
-import { Salutation } from '@/components/email-templates/salutation';
-import { UnsubscribeLine } from '@/components/email-templates/unsubscribeLine';
-
-import { styles } from '../styles';
+import { Email } from '@/email-templates/BasicEmail';
 
 interface TemplateProps {
   name: string;
@@ -17,20 +15,20 @@ export const WinnersAnnouncedTemplate = ({
   link,
 }: TemplateProps) => {
   return (
-    <div style={styles.container}>
-      <p style={styles.greetings}>Hey {name},</p>
-      <p style={styles.textWithMargin}>
-        The recipients for the <strong>{listingName}</strong> opportunity have
-        been selected!{' '}
-        <p style={styles.text}>
-          <a href={link} style={styles.link}>
+    <Email userName={name} preview={`Winners announced for ${listingName}`}>
+      <Section>
+        <Text className="mb-4 text-base text-slate-600">
+          The recipients for the{' '}
+          <span className="font-bold">{listingName}</span> opportunity have been
+          selected!
+        </Text>
+        <Text className="text-base text-slate-600">
+          <Link href={link} className="font-medium text-slate-900 underline">
             Click here
-          </a>{' '}
+          </Link>{' '}
           to see the results.
-        </p>
-      </p>
-      <Salutation />
-      <UnsubscribeLine />
-    </div>
+        </Text>
+      </Section>
+    </Email>
   );
 };

@@ -1,11 +1,10 @@
+import { Link, Section, Text } from '@react-email/components';
 import React from 'react';
 
-import { Salutation } from '@/components/email-templates/salutation';
-import { UnsubscribeLine } from '@/components/email-templates/unsubscribeLine';
+import { Email } from '@/email-templates/BasicEmail';
 import { getURL } from '@/utils/validUrl';
 
 import { PROJECT_NAME } from '../../constants/project';
-import { styles } from '../styles';
 
 interface TemplateProps {
   name: string | null;
@@ -25,30 +24,29 @@ export const PaymentReceivedTemplate = ({
   isUSDbased,
 }: TemplateProps) => {
   return (
-    <div style={styles.container}>
-      <p style={styles.greetings}>Hello {name},</p>
-      <p style={styles.textWithMargin}>
-        Congratulations! Your hard work has paid off. We&apos;re pleased to
-        inform you that {isUSDbased && '$'}
-        {amount} {isUSDbased && 'paid in '}
-        {tokenName} has been processed and transferred to your account (
-        {walletAddress}). This payment reflects the quality of your work and
-        your valuable contribution.
-      </p>
-      <p style={styles.textWithMargin}>
-        We encourage you to share your accomplishment with your professional
-        network. You can view your achievement on your profile and share it on
-        social media.{' '}
-        <a
-          href={`${getURL()}/t/${username}/?utm_source=${PROJECT_NAME}&utm_medium=email&utm_campaign=notifications`}
-          style={styles.link}
-        >
-          View your profile here
-        </a>{' '}
-        to learn more.
-      </p>
-      <Salutation />
-      <UnsubscribeLine />
-    </div>
+    <Email userName={name || ''} preview="Payment received - Congratulations!">
+      <Section>
+        <Text className="mb-4 text-base text-slate-600">
+          Congratulations! Your hard work has paid off. We&apos;re pleased to
+          inform you that {isUSDbased && '$'}
+          {amount} {isUSDbased && 'paid in '}
+          {tokenName} has been processed and transferred to your account (
+          {walletAddress}). This payment reflects the quality of your work and
+          your valuable contribution.
+        </Text>
+        <Text className="text-base text-slate-600">
+          We encourage you to share your accomplishment with your professional
+          network. You can view your achievement on your profile and share it on
+          social media.{' '}
+          <Link
+            href={`${getURL()}/t/${username}/?utm_source=${PROJECT_NAME}&utm_medium=email&utm_campaign=notifications`}
+            className="font-medium text-slate-900 underline"
+          >
+            View your profile here
+          </Link>{' '}
+          to learn more.
+        </Text>
+      </Section>
+    </Email>
   );
 };

@@ -1,15 +1,21 @@
+import {
+  Button,
+  Column,
+  Img,
+  Link,
+  Row,
+  Section,
+  Text,
+} from '@react-email/components';
 import { ArrowRightIcon } from 'lucide-react';
 import React from 'react';
 
-import { Salutation } from '@/components/email-templates/salutation';
-import { UnsubscribeLine } from '@/components/email-templates/unsubscribeLine';
+import { Email } from '@/email-templates/BasicEmail';
 import { getBountyUrl } from '@/utils/bounty-urls';
 import { getURL } from '@/utils/validUrl';
 
 import { type Notification } from '@/features/notifications/queries/useNotifications';
 import { type NotificationType } from '@/features/notifications/types';
-
-import { styles } from './styles';
 
 interface TemplateProps<T extends NotificationType> {
   notification: Notification<T>;
@@ -23,43 +29,43 @@ export const LikeTemplate = <T extends NotificationType>({
 
   if (notification.commentId) {
     title = (
-      <strong>
+      <Text className="text-xl font-bold text-slate-900">
         {notification.actor?.name || notification.actor?.username} liked your{' '}
-        <a
+        <Link
           href={`${getURL()}comment/${notification.commentId}`}
-          style={styles.link}
+          className="font-medium text-slate-900 underline"
         >
           comment
-        </a>
-      </strong>
+        </Link>
+      </Text>
     );
     link = `${getBountyUrl({ ...notification.listing, sponsor: notification.sponsor } as any)}`;
   } else if (notification.powId) {
     title = (
-      <strong>
+      <Text className="text-xl font-bold text-slate-900">
         {notification.actor?.name || notification.actor?.username} liked your
         Proof of Work{' '}
-        <a
+        <Link
           href={`${getURL()}feed/pow/${notification.powId}`}
-          style={styles.link}
+          className="font-medium text-slate-900 underline"
         >
           {notification.pow?.title}
-        </a>
-      </strong>
+        </Link>
+      </Text>
     );
     link = `${getURL()}feed/pow/${notification.powId}`;
   } else if (notification.submissionId) {
     title = (
-      <strong>
+      <Text className="text-xl font-bold text-slate-900">
         {notification.actor?.name || notification.actor?.username} liked your
         submission for{' '}
-        <a
+        <Link
           href={`${getBountyUrl({ ...notification.listing, sponsor: notification.sponsor } as any)}${notification.submission?.sequentialId}/`}
-          style={styles.link}
+          className="font-medium text-slate-900 underline"
         >
           {notification.listing?.title}
-        </a>
-      </strong>
+        </Link>
+      </Text>
     );
     link = `${getBountyUrl({ ...notification.listing, sponsor: notification.sponsor } as any)}${notification.submission?.sequentialId}/`;
   }
@@ -68,59 +74,39 @@ export const LikeTemplate = <T extends NotificationType>({
   const icon = notification.actor?.photo;
 
   return (
-    <div style={styles.container}>
-      <p style={styles.greetings}>Hey {notification.receiver.name},</p>
-      <p
-        style={{
-          ...styles.textWithMargin,
-          fontSize: '20px',
-          fontWeight: 'bold',
-        }}
-      >
+    <Email userName={notification.receiver.name}>
+      <Section>
         {title}
-      </p>
-      {icon && username && (
-        <p
-          style={{
-            ...styles.textWithMargin,
-            marginBottom: '8px',
-            display: 'flex',
-            alignItems: 'center',
-          }}
-        >
-          <img
-            src={icon}
-            alt={username}
-            style={{ width: '40px', height: '40px', borderRadius: '50%' }}
-          />
-          <span style={{ marginLeft: '10px', fontWeight: 'semibold' }}>
-            {username}
-          </span>
-        </p>
-      )}
-      {link && (
-        <a
-          href={link}
-          style={{
-            ...styles.textWithMargin,
-            display: 'flex',
-            alignItems: 'center',
-            fontSize: '16px',
-            marginTop: '32px',
-            padding: '8px',
-            width: 'fit-content',
-            textDecoration: 'none',
-            backgroundColor: '#020617',
-            color: 'white',
-            borderRadius: '8px',
-          }}
-        >
-          View on NEARN{' '}
-          <ArrowRightIcon style={{ width: '16px', height: '16px' }} />
-        </a>
-      )}
-      <Salutation />
-      <UnsubscribeLine />
-    </div>
+
+        {icon && username && (
+          <Row className="mt-4 flex">
+            <Column className="w-min">
+              <Img
+                src={icon}
+                alt={username}
+                width="40"
+                height="40"
+                className="mr-2 rounded-full"
+              />
+            </Column>
+            <Column>
+              <Text className="ml-2 text-left font-semibold text-slate-900">
+                {username}
+              </Text>
+            </Column>
+          </Row>
+        )}
+
+        {link && (
+          <Button
+            href={link}
+            className="mt-8 inline-flex items-center rounded-lg bg-[#020617] px-4 py-2 text-white no-underline"
+          >
+            View on NEARN
+            <ArrowRightIcon className="ml-2 h-4 w-4" />
+          </Button>
+        )}
+      </Section>
+    </Email>
   );
 };

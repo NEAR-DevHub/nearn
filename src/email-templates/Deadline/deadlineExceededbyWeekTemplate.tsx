@@ -1,9 +1,8 @@
+import { Link, Section, Text } from '@react-email/components';
 import React from 'react';
 
-import { Salutation } from '@/components/email-templates/salutation';
-import { UnsubscribeLine } from '@/components/email-templates/unsubscribeLine';
 import { HELP_URL, PROJECT_NAME } from '@/constants/project';
-import { styles } from '@/email-templates/styles';
+import { Email } from '@/email-templates/BasicEmail';
 
 interface TemplateProps {
   name: string;
@@ -17,29 +16,31 @@ export const DeadlineExceededbyWeekTemplate = ({
   link,
 }: TemplateProps) => {
   return (
-    <div style={styles.container}>
-      <p style={styles.greetings}>Hey {name},</p>
-      <p style={styles.textWithMargin}>
-        It has been 7 days since the <strong>{listingName}</strong> listing
-        expired. We suggest you announce your selection/s on {PROJECT_NAME}{' '}
-        soon!
-      </p>
-      <p style={styles.textWithMargin}>
-        <a href={link} style={styles.link}>
-          Click here
-        </a>{' '}
-        to review the submissions.
-      </p>
+    <Email userName={name}>
+      <Section>
+        <Text className="text-slate-900">
+          It has been 7 days since the{' '}
+          <span className="font-semibold">{listingName}</span> listing expired.
+          We suggest you announce your selection/s on {PROJECT_NAME} soon!
+        </Text>
+        <Text className="text-slate-900">
+          <Link href={link} className="font-medium text-slate-900 underline">
+            Click here
+          </Link>{' '}
+          to review the submissions.
+        </Text>
 
-      <p style={styles.textWithMargin}>
-        Reach out to{' '}
-        <a href={`${HELP_URL}`} style={styles.link}>
-          us
-        </a>{' '}
-        in case you need help.
-      </p>
-      <Salutation />
-      <UnsubscribeLine />
-    </div>
+        <Text className="text-slate-900">
+          Reach out to{' '}
+          <Link
+            href={`${HELP_URL}`}
+            className="font-medium text-slate-900 underline"
+          >
+            us
+          </Link>{' '}
+          in case you need help.
+        </Text>
+      </Section>
+    </Email>
   );
 };

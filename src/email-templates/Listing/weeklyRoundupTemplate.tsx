@@ -1,12 +1,11 @@
 import { type CompensationType } from '@prisma/client';
+import { Link, Section, Text } from '@react-email/components';
 import React from 'react';
 
-import { Salutation } from '@/components/email-templates/salutation';
-import { UnsubscribeLine } from '@/components/email-templates/unsubscribeLine';
+import { Email } from '@/email-templates/BasicEmail';
 import { getURL } from '@/utils/validUrl';
 
 import { PROJECT_NAME } from '../../constants/project';
-import { styles } from '../styles';
 
 export interface WeeklyRoundupSkill {
   skills: string;
@@ -61,16 +60,16 @@ const getReward = (listing: WeeklyRoundupListing) => {
 };
 
 const ListingItem = ({ listing }: { listing: WeeklyRoundupListing }) => (
-  <li style={styles.text}>
+  <li className="mb-2 text-base text-slate-600">
     <div>
-      <a
+      <Link
         href={`${getURL()}/listing/${
           listing.slug || ''
         }/?utm_source=${PROJECT_NAME}&utm_medium=email&utm_campaign=notifications`}
-        style={styles.link}
+        className="font-medium text-slate-900 underline"
       >
         {listing.title}
-      </a>{' '}
+      </Link>{' '}
       by {listing.sponsor} ({getReward(listing)}{' '}
       {listing.token === 'Any' ? 'in any token' : listing.token}{' '}
       {listing.type.toLowerCase()})
@@ -103,38 +102,30 @@ export const WeeklyRoundupTemplate = ({
   });
 
   return (
-    <div style={styles.container}>
-      <p style={styles.greetings}>Hey there, {name}!</p>
-      <p style={styles.textWithMargin}>
-        Here&apos;s a weekly round-up of all live listings, curated just for
-        you:
-      </p>
+    <Email userName={name} preview="Your weekly listing roundup">
+      <Section>
+        <Text className="mb-4 text-base text-slate-600">
+          Here&apos;s a weekly round-up of all live listings, curated just for
+          you:
+        </Text>
 
-      {Object.entries(groupedListings).map(([skill, skillListings]) => (
-        <div key={skill}>
-          <h2
-            style={{
-              fontSize: '15px',
-              lineHeight: '18px',
-              fontWeight: 'semibold',
-              marginTop: '16px',
-            }}
-          >
-            {skill}
-          </h2>
-          <ol>
-            {skillListings.map((listing) => (
-              <ListingItem key={listing.id} listing={listing} />
-            ))}
-          </ol>
-        </div>
-      ))}
+        {Object.entries(groupedListings).map(([skill, skillListings]) => (
+          <div key={skill}>
+            <Text className="mb-2 mt-4 text-[15px] font-semibold leading-[18px]">
+              {skill}
+            </Text>
+            <ol className="pl-5">
+              {skillListings.map((listing) => (
+                <ListingItem key={listing.id} listing={listing} />
+              ))}
+            </ol>
+          </div>
+        ))}
 
-      <p style={styles.text}>
-        Hope to see you participate in (and hopefully win!) some of these :)
-      </p>
-      <Salutation />
-      <UnsubscribeLine />
-    </div>
+        <Text className="mt-4 text-base text-slate-600">
+          Hope to see you participate in (and hopefully win!) some of these :)
+        </Text>
+      </Section>
+    </Email>
   );
 };
