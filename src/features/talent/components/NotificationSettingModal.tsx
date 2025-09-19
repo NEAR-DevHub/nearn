@@ -99,6 +99,7 @@ const sections = {
         NotificationType.SUBMISSION_APPROVED,
         NotificationType.SUBMISSION_REJECTED,
         NotificationType.SUBMISSION_PAID,
+        NotificationType.SUBMISSION_RECEIVED,
       ],
     },
     {
@@ -143,6 +144,10 @@ const sections = {
     {
       title: 'Likes',
       type: NotificationType.LIKE,
+    },
+    {
+      title: 'Invitations to join sponsor',
+      type: NotificationType.SPONSOR_MEMBER_INVITED,
     },
     {
       title: 'Product updates and newsletters',
