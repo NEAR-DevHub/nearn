@@ -66,7 +66,6 @@ export function Notification({
                   <Link
                     href={`/${notification?.sponsor?.slug}/${notification?.listing.sequentialId}/`}
                     onClick={(e) => {
-                      e.preventDefault();
                       e.stopPropagation();
                     }}
                     className="font-medium text-slate-900 hover:underline"
@@ -101,7 +100,6 @@ export function Notification({
                     href={`/${notification?.sponsor?.slug}/${notification?.listing.sequentialId}/${notification?.submission.sequentialId}`}
                     className="font-medium text-slate-900 hover:underline"
                     onClick={(e) => {
-                      e.preventDefault();
                       e.stopPropagation();
                     }}
                   >
