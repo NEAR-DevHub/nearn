@@ -221,7 +221,7 @@ function Type() {
                     }
                   }
 
-                  if (e !== 'sponsorship' && values.token === 'Any') {
+                  if (e === 'bounty' && values.token === 'Any') {
                     form.setValue('token', 'USDC');
                   }
 
