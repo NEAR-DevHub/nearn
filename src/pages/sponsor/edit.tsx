@@ -410,6 +410,7 @@ function EditSponsor() {
                           placeholder="Type your about us here..."
                           editable={true}
                           editorClassName="focus:outline-none"
+                          maxCharacterCount={15000}
                           imageSetting={{
                             folderName: 'sponsor-about',
                             type: 'about',

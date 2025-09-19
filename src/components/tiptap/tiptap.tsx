@@ -1,4 +1,9 @@
-import { type Content, type Editor, EditorContent } from '@tiptap/react';
+import {
+  type Content,
+  type Editor,
+  EditorContent,
+  useEditorState,
+} from '@tiptap/react';
 import * as React from 'react';
 
 import { Separator } from '@/components/ui/separator';
@@ -119,6 +124,14 @@ export const MinimalTiptapEditor = React.forwardRef<
       ...props,
     });
 
+    const state = useEditorState({
+      editor,
+      selector: (context) => ({
+        characters: (context?.editor?.storage.characterCount?.characters() ||
+          0) as number,
+      }),
+    });
+
     if (!editor) {
       return null;
     }
@@ -139,6 +152,12 @@ export const MinimalTiptapEditor = React.forwardRef<
           className={cn('minimal-tiptap-editor', editorContentClassName)}
         />
         <LinkBubbleMenu editor={editor} />
+        {props?.maxCharacterCount && (
+          <div className="text-right text-xs text-slate-400">
+            {props?.maxCharacterCount - (state?.characters || 0)} characters
+            left
+          </div>
+        )}
       </MeasuredContainer>
     );
   },
