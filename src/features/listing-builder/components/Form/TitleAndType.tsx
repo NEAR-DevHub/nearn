@@ -1,9 +1,8 @@
-import { type CompensationType } from '@prisma/client';
 import { useQuery } from '@tanstack/react-query';
 import { useAtomValue } from 'jotai';
 import { Link } from 'lucide-react';
 import { usePostHog } from 'posthog-js/react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useWatch } from 'react-hook-form';
 import slugify from 'slugify';
 
@@ -173,7 +172,6 @@ function Type() {
     control: form.control,
     name: 'submissionLimit',
   });
-  const [prevCompType, setPrevCompType] = useState<CompensationType>('fixed');
   return (
     <FormField
       name="type"
@@ -197,7 +195,6 @@ function Type() {
                     form.setValue('hackathonId', undefined);
                   }
                   const values = form.getValues();
-                  setPrevCompType(values.compensationType);
                   if (e === 'sponsorship') {
                     form.setValue('compensationType', 'variable');
                     form.setValue('rewardAmount', undefined);
@@ -213,8 +210,8 @@ function Type() {
                       ),
                     );
                   } else {
-                    form.setValue('compensationType', prevCompType);
-                    if (prevCompType === 'fixed') {
+                    form.setValue('compensationType', values.compensationType);
+                    if (values.compensationType === 'fixed') {
                       form.setValue('rewardAmount', values.rewards?.[1]);
                     } else {
                       form.setValue('rewardAmount', undefined);
