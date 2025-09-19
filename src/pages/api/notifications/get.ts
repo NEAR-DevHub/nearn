@@ -96,12 +96,14 @@ async function notifications(
     notifications: notifications.map((notification) => {
       return {
         ...notification,
-        actor: {
-          ...notification.actor,
-          name: notification.actor?.private
-            ? undefined
-            : notification.actor?.name,
-        },
+        actor: notification.actor
+          ? {
+              ...notification.actor,
+              name: notification.actor?.private
+                ? undefined
+                : notification.actor?.name,
+            }
+          : undefined,
       };
     }),
     pagination: {
