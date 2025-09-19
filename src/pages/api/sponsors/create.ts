@@ -8,7 +8,10 @@ import { type NextApiRequestWithUser } from '@/features/auth/types';
 import { withAuth } from '@/features/auth/utils/withAuth';
 import { extractSocialUsername } from '@/features/social/utils/extractUsername';
 import { sponsorBaseSchema } from '@/features/sponsor/utils/sponsorFormSchema';
-import { createSponsorEmailSettings } from '@/features/sponsor-dashboard/utils/createSponsorEmailSettings';
+import {
+  createGeneralEmailSettings,
+  createSponsorEmailSettings,
+} from '@/features/sponsor-dashboard/utils/createSponsorEmailSettings';
 
 async function user(req: NextApiRequestWithUser, res: NextApiResponse) {
   const userId = req.userId;
@@ -115,7 +118,8 @@ async function user(req: NextApiRequestWithUser, res: NextApiResponse) {
         data: { currentSponsorId: result.id },
       });
 
-      await createSponsorEmailSettings(userId as string);
+      await createSponsorEmailSettings(userId as string, result.id);
+      await createGeneralEmailSettings(userId as string);
 
       logger.info(`New sponsor created successfully for user: ${userId}`);
       return res.status(200).json(result);

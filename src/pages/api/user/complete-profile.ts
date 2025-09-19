@@ -10,6 +10,7 @@ import { userSelectOptions } from '@/features/auth/constants';
 import { type NextApiRequestWithUser } from '@/features/auth/types';
 import { withAuth } from '@/features/auth/utils/withAuth';
 import { extractSocialUsername } from '@/features/social/utils/extractUsername';
+import { createGeneralEmailSettings } from '@/features/sponsor-dashboard/utils/createSponsorEmailSettings';
 import {
   profileSchema,
   socialSuperRefine,
@@ -92,16 +93,31 @@ async function handler(req: NextApiRequestWithUser, res: NextApiResponse) {
       : undefined;
 
     const categories = new Set([
-      'createListing',
-      'scoutInvite',
-      'commentOrLikeSubmission',
-      'weeklyListingRoundup',
-      'replyOrTagComment',
-      'productAndNewsletter',
+      'SUBMISSION_COMMENT',
+      'SUBMISSION_RECEIVED',
+      'SUBMISSION_APPROVED',
+      'SUBMISSION_REJECTED',
+      'SUBMISSION_PAID',
+      'DEADLINE_IN_3_DAYS',
+      'LISTING_WINNERS_ANNOUNCED',
+      'LISTING_EDITED',
+      'WEEKLY_ROUNDUP',
+      'NEW_LISTING_FOR_SKILLS',
+      'SCOUT_INVITE',
+      'POW_COMMENT',
     ]);
+
+    await createGeneralEmailSettings(userId as string);
 
     for (const channel of ['email', 'inApp']) {
       for (const category of categories) {
+        if (
+          channel === 'inApp' &&
+          (category === 'WEEKLY_ROUNDUP' ||
+            category === 'NEW_LISTING_FOR_SKILLS')
+        ) {
+          continue;
+        }
         await prisma.notificationSettings.deleteMany({
           where: {
             userId,
