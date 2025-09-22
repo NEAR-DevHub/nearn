@@ -10,8 +10,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/utils/cn';
 
-import { NotificationSettingsModal } from '@/features/talent/components/NotificationSettingModal';
-
 import {
   useMarkNotificationsAsRead,
   useNotificationsInfinite,
@@ -22,14 +20,15 @@ import { Notification as NotificationComponent } from './Notification';
 interface NotificationsListProps {
   sponsorIds?: string[];
   showTalent?: boolean;
+  onSettingsOpen?: () => void;
 }
 
 export function NotificationsListWithFilters({
   sponsorIds,
   showTalent,
+  onSettingsOpen,
 }: NotificationsListProps) {
   const [activeTab, setActiveTab] = useState<'Unread' | 'Read'>('Unread');
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const {
     data,
     fetchNextPage,
@@ -101,36 +100,35 @@ export function NotificationsListWithFilters({
 
   return (
     <>
-      <NotificationSettingsModal
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-      />
       <Tabs
         value={activeTab}
         onValueChange={(value) => setActiveTab(value as 'Unread' | 'Read')}
       >
         <div className="flex items-center justify-between px-4 py-3">
-          <TabsList className="w-full justify-start rounded-none border-b-2">
+          <TabsList className="relative w-full justify-start rounded-none">
+            <div className="absolute bottom-[1px] left-0 h-[2px] w-full bg-slate-200 md:bottom-[-1px]" />
             <TabsTrigger
               value="Unread"
-              className="data-[state=active]:bg-transparent data-[state=active]:after:bottom-[-7px]"
+              className="data-[state=active]:bg-transparent data-[state=active]:after:bottom-[-5px]"
             >
               Unread
             </TabsTrigger>
             <TabsTrigger
               value="Read"
-              className="data-[state=active]:bg-transparent data-[state=active]:after:bottom-[-7px]"
+              className="data-[state=active]:bg-transparent data-[state=active]:after:bottom-[-5px]"
             >
               Read
             </TabsTrigger>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="ml-auto"
-              onClick={() => setIsSettingsOpen(true)}
-            >
-              <Settings className="h-5 w-5 text-slate-500" />
-            </Button>
+            {onSettingsOpen && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="ml-auto"
+                onClick={onSettingsOpen}
+              >
+                <Settings className="h-5 w-5 text-slate-500" />
+              </Button>
+            )}
           </TabsList>
         </div>
         <TabsContent value={activeTab}>

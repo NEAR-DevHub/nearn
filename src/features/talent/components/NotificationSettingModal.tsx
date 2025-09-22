@@ -641,10 +641,10 @@ export const NotificationSettingsModal = ({
       await refetchUser();
       setIsUpdating(false);
       onClose();
-      toast.success('Email preferences updated');
+      toast.success('Notification preferences updated');
     } catch (error) {
-      console.error('Error updating email preferences:', error);
-      toast.error('Failed to update email preferences.');
+      console.error('Error updating notification preferences:', error);
+      toast.error('Failed to update notification preferences.');
       setIsUpdating(false);
     }
   };
@@ -779,7 +779,7 @@ export const NotificationSettingsModal = ({
         </div>
 
         {isInitialized && (
-          <div className="px-2 sm:px-4">
+          <div className="z-[50] px-2 sm:px-4">
             <Button
               className="ph-no-capture mb-3 w-full bg-slate-950"
               disabled={isUpdating}

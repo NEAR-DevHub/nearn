@@ -12,6 +12,8 @@ import {
 } from '@/components/ui/popover';
 import { useUser } from '@/store/user';
 
+import { NotificationSettingsModal } from '@/features/talent/components/NotificationSettingModal';
+
 import {
   useMarkNotificationsAsRead,
   useNotificationsInfinite,
@@ -33,51 +35,59 @@ export function NotificationsPopover() {
     showTalent: showTalentNotifications,
   });
   const { mutate: markAsRead } = useMarkNotificationsAsRead();
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const notifications = data?.pages.flatMap((page) => page.notifications) || [];
   const unreadCount = notifications.filter((n) => !n.deliveredAt).length || 0;
 
   return (
-    <Popover
-      onOpenChange={(open) => {
-        if (unreadCount > 0 && !open) {
-          markAsRead(
-            notifications.filter((n) => !n.deliveredAt).map((n) => n.id),
-          );
-        }
-      }}
-    >
-      <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-5 w-5" />
-          {unreadCount > 0 && (
-            <Badge
-              variant="destructive"
-              className="absolute right-0 top-0 flex h-4 w-4 items-center justify-center rounded-full p-0 text-xs"
-            >
-              {unreadCount > 99 ? '99+' : unreadCount}
-            </Badge>
-          )}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent
-        align="end"
-        className="flex w-[440px] flex-col gap-3 rounded-xl p-0"
+    <>
+      <NotificationSettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+      />
+      <Popover
+        onOpenChange={(open) => {
+          if (unreadCount > 0 && !open) {
+            markAsRead(
+              notifications.filter((n) => !n.deliveredAt).map((n) => n.id),
+            );
+          }
+        }}
       >
-        <div className="border-b">
-          <AccountFilter
-            userSponsors={user?.UserSponsors || []}
-            selectedSponsorIds={selectedSponsorIds}
+        <PopoverTrigger asChild>
+          <Button variant="ghost" size="icon" className="relative">
+            <Bell className="h-5 w-5" />
+            {unreadCount > 0 && (
+              <Badge
+                variant="destructive"
+                className="absolute right-0 top-0 flex h-4 w-4 items-center justify-center rounded-full p-0 text-xs"
+              >
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </Badge>
+            )}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent
+          align="end"
+          className="flex w-[440px] flex-col gap-3 rounded-xl p-0"
+        >
+          <div className="border-b">
+            <AccountFilter
+              userSponsors={user?.UserSponsors || []}
+              selectedSponsorIds={selectedSponsorIds}
+              showTalent={showTalentNotifications}
+              onSelectionChange={setSelectedSponsorIds}
+              onTalentToggle={setShowTalentNotifications}
+            />
+          </div>
+          <NotificationsListWithFilters
+            sponsorIds={selectedSponsorIds}
             showTalent={showTalentNotifications}
-            onSelectionChange={setSelectedSponsorIds}
-            onTalentToggle={setShowTalentNotifications}
+            onSettingsOpen={() => setIsSettingsOpen(true)}
           />
-        </div>
-        <NotificationsListWithFilters
-          sponsorIds={selectedSponsorIds}
-          showTalent={showTalentNotifications}
-        />
-      </PopoverContent>
-    </Popover>
+        </PopoverContent>
+      </Popover>
+    </>
   );
 }
