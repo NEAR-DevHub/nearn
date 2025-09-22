@@ -35,7 +35,7 @@ export function getNotificationAction(
 
     case NotificationType.SUBMISSION_RECEIVED:
       return {
-        message: 'Sponsor received your submission',
+        message: 'received your submission',
         link: `/${notification?.sponsor?.slug}/${notification?.listing?.sequentialId}/${notification?.submission?.sequentialId}`,
       };
 
