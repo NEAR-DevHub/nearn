@@ -130,7 +130,9 @@ export const DesktopNavbar = ({ onLoginOpen, onSearchOpen }: Props) => {
                   </Link>
                 </Button>
               )}
-              <NotificationsPopover />
+              <div className="hidden md:block">
+                <NotificationsPopover />
+              </div>
               <UserMenu />
             </div>
           )}

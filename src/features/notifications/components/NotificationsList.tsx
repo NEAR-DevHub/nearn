@@ -1,13 +1,16 @@
 'use client';
 
-import { Loader2 } from 'lucide-react';
+import { Loader2, Settings } from 'lucide-react';
 import router from 'next/router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { Button } from '@/components/ui/button';
 import { ExternalImage } from '@/components/ui/cloudinary-image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/utils/cn';
+
+import { NotificationSettingsModal } from '@/features/talent/components/NotificationSettingModal';
 
 import {
   useMarkNotificationsAsRead,
@@ -26,6 +29,7 @@ export function NotificationsListWithFilters({
   showTalent,
 }: NotificationsListProps) {
   const [activeTab, setActiveTab] = useState<'Unread' | 'Read'>('Unread');
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const {
     data,
     fetchNextPage,
@@ -96,71 +100,87 @@ export function NotificationsListWithFilters({
   }
 
   return (
-    <Tabs
-      value={activeTab}
-      onValueChange={(value) => setActiveTab(value as 'Unread' | 'Read')}
-    >
-      <TabsList className="w-full justify-start rounded-none border-b-2 px-4 py-3">
-        <TabsTrigger
-          value="Unread"
-          className="data-[state=active]:bg-transparent data-[state=active]:after:bottom-[-5px]"
-        >
-          Unread
-        </TabsTrigger>
-        <TabsTrigger
-          value="Read"
-          className="data-[state=active]:bg-transparent data-[state=active]:after:bottom-[-5px]"
-        >
-          Read
-        </TabsTrigger>
-      </TabsList>
-      <TabsContent value={activeTab}>
-        <ScrollArea className="h-[400px]">
-          {notifications.length === 0 && (
-            <div className="flex h-[400px] flex-col justify-center text-center">
-              <ExternalImage
-                className="mx-auto w-32"
-                alt={'talent empty'}
-                src={'/bg/notify-none.svg'}
-              />
-              <p className="mt-5 font-semibold text-slate-600">
-                You are all caught up!
-              </p>
-              <p className="mt-2 text-sm text-slate-600">
-                You will be notified here about comments,
-                <br /> submission updates, event changes, and messages
-              </p>
-            </div>
-          )}
-
-          {notifications.map((notification) => {
-            const { link: primaryLink } = getNotificationAction(notification);
-            return (
-              <div key={notification.id}>
-                <div
-                  className={cn('cursor-pointer border-b border-slate-200')}
-                  onClick={() => {
-                    if (!notification.deliveredAt) {
-                      handleMarkAsRead([notification.id]);
-                    }
-                    router.push(primaryLink);
-                  }}
-                >
-                  <NotificationComponent notification={notification} />
-                </div>
+    <>
+      <NotificationSettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+      />
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => setActiveTab(value as 'Unread' | 'Read')}
+      >
+        <div className="flex items-center justify-between px-4 py-3">
+          <TabsList className="w-full justify-start rounded-none border-b-2">
+            <TabsTrigger
+              value="Unread"
+              className="data-[state=active]:bg-transparent data-[state=active]:after:bottom-[-7px]"
+            >
+              Unread
+            </TabsTrigger>
+            <TabsTrigger
+              value="Read"
+              className="data-[state=active]:bg-transparent data-[state=active]:after:bottom-[-7px]"
+            >
+              Read
+            </TabsTrigger>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="ml-auto"
+              onClick={() => setIsSettingsOpen(true)}
+            >
+              <Settings className="h-5 w-5 text-slate-500" />
+            </Button>
+          </TabsList>
+        </div>
+        <TabsContent value={activeTab}>
+          <ScrollArea className="h-[400px]">
+            {notifications.length === 0 && (
+              <div className="flex h-[400px] flex-col justify-center text-center">
+                <ExternalImage
+                  className="mx-auto w-32"
+                  alt={'talent empty'}
+                  src={'/bg/notify-none.svg'}
+                />
+                <p className="mt-5 font-semibold text-slate-600">
+                  You are all caught up!
+                </p>
+                <p className="mt-2 text-sm text-slate-600">
+                  You will be notified here about comments,
+                  <br /> submission updates, event changes, and messages
+                </p>
               </div>
-            );
-          })}
+            )}
 
-          {hasNextPage && (
-            <div ref={loadMoreRef} className="flex justify-center py-4">
-              {isFetchingNextPage && (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              )}
-            </div>
-          )}
-        </ScrollArea>
-      </TabsContent>
-    </Tabs>
+            {notifications.map((notification) => {
+              const { link: primaryLink } = getNotificationAction(notification);
+              return (
+                <div key={notification.id}>
+                  <div
+                    className={cn('cursor-pointer border-b border-slate-200')}
+                    onClick={() => {
+                      if (!notification.deliveredAt) {
+                        handleMarkAsRead([notification.id]);
+                      }
+                      router.push(primaryLink);
+                    }}
+                  >
+                    <NotificationComponent notification={notification} />
+                  </div>
+                </div>
+              );
+            })}
+
+            {hasNextPage && (
+              <div ref={loadMoreRef} className="flex justify-center py-4">
+                {isFetchingNextPage && (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                )}
+              </div>
+            )}
+          </ScrollArea>
+        </TabsContent>
+      </Tabs>
+    </>
   );
 }

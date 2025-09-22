@@ -148,7 +148,9 @@ export const MobileNavbar = () => {
 
       {status === 'authenticated' && session && (
         <div className="flex items-center gap-2">
-          <NotificationsPopover />
+          <div className="hidden md:block">
+            <NotificationsPopover />
+          </div>
           <UserMenu />
         </div>
       )}

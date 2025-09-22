@@ -105,7 +105,9 @@ export const DesktopNavbar = () => {
               )}
               {status === 'authenticated' && session && (
                 <>
-                  <NotificationsPopover />
+                  <div className="hidden md:block">
+                    <NotificationsPopover />
+                  </div>
                   <UserMenu />
                 </>
               )}

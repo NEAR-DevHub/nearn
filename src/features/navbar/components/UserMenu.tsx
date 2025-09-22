@@ -153,18 +153,6 @@ export function UserMenu() {
             </div>
           )}
 
-          {(user?.isTalentFilled || !!user?.currentSponsorId) && (
-            <DropdownMenuItem
-              onClick={() => {
-                onOpen();
-                posthog.capture('email preferences_user menu');
-              }}
-              className="text-sm text-slate-500"
-            >
-              Notification Preferences
-            </DropdownMenuItem>
-          )}
-
           <DropdownMenuItem
             onClick={() => {
               window.open(HELP_URL, '_blank');

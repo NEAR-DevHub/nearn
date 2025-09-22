@@ -1,3 +1,4 @@
+import Gleap from 'gleap';
 import { Menu } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -153,6 +154,15 @@ export const MobileNavbar = ({ onLoginOpen }: Props) => {
                 onClick={onDrawerClose}
               />
             )}
+            <Button
+              variant="link"
+              className="text-semibold mr-3 p-0 text-lg text-slate-500 lg:text-sm"
+              onClick={() => {
+                Gleap.open();
+              }}
+            >
+              Get Help
+            </Button>
           </div>
         </SheetContent>
       </Sheet>
@@ -194,7 +204,9 @@ export const MobileNavbar = ({ onLoginOpen }: Props) => {
           </div>
           {status === 'authenticated' && session && (
             <div className="flex items-center gap-2">
-              <NotificationsPopover />
+              <div className="hidden md:block">
+                <NotificationsPopover />
+              </div>
               <UserMenu />
             </div>
           )}
