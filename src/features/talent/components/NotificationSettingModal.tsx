@@ -146,10 +146,6 @@ const sections = {
       type: NotificationType.LIKE,
     },
     {
-      title: 'Invitations to join sponsor',
-      type: NotificationType.SPONSOR_MEMBER_INVITED,
-    },
-    {
       title: 'Product updates and newsletters',
       type: NotificationType.PRODUCT_UPDATES_AND_NEWS,
       disabled: ['inApp'],

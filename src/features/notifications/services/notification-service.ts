@@ -51,6 +51,7 @@ export async function createNotification<T extends NotificationType>(
     sponsorId?: string | null;
   } = {},
   data?: NotificationData<T>,
+  force?: boolean,
 ) {
   if (entities.actorId === receiverId) {
     return;
@@ -87,14 +88,19 @@ export async function createNotification<T extends NotificationType>(
   }
 
   for (const receiverId of receivers) {
-    const channels = await checkNotificationChannelsForEvent(
-      notificationType,
-      receiverId,
-      notificationRelationType === NotificationRelationType.SPONSOR
-        ? entities.sponsorId!
-        : null,
-      pocId ?? null,
-    );
+    let channels: NotificationChannel[] = [];
+    if (force) {
+      channels = ['email', 'inApp'];
+    } else {
+      channels = await checkNotificationChannelsForEvent(
+        notificationType,
+        receiverId,
+        notificationRelationType === NotificationRelationType.SPONSOR
+          ? entities.sponsorId!
+          : null,
+        pocId ?? null,
+      );
+    }
 
     for (const channel of channels) {
       await prisma.notification.create({
@@ -402,6 +408,7 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
       {
         token: eventDataInvite.token,
       },
+      true,
     );
   },
   [EventType.SPONSOR_MEMBER_ACCEPTED]: async (event) => {
