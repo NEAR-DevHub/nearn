@@ -456,6 +456,14 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
       getEntities(event),
     );
   },
+  [EventType.SYSTEM_STATUS_IN_REVIEW]: async (event) => {
+    await createNotification(
+      NotificationType.DEADLINE_ENDED,
+      NotificationRelationType.SPONSOR,
+      'SPONSOR',
+      getEntities(event),
+    );
+  },
   // We don't need to send notifications for these events
   [EventType.SPONSOR_TREASURY_ADDED]: noNotification,
   [EventType.SPONSOR_TREASURY_REMOVED]: noNotification,
@@ -478,7 +486,6 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
   [EventType.PLATFORM_ADMIN_ARCHIVED_OR_UNARCHIVED]: noNotification,
   [EventType.PLATFORM_ADMIN_SUBMISSION_STATUS_EDITED]: noNotification,
   [EventType.SYSTEM_STATUS_CHANGED]: noNotification,
-  [EventType.SYSTEM_STATUS_IN_REVIEW]: noNotification,
   [EventType.AUTOMATION_LOG]: noNotification,
 };
 

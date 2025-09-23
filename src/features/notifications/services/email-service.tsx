@@ -1,5 +1,6 @@
 import { CommentTemplate } from '@/email-templates/commentTemplate';
 import { DeadlineThreeDaysTemplate } from '@/email-templates/Deadline/deadline3dayTemplate';
+import { DeadlineEndedTemplate } from '@/email-templates/Deadline/deadlineEndedTemplate';
 import { LikeTemplate } from '@/email-templates/likeTemplate';
 import { ListingEditedTemplate } from '@/email-templates/Listing/listingEditedTemplate';
 import { ScoutInviteTemplate } from '@/email-templates/Listing/scoutInviteTemplate';
@@ -13,7 +14,7 @@ import { TreasuryProposalStatusChangedTemplate } from '@/email-templates/Treasur
 import { PaymentReceivedTemplate } from '@/email-templates/Winners/paymentReceivedTemplate';
 import { WinnersAnnouncedTemplate } from '@/email-templates/Winners/winnersAnnouncedTemplate';
 import { WinnersTemplate } from '@/email-templates/Winners/winnersTemplate';
-import { getBountyUrl } from '@/utils/bounty-urls';
+import { getBountyUrl as getBountyUrlInternal } from '@/utils/bounty-urls';
 import { getURL } from '@/utils/validUrl';
 
 import { InviteMemberTemplate } from '@/features/emails/components/inviteMemberTemplate';
@@ -21,6 +22,13 @@ import { type Listing, type Rewards } from '@/features/listings/types';
 
 import { type Notification } from '../queries/useNotifications';
 import { type NotificationDataMap, NotificationType } from '../types';
+
+const getBountyUrl = (notification: Notification<NotificationType>) => {
+  return getBountyUrlInternal({
+    ...(notification.listing as unknown as Listing),
+    sponsor: notification.sponsor,
+  });
+};
 
 export async function prepareReactEmail<T extends NotificationType>(
   notification: Notification<T>,
@@ -73,7 +81,7 @@ export async function prepareReactEmail<T extends NotificationType>(
         <WinnersAnnouncedTemplate
           name={notification.receiver.name}
           listingName={notification.listing?.title!}
-          link={getBountyUrl(notification.listing as unknown as Listing)}
+          link={getBountyUrl(notification)}
         />
       );
       subject = `Winners announced for ${notification.listing?.title}`;
@@ -96,7 +104,7 @@ export async function prepareReactEmail<T extends NotificationType>(
         <DeadlineThreeDaysTemplate
           name={notification.receiver.name}
           listingName={notification.listing?.title!}
-          link={getBountyUrl(notification.listing as unknown as Listing)}
+          link={getBountyUrl(notification)}
         />
       );
       subject = `Reminder: ${notification.listing?.title} deadline in 3 days`;
@@ -143,7 +151,7 @@ export async function prepareReactEmail<T extends NotificationType>(
         <SubmissionRejectedTemplate
           name={notification.receiver.name}
           listingName={notification.listing?.title!}
-          link={`${getBountyUrl(notification.listing as unknown as Listing)}${notification.submission?.sequentialId}`}
+          link={`${getBountyUrl(notification)}${notification.submission?.sequentialId}`}
         />
       );
       subject = `Submission rejected for ${notification.listing?.title}`;
@@ -184,7 +192,7 @@ export async function prepareReactEmail<T extends NotificationType>(
       component = (
         <ScoutInviteTemplate
           name={notification.receiver.name}
-          link={getBountyUrl(notification.listing as unknown as Listing)}
+          link={getBountyUrl(notification)}
           listingName={notification.listing?.title!}
           sponsorName={notification.sponsor?.name!}
         />
@@ -233,6 +241,17 @@ export async function prepareReactEmail<T extends NotificationType>(
         />
       );
       subject = `Submission received!`;
+      break;
+
+    case NotificationType.DEADLINE_ENDED:
+      component = (
+        <DeadlineEndedTemplate
+          name={notification.receiver.name}
+          listingName={notification.listing?.title!}
+          link={getBountyUrl(notification)}
+        />
+      );
+      subject = `Deadline ended for ${notification.listing?.title}`;
       break;
   }
 

@@ -28,19 +28,31 @@ export function Notification({
     `MMM D, YYYY h:mm A [UTC${offsetString}]`,
   );
 
-  let username = notification?.actor
-    ? (notification.actor.name ?? notification.actor.username)
-    : notification?.sponsor?.name;
-  let icon = notification?.actor
-    ? notification.actor.photo
-    : notification?.sponsor?.logo;
+  const { message, subtitle, actor } = getNotificationAction(notification);
+  let username;
+  let icon;
 
-  if (!notification.actor && !notification.sponsor) {
+  switch (actor) {
+    case 'platform':
+      icon = '/favicon.ico';
+      username = PROJECT_NAME;
+      break;
+
+    case 'sponsor':
+      icon = notification?.sponsor?.logo;
+      username = notification?.sponsor?.name;
+      break;
+
+    case 'user':
+      icon = notification?.actor?.photo;
+      username = notification?.actor?.name ?? notification?.actor?.username;
+      break;
+  }
+
+  if (!username && !icon) {
     icon = '/favicon.ico';
     username = PROJECT_NAME;
   }
-
-  const { message, subtitle, showActor } = getNotificationAction(notification);
 
   return (
     <div className="flex items-start gap-2 p-4">
@@ -55,7 +67,7 @@ export function Notification({
         <div className="flex w-full gap-2">
           <div className="min-w-0 flex-1">
             <p className="text-slate-600">
-              {showActor !== false && (
+              {actor !== 'platform' && (
                 <span className="font-medium text-slate-900">{username} </span>
               )}
               {message}
