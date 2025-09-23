@@ -173,16 +173,22 @@ const AlertOption = ({
       {alertType === 'SPONSOR' && (
         <div className="w-16">
           <Select
-            value={(() => {
-              if (!currentSponsorId && getGeneralListingScope && isExpandable) {
-                return getGeneralListingScope(alertType, alertId);
-              }
-              return getNotificationSetting(
-                alertType,
-                alertId,
-                currentSponsorId,
-              ).listingScope;
-            })()}
+            value={
+              (() => {
+                if (
+                  !currentSponsorId &&
+                  getGeneralListingScope &&
+                  isExpandable
+                ) {
+                  return getGeneralListingScope(alertType, alertId);
+                }
+                return getNotificationSetting(
+                  alertType,
+                  alertId,
+                  currentSponsorId,
+                ).listingScope;
+              })() ?? 'mine'
+            }
             onValueChange={(value) => {
               if (value === 'mixed') return;
               updateSetting(
@@ -584,7 +590,7 @@ const useNotificationState = (user: User) => {
     // Check all sponsor settings for listingScope
     const sponsorScopes = user.UserSponsors.map((userSponsor: any) => {
       const sponsorSetting = setting[userSponsor.sponsorId] || setting.general;
-      return sponsorSetting.listingScope;
+      return sponsorSetting.listingScope ?? 'mine';
     });
 
     const allMine = sponsorScopes.every((scope) => scope === 'mine');
