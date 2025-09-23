@@ -1,6 +1,7 @@
 import { CommentTemplate } from '@/email-templates/commentTemplate';
 import { DeadlineThreeDaysTemplate } from '@/email-templates/Deadline/deadline3dayTemplate';
 import { DeadlineEndedTemplate } from '@/email-templates/Deadline/deadlineEndedTemplate';
+import { DeadlineExceededbyWeekTemplate } from '@/email-templates/Deadline/deadlineExceededbyWeekTemplate';
 import { LikeTemplate } from '@/email-templates/likeTemplate';
 import { ListingEditedTemplate } from '@/email-templates/Listing/listingEditedTemplate';
 import { ScoutInviteTemplate } from '@/email-templates/Listing/scoutInviteTemplate';
@@ -253,6 +254,15 @@ export async function prepareReactEmail<T extends NotificationType>(
       );
       subject = `Deadline ended for ${notification.listing?.title}`;
       break;
+
+    case NotificationType.DEADLINE_EXCEEDED_BY_WEEK:
+      component = (
+        <DeadlineExceededbyWeekTemplate
+          name={notification.receiver.name}
+          listingName={notification.listing?.title!}
+          link={getBountyUrl(notification)}
+        />
+      );
   }
 
   if (component && subject) {
