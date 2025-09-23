@@ -1,8 +1,10 @@
-import { Section, Text } from '@react-email/components';
+import { Button, Section, Text } from '@react-email/components';
 import React from 'react';
 
 import { Email } from '@/email-templates/BasicEmail';
+import { getBountyUrl } from '@/utils/bounty-urls';
 
+import { type Listing } from '@/features/listings/types';
 import { type Notification } from '@/features/notifications/queries/useNotifications';
 
 interface TemplateProps {
@@ -48,15 +50,26 @@ export const TreasuryProposalStatusChangedTemplate = ({
         {status === 'rejected' && (
           <Text className="text-base text-slate-600">
             Unfortunately, your payment proposal has been rejected. Please
-            provide another method of payment.
+            provide another method of payment for the recipient.
           </Text>
         )}
         {status === 'expired' && (
           <Text className="text-base text-slate-600">
             Your payment proposal has expired due to inactivity. Please submit a
-            new proposal or pay submission using another method.
+            new proposal or pay submission using another method for the
+            recipient.
           </Text>
         )}
+
+        <Button
+          className="mt-8 inline-flex items-center rounded-lg bg-[#020617] px-4 py-2 text-white no-underline"
+          href={`${getBountyUrl({
+            ...notification.listing,
+            sponsor: notification.sponsor,
+          } as Listing)}${notification.submission?.sequentialId}/`}
+        >
+          View Submission
+        </Button>
       </Section>
     </Email>
   );
