@@ -1,6 +1,8 @@
-import { Link, Section, Text } from '@react-email/components';
+import { Button, Link, Section, Text } from '@react-email/components';
+import { ArrowRightIcon } from 'lucide-react';
 import React from 'react';
 
+import { PROJECT_NAME } from '@/constants/project';
 import { Email } from '@/email-templates/BasicEmail';
 import { getBountyUrl } from '@/utils/bounty-urls';
 
@@ -40,6 +42,14 @@ export const SubmissionCreatedTemplate = <T extends NotificationType>({
           Review their submission and provide feedback to help them improve or
           approve their work.
         </Text>
+
+        <Button
+          href={submissionUrl}
+          className="mt-8 inline-flex items-center rounded-lg bg-[#020617] px-4 py-2 text-white no-underline"
+        >
+          Go to {PROJECT_NAME}
+          <ArrowRightIcon className="ml-2 h-4 w-4" />
+        </Button>
       </Section>
     </Email>
   );

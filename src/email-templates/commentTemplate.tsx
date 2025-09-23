@@ -45,7 +45,7 @@ export const CommentTemplate = <T extends NotificationType>({
       case NotificationType.SUBMISSION_COMMENT:
         return (
           <Text className="text-xl font-bold text-slate-900">
-            You&apos;ve received new comment in{' '}
+            You&apos;ve received new comment to your submission for the{' '}
             <Link
               href={`${getBountyUrl({
                 ...notification.listing,
@@ -55,7 +55,7 @@ export const CommentTemplate = <T extends NotificationType>({
             >
               {notification.listing?.title}
             </Link>{' '}
-            submission
+            listing
           </Text>
         );
       case NotificationType.POW_COMMENT:

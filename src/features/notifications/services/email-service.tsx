@@ -2,6 +2,7 @@ import { CommentTemplate } from '@/email-templates/commentTemplate';
 import { DeadlineThreeDaysTemplate } from '@/email-templates/Deadline/deadline3dayTemplate';
 import { DeadlineEndedTemplate } from '@/email-templates/Deadline/deadlineEndedTemplate';
 import { DeadlineExceededbyWeekTemplate } from '@/email-templates/Deadline/deadlineExceededbyWeekTemplate';
+import { InviteMemberTemplate } from '@/email-templates/inviteMemberTemplate';
 import { LikeTemplate } from '@/email-templates/likeTemplate';
 import { ListingEditedTemplate } from '@/email-templates/Listing/listingEditedTemplate';
 import { ScoutInviteTemplate } from '@/email-templates/Listing/scoutInviteTemplate';
@@ -18,7 +19,6 @@ import { WinnersTemplate } from '@/email-templates/Winners/winnersTemplate';
 import { getBountyUrl as getBountyUrlInternal } from '@/utils/bounty-urls';
 import { getURL } from '@/utils/validUrl';
 
-import { InviteMemberTemplate } from '@/features/emails/components/inviteMemberTemplate';
 import { type Listing, type Rewards } from '@/features/listings/types';
 
 import { type Notification } from '../queries/useNotifications';
@@ -31,102 +31,112 @@ const getBountyUrl = (notification: Notification<NotificationType>) => {
   });
 };
 
-export async function prepareReactEmail<T extends NotificationType>(
+type EmailHandler<T extends NotificationType> = (
   notification: Notification<T>,
-): Promise<{ component: React.ReactElement; subject: string } | undefined> {
-  let component: React.ReactElement | undefined;
-  let subject: string = '';
+) => { component: React.ReactElement; subject: string } | undefined;
 
-  switch (notification.type) {
-    case NotificationType.SUBMISSION_CREATED:
-      component = <SubmissionCreatedTemplate notification={notification} />;
-      subject = `New submission for ${notification.listing?.title}`;
-      break;
+const emailHandlers: {
+  [K in NotificationType]: EmailHandler<K>;
+} = {
+  [NotificationType.SUBMISSION_CREATED]: (notification) => ({
+    component: <SubmissionCreatedTemplate notification={notification} />,
+    subject: `New submission for ${notification.listing?.title}`,
+  }),
 
-    case NotificationType.SUBMISSION_EDITED:
-      component = <SubmissionEditedTemplate notification={notification} />;
-      subject = `Submission updated for ${notification.listing?.title}`;
-      break;
+  [NotificationType.SUBMISSION_EDITED]: (notification) => ({
+    component: <SubmissionEditedTemplate notification={notification} />,
+    subject: `Submission updated for ${notification.listing?.title}`,
+  }),
 
-    case NotificationType.LISTING_COMMENT:
-      component = <CommentTemplate notification={notification} />;
-      subject = `New comment on ${notification.listing?.title}`;
-      break;
-    case NotificationType.SUBMISSION_COMMENT:
-      component = <CommentTemplate notification={notification} />;
-      subject = `New comment on your submission`;
-      break;
-    case NotificationType.POW_COMMENT:
-      component = <CommentTemplate notification={notification} />;
-      subject = `New comment on your proof of work`;
-      break;
-    case NotificationType.NOTE_CREATED:
-      component = <CommentTemplate notification={notification} />;
-      subject = `New note on submission #${notification.submission?.sequentialId}`;
-      break;
-    case NotificationType.COMMENT_REPLY:
-      component = <CommentTemplate notification={notification} />;
-      subject = `New reply to your comment`;
-      break;
-    case NotificationType.COMMENT_MENTIONED_YOU:
-      component = <CommentTemplate notification={notification} />;
-      subject = `You've been mentioned in a comment`;
-      break;
-    case NotificationType.COMMENT_PINNED:
-      component = <CommentTemplate notification={notification} />;
-      subject = `Comment has been pinned`;
-      break;
+  [NotificationType.LISTING_COMMENT]: (notification) => ({
+    component: <CommentTemplate notification={notification} />,
+    subject: `New comment on ${notification.listing?.title}`,
+  }),
 
-    case NotificationType.LISTING_WINNERS_ANNOUNCED:
-      component = (
-        <WinnersAnnouncedTemplate
-          name={notification.receiver.name}
-          listingName={notification.listing?.title!}
-          link={getBountyUrl(notification)}
-        />
-      );
-      subject = `Winners announced for ${notification.listing?.title}`;
-      break;
+  [NotificationType.SUBMISSION_COMMENT]: (notification) => ({
+    component: <CommentTemplate notification={notification} />,
+    subject: `New comment on your submission`,
+  }),
 
-    case NotificationType.LISTING_EDITED:
-      const eventDataEdit =
-        notification.data as NotificationDataMap['LISTING_EDITED'];
-      const deadlineChanged = eventDataEdit.changes.find(
-        (change) => change.field === 'deadline',
-      );
-      component = <ListingEditedTemplate notification={notification} />;
-      subject = deadlineChanged
+  [NotificationType.POW_COMMENT]: (notification) => ({
+    component: <CommentTemplate notification={notification} />,
+    subject: `New comment on your proof of work`,
+  }),
+
+  [NotificationType.NOTE_CREATED]: (notification) => ({
+    component: <CommentTemplate notification={notification} />,
+    subject: `New note on submission #${notification.submission?.sequentialId}`,
+  }),
+
+  [NotificationType.COMMENT_REPLY]: (notification) => ({
+    component: <CommentTemplate notification={notification} />,
+    subject: `New reply to your comment`,
+  }),
+
+  [NotificationType.COMMENT_MENTIONED_YOU]: (notification) => ({
+    component: <CommentTemplate notification={notification} />,
+    subject: `You've been mentioned in a comment`,
+  }),
+
+  [NotificationType.COMMENT_PINNED]: (notification) => ({
+    component: <CommentTemplate notification={notification} />,
+    subject: `Comment has been pinned`,
+  }),
+
+  [NotificationType.LISTING_WINNERS_ANNOUNCED]: (notification) => ({
+    component: (
+      <WinnersAnnouncedTemplate
+        name={notification.receiver.name}
+        listingName={notification.listing?.title!}
+        link={getBountyUrl(notification)}
+      />
+    ),
+    subject: `Winners announced for ${notification.listing?.title}`,
+  }),
+
+  [NotificationType.LISTING_EDITED]: (notification) => {
+    const eventDataEdit =
+      notification.data as NotificationDataMap['LISTING_EDITED'];
+    const deadlineChanged = eventDataEdit.changes.find(
+      (change) => change.field === 'deadline',
+    );
+    return {
+      component: <ListingEditedTemplate notification={notification} />,
+      subject: deadlineChanged
         ? `Deadline updated for ${notification.listing?.title}`
-        : `${notification.listing?.title} has been updated`;
-      break;
+        : `${notification.listing?.title} has been updated`,
+    };
+  },
 
-    case NotificationType.DEADLINE_IN_3_DAYS:
-      component = (
-        <DeadlineThreeDaysTemplate
-          name={notification.receiver.name}
-          listingName={notification.listing?.title!}
-          link={getBountyUrl(notification)}
-        />
-      );
-      subject = `Reminder: ${notification.listing?.title} deadline in 3 days`;
-      break;
+  [NotificationType.DEADLINE_IN_3_DAYS]: (notification) => ({
+    component: (
+      <DeadlineThreeDaysTemplate
+        name={notification.receiver.name}
+        listingName={notification.listing?.title!}
+        link={getBountyUrl(notification)}
+      />
+    ),
+    subject: `Reminder: ${notification.listing?.title} deadline in 3 days`,
+  }),
 
-    case NotificationType.SUBMISSION_APPROVED:
-      component = (
-        <WinnersTemplate
-          name={notification.receiver.name}
-          listingName={notification.listing?.title!}
-          listingType={notification.listing?.type!}
-          sponsorName={notification.sponsor?.name!}
-          pocSocials={notification.listing?.pocSocials || null}
-        />
-      );
-      subject = `Congratulations! You won ${notification.listing?.title}`;
-      break;
+  [NotificationType.SUBMISSION_APPROVED]: (notification) => ({
+    component: (
+      <WinnersTemplate
+        name={notification.receiver.name}
+        listingName={notification.listing?.title!}
+        listingType={notification.listing?.type!}
+        sponsorName={notification.sponsor?.name!}
+        pocSocials={notification.listing?.pocSocials || null}
+        link={`${getBountyUrl(notification)}${notification.submission?.sequentialId}/`}
+      />
+    ),
+    subject: `Congratulations! You won ${notification.listing?.title}`,
+  }),
 
-    case NotificationType.SUBMISSION_PAID:
-      const isUsdBased = notification.listing?.token === 'Any';
-      component = (
+  [NotificationType.SUBMISSION_PAID]: (notification) => {
+    const isUsdBased = notification.listing?.token === 'Any';
+    return {
+      component: (
         <PaymentReceivedTemplate
           name={notification.receiver.name}
           amount={
@@ -143,131 +153,144 @@ export async function prepareReactEmail<T extends NotificationType>(
           username={notification.receiver.username}
           isUSDbased={isUsdBased}
         />
-      );
-      subject = `Payment received for ${notification.listing?.title}`;
-      break;
+      ),
+      subject: `Payment received for ${notification.listing?.title}`,
+    };
+  },
 
-    case NotificationType.SUBMISSION_REJECTED:
-      component = (
-        <SubmissionRejectedTemplate
-          name={notification.receiver.name}
-          listingName={notification.listing?.title!}
-          link={`${getBountyUrl(notification)}${notification.submission?.sequentialId}`}
-        />
-      );
-      subject = `Submission rejected for ${notification.listing?.title}`;
-      break;
+  [NotificationType.SUBMISSION_REJECTED]: (notification) => ({
+    component: (
+      <SubmissionRejectedTemplate
+        name={notification.receiver.name}
+        listingName={notification.listing?.title!}
+        link={`${getBountyUrl(notification)}${notification.submission?.sequentialId}`}
+      />
+    ),
+    subject: `Submission rejected for ${notification.listing?.title}`,
+  }),
 
-    case NotificationType.TREASURY_PROPOSAL_STATUS_CHANGED:
-      const treasuryData =
-        notification.data as NotificationDataMap['TREASURY_PROPOSAL_STATUS_CHANGED'];
-      component = (
+  [NotificationType.TREASURY_PROPOSAL_STATUS_CHANGED]: (notification) => {
+    const treasuryData =
+      notification.data as NotificationDataMap['TREASURY_PROPOSAL_STATUS_CHANGED'];
+    return {
+      component: (
         <TreasuryProposalStatusChangedTemplate
           notification={
             notification as Notification<'TREASURY_PROPOSAL_STATUS_CHANGED'>
           }
         />
-      );
-      subject = `Treasury proposal ${treasuryData.status}`;
-      break;
+      ),
+      subject: `Treasury proposal ${treasuryData.status}`,
+    };
+  },
 
-    case NotificationType.SPONSOR_MEMBER_INVITED:
-      const eventDataInvite =
-        notification.data as NotificationDataMap['SPONSOR_MEMBER_INVITED'];
-      component = (
+  [NotificationType.SPONSOR_MEMBER_INVITED]: (notification) => {
+    const eventDataInvite =
+      notification.data as NotificationDataMap['SPONSOR_MEMBER_INVITED'];
+    return {
+      component: (
         <InviteMemberTemplate
           sponsorName={notification.sponsor?.name!}
           senderName={notification.receiver.name}
           link={`${getURL()}signup?invite=${eventDataInvite.token}`}
         />
-      );
-      subject = `You've been invited to join ${notification.sponsor?.name}`;
-      break;
+      ),
+      subject: `You've been invited to join ${notification.sponsor?.name}`,
+    };
+  },
 
-    case NotificationType.SPONSOR_MEMBER_ACCEPTED:
-      component = <SponsorMemberAcceptedTemplate notification={notification} />;
-      subject = `${notification.actor?.name || notification.actor?.username} joined your team`;
-      break;
+  [NotificationType.SPONSOR_MEMBER_ACCEPTED]: (notification) => ({
+    component: <SponsorMemberAcceptedTemplate notification={notification} />,
+    subject: `${notification.actor?.name || notification.actor?.username} joined your team`,
+  }),
 
-    case NotificationType.SCOUT_INVITE:
-      component = (
-        <ScoutInviteTemplate
-          name={notification.receiver.name}
-          link={getBountyUrl(notification)}
-          listingName={notification.listing?.title!}
-          sponsorName={notification.sponsor?.name!}
-        />
-      );
-      subject = `You're invited to participate in ${notification.listing?.title}`;
-      break;
+  [NotificationType.SCOUT_INVITE]: (notification) => ({
+    component: (
+      <ScoutInviteTemplate
+        name={notification.receiver.name}
+        link={getBountyUrl(notification)}
+        listingName={notification.listing?.title!}
+        sponsorName={notification.sponsor?.name!}
+      />
+    ),
+    subject: `You're invited to participate in ${notification.listing?.title}`,
+  }),
 
-    case NotificationType.LIKE:
-      let likeSubject = '';
-      if (notification.submission) {
-        likeSubject = `${notification.actor?.username} liked your submission`;
-      } else if (notification.pow) {
-        likeSubject = `${notification.actor?.username} liked your proof of work`;
-      } else if (notification.commentId) {
-        likeSubject = `${notification.actor?.username} liked your comment`;
-      }
-      component = <LikeTemplate notification={notification} />;
-      subject = likeSubject;
-      break;
+  [NotificationType.LIKE]: (notification) => {
+    let likeSubject = '';
+    if (notification.submission) {
+      likeSubject = `${notification.actor?.username} liked your submission`;
+    } else if (notification.pow) {
+      likeSubject = `${notification.actor?.username} liked your proof of work`;
+    } else if (notification.commentId) {
+      likeSubject = `${notification.actor?.username} liked your comment`;
+    }
+    return {
+      component: <LikeTemplate notification={notification} />,
+      subject: likeSubject,
+    };
+  },
 
-    case NotificationType.WEEKLY_ROUNDUP:
-      const eventDataWeeklyRoundup =
-        notification.data as NotificationDataMap['WEEKLY_ROUNDUP'];
-      component = (
+  [NotificationType.WEEKLY_ROUNDUP]: (notification) => {
+    const eventDataWeeklyRoundup =
+      notification.data as NotificationDataMap['WEEKLY_ROUNDUP'];
+    return {
+      component: (
         <WeeklyRoundupTemplate
           name={notification.receiver.name}
           listings={eventDataWeeklyRoundup.listings}
           userSkills={eventDataWeeklyRoundup.userSkills}
         />
-      );
-      subject = `Weekly listing roundup`;
-      break;
+      ),
+      subject: `Weekly listing roundup`,
+    };
+  },
 
-    case NotificationType.NEW_LISTING_FOR_SKILLS:
-      break;
+  [NotificationType.NEW_LISTING_FOR_SKILLS]: () => undefined,
 
-    case NotificationType.PRODUCT_UPDATES_AND_NEWS:
-      break;
+  [NotificationType.PRODUCT_UPDATES_AND_NEWS]: () => undefined,
 
-    case NotificationType.SUBMISSION_RECEIVED:
-      component = (
-        <SubmissionTemplate
-          listingName={notification.listing?.title!}
-          type={notification.listing?.type!}
-          name={notification.receiver.name}
-        />
-      );
-      subject = `Submission received!`;
-      break;
+  [NotificationType.SUBMISSION_RECEIVED]: (notification) => ({
+    component: (
+      <SubmissionTemplate
+        listingName={notification.listing?.title!}
+        type={notification.listing?.type!}
+        name={notification.receiver.name}
+        link={`${getBountyUrl(notification)}${notification.submission?.sequentialId}/`}
+      />
+    ),
+    subject: `Submission received!`,
+  }),
 
-    case NotificationType.DEADLINE_ENDED:
-      component = (
-        <DeadlineEndedTemplate
-          name={notification.receiver.name}
-          listingName={notification.listing?.title!}
-          link={getBountyUrl(notification)}
-        />
-      );
-      subject = `Deadline ended for ${notification.listing?.title}`;
-      break;
+  [NotificationType.DEADLINE_ENDED]: (notification) => ({
+    component: (
+      <DeadlineEndedTemplate
+        name={notification.receiver.name}
+        listingName={notification.listing?.title!}
+        link={getBountyUrl(notification)}
+      />
+    ),
+    subject: `Deadline ended for ${notification.listing?.title}`,
+  }),
 
-    case NotificationType.DEADLINE_EXCEEDED_BY_WEEK:
-      component = (
-        <DeadlineExceededbyWeekTemplate
-          name={notification.receiver.name}
-          listingName={notification.listing?.title!}
-          link={getBountyUrl(notification)}
-        />
-      );
+  [NotificationType.DEADLINE_EXCEEDED_BY_WEEK]: (notification) => ({
+    component: (
+      <DeadlineExceededbyWeekTemplate
+        name={notification.receiver.name}
+        listingName={notification.listing?.title!}
+        link={getBountyUrl(notification)}
+      />
+    ),
+    subject: `Deadline exceeded by week for ${notification.listing?.title}`,
+  }),
+};
+
+export async function prepareReactEmail<T extends NotificationType>(
+  notification: Notification<T>,
+): Promise<{ component: React.ReactElement; subject: string } | undefined> {
+  const handler = emailHandlers[notification.type];
+  if (!handler) {
+    return undefined;
   }
-
-  if (component && subject) {
-    return { component, subject };
-  }
-
-  return undefined;
+  return handler(notification as any);
 }

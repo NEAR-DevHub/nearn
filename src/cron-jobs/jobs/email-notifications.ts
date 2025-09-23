@@ -6,8 +6,6 @@ import utc from 'dayjs/plugin/utc';
 import { prisma } from '@/prisma';
 import { getURL } from '@/utils/validUrl';
 
-import { fromEmail, replyToEmail } from '@/features/emails/utils/fromEmails';
-import { resend } from '@/features/emails/utils/resend';
 import {
   type Notification,
   notificationInclude,
@@ -17,6 +15,11 @@ import {
   NotificationChannel,
   type NotificationType,
 } from '@/features/notifications/types';
+import {
+  fromEmail,
+  replyToEmail,
+} from '@/features/notifications/utils/fromEmails';
+import { resend } from '@/features/notifications/utils/resend';
 
 import { CronLogger } from '../lib/logger';
 import type { CronJobResult } from '../types';

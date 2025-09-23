@@ -1,7 +1,8 @@
-import { Link, Section, Text } from '@react-email/components';
+import { ArrowRightIcon } from '@radix-ui/react-icons';
+import { Button, Section, Text } from '@react-email/components';
 import React from 'react';
 
-import { HELP_URL, PROJECT_NAME } from '@/constants/project';
+import { PROJECT_NAME } from '@/constants/project';
 import { Email } from '@/email-templates/BasicEmail';
 
 interface TemplateProps {
@@ -23,23 +24,13 @@ export const DeadlineExceededbyWeekTemplate = ({
           <span className="font-semibold">{listingName}</span> listing expired.
           We suggest you announce your selection/s on {PROJECT_NAME} soon!
         </Text>
-        <Text className="text-slate-900">
-          <Link href={link} className="font-medium text-slate-900 underline">
-            Click here
-          </Link>{' '}
-          to review the submissions.
-        </Text>
-
-        <Text className="text-slate-900">
-          Reach out to{' '}
-          <Link
-            href={`${HELP_URL}`}
-            className="font-medium text-slate-900 underline"
-          >
-            us
-          </Link>{' '}
-          in case you need help.
-        </Text>
+        <Button
+          href={link}
+          className="mt-8 inline-flex items-center rounded-lg bg-[#020617] px-4 py-2 text-white no-underline"
+        >
+          Go to NEARN
+          <ArrowRightIcon className="ml-2 h-4 w-4" />
+        </Button>
       </Section>
     </Email>
   );

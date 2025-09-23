@@ -10,7 +10,7 @@ export const UnsubscribeLine = () => {
         Unsubscribe
       </Link>
       <Link
-        href={`${getURL()}/#emailPreferences`}
+        href={`${getURL()}#emailPreferences`}
         className="text-slate-900 underline"
       >
         Update Your Preferences
