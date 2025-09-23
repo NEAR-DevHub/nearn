@@ -21,7 +21,7 @@ export function Notification({
   const notificationTime = dayjs(notification.createdAt);
   const date = notificationTime.isToday()
     ? formatFromNow(notificationTime.fromNow())
-    : notificationTime.format('HH:mm');
+    : notificationTime.format('MMM D, YYYY');
   const utcOffset = -(new Date().getTimezoneOffset() / 60).toFixed(1);
   const offsetString = utcOffset > 0 ? `+${utcOffset}` : utcOffset;
   const fullDate = notificationTime.format(
@@ -55,7 +55,7 @@ export function Notification({
   }
 
   return (
-    <div className="flex items-start gap-2 p-4">
+    <div className="flex items-start gap-2 p-4 hover:bg-slate-50">
       <Image
         src={icon ?? ''}
         alt={username ?? ''}

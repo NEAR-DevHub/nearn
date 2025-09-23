@@ -104,9 +104,9 @@ export function NotificationsListWithFilters({
         value={activeTab}
         onValueChange={(value) => setActiveTab(value as 'Unread' | 'Read')}
       >
-        <div className="flex items-center justify-between px-4 py-3">
-          <TabsList className="relative w-full justify-start rounded-none">
-            <div className="absolute bottom-[1px] left-0 h-[2px] w-full bg-slate-200 md:bottom-[-1px]" />
+        <div className="relative z-10 flex items-center justify-between px-4 pt-3">
+          <div className="absolute bottom-[1px] left-0 h-[2px] w-full bg-slate-200 md:bottom-[-1px]" />
+          <TabsList className="w-full justify-start rounded-none">
             <TabsTrigger
               value="Unread"
               className="data-[state=active]:bg-transparent data-[state=active]:after:bottom-[-5px]"
@@ -131,8 +131,8 @@ export function NotificationsListWithFilters({
             )}
           </TabsList>
         </div>
-        <TabsContent value={activeTab}>
-          <ScrollArea className="h-[400px]">
+        <TabsContent value={activeTab} className="mt-0 pt-0">
+          <ScrollArea className="h-[400px] pt-0">
             {notifications.length === 0 && (
               <div className="flex h-[400px] flex-col justify-center text-center">
                 <ExternalImage
