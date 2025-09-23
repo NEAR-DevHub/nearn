@@ -13,7 +13,7 @@ export const OTPTemplate = ({ token }: TemplateProps) => {
   return (
     <Email userName={''}>
       <Section>
-        <Text className="text-xl font-bold text-slate-900">
+        <Text className="text-base font-medium text-slate-600">
           Your OTP for logging into {PROJECT_NAME} is <b>{token}</b>. This OTP
           is valid for 30 minutes.
         </Text>
