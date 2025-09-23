@@ -90,7 +90,7 @@ export default function TreasuryProposal(props: LogProperties) {
     case EventType.TREASURY_PROPOSAL_REJECTED:
       return (
         <p className="gap-1 text-slate-500">
-          Processed payment for{' '}
+          Payment proposal for{' '}
           {username && (
             <>
               <a href={`/t/${username}`} className="font-medium text-slate-900">
