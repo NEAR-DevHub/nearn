@@ -88,16 +88,18 @@ export function BottomBar({ onSearchOpen }: Props) {
               variant="ghost"
               className={cn(
                 setColor('/notifications/', router.asPath),
-                'hover:bg-transparent active:bg-transparent',
+                'relative hover:bg-transparent active:bg-transparent',
               )}
             >
               <Bell style={iconStyle} />
-              <Badge
-                variant="destructive"
-                className="absolute right-0 top-0 flex h-4 w-4 items-center justify-center rounded-full p-0 text-xs"
-              >
-                {unreadCount > 99 ? '99+' : unreadCount}
-              </Badge>
+              {unreadCount > 0 && (
+                <Badge
+                  variant="destructive"
+                  className="absolute right-2 top-0 scale-[0.8] rounded-full p-0.5 px-1.5"
+                >
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </Badge>
+              )}
             </Button>
           </Link>
         )}
