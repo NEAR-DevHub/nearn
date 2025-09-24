@@ -45,6 +45,8 @@ export async function sendEmailNotifications(): Promise<CronJobResult> {
         deliveredAt: null,
       },
       include: { ...notificationInclude, receiver: true },
+      take: 25,
+      orderBy: [{ createdAt: 'asc' }],
     });
 
     for (const notification of notifications) {
