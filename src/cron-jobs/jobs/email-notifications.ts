@@ -86,6 +86,8 @@ export async function sendEmailNotifications(): Promise<CronJobResult> {
           where: { id: notification.id },
           data: { deliveredAt: new Date() },
         });
+
+        await new Promise((resolve) => setTimeout(resolve, 2000));
       }
     }
 
