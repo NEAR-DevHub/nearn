@@ -18,8 +18,8 @@ import { HELP_URL } from '@/constants/project';
 import { useDisclosure } from '@/hooks/use-disclosure';
 import { useLogout, useUser } from '@/store/user';
 
+import { NotificationSettingsModal } from '@/features/notifications/components/notification-setting-modal/NotificationSettingModal';
 import { EarnAvatar } from '@/features/talent/components/EarnAvatar';
-import { NotificationSettingsModal } from '@/features/talent/components/NotificationSettingModal';
 
 export function UserMenu() {
   const router = useRouter();

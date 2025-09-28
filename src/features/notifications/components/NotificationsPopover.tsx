@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/popover';
 import { useUser } from '@/store/user';
 
-import { NotificationSettingsModal } from '@/features/talent/components/NotificationSettingModal';
+import { NotificationSettingsModal } from '@/features/notifications/components/notification-setting-modal/NotificationSettingModal';
 
 import {
   useMarkNotificationsAsRead,

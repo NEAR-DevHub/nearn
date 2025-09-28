@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Default } from '@/layouts/Default';
 
 import { NotificationsListWithFilters } from '@/features/notifications/components';
-import { NotificationSettingsModal } from '@/features/talent/components/NotificationSettingModal';
+import { NotificationSettingsModal } from '@/features/notifications/components/notification-setting-modal/NotificationSettingModal';
 
 export default function NotificationsPage() {
   const [isOpen, setIsOpen] = useState(false);
