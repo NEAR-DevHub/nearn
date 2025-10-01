@@ -180,6 +180,8 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
     );
   },
   [EventType.COMMENT_ADDED]: async (event) => {
+    const isInternalNote =
+      event.comment?.refType === 'SUBMISSION' && event.visibility === 'SPONSOR';
     if (event.comment?.refType === 'BOUNTY') {
       await createNotification(
         NotificationType.LISTING_COMMENT,
@@ -197,10 +199,7 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
         event.submission?.userId!,
         getEntities(event),
       );
-    } else if (
-      event.comment?.refType === 'SUBMISSION' &&
-      event.visibility === 'SPONSOR'
-    ) {
+    } else if (isInternalNote) {
       await createNotification(
         NotificationType.NOTE_CREATED,
         NotificationRelationType.SPONSOR,
@@ -245,6 +244,15 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
               id: event.actorId as string,
             },
           },
+          isInternalNote && event.sponsorId
+            ? {
+                UserSponsors: {
+                  some: {
+                    sponsorId: event.sponsorId,
+                  },
+                },
+              }
+            : {},
         ],
       },
     });
