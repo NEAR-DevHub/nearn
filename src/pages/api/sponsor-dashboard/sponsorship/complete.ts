@@ -8,7 +8,6 @@ import { safeStringify } from '@/utils/safeStringify';
 import { type NextApiRequestWithSponsor } from '@/features/auth/types';
 import { checkListingSponsorAuth } from '@/features/auth/utils/checkListingSponsorAuth';
 import { withSponsorAuth } from '@/features/auth/utils/withSponsorAuth';
-import { isDeadlineOver } from '@/features/listings/utils/deadline';
 import { eventLogger } from '@/features/logging/services/event-logger';
 import { EventType } from '@/features/logging/types/event-data';
 
@@ -36,12 +35,6 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
 
     if (!listing) {
       return res.status(404).json({ error: 'Listing not found' });
-    }
-
-    if (!isDeadlineOver(listing.deadline ?? undefined)) {
-      return res
-        .status(400)
-        .json({ error: 'Listing is not in review or deadline is not over' });
     }
 
     const deadline = dayjs().isAfter(listing?.deadline)
