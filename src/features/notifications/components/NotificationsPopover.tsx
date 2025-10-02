@@ -47,12 +47,14 @@ export function NotificationsPopover() {
       if (unreadCount !== cachedCount) {
         setShowBadge(true);
       }
+    } else if (unreadCount > 0 && isOpen) {
+      localStorage.setItem('notificationCount', unreadCount.toString());
     }
   }, [unreadCount]);
 
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
-    if (!open && unreadCount > 0) {
+    if (open && unreadCount > 0) {
       localStorage.setItem('notificationCount', unreadCount.toString());
       setShowBadge(false);
     }
