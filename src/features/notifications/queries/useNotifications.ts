@@ -233,6 +233,7 @@ const fetchNotifications = async (
 
 export const useNotificationsInfinite = (
   params: UseNotificationsParams = {},
+  queryOptions?: { enabled?: boolean },
 ) => {
   return useInfiniteQuery({
     queryKey: ['notifications-infinite', params],
@@ -244,6 +245,7 @@ export const useNotificationsInfinite = (
         : undefined;
     },
     initialPageParam: 1,
+    ...queryOptions,
   });
 };
 

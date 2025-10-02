@@ -1,15 +1,19 @@
 import dayjs from 'dayjs';
-import { Dot } from 'lucide-react';
+import { CheckCircle2, Dot } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
+import { Button } from '@/components/ui/button';
 import { Tooltip } from '@/components/ui/tooltip';
 import { PROJECT_NAME } from '@/constants/project';
 
 import { formatFromNow } from '@/features/comments/utils';
 import { getListingIcon } from '@/features/listings/utils/getListingIcon';
 
-import { type Notification as NotificationData } from '../queries/useNotifications';
+import {
+  type Notification as NotificationData,
+  useMarkNotificationsAsRead,
+} from '../queries/useNotifications';
 import { type NotificationType } from '../types';
 import { getNotificationAction } from '../utils/notification-messages';
 
@@ -18,6 +22,8 @@ export function Notification({
 }: {
   notification: NotificationData<NotificationType>;
 }) {
+  const { mutate: markAsRead } = useMarkNotificationsAsRead();
+
   const notificationTime = dayjs(notification.createdAt);
   const date = notificationTime.isToday()
     ? formatFromNow(notificationTime.fromNow())
@@ -55,7 +61,7 @@ export function Notification({
   }
 
   return (
-    <div className="flex items-start gap-2 p-4 hover:bg-slate-50">
+    <div className="group flex items-start gap-2 p-4 hover:bg-slate-50">
       <Image
         src={icon ?? ''}
         alt={username ?? ''}
@@ -124,16 +130,32 @@ export function Notification({
         </div>
         <p className="text-slate-500">{subtitle}</p>
       </div>
-      <Tooltip
-        contentProps={{ className: 'z-[1000]' }}
-        content={fullDate}
-        triggerClassName="flex flex-shrink-0 ml-auto"
-      >
+      <div className="flex-shrink-0 flex-col">
+        <Tooltip
+          contentProps={{ className: 'z-[1000]' }}
+          content={fullDate}
+          triggerClassName="flex flex-shrink-0 ml-auto"
+        >
+          {notification.deliveredAt === null && (
+            <Dot className="h-4 w-4 scale-150 text-red-500" />
+          )}
+          <span className="text-sm font-medium text-slate-400">{date}</span>
+        </Tooltip>
         {notification.deliveredAt === null && (
-          <Dot className="h-4 w-4 scale-150 text-red-500" />
+          <Button
+            variant="ghost"
+            size="icon"
+            className="ml-auto flex h-6 w-6 p-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+            onClick={(e) => {
+              e.stopPropagation();
+              markAsRead([notification.id]);
+            }}
+            title="Mark as read"
+          >
+            <CheckCircle2 className="h-4 w-4 text-slate-500" />
+          </Button>
         )}
-        <span className="text-sm font-medium text-slate-400">{date}</span>
-      </Tooltip>
+      </div>
     </div>
   );
 }
