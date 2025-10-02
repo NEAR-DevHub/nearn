@@ -5,6 +5,7 @@ import { DeadlineExceededbyWeekTemplate } from '@/email-templates/Deadline/deadl
 import { InviteMemberTemplate } from '@/email-templates/inviteMemberTemplate';
 import { LikeTemplate } from '@/email-templates/likeTemplate';
 import { ListingEditedTemplate } from '@/email-templates/Listing/listingEditedTemplate';
+import { NewListingTemplate } from '@/email-templates/Listing/newListingTemplate';
 import { ScoutInviteTemplate } from '@/email-templates/Listing/scoutInviteTemplate';
 import { WeeklyRoundupTemplate } from '@/email-templates/Listing/weeklyRoundupTemplate';
 import { SponsorMemberAcceptedTemplate } from '@/email-templates/Sponsor/sponsorMemberAcceptedTemplate';
@@ -246,7 +247,18 @@ const emailHandlers: {
     };
   },
 
-  [NotificationType.NEW_LISTING_FOR_SKILLS]: () => undefined,
+  [NotificationType.NEW_LISTING_FOR_SKILLS]: (notification) => ({
+    component: (
+      <NewListingTemplate
+        name={notification.receiver.name}
+        link={getBountyUrl(notification)}
+        listing={
+          { ...notification.listing, sponsor: notification.sponsor! } as any
+        }
+      />
+    ),
+    subject: `${notification.sponsor?.name} has a new ${notification.listing?.type} listing just for you!`,
+  }),
 
   [NotificationType.PRODUCT_UPDATES_AND_NEWS]: () => undefined,
 

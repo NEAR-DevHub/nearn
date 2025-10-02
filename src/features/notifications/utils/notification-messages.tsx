@@ -248,15 +248,25 @@ export function getNotificationAction(
           return {
             actor: 'platform',
             message: `Treasury proposal - updated`,
-            link: `/${notification?.sponsor?.slug}/${notification?.listing?.sequentialId}/${notification?.submission?.sequentialId}`,
+            link: `/${notification?.sponsor?.slug}/${notification?.listing?.sequentialId}/${notification?.submission?.sequentialId}/`,
           };
       }
-    case NotificationType.WEEKLY_ROUNDUP:
     case NotificationType.NEW_LISTING_FOR_SKILLS:
+      return {
+        actor: 'platform',
+        message: `${notification?.sponsor?.name} has a new ${notification?.listing?.type} listing just for you!`,
+        link: `/${notification?.sponsor?.slug}/${notification?.listing?.sequentialId}/`,
+      };
+    case NotificationType.WEEKLY_ROUNDUP:
+      return {
+        actor: 'platform',
+        message: `Weekly roundup email has been sent to you`,
+        link: `/`,
+      };
     case NotificationType.PRODUCT_UPDATES_AND_NEWS:
       return {
         actor: 'platform',
-        message: 'Placeholder',
+        message: 'New product updates and news email has been sent to you',
         link: '/',
       };
   }

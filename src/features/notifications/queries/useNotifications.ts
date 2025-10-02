@@ -50,10 +50,13 @@ export interface Notification<T extends NotificationType> {
     sequentialId: number;
     type: 'bounty' | 'sponsorship' | 'project' | 'hackathon';
     title: string;
+    region: string;
+    skills: Prisma.JsonValue;
     slug: string;
     token: string;
     rewards: Rewards;
     pocId: string;
+    rewardAmount: number;
     isPublished: boolean;
     isPrivate: boolean;
     pocSocials: string;
@@ -118,7 +121,10 @@ export const notificationInclude: Prisma.NotificationInclude = {
       slug: true,
       type: true,
       title: true,
+      region: true,
+      skills: true,
       rewards: true,
+      rewardAmount: true,
       token: true,
       pocId: true,
       isPrivate: true,
