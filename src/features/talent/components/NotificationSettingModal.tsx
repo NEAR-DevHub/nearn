@@ -493,6 +493,9 @@ const useNotificationState = (user: User) => {
         'types' in sectionItem ? sectionItem.types : [sectionItem.type]
       ) as NotificationType[];
 
+      const disabled =
+        'disabled' in sectionItem ? (sectionItem.disabled ?? []) : [];
+
       // Process all sponsor-specific settings
       Object.entries(settingStore).forEach(([sponsorKey, setting]) => {
         if (
@@ -508,7 +511,7 @@ const useNotificationState = (user: User) => {
         const sponsorId = sponsorKey === 'general' ? undefined : sponsorKey;
 
         types.forEach((type: NotificationType) => {
-          if (setting.email) {
+          if (setting.email && !disabled.includes('email')) {
             result.push({
               channel: 'email',
               type,
@@ -517,7 +520,7 @@ const useNotificationState = (user: User) => {
                 category === 'SPONSOR' ? setting.listingScope : undefined,
             });
           }
-          if (setting.inApp) {
+          if (setting.inApp && !disabled.includes('inApp')) {
             result.push({
               channel: 'inApp',
               type,
