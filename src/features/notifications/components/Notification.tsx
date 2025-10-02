@@ -130,7 +130,7 @@ export function Notification({
         </div>
         <p className="text-slate-500">{subtitle}</p>
       </div>
-      <div className="flex-shrink-0 flex-col">
+      <div className="ml-auto flex flex-shrink-0 flex-col gap-2 md:gap-1">
         <Tooltip
           contentProps={{ className: 'z-[1000]' }}
           content={fullDate}
@@ -145,7 +145,7 @@ export function Notification({
           <Button
             variant="ghost"
             size="icon"
-            className="ml-auto flex h-6 w-6 p-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+            className="ml-auto flex h-6 w-6 p-0 transition-opacity duration-200 group-hover:opacity-100 md:opacity-0"
             onClick={(e) => {
               e.stopPropagation();
               markAsRead([notification.id]);
