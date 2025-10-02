@@ -21,7 +21,7 @@ export const sponsorBaseSchema = z.object({
     .string()
     .min(1, 'Company bio is required')
     .max(180, 'Bio must be less than 180 characters'),
-  logo: z.string().min(1, 'Company logo is required'),
+  logo: z.string().optional(),
   industry: z.string().min(1, 'At least one industry must be selected'),
   url: z
     .string()

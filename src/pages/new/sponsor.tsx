@@ -218,6 +218,8 @@ const CreateSponsor = () => {
             source: IMAGE_SOURCE.SPONSOR,
           });
           sponsorData.logo = uploadResult.url;
+        } else if (logoPreview) {
+          sponsorData.logo = logoPreview;
         }
 
         await api.post('/api/sponsors/create', sponsorData);
@@ -265,19 +267,8 @@ const CreateSponsor = () => {
 
   const isSubmitDisabled = useMemo(
     () =>
-      (!selectedLogo && !logoPreview) ||
-      isPending ||
-      isSlugInvalid ||
-      isUsernameInvalid ||
-      isSponsorNameInvalid,
-    [
-      selectedLogo,
-      logoPreview,
-      isPending,
-      isSlugInvalid,
-      isUsernameInvalid,
-      isSponsorNameInvalid,
-    ],
+      isPending || isSlugInvalid || isUsernameInvalid || isSponsorNameInvalid,
+    [isPending, isSlugInvalid, isUsernameInvalid, isSponsorNameInvalid],
   );
 
   const validateAcknowledgement = (): boolean => {
@@ -394,7 +385,7 @@ const CreateSponsor = () => {
                   />
                 </div>
                 <>
-                  <FormLabel isRequired>Profile Picture</FormLabel>
+                  <FormLabel>Profile Picture</FormLabel>
                   <ImagePicker
                     defaultValue={user?.photo ? { url: user.photo } : undefined}
                     onChange={(file, previewUrl) => {
@@ -495,7 +486,7 @@ const CreateSponsor = () => {
                   </FormFieldWrapper>
                 </div>
                 <div className="mt-6 mb-3 w-full">
-                  <FormLabel isRequired>Company Logo</FormLabel>
+                  <FormLabel>Company Logo</FormLabel>
                   <ImagePicker
                     crop="square"
                     onChange={(file, previewUrl) => {

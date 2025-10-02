@@ -1,5 +1,7 @@
 import axios from 'axios';
 
+import { getURL } from '@/utils/validUrl';
+
 export async function fetchTokenUSDValue(mintAddress: string): Promise<number> {
   try {
     if (!mintAddress) {
@@ -7,7 +9,7 @@ export async function fetchTokenUSDValue(mintAddress: string): Promise<number> {
     }
 
     const { data } = await axios.get(
-      `${process.env.NEXT_PUBLIC_SITE_URL}api/wallet/price?mintAddress=${mintAddress}`,
+      `${getURL()}api/wallet/price?mintAddress=${mintAddress}`,
     );
 
     return data.price;

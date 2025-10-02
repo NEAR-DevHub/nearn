@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "cross-env NODE_ENV=development next dev --turbopack",
-    "build": "prisma generate && next build",
+    "build": "prisma generate && next build --turbo",
     "start": "cross-env NODE_ENV=production next start",
     "lint": "eslint .",
     "format": "eslint --fix . && prettier '**/*.{json,yaml}' --write --ignore-path .gitignore",

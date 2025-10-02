@@ -1,0 +1,32 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: nearn_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: nearn_root_password
+      MYSQL_DATABASE: nearn_dev
+      MYSQL_USER: nearn_user
+      MYSQL_PASSWORD: nearn_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d
+    command: --default-authentication-plugin=mysql_native_password
+
+  redis:
+    image: redis:7-alpine
+    container_name: nearn_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
