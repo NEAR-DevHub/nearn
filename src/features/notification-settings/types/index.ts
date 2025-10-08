@@ -4,6 +4,15 @@ export interface NotificationSetting {
   listingScope: 'mine' | 'all';
 }
 
+export interface NotificationStore {
+  general: NotificationSetting;
+  [key: string]: NotificationSetting;
+}
+
+export interface NotificationState {
+  [key: string]: NotificationStore;
+}
+
 export enum AlertCategory {
   SPONSOR = 'SPONSOR',
   TALENT = 'TALENT',

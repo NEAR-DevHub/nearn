@@ -1,7 +1,4 @@
-import {
-  type NotificationRelationType,
-  type NotificationSettings,
-} from '@prisma/client';
+import { type NotificationSettings } from '@prisma/client';
 import { useEffect, useState } from 'react';
 
 import { type User } from '@/interface/user';
@@ -10,22 +7,18 @@ import { type UserSponsor } from '@/interface/userSponsor';
 import { type NotificationType } from '@/features/notifications/types';
 
 import { sections } from '../constants';
-import { AlertCategory, type NotificationSetting } from '../types';
+import {
+  AlertCategory,
+  type NotificationSetting,
+  type NotificationState,
+  type NotificationStore,
+} from '../types';
 
-interface NotificationStore {
-  general: NotificationSetting;
-  [key: string]: NotificationSetting;
-}
-
-interface NotificationState {
-  [key: string]: NotificationStore;
-}
-
-export const useNotificationState = (user: User) => {
+export const useNotificationState = (user?: User | null) => {
   const [notificationState, setNotificationState] = useState<NotificationState>(
     {},
   );
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [isInitialized, setIsInitialized] = useState<boolean>(false);
 
   // Initialize notification state from user's current settings
   useEffect(() => {
@@ -180,67 +173,6 @@ export const useNotificationState = (user: User) => {
     });
   };
 
-  const transformToApiFormat = () => {
-    const result: any[] = [];
-
-    Object.entries(notificationState).forEach(([key, settingStore]) => {
-      const [category, id] = key.split('-');
-      const section =
-        sections[category as NotificationRelationType] ||
-        sections[category as 'GENERAL'];
-      if (!section) return;
-
-      const sectionItem = section[Number(id)];
-      if (!sectionItem) return;
-
-      const types = (
-        'types' in sectionItem ? sectionItem.types : [sectionItem.type]
-      ) as NotificationType[];
-
-      // Process all sponsor-specific settings
-      Object.entries(settingStore).forEach(([sponsorKey, setting]) => {
-        if (
-          sponsorKey === 'general' &&
-          category === AlertCategory.SPONSOR &&
-          user?.UserSponsors?.length &&
-          user.UserSponsors.length > 0
-        ) {
-          // Skip general setting if there are sponsor-specific settings
-          return;
-        }
-
-        const sponsorId = sponsorKey === 'general' ? undefined : sponsorKey;
-
-        types.forEach((type: NotificationType) => {
-          if (setting.email) {
-            result.push({
-              channel: 'email',
-              type,
-              sponsorId,
-              listingScope:
-                category === AlertCategory.SPONSOR
-                  ? setting.listingScope
-                  : undefined,
-            });
-          }
-          if (setting.inApp) {
-            result.push({
-              channel: 'inApp',
-              type,
-              sponsorId,
-              listingScope:
-                category === AlertCategory.SPONSOR
-                  ? setting.listingScope
-                  : undefined,
-            });
-          }
-        });
-      });
-    });
-
-    return result;
-  };
-
   const getGeneralCheckboxState = (
     category: string,
     id: number,
@@ -310,9 +242,9 @@ export const useNotificationState = (user: User) => {
   };
 
   return {
+    notificationState,
     getNotificationSetting,
     updateSetting,
-    transformToApiFormat,
     getGeneralCheckboxState,
     getGeneralListingScope,
     isInitialized,
