@@ -16,11 +16,11 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { api } from '@/lib/api';
 import { useUser } from '@/store/user';
 
-import { AlertOption } from './components/AlertOption';
-import { AlertSectionHeader } from './components/AlertSectionHeader';
-import { sections } from './constants';
-import { AlertCategory } from './types';
-import { useNotificationState } from './useNotificationState';
+import { sections } from '../constants';
+import { useNotificationState } from '../hooks/useNotificationState';
+import { AlertCategory } from '../types';
+import { AlertOption } from './AlertOption';
+import { AlertSectionHeader } from './AlertSectionHeader';
 
 export const NotificationSettingsModal = ({
   isOpen,

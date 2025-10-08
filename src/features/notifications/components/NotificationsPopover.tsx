@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/popover';
 import { useUser } from '@/store/user';
 
-import { NotificationSettingsModal } from '@/features/notifications/components/notification-setting-modal/NotificationSettingModal';
+import { NotificationSettingsModal } from '@/features/notification-settings/components/NotificationSettingModal';
 
 import { useNotificationsInfinite } from '../queries/useNotifications';
 import { AccountFilter } from './AccountFilter';

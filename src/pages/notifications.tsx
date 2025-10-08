@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 
 import { Default } from '@/layouts/Default';
 
+import { NotificationSettingsModal } from '@/features/notification-settings/components/NotificationSettingModal';
 import { NotificationsListWithFilters } from '@/features/notifications/components';
-import { NotificationSettingsModal } from '@/features/notifications/components/notification-setting-modal/NotificationSettingModal';
 import { useNotificationsInfinite } from '@/features/notifications/queries/useNotifications';
 
 export default function NotificationsPage() {

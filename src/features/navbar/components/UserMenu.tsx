@@ -18,7 +18,7 @@ import { HELP_URL } from '@/constants/project';
 import { useDisclosure } from '@/hooks/use-disclosure';
 import { useLogout, useUser } from '@/store/user';
 
-import { NotificationSettingsModal } from '@/features/notifications/components/notification-setting-modal/NotificationSettingModal';
+import { NotificationSettingsModal } from '@/features/notification-settings/components/NotificationSettingModal';
 import { EarnAvatar } from '@/features/talent/components/EarnAvatar';
 
 export function UserMenu() {

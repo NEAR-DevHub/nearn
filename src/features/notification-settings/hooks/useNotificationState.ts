@@ -7,9 +7,10 @@ import { useEffect, useState } from 'react';
 import { type User } from '@/interface/user';
 import { type UserSponsor } from '@/interface/userSponsor';
 
-import { type NotificationType } from '../../types';
-import { sections } from './constants';
-import { AlertCategory, type NotificationSetting } from './types';
+import { type NotificationType } from '@/features/notifications/types';
+
+import { sections } from '../constants';
+import { AlertCategory, type NotificationSetting } from '../types';
 
 interface NotificationStore {
   general: NotificationSetting;
