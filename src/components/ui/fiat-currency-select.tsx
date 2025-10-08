@@ -17,8 +17,6 @@ import {
 import { fiatCurrencies } from '@/constants/fiatCurrencies';
 import { cn } from '@/utils/cn';
 
-import '/node_modules/flag-icons/css/flag-icons.min.css';
-
 interface FiatCurrencySelectProps {
   placeholder?: string;
   value?: string;
