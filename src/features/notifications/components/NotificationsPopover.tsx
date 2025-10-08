@@ -1,7 +1,7 @@
 'use client';
 
 import { Bell } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,10 +14,7 @@ import { useUser } from '@/store/user';
 
 import { NotificationSettingsModal } from '@/features/notifications/components/notification-setting-modal/NotificationSettingModal';
 
-import {
-  useMarkNotificationsAsRead,
-  useNotificationsInfinite,
-} from '../queries/useNotifications';
+import { useNotificationsInfinite } from '../queries/useNotifications';
 import { AccountFilter } from './AccountFilter';
 import { NotificationsListWithFilters } from './NotificationsList';
 
@@ -27,6 +24,8 @@ export function NotificationsPopover() {
     string[] | undefined
   >(undefined);
   const [showTalentNotifications, setShowTalentNotifications] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
+  const [showBadge, setShowBadge] = useState(false);
 
   const { data } = useNotificationsInfinite({
     read: false,
@@ -34,11 +33,32 @@ export function NotificationsPopover() {
     sponsorIds: selectedSponsorIds,
     showTalent: showTalentNotifications,
   });
-  const { mutate: markAsRead } = useMarkNotificationsAsRead();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const notifications = data?.pages.flatMap((page) => page.notifications) || [];
   const unreadCount = notifications.filter((n) => !n.deliveredAt).length || 0;
+
+  useEffect(() => {
+    if (unreadCount > 0 && !isOpen) {
+      const cachedCount = parseInt(
+        localStorage.getItem('notificationCount') || '0',
+        10,
+      );
+      if (unreadCount !== cachedCount) {
+        setShowBadge(true);
+      }
+    } else if (unreadCount > 0 && isOpen) {
+      localStorage.setItem('notificationCount', unreadCount.toString());
+    }
+  }, [unreadCount]);
+
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open);
+    if (open && unreadCount > 0) {
+      localStorage.setItem('notificationCount', unreadCount.toString());
+      setShowBadge(false);
+    }
+  };
 
   return (
     <>
@@ -46,19 +66,11 @@ export function NotificationsPopover() {
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
       />
-      <Popover
-        onOpenChange={(open) => {
-          if (unreadCount > 0 && !open) {
-            markAsRead(
-              notifications.filter((n) => !n.deliveredAt).map((n) => n.id),
-            );
-          }
-        }}
-      >
+      <Popover open={isOpen} onOpenChange={handleOpenChange}>
         <PopoverTrigger asChild>
           <Button variant="ghost" size="icon" className="relative">
             <Bell className="h-5 w-5" />
-            {unreadCount > 0 && (
+            {showBadge && unreadCount > 0 && (
               <Badge
                 variant="destructive"
                 className="absolute right-0 top-0 scale-[0.7] rounded-full p-0.5 px-1.5"

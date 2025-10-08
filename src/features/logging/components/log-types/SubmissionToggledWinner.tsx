@@ -10,15 +10,19 @@ export default function SubmissionToggledWinner(props: LogProperties) {
   const username = event.submission?.user.username;
   const position = data.winnerPosition;
 
-  const placeString = nthLabelGenerator(position ?? 1);
+  const isAssigned =
+    data.winnerPosition !== null && data.winnerPosition !== undefined;
 
   return (
     <p className="inline-flex items-center gap-1 text-slate-500">
-      Assigned{' '}
+      {isAssigned ? 'Assigned' : 'Unassigned'}{' '}
       <a href={`/t/${username}`} className="text-slate-900">
         @{username}
       </a>{' '}
-      <span className="font-medium">{placeString}</span> place
+      {isAssigned && (
+        <span className="font-medium">{nthLabelGenerator(position!)}</span>
+      )}{' '}
+      place
     </p>
   );
 }

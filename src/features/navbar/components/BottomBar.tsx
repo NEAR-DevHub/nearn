@@ -1,6 +1,7 @@
 import { Bell, Home, Newspaper, Search, User } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -17,6 +18,7 @@ interface Props {
 export function BottomBar({ onSearchOpen }: Props) {
   const { user } = useUser();
   const router = useRouter();
+  const [showBadge, setShowBadge] = useState(false);
 
   function setColor(href: string, routerPath: string) {
     return routerPath === href ? 'text-black' : 'text-slate-400';
@@ -26,6 +28,19 @@ export function BottomBar({ onSearchOpen }: Props) {
     limit: 10,
   });
   const unreadCount = data?.pages[0]?.pagination.totalCount || 0;
+
+  // Check if we should show the badge based on cached count
+  useEffect(() => {
+    if (unreadCount > 0) {
+      const cachedCount = parseInt(
+        localStorage.getItem('notificationCount') || '0',
+        10,
+      );
+      if (unreadCount > cachedCount) {
+        setShowBadge(true);
+      }
+    }
+  }, [unreadCount]);
 
   const iconStyle = { width: '1.5rem', height: '1.5rem' };
 
@@ -92,7 +107,7 @@ export function BottomBar({ onSearchOpen }: Props) {
               )}
             >
               <Bell style={iconStyle} />
-              {unreadCount > 0 && (
+              {showBadge && unreadCount > 0 && (
                 <Badge
                   variant="destructive"
                   className="absolute right-2 top-0 scale-[0.8] rounded-full p-0.5 px-1.5"

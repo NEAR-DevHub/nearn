@@ -1,13 +1,13 @@
 'use client';
 
 import dayjs from 'dayjs';
-import Image from 'next/image';
 
 import { Tooltip } from '@/components/ui/tooltip';
 import { PROJECT_NAME } from '@/constants/project';
 
 import { formatFromNow } from '@/features/comments/utils';
 import { getListingIcon } from '@/features/listings/utils/getListingIcon';
+import { EarnAvatar } from '@/features/talent/components/EarnAvatar';
 
 import { type LogProperties } from './log-types';
 
@@ -36,6 +36,7 @@ export default function LogUser({
     ? (event.actor.name ?? event.actor.username)
     : event.sponsor?.name;
   const photo = event.actor ? event.actor.photo : event.sponsor?.logo;
+  const id = event.actor ? event.actorId : event.sponsorId;
 
   const showListingExtraInfo =
     showExtraInfo === 'listing' || showExtraInfo === 'both';
@@ -44,6 +45,7 @@ export default function LogUser({
 
   let username = name;
   let icon = photo;
+  let avatarId = id;
 
   if (
     event.actorType === 'SYSTEM' ||
@@ -52,6 +54,7 @@ export default function LogUser({
     icon = '/favicon.ico';
     username =
       event.actorType === 'SYSTEM' ? PROJECT_NAME : `${PROJECT_NAME} Admin`;
+    avatarId = 'SYSTEM';
   }
 
   const isTalent =
@@ -61,12 +64,10 @@ export default function LogUser({
 
   return (
     <div className="flex items-center gap-2">
-      <Image
-        src={icon ?? ''}
-        alt={username ?? ''}
+      <EarnAvatar
+        avatar={icon}
+        id={avatarId ?? 'username'}
         className="size-6 rounded-full"
-        width={24}
-        height={24}
       />
 
       <span className="font-medium text-slate-900">{username}</span>

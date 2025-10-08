@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     const requestBody = await request.json();
     logger.debug(`Request body: ${safeStringify(requestBody)}`);
 
-    const { message, submissionId } = requestBody;
+    const { message, submissionId, note } = requestBody;
 
     if (!message || !submissionId) {
       return NextResponse.json(
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
         message: message as string,
         refId: submissionId,
         refType: 'SUBMISSION',
-        type: 'NORMAL',
+        type: note ? 'INTERNAL_SUBMISSION_NOTES' : 'NORMAL',
       },
     });
 

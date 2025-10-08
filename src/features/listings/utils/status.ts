@@ -94,7 +94,6 @@ export const getListingStatus = (
         return 'Payment Pending';
       if (
         listing?.isWinnersAnnounced &&
-        listing?.BountyCounts?.totalPaymentsMade > 0 &&
         listing?.BountyCounts?.totalPaymentsMade ===
           listing?.BountyCounts?.totalWinnersSelected
       )

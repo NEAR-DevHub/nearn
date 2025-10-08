@@ -278,6 +278,8 @@ export const Comment = ({
     }
   };
 
+  const avatar = comment.author ? comment.author.photo : '/favicon.ico';
+
   return (
     <>
       <div
@@ -301,8 +303,8 @@ export const Comment = ({
         >
           <EarnAvatar
             className={cn(isReply ? 'h-7 w-7' : 'h-9 w-9')}
-            id={comment?.author?.id}
-            avatar={comment?.author?.photo || '/favicon.ico'}
+            id={comment?.authorId}
+            avatar={avatar}
           />
         </Link>
 

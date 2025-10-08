@@ -1,12 +1,25 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Default } from '@/layouts/Default';
 
 import { NotificationsListWithFilters } from '@/features/notifications/components';
 import { NotificationSettingsModal } from '@/features/notifications/components/notification-setting-modal/NotificationSettingModal';
+import { useNotificationsInfinite } from '@/features/notifications/queries/useNotifications';
 
 export default function NotificationsPage() {
   const [isOpen, setIsOpen] = useState(false);
+
+  const { data } = useNotificationsInfinite({
+    read: false,
+    limit: 10,
+  });
+
+  useEffect(() => {
+    const unreadCount = data?.pages[0]?.pagination.totalCount || 0;
+    if (unreadCount > 0) {
+      localStorage.setItem('notificationCount', unreadCount.toString());
+    }
+  }, [data]);
   return (
     <Default
       className="bg-white"

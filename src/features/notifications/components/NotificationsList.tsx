@@ -1,6 +1,6 @@
 'use client';
 
-import { Loader2, Settings } from 'lucide-react';
+import { ListCheck, Loader2, Settings } from 'lucide-react';
 import router from 'next/router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -28,7 +28,22 @@ export function NotificationsListWithFilters({
   showTalent,
   onSettingsOpen,
 }: NotificationsListProps) {
-  const [activeTab, setActiveTab] = useState<'Unread' | 'Read'>('Unread');
+  const [activeTab, setActiveTab] = useState<'Unread' | 'Read' | null>(null);
+
+  // Check if there are any unread notifications
+  const { data: unreadData } = useNotificationsInfinite({
+    read: false,
+    limit: 1,
+    sponsorIds,
+    showTalent,
+  });
+
+  useEffect(() => {
+    if (activeTab === null && unreadData) {
+      const hasUnread = (unreadData.pages[0]?.notifications.length ?? 0) > 0;
+      setActiveTab(hasUnread ? 'Unread' : 'Read');
+    }
+  }, [activeTab, unreadData]);
   const {
     data,
     fetchNextPage,
@@ -36,11 +51,16 @@ export function NotificationsListWithFilters({
     isFetchingNextPage,
     isLoading,
     isError,
-  } = useNotificationsInfinite({
-    read: activeTab === 'Read',
-    sponsorIds,
-    showTalent,
-  });
+  } = useNotificationsInfinite(
+    {
+      read: activeTab === 'Read',
+      sponsorIds,
+      showTalent,
+    },
+    {
+      enabled: activeTab !== null,
+    },
+  );
 
   const { mutate: markAsRead } = useMarkNotificationsAsRead();
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -80,7 +100,7 @@ export function NotificationsListWithFilters({
 
   const notifications = data?.pages.flatMap((page) => page.notifications) || [];
 
-  if (isLoading) {
+  if (isLoading || activeTab === null) {
     return (
       <div className={cn('flex items-center justify-center py-8')}>
         <Loader2 className="h-6 w-6 animate-spin" />
@@ -101,7 +121,7 @@ export function NotificationsListWithFilters({
   return (
     <>
       <Tabs
-        value={activeTab}
+        value={activeTab || 'Unread'}
         onValueChange={(value) => setActiveTab(value as 'Unread' | 'Read')}
       >
         <div className="relative z-10 flex items-center justify-between px-4 pt-3">
@@ -119,16 +139,36 @@ export function NotificationsListWithFilters({
             >
               Read
             </TabsTrigger>
-            {onSettingsOpen && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="ml-auto"
-                onClick={onSettingsOpen}
-              >
-                <Settings className="h-5 w-5 text-slate-500" />
-              </Button>
-            )}
+            <div className="ml-auto flex items-center gap-1">
+              {activeTab === 'Unread' && notifications.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    const unreadIds = notifications
+                      .filter((n) => !n.deliveredAt)
+                      .map((n) => n.id);
+                    if (unreadIds.length > 0) {
+                      handleMarkAsRead(unreadIds);
+                    }
+                  }}
+                  className="h-6 w-6 p-0"
+                  title="Mark all as read"
+                >
+                  <ListCheck className="h-6 w-6 text-slate-500" />
+                </Button>
+              )}
+              {onSettingsOpen && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 p-0"
+                  onClick={onSettingsOpen}
+                >
+                  <Settings className="h-6 w-6 text-slate-500" />
+                </Button>
+              )}
+            </div>
           </TabsList>
         </div>
         <TabsContent value={activeTab} className="mt-0 pt-0">
