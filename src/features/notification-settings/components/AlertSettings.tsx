@@ -8,7 +8,11 @@ import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api';
 import { useUser } from '@/store/user';
 
-import { sections } from '../constants';
+import {
+  BASIC_ALERT_COLUMN_WIDTHS,
+  sections,
+  SPONSOR_ALERT_COLUMN_WIDTHS,
+} from '../constants';
 import { useNotificationState } from '../hooks/useNotificationState';
 import { AlertCategory } from '../types';
 import { transformToApiFormat } from '../utils/transformToApiFormat';
@@ -70,6 +74,7 @@ export const AlertSettings = ({ onSave }: AlertSettingsProps) => {
         <AlertSettingsSectionLayout
           title="sponsor alerts"
           columnNames={['Listings', 'Email', 'In-App']}
+          columnWidths={SPONSOR_ALERT_COLUMN_WIDTHS}
         >
           {sections[NotificationRelationType.SPONSOR].map((item, index) => (
             <SponsorAlertSettingsItem
@@ -90,13 +95,13 @@ export const AlertSettings = ({ onSave }: AlertSettingsProps) => {
         <AlertSettingsSectionLayout
           title="talent alerts"
           columnNames={['Email', 'In-App']}
+          columnWidths={BASIC_ALERT_COLUMN_WIDTHS}
         >
           {sections[NotificationRelationType.TALENT].map((item, index) => (
             <AlertSettingsItem
               key={index}
               alertId={index}
               title={item.title}
-              channels={['email', 'inApp']}
               disabled={item.disabled}
               alertType={AlertCategory.TALENT}
               updateSetting={updateSetting}
@@ -109,13 +114,13 @@ export const AlertSettings = ({ onSave }: AlertSettingsProps) => {
         <AlertSettingsSectionLayout
           title="general alerts"
           columnNames={['Email', 'In-App']}
+          columnWidths={BASIC_ALERT_COLUMN_WIDTHS}
         >
           {sections['GENERAL'].map((item, index) => (
             <AlertSettingsItem
               key={index}
               alertId={index}
               title={item.title}
-              channels={['email', 'inApp']}
               disabled={item.disabled}
               alertType={AlertCategory.GENERAL}
               updateSetting={updateSetting}

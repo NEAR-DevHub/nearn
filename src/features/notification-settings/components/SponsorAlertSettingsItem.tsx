@@ -17,8 +17,9 @@ import {
 import { type UserSponsor } from '@/interface/userSponsor';
 import { cn } from '@/utils/cn';
 
+import { SPONSOR_ALERT_COLUMN_WIDTHS } from '../constants';
 import { type useNotificationState } from '../hooks/useNotificationState';
-import { type AlertCategory } from '../types';
+import { type AlertCategory, AlertChannel, type ListingScope } from '../types';
 import { AlertSettingsRow } from './AlertSettingsRow';
 import { AlertSettingsTitle } from './AlertSettingsTitle';
 
@@ -48,16 +49,15 @@ export function SponsorAlertSettingsItem({
   getNotificationSetting,
 }: SponsorAlertSettingsItemProps) {
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
-  const channels = ['email', 'inApp'];
-  const rowColumnWidths = ['64px', ...channels.map(() => '48px')];
+  const channels = [AlertChannel.EMAIL, AlertChannel.IN_APP];
 
   const handleCheckboxChange = (
-    channel: string,
+    channel: AlertChannel,
     checked: boolean,
     currentSponsorId?: string,
   ) => {
     const updateSettingData =
-      channel === 'email' ? { email: checked } : { inApp: checked };
+      channel === AlertChannel.EMAIL ? { email: checked } : { inApp: checked };
     updateSetting(alertType, alertId, updateSettingData, currentSponsorId);
   };
 
@@ -69,7 +69,7 @@ export function SponsorAlertSettingsItem({
     updateSetting(
       alertType,
       alertId,
-      { listingScope: value as 'mine' | 'all' },
+      { listingScope: value as ListingScope },
       currentSponsorId,
     );
   };
@@ -97,7 +97,7 @@ export function SponsorAlertSettingsItem({
     >
       <AlertSettingsRow
         titleElement={collapsibleRowTrigger}
-        columnWidths={rowColumnWidths}
+        columnWidths={SPONSOR_ALERT_COLUMN_WIDTHS}
       >
         <ListingScopeSelect
           alertType={alertType}
@@ -138,7 +138,7 @@ export function SponsorAlertSettingsItem({
               titleElement={
                 <AlertSettingsTitle value={userSponsor.sponsor?.name || ''} />
               }
-              columnWidths={rowColumnWidths}
+              columnWidths={SPONSOR_ALERT_COLUMN_WIDTHS}
             >
               <ListingScopeSelect
                 alertType={alertType}
@@ -156,7 +156,9 @@ export function SponsorAlertSettingsItem({
                 );
                 const isDisabled = disabled.includes(channel);
                 const checked =
-                  channel === 'email' ? setting.email : setting.inApp;
+                  channel === AlertChannel.EMAIL
+                    ? setting.email
+                    : setting.inApp;
 
                 return (
                   <Checkbox

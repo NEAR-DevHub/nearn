@@ -1,7 +1,17 @@
+export enum ListingScope {
+  MINE = 'mine',
+  ALL = 'all',
+}
+
+export enum AlertChannel {
+  EMAIL = 'email',
+  IN_APP = 'inApp',
+}
+
 export interface NotificationSetting {
   email: boolean;
   inApp: boolean;
-  listingScope: 'mine' | 'all';
+  listingScope: ListingScope;
 }
 
 export interface NotificationStore {

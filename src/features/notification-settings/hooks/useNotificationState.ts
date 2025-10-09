@@ -9,10 +9,16 @@ import { type NotificationType } from '@/features/notifications/types';
 import { sections } from '../constants';
 import {
   AlertCategory,
+  AlertChannel,
+  ListingScope,
   type NotificationSetting,
   type NotificationState,
   type NotificationStore,
 } from '../types';
+
+export type UseNotificationStateReturn = ReturnType<
+  typeof useNotificationState
+>;
 
 export const useNotificationState = (user?: User | null) => {
   const [notificationState, setNotificationState] = useState<NotificationState>(
@@ -40,23 +46,27 @@ export const useNotificationState = (user?: User | null) => {
         if (userData) {
           newState[key] = {
             general: {
-              email: userData.some(
+              [AlertChannel.EMAIL]: userData.some(
                 (setting: NotificationSettings) =>
-                  setting.channel === 'email' && !setting.sponsorId,
+                  setting.channel === AlertChannel.EMAIL && !setting.sponsorId,
               ),
-              inApp: userData.some(
+              [AlertChannel.IN_APP]: userData.some(
                 (setting: NotificationSettings) =>
-                  setting.channel === 'inApp' && !setting.sponsorId,
+                  setting.channel === AlertChannel.IN_APP && !setting.sponsorId,
               ),
               listingScope: userData.find(
                 (setting: NotificationSettings) =>
                   setting.listingScope && !setting.sponsorId,
-              )?.listingScope as unknown as 'mine' | 'all',
+              )?.listingScope as unknown as ListingScope,
             },
           };
         } else {
           newState[key] = {
-            general: { email: false, inApp: false, listingScope: 'mine' },
+            general: {
+              [AlertChannel.EMAIL]: false,
+              [AlertChannel.IN_APP]: false,
+              listingScope: ListingScope.MINE,
+            },
           };
         }
 
@@ -69,27 +79,27 @@ export const useNotificationState = (user?: User | null) => {
           user.UserSponsors.forEach((userSponsor: UserSponsor) => {
             if (userData) {
               newState[key]![userSponsor?.sponsorId ?? 'general'] = {
-                email: userData.some(
+                [AlertChannel.EMAIL]: userData.some(
                   (setting: NotificationSettings) =>
-                    setting.channel === 'email' &&
+                    setting.channel === AlertChannel.EMAIL &&
                     setting.sponsorId === userSponsor.sponsorId,
                 ),
-                inApp: userData.some(
+                [AlertChannel.IN_APP]: userData.some(
                   (setting: NotificationSettings) =>
-                    setting.channel === 'inApp' &&
+                    setting.channel === AlertChannel.IN_APP &&
                     setting.sponsorId === userSponsor.sponsorId,
                 ),
                 listingScope: userData.find(
                   (setting: NotificationSettings) =>
                     setting.listingScope &&
                     setting.sponsorId === userSponsor.sponsorId,
-                )?.listingScope as unknown as 'mine' | 'all',
+                )?.listingScope as unknown as ListingScope,
               };
             } else {
               newState[key]![userSponsor?.sponsorId ?? 'general'] = {
-                email: false,
-                inApp: false,
-                listingScope: 'mine',
+                [AlertChannel.EMAIL]: false,
+                [AlertChannel.IN_APP]: false,
+                listingScope: ListingScope.MINE,
               };
             }
           });
@@ -109,7 +119,11 @@ export const useNotificationState = (user?: User | null) => {
     const setting =
       notificationState[`${category}-${id}`] ??
       ({
-        general: { email: false, inApp: false, listingScope: 'mine' },
+        general: {
+          [AlertChannel.EMAIL]: false,
+          [AlertChannel.IN_APP]: false,
+          listingScope: ListingScope.MINE,
+        },
       } as NotificationStore);
 
     if (sponsorId) {
@@ -127,14 +141,18 @@ export const useNotificationState = (user?: User | null) => {
     const key = `${category}-${id}`;
 
     let setting = notificationState[key] ?? {
-      general: { email: false, inApp: false, listingScope: 'mine' },
+      general: {
+        [AlertChannel.EMAIL]: false,
+        [AlertChannel.IN_APP]: false,
+        listingScope: ListingScope.MINE,
+      },
     };
     if (sponsorId) {
       // Update specific sponsor
       const sponsorSetting = setting[sponsorId] ?? {
-        email: false,
-        inApp: false,
-        listingScope: 'mine',
+        [AlertChannel.EMAIL]: false,
+        [AlertChannel.IN_APP]: false,
+        listingScope: ListingScope.MINE,
       };
       setting = {
         ...setting,
@@ -151,9 +169,9 @@ export const useNotificationState = (user?: User | null) => {
       if (category === AlertCategory.SPONSOR && user?.UserSponsors) {
         user.UserSponsors.forEach((userSponsor: any) => {
           const sponsorSetting = updatedSetting[userSponsor.sponsorId] ?? {
-            email: false,
-            inApp: false,
-            listingScope: 'mine',
+            [AlertChannel.EMAIL]: false,
+            [AlertChannel.IN_APP]: false,
+            listingScope: ListingScope.MINE,
           };
           updatedSetting[userSponsor.sponsorId] = {
             ...sponsorSetting,
@@ -190,7 +208,9 @@ export const useNotificationState = (user?: User | null) => {
       const generalSetting = getNotificationSetting(category, id);
       return {
         checked:
-          channel === 'email' ? generalSetting.email : generalSetting.inApp,
+          channel === AlertChannel.EMAIL
+            ? generalSetting.email
+            : generalSetting.inApp,
         indeterminate: false,
       };
     }
@@ -198,7 +218,9 @@ export const useNotificationState = (user?: User | null) => {
     // Check all sponsor settings for this channel
     const sponsorStates = user.UserSponsors.map((userSponsor: any) => {
       const sponsorSetting = setting[userSponsor.sponsorId] || setting.general;
-      return channel === 'email' ? sponsorSetting.email : sponsorSetting.inApp;
+      return channel === AlertChannel.EMAIL
+        ? sponsorSetting.email
+        : sponsorSetting.inApp;
     });
 
     const allChecked = sponsorStates.every((state) => state === true);
@@ -213,7 +235,7 @@ export const useNotificationState = (user?: User | null) => {
   const getGeneralListingScope = (
     category: string,
     id: number,
-  ): 'mine' | 'all' | 'mixed' => {
+  ): ListingScope | 'mixed' => {
     const key = `${category}-${id}`;
     const setting = notificationState[key];
 
@@ -230,14 +252,14 @@ export const useNotificationState = (user?: User | null) => {
     // Check all sponsor settings for listingScope
     const sponsorScopes = user.UserSponsors.map((userSponsor: any) => {
       const sponsorSetting = setting[userSponsor.sponsorId] || setting.general;
-      return sponsorSetting.listingScope ?? 'mine';
+      return sponsorSetting.listingScope ?? ListingScope.MINE;
     });
 
-    const allMine = sponsorScopes.every((scope) => scope === 'mine');
-    const allAll = sponsorScopes.every((scope) => scope === 'all');
+    const allMine = sponsorScopes.every((scope) => scope === ListingScope.MINE);
+    const allAll = sponsorScopes.every((scope) => scope === ListingScope.ALL);
 
-    if (allMine) return 'mine';
-    if (allAll) return 'all';
+    if (allMine) return ListingScope.MINE;
+    if (allAll) return ListingScope.ALL;
     return 'mixed';
   };
 

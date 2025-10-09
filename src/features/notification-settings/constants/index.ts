@@ -3,6 +3,8 @@ import { NotificationRelationType } from '@prisma/client';
 import { EventType } from '@/features/logging/types/event-data';
 import { NotificationType } from '@/features/notifications/types';
 
+import { AlertChannel } from '../types';
+
 export const sections = {
   [NotificationRelationType.SPONSOR]: [
     {
@@ -62,12 +64,12 @@ export const sections = {
     {
       title: 'New listings added for my skills',
       type: NotificationType.NEW_LISTING_FOR_SKILLS,
-      disabled: ['inApp'],
+      disabled: [AlertChannel.IN_APP],
     },
     {
       title: 'Weekly roundup of new listings',
       type: NotificationType.WEEKLY_ROUNDUP,
-      disabled: ['inApp'],
+      disabled: [AlertChannel.IN_APP],
     },
     {
       title: 'New comments on my Proof of Work',
@@ -94,7 +96,10 @@ export const sections = {
     {
       title: 'Product updates and newsletters',
       type: NotificationType.PRODUCT_UPDATES_AND_NEWS,
-      disabled: ['inApp'],
+      disabled: [AlertChannel.IN_APP],
     },
   ],
 };
+
+export const SPONSOR_ALERT_COLUMN_WIDTHS = ['64px', '48px', '48px'];
+export const BASIC_ALERT_COLUMN_WIDTHS = ['48px', '48px'];
