@@ -3,6 +3,11 @@ import { useState } from 'react';
 
 import { Checkbox } from '@/components/ui/checkbox';
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -14,31 +19,27 @@ import { cn } from '@/utils/cn';
 
 import { type useNotificationState } from '../hooks/useNotificationState';
 import { type AlertCategory } from '../types';
+import { AlertSettingsRow } from './AlertSettingsRow';
+import { AlertSettingsTitle } from './AlertSettingsTitle';
+
+type UseNotificationStateReturn = ReturnType<typeof useNotificationState>;
 
 interface SponsorAlertSettingsItemProps {
   title: string;
   alertId: number;
   alertType: AlertCategory;
-  channels: string[];
   disabled?: string[];
-  userSponsors?: UserSponsor[];
-  updateSetting: ReturnType<typeof useNotificationState>['updateSetting'];
-  getGeneralCheckboxState: ReturnType<
-    typeof useNotificationState
-  >['getGeneralCheckboxState'];
-  getGeneralListingScope: ReturnType<
-    typeof useNotificationState
-  >['getGeneralListingScope'];
-  getNotificationSetting: ReturnType<
-    typeof useNotificationState
-  >['getNotificationSetting'];
+  userSponsors: UserSponsor[];
+  updateSetting: UseNotificationStateReturn['updateSetting'];
+  getGeneralCheckboxState: UseNotificationStateReturn['getGeneralCheckboxState'];
+  getGeneralListingScope: UseNotificationStateReturn['getGeneralListingScope'];
+  getNotificationSetting: UseNotificationStateReturn['getNotificationSetting'];
 }
 
 export function SponsorAlertSettingsItem({
   title,
   alertId,
   alertType,
-  channels,
   disabled = [],
   userSponsors,
   updateSetting,
@@ -46,7 +47,9 @@ export function SponsorAlertSettingsItem({
   getGeneralListingScope,
   getNotificationSetting,
 }: SponsorAlertSettingsItemProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState<boolean>(false);
+  const channels = ['email', 'inApp'];
+  const rowColumnWidths = ['64px', ...channels.map(() => '48px')];
 
   const handleCheckboxChange = (
     channel: string,
@@ -71,91 +74,111 @@ export function SponsorAlertSettingsItem({
     );
   };
 
-  return (
-    <div
-      className={cn(
-        isExpanded &&
-          userSponsors &&
-          userSponsors.length > 0 &&
-          'border-b border-slate-200 pb-3',
-      )}
-    >
-      <div className="grid grid-cols-[1fr_auto] items-center gap-4">
+  const collapsibleRowTrigger = (
+    <CollapsibleTrigger asChild>
+      <button type="button" className="flex w-full items-center text-left">
         <div className="flex items-center gap-2">
-          {userSponsors && userSponsors.length > 0 && (
-            <button onClick={() => setIsExpanded(!isExpanded)}>
-              {isExpanded ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronRight className="h-3 w-3" />
-              )}
-            </button>
+          {isExpanded ? (
+            <ChevronDown className="h-4 w-4 text-slate-500" />
+          ) : (
+            <ChevronRight className="h-3 w-3 text-slate-500" />
           )}
-          <p className="font-medium text-slate-500">{title}</p>
+          <AlertSettingsTitle value={title} />
         </div>
-        <div className="flex items-center gap-4">
-          <ListingScopeSelect
-            alertType={alertType}
-            alertId={alertId}
-            getGeneralListingScope={getGeneralListingScope}
-            getNotificationSetting={getNotificationSetting}
-            onValueChange={handleListingScopeChange}
-          />
-          {channels.map((channel) => (
-            <ChannelCheckbox
-              key={channel}
-              channel={channel}
-              alertType={alertType}
-              alertId={alertId}
-              disabled={disabled}
-              getGeneralCheckboxState={getGeneralCheckboxState}
-              getNotificationSetting={getNotificationSetting}
-              onCheckedChange={handleCheckboxChange}
-            />
-          ))}
-        </div>
-      </div>
+      </button>
+    </CollapsibleTrigger>
+  );
 
-      {isExpanded && userSponsors && (
+  return (
+    <Collapsible
+      open={isExpanded}
+      onOpenChange={setIsExpanded}
+      className={cn(isExpanded && 'border-b border-slate-200 pb-3')}
+    >
+      <AlertSettingsRow
+        titleElement={collapsibleRowTrigger}
+        columnWidths={rowColumnWidths}
+      >
+        <ListingScopeSelect
+          alertType={alertType}
+          alertId={alertId}
+          getGeneralListingScope={getGeneralListingScope}
+          getNotificationSetting={getNotificationSetting}
+          onValueChange={handleListingScopeChange}
+        />
+        {channels.map((channel) => {
+          const checkboxState = getGeneralCheckboxState(
+            alertType,
+            alertId,
+            channel,
+          );
+          const isDisabled = disabled.includes(channel);
+          const checked = checkboxState.indeterminate
+            ? 'indeterminate'
+            : checkboxState.checked;
+
+          return (
+            <Checkbox
+              key={channel}
+              className="data-[state=unchecked]:border-slate-200 disabled:bg-slate-100"
+              checked={checked}
+              disabled={isDisabled}
+              onCheckedChange={(checked) =>
+                handleCheckboxChange(channel, !!checked)
+              }
+            />
+          );
+        })}
+      </AlertSettingsRow>
+      <CollapsibleContent>
         <div className="ml-6 mt-2 space-y-3">
           {userSponsors.map((userSponsor) => (
-            <div
+            <AlertSettingsRow
               key={userSponsor.sponsorId}
-              className="grid grid-cols-[1fr_auto] items-center gap-4"
+              titleElement={
+                <AlertSettingsTitle value={userSponsor.sponsor?.name || ''} />
+              }
+              columnWidths={rowColumnWidths}
             >
-              <div className="flex items-center gap-2">
-                <p className="font-medium text-slate-500">
-                  {userSponsor.sponsor?.name}
-                </p>
-              </div>
-              <div className="flex items-center gap-4">
-                <ListingScopeSelect
-                  alertType={alertType}
-                  alertId={alertId}
-                  currentSponsorId={userSponsor.sponsorId}
-                  getGeneralListingScope={getGeneralListingScope}
-                  getNotificationSetting={getNotificationSetting}
-                  onValueChange={handleListingScopeChange}
-                />
-                {channels.map((channel) => (
-                  <ChannelCheckbox
+              <ListingScopeSelect
+                alertType={alertType}
+                alertId={alertId}
+                currentSponsorId={userSponsor.sponsorId}
+                getGeneralListingScope={getGeneralListingScope}
+                getNotificationSetting={getNotificationSetting}
+                onValueChange={handleListingScopeChange}
+              />
+              {channels.map((channel) => {
+                const setting = getNotificationSetting(
+                  alertType,
+                  alertId,
+                  userSponsor.sponsorId,
+                );
+                const isDisabled = disabled.includes(channel);
+                const checked =
+                  channel === 'email' ? setting.email : setting.inApp;
+
+                return (
+                  <Checkbox
                     key={channel}
-                    channel={channel}
-                    alertType={alertType}
-                    alertId={alertId}
-                    currentSponsorId={userSponsor.sponsorId}
-                    disabled={disabled}
-                    getGeneralCheckboxState={getGeneralCheckboxState}
-                    getNotificationSetting={getNotificationSetting}
-                    onCheckedChange={handleCheckboxChange}
+                    className="data-[state=unchecked]:border-slate-200 disabled:bg-slate-100"
+                    checked={checked}
+                    disabled={isDisabled}
+                    onCheckedChange={(checked) =>
+                      handleCheckboxChange(
+                        channel,
+                        !!checked,
+                        userSponsor.sponsorId,
+                      )
+                    }
                   />
-                ))}
-              </div>
-            </div>
+                );
+              })}
+            </AlertSettingsRow>
           ))}
         </div>
-      )}
-    </div>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }
 
@@ -163,12 +186,8 @@ interface ListingScopeSelectProps {
   alertType: AlertCategory;
   alertId: number;
   currentSponsorId?: string;
-  getGeneralListingScope: ReturnType<
-    typeof useNotificationState
-  >['getGeneralListingScope'];
-  getNotificationSetting: ReturnType<
-    typeof useNotificationState
-  >['getNotificationSetting'];
+  getGeneralListingScope: UseNotificationStateReturn['getGeneralListingScope'];
+  getNotificationSetting: UseNotificationStateReturn['getNotificationSetting'];
   onValueChange: (value: string, currentSponsorId?: string) => void;
 }
 
@@ -185,78 +204,22 @@ function ListingScopeSelect({
     : getGeneralListingScope(alertType, alertId);
 
   return (
-    <div className="w-16">
-      <Select
-        value={value ?? 'mine'}
-        onValueChange={(value) => onValueChange(value, currentSponsorId)}
-      >
-        <SelectTrigger className="h-8 w-fit gap-1 border-none p-0 text-sm text-slate-500">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="mine">Mine</SelectItem>
-          <SelectItem value="all">All</SelectItem>
-          {!currentSponsorId && (
-            <SelectItem value="mixed" className="hidden" disabled>
-              Mixed
-            </SelectItem>
-          )}
-        </SelectContent>
-      </Select>
-    </div>
-  );
-}
-
-interface ChannelCheckboxProps {
-  channel: string;
-  alertType: AlertCategory;
-  alertId: number;
-  currentSponsorId?: string;
-  disabled: string[];
-  getGeneralCheckboxState: ReturnType<
-    typeof useNotificationState
-  >['getGeneralCheckboxState'];
-  getNotificationSetting: ReturnType<
-    typeof useNotificationState
-  >['getNotificationSetting'];
-  onCheckedChange: (
-    channel: string,
-    checked: boolean,
-    currentSponsorId?: string,
-  ) => void;
-}
-
-function ChannelCheckbox({
-  channel,
-  alertType,
-  alertId,
-  currentSponsorId,
-  disabled,
-  getGeneralCheckboxState,
-  getNotificationSetting,
-  onCheckedChange,
-}: ChannelCheckboxProps) {
-  const setting = getNotificationSetting(alertType, alertId, currentSponsorId);
-  const checkboxState = currentSponsorId
-    ? {
-        checked: channel === 'email' ? setting.email : setting.inApp,
-        indeterminate: false,
-      }
-    : getGeneralCheckboxState(alertType, alertId, channel);
-  const isDisabled = disabled.includes(channel);
-
-  return (
-    <div className="flex w-12 justify-center">
-      <Checkbox
-        className="data-[state=unchecked]:border-slate-200 disabled:bg-slate-100"
-        checked={
-          checkboxState.indeterminate ? 'indeterminate' : checkboxState.checked
-        }
-        disabled={isDisabled}
-        onCheckedChange={(checked) =>
-          onCheckedChange(channel, !!checked, currentSponsorId)
-        }
-      />
-    </div>
+    <Select
+      value={value ?? 'mine'}
+      onValueChange={(value) => onValueChange(value, currentSponsorId)}
+    >
+      <SelectTrigger className="h-8 w-fit gap-1 border-none p-0 text-sm text-slate-500">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="mine">Mine</SelectItem>
+        <SelectItem value="all">All</SelectItem>
+        {!currentSponsorId && (
+          <SelectItem value="mixed" className="hidden" disabled>
+            Mixed
+          </SelectItem>
+        )}
+      </SelectContent>
+    </Select>
   );
 }

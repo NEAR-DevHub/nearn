@@ -59,7 +59,8 @@ export const AlertSettings = ({ onSave }: AlertSettingsProps) => {
     return <LoadingState />;
   }
 
-  const showSponsorAlerts = user.currentSponsorId;
+  const userSponsors = user.UserSponsors;
+  const showSponsorAlerts = userSponsors && userSponsors.length > 0;
   const showTalentAlerts = user.isTalentFilled;
   const showGeneralAlerts = showSponsorAlerts || showTalentAlerts;
 
@@ -74,10 +75,9 @@ export const AlertSettings = ({ onSave }: AlertSettingsProps) => {
             <SponsorAlertSettingsItem
               key={index}
               title={item.title}
-              channels={['email', 'inApp']}
               alertId={index}
               alertType={AlertCategory.SPONSOR}
-              userSponsors={user.UserSponsors}
+              userSponsors={userSponsors}
               getGeneralCheckboxState={getGeneralCheckboxState}
               getGeneralListingScope={getGeneralListingScope}
               getNotificationSetting={getNotificationSetting}
