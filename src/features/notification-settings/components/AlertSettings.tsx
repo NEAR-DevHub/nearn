@@ -10,6 +10,7 @@ import { useUser } from '@/store/user';
 
 import {
   BASIC_ALERT_COLUMN_WIDTHS,
+  CHANNEL_LABELS,
   sections,
   SPONSOR_ALERT_COLUMN_WIDTHS,
 } from '../constants';
@@ -73,7 +74,7 @@ export const AlertSettings = ({ onSave }: AlertSettingsProps) => {
       {showSponsorAlerts && (
         <AlertSettingsSectionLayout
           title="sponsor alerts"
-          columnNames={['Listings', 'Email', 'In-App']}
+          columnNames={['Listings', CHANNEL_LABELS.email, CHANNEL_LABELS.inApp]}
           columnWidths={SPONSOR_ALERT_COLUMN_WIDTHS}
         >
           {sections[NotificationRelationType.SPONSOR].map((item, index) => (
@@ -94,7 +95,7 @@ export const AlertSettings = ({ onSave }: AlertSettingsProps) => {
       {showTalentAlerts && (
         <AlertSettingsSectionLayout
           title="talent alerts"
-          columnNames={['Email', 'In-App']}
+          columnNames={[CHANNEL_LABELS.email, CHANNEL_LABELS.inApp]}
           columnWidths={BASIC_ALERT_COLUMN_WIDTHS}
         >
           {sections[NotificationRelationType.TALENT].map((item, index) => (
@@ -113,7 +114,7 @@ export const AlertSettings = ({ onSave }: AlertSettingsProps) => {
       {showGeneralAlerts && (
         <AlertSettingsSectionLayout
           title="general alerts"
-          columnNames={['Email', 'In-App']}
+          columnNames={[CHANNEL_LABELS.email, CHANNEL_LABELS.inApp]}
           columnWidths={BASIC_ALERT_COLUMN_WIDTHS}
         >
           {sections['GENERAL'].map((item, index) => (

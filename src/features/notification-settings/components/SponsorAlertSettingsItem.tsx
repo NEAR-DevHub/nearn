@@ -20,6 +20,7 @@ import { cn } from '@/utils/cn';
 import { SPONSOR_ALERT_COLUMN_WIDTHS } from '../constants';
 import { type useNotificationState } from '../hooks/useNotificationState';
 import { type AlertCategory, AlertChannel, type ListingScope } from '../types';
+import { AlertSettingCheckbox } from './AlertSettingCheckbox';
 import { AlertSettingsRow } from './AlertSettingsRow';
 import { AlertSettingsTitle } from './AlertSettingsTitle';
 
@@ -74,21 +75,6 @@ export function SponsorAlertSettingsItem({
     );
   };
 
-  const collapsibleRowTrigger = (
-    <CollapsibleTrigger asChild>
-      <button type="button" className="flex w-full items-center text-left">
-        <div className="flex items-center gap-2">
-          {isExpanded ? (
-            <ChevronDown className="h-4 w-4 text-slate-500" />
-          ) : (
-            <ChevronRight className="h-3 w-3 text-slate-500" />
-          )}
-          <AlertSettingsTitle value={title} />
-        </div>
-      </button>
-    </CollapsibleTrigger>
-  );
-
   return (
     <Collapsible
       open={isExpanded}
@@ -96,7 +82,9 @@ export function SponsorAlertSettingsItem({
       className={cn(isExpanded && 'border-b border-slate-200 pb-3')}
     >
       <AlertSettingsRow
-        titleElement={collapsibleRowTrigger}
+        titleElement={
+          <CollapsibleRowTrigger title={title} isExpanded={isExpanded} />
+        }
         columnWidths={SPONSOR_ALERT_COLUMN_WIDTHS}
       >
         <ListingScopeSelect
@@ -106,29 +94,17 @@ export function SponsorAlertSettingsItem({
           getNotificationSetting={getNotificationSetting}
           onValueChange={handleListingScopeChange}
         />
-        {channels.map((channel) => {
-          const checkboxState = getGeneralCheckboxState(
-            alertType,
-            alertId,
-            channel,
-          );
-          const isDisabled = disabled.includes(channel);
-          const checked = checkboxState.indeterminate
-            ? 'indeterminate'
-            : checkboxState.checked;
-
-          return (
-            <Checkbox
-              key={channel}
-              className="data-[state=unchecked]:border-slate-200 disabled:bg-slate-100"
-              checked={checked}
-              disabled={isDisabled}
-              onCheckedChange={(checked) =>
-                handleCheckboxChange(channel, !!checked)
-              }
-            />
-          );
-        })}
+        {channels.map((channel) => (
+          <AlertSettingCheckbox
+            key={channel}
+            channel={channel}
+            alertType={alertType}
+            alertId={alertId}
+            disabled={disabled}
+            updateSetting={updateSetting}
+            getGeneralCheckboxState={getGeneralCheckboxState}
+          />
+        ))}
       </AlertSettingsRow>
       <CollapsibleContent>
         <div className="ml-6 mt-2 space-y-3">
@@ -223,5 +199,30 @@ function ListingScopeSelect({
         )}
       </SelectContent>
     </Select>
+  );
+}
+
+interface CollapsibleRowTriggerProps {
+  title: string;
+  isExpanded: boolean;
+}
+
+function CollapsibleRowTrigger({
+  title,
+  isExpanded,
+}: CollapsibleRowTriggerProps) {
+  return (
+    <CollapsibleTrigger asChild>
+      <button type="button" className="flex w-full items-center text-left">
+        <div className="flex items-center gap-2">
+          {isExpanded ? (
+            <ChevronDown className="h-4 w-4 text-slate-500" />
+          ) : (
+            <ChevronRight className="h-3 w-3 text-slate-500" />
+          )}
+          <AlertSettingsTitle value={title} />
+        </div>
+      </button>
+    </CollapsibleTrigger>
   );
 }

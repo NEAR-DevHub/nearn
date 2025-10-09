@@ -101,5 +101,10 @@ export const sections = {
   ],
 };
 
+export const CHANNEL_LABELS = {
+  [AlertChannel.EMAIL]: 'Email',
+  [AlertChannel.IN_APP]: 'In-App',
+};
+
 export const SPONSOR_ALERT_COLUMN_WIDTHS = ['64px', '48px', '48px'];
 export const BASIC_ALERT_COLUMN_WIDTHS = ['48px', '48px'];
