@@ -7,7 +7,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
 
 import { AlertSettings } from './AlertSettings';
 
@@ -29,11 +28,7 @@ export const NotificationSettingsModal = ({
             Tell us which notification you would like to receive!
           </DialogDescription>
         </DialogHeader>
-        <div className="h-full">
-          <ScrollArea className="h-full max-h-[900px] scrollbar-thin">
-            <AlertSettings onSave={onClose} />
-          </ScrollArea>
-        </div>
+        <AlertSettings onSave={onClose} />
       </DialogContent>
     </Dialog>
   );
