@@ -27,10 +27,19 @@ export function BottomBar({ onSearchOpen }: Props) {
     read: false,
     limit: 10,
   });
-  const unreadCount = data?.pages?.[0]?.pagination.totalCount || 0;
+  const unreadCount = data?.pages?.[0]?.pagination?.totalCount || 0;
 
+  // Check if we should show the badge based on cached count
   useEffect(() => {
-    setShowBadge(unreadCount > 0);
+    if (unreadCount > 0) {
+      const cachedCount = parseInt(
+        localStorage.getItem('notificationCount') || '0',
+        10,
+      );
+      if (unreadCount > cachedCount) {
+        setShowBadge(true);
+      }
+    }
   }, [unreadCount]);
 
   const iconStyle = { width: '1.5rem', height: '1.5rem' };
