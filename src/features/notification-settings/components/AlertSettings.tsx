@@ -22,7 +22,7 @@ import { AlertSettingsSectionLayout } from './AlertSettingsSectionLayout';
 import { SponsorAlertSettingsItem } from './SponsorAlertSettingsItem';
 
 interface AlertSettingsProps {
-  onSave: () => void;
+  onSave?: () => void;
 }
 
 export const AlertSettings = ({ onSave }: AlertSettingsProps) => {
@@ -51,7 +51,7 @@ export const AlertSettings = ({ onSave }: AlertSettingsProps) => {
 
       await refetchUser();
       setIsUpdating(false);
-      onSave();
+      onSave?.();
       toast.success('Notification preferences updated');
     } catch (error) {
       console.error('Error updating notification preferences:', error);
@@ -72,25 +72,31 @@ export const AlertSettings = ({ onSave }: AlertSettingsProps) => {
   return (
     <div className="flex flex-col gap-6">
       {showSponsorAlerts && (
-        <AlertSettingsSectionLayout
-          title="sponsor alerts"
-          columnNames={['Listings', CHANNEL_LABELS.email, CHANNEL_LABELS.inApp]}
-          columnWidths={SPONSOR_ALERT_COLUMN_WIDTHS}
-        >
-          {sections[NotificationRelationType.SPONSOR].map((item, index) => (
-            <SponsorAlertSettingsItem
-              key={index}
-              title={item.title}
-              alertId={index}
-              alertType={AlertCategory.SPONSOR}
-              userSponsors={userSponsors}
-              getGeneralCheckboxState={getGeneralCheckboxState}
-              getGeneralListingScope={getGeneralListingScope}
-              getNotificationSetting={getNotificationSetting}
-              updateSetting={updateSetting}
-            />
-          ))}
-        </AlertSettingsSectionLayout>
+        <div className="hidden sm:block">
+          <AlertSettingsSectionLayout
+            title="sponsor alerts"
+            columnNames={[
+              'Listings',
+              CHANNEL_LABELS.email,
+              CHANNEL_LABELS.inApp,
+            ]}
+            columnWidths={SPONSOR_ALERT_COLUMN_WIDTHS}
+          >
+            {sections[NotificationRelationType.SPONSOR].map((item, index) => (
+              <SponsorAlertSettingsItem
+                key={index}
+                title={item.title}
+                alertId={index}
+                alertType={AlertCategory.SPONSOR}
+                userSponsors={userSponsors}
+                getGeneralCheckboxState={getGeneralCheckboxState}
+                getGeneralListingScope={getGeneralListingScope}
+                getNotificationSetting={getNotificationSetting}
+                updateSetting={updateSetting}
+              />
+            ))}
+          </AlertSettingsSectionLayout>
+        </div>
       )}
       {showTalentAlerts && (
         <AlertSettingsSectionLayout

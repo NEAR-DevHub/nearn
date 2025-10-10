@@ -104,6 +104,7 @@ export default function NewProfilePage({
 
   return (
     <Default
+      hideListingNavigation
       meta={
         <Meta
           title="Make Your Profile | Join ${PROJECT_NAME} | Connect with Professional Talent"

@@ -8,6 +8,7 @@ interface IDefaultProps {
   children: ReactNode;
   className?: string;
   hideFooter?: boolean;
+  hideListingNavigation?: boolean;
 }
 
 const Header = dynamic(
@@ -25,13 +26,14 @@ export const Default = ({
   meta,
   children,
   hideFooter,
+  hideListingNavigation = false,
 }: IDefaultProps) => {
   return (
     <div
       className={cn('flex min-h-screen flex-col justify-between', className)}
     >
       {meta}
-      <Header />
+      <Header hideListingNavigation={hideListingNavigation} />
       <div className="flex flex-1 flex-col">{children}</div>
       {!hideFooter && (
         <div className="relative z-20">

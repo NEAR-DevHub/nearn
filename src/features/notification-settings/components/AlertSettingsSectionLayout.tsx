@@ -22,15 +22,21 @@ export const AlertSettingsSectionLayout = ({
   );
 
   return (
-    <div className="space-y-3">
-      <AlertSettingsRow titleElement={titleElement} columnWidths={columnWidths}>
-        {columnNames.map((columnName, index) => (
-          <p key={index} className="text-center text-sm text-slate-400">
-            {columnName}
-          </p>
-        ))}
-      </AlertSettingsRow>
-      {children}
+    <div className="space-y-2">
+      <div className="sm:hidden">{titleElement}</div>
+      <div className="hidden sm:block">
+        <AlertSettingsRow
+          titleElement={titleElement}
+          columnWidths={columnWidths}
+        >
+          {columnNames.map((columnName, index) => (
+            <p key={index} className="text-center text-sm text-slate-400">
+              {columnName}
+            </p>
+          ))}
+        </AlertSettingsRow>
+      </div>
+      <div className="space-y-3">{children}</div>
     </div>
   );
 };
