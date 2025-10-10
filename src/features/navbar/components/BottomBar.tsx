@@ -27,7 +27,7 @@ export function BottomBar({ onSearchOpen }: Props) {
     read: false,
     limit: 10,
   });
-  const unreadCount = data?.pages[0]?.pagination.totalCount || 0;
+  const unreadCount = data?.pages?.[0]?.pagination?.totalCount || 0;
 
   // Check if we should show the badge based on cached count
   useEffect(() => {

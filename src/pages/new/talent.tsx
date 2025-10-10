@@ -37,6 +37,7 @@ export default function Talent() {
 
   return (
     <Default
+      hideListingNavigation
       meta={
         <Meta
           title={`Create Your Profile to Access Projects & Sponsorships | ${PROJECT_NAME}`}

@@ -20,13 +20,18 @@ import { UserMenu } from './UserMenu';
 interface Props {
   onLoginOpen: () => void;
   onSearchOpen: () => void;
+  hideListingNavigation?: boolean;
 }
 
 const LogoContextMenu = dynamic(() =>
   import('./LogoContextMenu').then((mod) => mod.LogoContextMenu),
 );
 
-export const DesktopNavbar = ({ onLoginOpen, onSearchOpen }: Props) => {
+export const DesktopNavbar = ({
+  onLoginOpen,
+  onSearchOpen,
+  hideListingNavigation,
+}: Props) => {
   const { data: session, status } = useSession();
   const router = useRouter();
   const posthog = usePostHog();
@@ -68,19 +73,18 @@ export const DesktopNavbar = ({ onLoginOpen, onSearchOpen }: Props) => {
             </Link>
           </LogoContextMenu>
 
-          {router.pathname !== '/search' &&
-            !router.pathname.startsWith('/new/') && (
-              <Button
-                className="ph-no-capture gap-2 border-none font-normal text-slate-700 shadow-none hover:bg-slate-100"
-                variant="outline"
-                onClick={onSearchOpen}
-              >
-                <IoSearchOutline className="h-4 w-4" />
-              </Button>
-            )}
+          {router.pathname !== '/search' && !hideListingNavigation && (
+            <Button
+              className="ph-no-capture gap-2 border-none font-normal text-slate-700 shadow-none hover:bg-slate-100"
+              variant="outline"
+              onClick={onSearchOpen}
+            >
+              <IoSearchOutline className="h-4 w-4" />
+            </Button>
+          )}
         </div>
 
-        {!router.pathname.startsWith('/new/') && (
+        {!hideListingNavigation && (
           <div className="flex items-center">
             <div className="ml-10 flex h-full items-center justify-center">
               <div className="ph-no-capture flex h-full flex-row items-center gap-7">
@@ -130,7 +134,7 @@ export const DesktopNavbar = ({ onLoginOpen, onSearchOpen }: Props) => {
                   </Link>
                 </Button>
               )}
-              <div className="hidden md:block">
+              <div className="hidden lg:block">
                 <NotificationsPopover />
               </div>
               <UserMenu />

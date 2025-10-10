@@ -26,13 +26,14 @@ import { UserMenu } from './UserMenu';
 
 interface Props {
   onLoginOpen: () => void;
+  hideListingNavigation?: boolean;
 }
 
 // const AnnouncementBar = dynamic(() =>
 //   import('@/features/navbar').then((mod) => mod.AnnouncementBar),
 // );
 
-export const MobileNavbar = ({ onLoginOpen }: Props) => {
+export const MobileNavbar = ({ onLoginOpen, hideListingNavigation }: Props) => {
   const {
     isOpen: isDrawerOpen,
     onOpen: onDrawerOpen,
@@ -204,7 +205,7 @@ export const MobileNavbar = ({ onLoginOpen }: Props) => {
           </div>
           {status === 'authenticated' && session && (
             <div className="flex items-center gap-2">
-              <div className="hidden md:block">
+              <div className="hidden lg:block">
                 <NotificationsPopover />
               </div>
               <UserMenu />
@@ -224,7 +225,7 @@ export const MobileNavbar = ({ onLoginOpen }: Props) => {
           )}
         </div>
       </div>
-      {!router.asPath.startsWith('/new/') && (
+      {!hideListingNavigation && (
         <div className="flex items-center justify-between bg-slate-50 px-3 py-0 sm:px-4 lg:hidden">
           <div
             className={cn(

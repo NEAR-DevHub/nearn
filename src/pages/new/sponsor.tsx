@@ -296,6 +296,7 @@ const CreateSponsor = () => {
 
   return (
     <Default
+      hideListingNavigation
       meta={
         <Meta
           title={`Create Sponsor | ${PROJECT_NAME}`}

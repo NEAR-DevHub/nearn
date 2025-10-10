@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/popover';
 import { useUser } from '@/store/user';
 
-import { NotificationSettingsModal } from '@/features/talent/components/NotificationSettingModal';
+import { NotificationSettingsModal } from '@/features/notification-settings/components/NotificationSettingModal';
 
 import { useNotificationsInfinite } from '../queries/useNotifications';
 import { AccountFilter } from './AccountFilter';
@@ -82,7 +82,7 @@ export function NotificationsPopover() {
         </PopoverTrigger>
         <PopoverContent
           align="end"
-          className="flex w-[440px] flex-col gap-3 rounded-xl p-0"
+          className="flex w-[440px] flex-col rounded-xl p-0"
         >
           <div className="border-b">
             <AccountFilter
