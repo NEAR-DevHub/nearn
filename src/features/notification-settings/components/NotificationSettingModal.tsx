@@ -24,7 +24,7 @@ export const NotificationSettingsModal = ({
       <DialogContent className="max-w-xl p-6">
         <DialogHeader>
           <DialogTitle>Notification Settings</DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="font-medium">
             Tell us which notification you would like to receive!
           </DialogDescription>
         </DialogHeader>

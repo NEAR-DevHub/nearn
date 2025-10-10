@@ -20,7 +20,7 @@ export default function NotificationSettingsPage() {
       hideListingNavigation
       meta={<meta name="description" content="Notification Settings" />}
     >
-      <div className="w-full space-y-6 px-4 pb-16 pt-6 md:mx-auto md:max-w-2xl">
+      <div className="w-full space-y-6 px-4 pb-20 pt-6 md:mx-auto md:max-w-2xl">
         <div className="space-y-4">
           <Breadcrumbs />
           <Header />

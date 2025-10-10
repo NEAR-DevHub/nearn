@@ -70,75 +70,77 @@ export const AlertSettings = ({ onSave }: AlertSettingsProps) => {
   const showGeneralAlerts = showSponsorAlerts || showTalentAlerts;
 
   return (
-    <div className="flex flex-col gap-6">
-      {showSponsorAlerts && (
-        <div className="hidden sm:block">
+    <div className="space-y-10">
+      <div className="space-y-10">
+        {showSponsorAlerts && (
+          <div className="hidden sm:block">
+            <AlertSettingsSectionLayout
+              title="sponsor alerts"
+              columnNames={[
+                'Listings',
+                CHANNEL_LABELS.email,
+                CHANNEL_LABELS.inApp,
+              ]}
+              columnWidths={SPONSOR_ALERT_COLUMN_WIDTHS}
+            >
+              {sections[NotificationRelationType.SPONSOR].map((item, index) => (
+                <SponsorAlertSettingsItem
+                  key={index}
+                  title={item.title}
+                  alertId={index}
+                  alertType={AlertCategory.SPONSOR}
+                  userSponsors={userSponsors}
+                  getGeneralCheckboxState={getGeneralCheckboxState}
+                  getGeneralListingScope={getGeneralListingScope}
+                  getNotificationSetting={getNotificationSetting}
+                  updateSetting={updateSetting}
+                />
+              ))}
+            </AlertSettingsSectionLayout>
+          </div>
+        )}
+        {showTalentAlerts && (
           <AlertSettingsSectionLayout
-            title="sponsor alerts"
-            columnNames={[
-              'Listings',
-              CHANNEL_LABELS.email,
-              CHANNEL_LABELS.inApp,
-            ]}
-            columnWidths={SPONSOR_ALERT_COLUMN_WIDTHS}
+            title="talent alerts"
+            columnNames={[CHANNEL_LABELS.email, CHANNEL_LABELS.inApp]}
+            columnWidths={BASIC_ALERT_COLUMN_WIDTHS}
           >
-            {sections[NotificationRelationType.SPONSOR].map((item, index) => (
-              <SponsorAlertSettingsItem
+            {sections[NotificationRelationType.TALENT].map((item, index) => (
+              <AlertSettingsItem
                 key={index}
-                title={item.title}
                 alertId={index}
-                alertType={AlertCategory.SPONSOR}
-                userSponsors={userSponsors}
-                getGeneralCheckboxState={getGeneralCheckboxState}
-                getGeneralListingScope={getGeneralListingScope}
-                getNotificationSetting={getNotificationSetting}
+                title={item.title}
+                disabled={item.disabled}
+                alertType={AlertCategory.TALENT}
                 updateSetting={updateSetting}
+                getGeneralCheckboxState={getGeneralCheckboxState}
               />
             ))}
           </AlertSettingsSectionLayout>
-        </div>
-      )}
-      {showTalentAlerts && (
-        <AlertSettingsSectionLayout
-          title="talent alerts"
-          columnNames={[CHANNEL_LABELS.email, CHANNEL_LABELS.inApp]}
-          columnWidths={BASIC_ALERT_COLUMN_WIDTHS}
-        >
-          {sections[NotificationRelationType.TALENT].map((item, index) => (
-            <AlertSettingsItem
-              key={index}
-              alertId={index}
-              title={item.title}
-              disabled={item.disabled}
-              alertType={AlertCategory.TALENT}
-              updateSetting={updateSetting}
-              getGeneralCheckboxState={getGeneralCheckboxState}
-            />
-          ))}
-        </AlertSettingsSectionLayout>
-      )}
-      {showGeneralAlerts && (
-        <AlertSettingsSectionLayout
-          title="general alerts"
-          columnNames={[CHANNEL_LABELS.email, CHANNEL_LABELS.inApp]}
-          columnWidths={BASIC_ALERT_COLUMN_WIDTHS}
-        >
-          {sections['GENERAL'].map((item, index) => (
-            <AlertSettingsItem
-              key={index}
-              alertId={index}
-              title={item.title}
-              disabled={item.disabled}
-              alertType={AlertCategory.GENERAL}
-              updateSetting={updateSetting}
-              getGeneralCheckboxState={getGeneralCheckboxState}
-            />
-          ))}
-        </AlertSettingsSectionLayout>
-      )}
+        )}
+        {showGeneralAlerts && (
+          <AlertSettingsSectionLayout
+            title="general alerts"
+            columnNames={[CHANNEL_LABELS.email, CHANNEL_LABELS.inApp]}
+            columnWidths={BASIC_ALERT_COLUMN_WIDTHS}
+          >
+            {sections['GENERAL'].map((item, index) => (
+              <AlertSettingsItem
+                key={index}
+                alertId={index}
+                title={item.title}
+                disabled={item.disabled}
+                alertType={AlertCategory.GENERAL}
+                updateSetting={updateSetting}
+                getGeneralCheckboxState={getGeneralCheckboxState}
+              />
+            ))}
+          </AlertSettingsSectionLayout>
+        )}
+      </div>
       <div className="z-[50]">
         <Button
-          className="ph-no-capture mb-3 w-full bg-slate-950"
+          className="ph-no-capture w-full bg-slate-950"
           disabled={isUpdating}
           onClick={updateEmailSettings}
         >
