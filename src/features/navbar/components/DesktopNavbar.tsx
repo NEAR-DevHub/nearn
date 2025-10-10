@@ -134,7 +134,7 @@ export const DesktopNavbar = ({
                   </Link>
                 </Button>
               )}
-              <div className="hidden md:block">
+              <div className="hidden lg:block">
                 <NotificationsPopover />
               </div>
               <UserMenu />

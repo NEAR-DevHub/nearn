@@ -205,7 +205,7 @@ export const MobileNavbar = ({ onLoginOpen, hideListingNavigation }: Props) => {
           </div>
           {status === 'authenticated' && session && (
             <div className="flex items-center gap-2">
-              <div className="hidden md:block">
+              <div className="hidden lg:block">
                 <NotificationsPopover />
               </div>
               <UserMenu />
