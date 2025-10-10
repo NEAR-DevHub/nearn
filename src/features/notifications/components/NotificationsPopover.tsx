@@ -82,7 +82,7 @@ export function NotificationsPopover() {
         </PopoverTrigger>
         <PopoverContent
           align="end"
-          className="flex w-[440px] flex-col gap-3 rounded-xl p-0"
+          className="flex w-[440px] flex-col rounded-xl p-0"
         >
           <div className="border-b">
             <AccountFilter
