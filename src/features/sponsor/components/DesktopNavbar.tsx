@@ -11,6 +11,7 @@ import { useUser } from '@/store/user';
 import { cn } from '@/utils/cn';
 
 import { UserMenu } from '@/features/navbar/components/UserMenu';
+import { NotificationsPopover } from '@/features/notifications/components';
 
 import { NAV_LINKS } from '../utils/constants';
 
@@ -102,7 +103,14 @@ export const DesktopNavbar = () => {
                   </Button>
                 </Link>
               )}
-              {status === 'authenticated' && session && <UserMenu />}
+              {status === 'authenticated' && session && (
+                <>
+                  <div className="hidden md:block">
+                    <NotificationsPopover />
+                  </div>
+                  <UserMenu />
+                </>
+              )}
             </div>
           </div>
 

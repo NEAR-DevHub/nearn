@@ -1,5 +1,4 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@radix-ui/react-tabs';
-import { TooltipArrow } from '@radix-ui/react-tooltip';
 import { useQuery } from '@tanstack/react-query';
 import { useAtom } from 'jotai';
 import {
@@ -401,6 +400,18 @@ export const SubmissionPanel = ({
     amount = bounty?.rewards?.[selectedSubmission?.winnerPosition] ?? 0;
   }
 
+  let announceWinnerText =
+    'All winners have been selected. Click the button to announce them and move to the payment stage';
+  if (bounty?.isWinnersAnnounced) {
+    announceWinnerText =
+      'You cannot change the winners once the results are published!';
+  }
+
+  if (remainings?.podiums !== 0 || remainings?.bonus !== 0) {
+    announceWinnerText =
+      'Allocate the whole prize pool or edit the listing to shrink it before you can continue';
+  }
+
   return (
     <>
       <div className="sticky top-[3rem] w-full">
@@ -493,20 +504,7 @@ export const SubmissionPanel = ({
                         {!isProject && !isSponsorship && (
                           <div className="flex items-center gap-2">
                             <Tooltip
-                              content={
-                                !bounty?.isWinnersAnnounced ? (
-                                  <>
-                                    Allocate the whole prize pool or edit the
-                                    listing to shrink it before you can continue
-                                  </>
-                                ) : (
-                                  <>
-                                    You cannot change the winners once the
-                                    results are published!
-                                    <TooltipArrow />
-                                  </>
-                                )
-                              }
+                              content={announceWinnerText}
                               contentProps={{
                                 side: 'bottom',
                                 align: 'center',

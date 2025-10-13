@@ -7,7 +7,6 @@ import { safeStringify } from '@/utils/safeStringify';
 
 import { type NextApiRequestWithUser } from '@/features/auth/types';
 import { withAuth } from '@/features/auth/utils/withAuth';
-import { sendEmailNotification } from '@/features/emails/utils/sendEmailNotification';
 import { grantApplicationSchema } from '@/features/grants/utils/grantApplicationSchema';
 import { handleAirtableSync } from '@/features/grants/utils/handleAirtableSync';
 import { validateGrantRequest } from '@/features/grants/utils/validateGrantRequest';
@@ -120,19 +119,6 @@ async function grantApplication(
       applicationData,
       grant,
     );
-
-    if (grant.isNative === true && !grant.airtableId) {
-      try {
-        sendEmailNotification({
-          type: 'application',
-          id: result.id,
-          userId: userId,
-          triggeredBy: userId,
-        });
-      } catch (err) {
-        logger.error('Error sending email to User:', err);
-      }
-    }
 
     if (grant.airtableId) {
       try {

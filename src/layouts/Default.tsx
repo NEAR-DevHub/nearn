@@ -3,17 +3,22 @@ import type { ReactNode } from 'react';
 
 import { cn } from '@/utils/cn';
 
-import { Header } from '@/features/navbar/components/Header';
-
 interface IDefaultProps {
   meta: ReactNode;
   children: ReactNode;
   className?: string;
   hideFooter?: boolean;
+  hideListingNavigation?: boolean;
 }
 
-const Footer = dynamic(() =>
-  import('@/features/navbar/components/Footer').then((mod) => mod.Footer),
+const Header = dynamic(
+  () => import('@/features/navbar/components/Header').then((mod) => mod.Header),
+  { ssr: false },
+);
+
+const Footer = dynamic(
+  () => import('@/features/navbar/components/Footer').then((mod) => mod.Footer),
+  { ssr: false },
 );
 
 export const Default = ({
@@ -21,13 +26,14 @@ export const Default = ({
   meta,
   children,
   hideFooter,
+  hideListingNavigation = false,
 }: IDefaultProps) => {
   return (
     <div
       className={cn('flex min-h-screen flex-col justify-between', className)}
     >
       {meta}
-      <Header />
+      <Header hideListingNavigation={hideListingNavigation} />
       <div className="flex flex-1 flex-col">{children}</div>
       {!hideFooter && (
         <div className="relative z-20">

@@ -101,7 +101,7 @@ export async function handleInviteAcceptance(
       });
     });
 
-    await createSponsorEmailSettings(userId);
+    await createSponsorEmailSettings(userId, invite.sponsorId);
 
     logger.info(`Invitation accepted successfully for user ${userId}`);
     return {

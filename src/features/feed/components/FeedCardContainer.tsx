@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router';
 import { usePostHog } from 'posthog-js/react';
-import { type ReactNode, useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 import { GoComment } from 'react-icons/go';
 import { IoMdHeart, IoMdHeartEmpty } from 'react-icons/io';
 
@@ -11,6 +11,7 @@ import { useDisclosure } from '@/hooks/use-disclosure';
 import { api } from '@/lib/api';
 import { useUser } from '@/store/user';
 import { cn } from '@/utils/cn';
+import { setupCommentLinking } from '@/utils/comment-highlighting';
 
 import { AuthWrapper } from '@/features/auth/components/AuthWrapper';
 import { Comments } from '@/features/comments/components/Comments';
@@ -64,15 +65,42 @@ export const FeedCardContainer = ({
 }: FeedCardContainerProps) => {
   const { user } = useUser();
 
+  const {
+    onToggle: onToggleComment,
+    onOpen: onOpenComment,
+    isOpen: isCommentOpen,
+    onClose: onCloseComment,
+  } = useDisclosure();
+  const commentsRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const hash = window.location.hash;
+
+    if (hash.startsWith('#comment-') && !isCommentOpen) {
+      onOpenComment();
+      return;
+    }
+
+    // Handle comments section scroll
+    if (hash === '#comments' && commentsRef.current) {
+      setTimeout(() => {
+        if (commentsRef.current) {
+          commentsRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+      return;
+    }
+
+    // Handle comment linking
+    const cleanup = setupCommentLinking();
+    return cleanup;
+  }, [isCommentOpen, onToggleComment, setupCommentLinking]);
+
   const [isLiked, setIsLiked] = useState<boolean>(
     !!like?.find((e: any) => e.id === user?.id),
   );
   const [totalLikes, setTotalLikes] = useState<number>(like?.length ?? 0);
-  const {
-    onToggle: onToggleComment,
-    isOpen: isCommentOpen,
-    onClose: onCloseComment,
-  } = useDisclosure();
   const [commentCount, setCommentCount] = useState(initialCommentCount || 0);
   const [recentCommenters, setRecentCommenters] = useState(
     initialRecentCommenters,

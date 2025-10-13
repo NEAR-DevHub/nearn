@@ -1,13 +1,16 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getToken } from 'next-auth/jwt';
 
+import { WelcomeSponsorTemplate } from '@/email-templates/welcomeSponsorTemplate';
 import logger from '@/lib/logger';
 import { prisma } from '@/prisma';
 import { safeStringify } from '@/utils/safeStringify';
 
-import { WelcomeSponsorTemplate } from '@/features/emails/components/welcomeSponsorTemplate';
-import { fromEmail, replyToEmail } from '@/features/emails/utils/fromEmails';
-import { resend } from '@/features/emails/utils/resend';
+import {
+  fromEmail,
+  replyToEmail,
+} from '@/features/notifications/utils/fromEmails';
+import { resend } from '@/features/notifications/utils/resend';
 
 export default async function handler(
   req: NextApiRequest,

@@ -7,13 +7,11 @@ import { safeStringify } from '@/utils/safeStringify';
 import { type NextApiRequestWithSponsor } from '@/features/auth/types';
 import { checkGrantSponsorAuth } from '@/features/auth/utils/checkGrantSponsorAuth';
 import { withSponsorAuth } from '@/features/auth/utils/withSponsorAuth';
-import { sendEmailNotification } from '@/features/emails/utils/sendEmailNotification';
 
 async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
   const { id, trancheAmount, txId = '' } = req.body;
   const parsedTrancheAmount = parseInt(trancheAmount, 10);
 
-  const userId = req.userId;
   const userSponsorId = req.userSponsorId;
 
   logger.debug(`Request body: ${safeStringify(req.body)}`);
@@ -92,13 +90,6 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       });
 
       return updatedGrantApplication;
-    });
-
-    sendEmailNotification({
-      type: 'grantPaymentReceived',
-      id,
-      triggeredBy: userId,
-      userId: currentApplication.userId,
     });
 
     logger.info(

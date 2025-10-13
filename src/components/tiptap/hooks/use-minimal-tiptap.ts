@@ -1,3 +1,4 @@
+import { CharacterCount } from '@tiptap/extension-character-count';
 import { Placeholder } from '@tiptap/extension-placeholder';
 import Table from '@tiptap/extension-table';
 import TableCell from '@tiptap/extension-table-cell';
@@ -51,9 +52,14 @@ export interface UseMinimalTiptapEditorProps extends UseEditorOptions {
   onUpdate?: (content: Content) => void;
   onBlur?: (content: Content) => void;
   imageSetting: ImageSetting;
+  maxCharacterCount?: number;
 }
 
-const createExtensions = (placeholder: string, imageSetting: ImageSetting) => {
+const createExtensions = (
+  placeholder: string,
+  imageSetting: ImageSetting,
+  maxCharacterCount?: number,
+) => {
   const trackedImages = new Set<string>();
 
   return [
@@ -210,6 +216,14 @@ const createExtensions = (placeholder: string, imageSetting: ImageSetting) => {
     ResetMarksOnEnter,
     CodeBlockLowlight,
     Placeholder.configure({ placeholder: () => placeholder }),
+    ...(maxCharacterCount
+      ? [
+          CharacterCount.configure({
+            limit: maxCharacterCount,
+            mode: 'textSize',
+          }),
+        ]
+      : []),
   ];
 };
 
@@ -222,6 +236,7 @@ export const useMinimalTiptapEditor = ({
   onUpdate,
   onBlur,
   imageSetting,
+  maxCharacterCount,
   ...props
 }: UseMinimalTiptapEditorProps) => {
   const throttledSetValue = useThrottle(
@@ -249,7 +264,7 @@ export const useMinimalTiptapEditor = ({
   );
 
   const editor = useEditor({
-    extensions: createExtensions(placeholder, imageSetting),
+    extensions: createExtensions(placeholder, imageSetting, maxCharacterCount),
     editorProps: {
       attributes: {
         autocomplete: 'off',

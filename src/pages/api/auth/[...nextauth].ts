@@ -5,12 +5,15 @@ import EmailProvider from 'next-auth/providers/email';
 import GoogleProvider from 'next-auth/providers/google';
 
 import { PROJECT_NAME } from '@/constants/project';
+import { OTPTemplate } from '@/email-templates/otpTemplate';
 import logger from '@/lib/logger';
 import { prisma } from '@/prisma';
 
-import { OTPTemplate } from '@/features/emails/components/otpTemplate';
-import { fromEmail, replyToEmail } from '@/features/emails/utils/fromEmails';
-import { resend } from '@/features/emails/utils/resend';
+import {
+  fromEmail,
+  replyToEmail,
+} from '@/features/notifications/utils/fromEmails';
+import { resend } from '@/features/notifications/utils/resend';
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma) as Adapter,

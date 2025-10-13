@@ -30,7 +30,11 @@ const MobileNavbar = dynamic(() =>
   import('./MobileNavbar').then((mod) => mod.MobileNavbar),
 );
 
-export const Header = () => {
+interface HeaderProps {
+  hideListingNavigation?: boolean;
+}
+
+export const Header = ({ hideListingNavigation = false }: HeaderProps) => {
   const { data: session, status } = useSession();
   const router = useRouter();
 
@@ -80,10 +84,14 @@ export const Header = () => {
         <DesktopNavbar
           onLoginOpen={onLoginOpen}
           onSearchOpen={searchOpenWithEvent}
+          hideListingNavigation={hideListingNavigation}
         />
       </div>
 
-      <MobileNavbar onLoginOpen={onLoginOpen} />
+      <MobileNavbar
+        onLoginOpen={onLoginOpen}
+        hideListingNavigation={hideListingNavigation}
+      />
       <SearchModal isOpen={isSearchOpen} onClose={onSearchClose} />
       <div className="fixed bottom-0 z-[60] w-full">
         <BottomBar onSearchOpen={searchOpenWithEvent} />

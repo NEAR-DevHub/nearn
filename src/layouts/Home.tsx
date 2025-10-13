@@ -34,8 +34,10 @@ const CategoryBanner = dynamic(() =>
   ),
 );
 
-const HomeSideBar = dynamic(() =>
-  import('@/features/home/components/SideBar').then((mod) => mod.HomeSideBar),
+const HomeSideBar = dynamic(
+  () =>
+    import('@/features/home/components/SideBar').then((mod) => mod.HomeSideBar),
+  { ssr: false },
 );
 
 export function Home({ children, type, st, isAuth }: HomeProps) {

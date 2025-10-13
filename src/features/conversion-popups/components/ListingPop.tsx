@@ -42,12 +42,16 @@ const VariantInfo = (
 ): Record<number, VariantInfo> => {
   const reward =
     listing?.usdValue?.toFixed(0) ||
-    listing?.rewardAmount ||
-    listing?.maxRewardAsk;
-  const rewardLabel = reward ? '$' + reward.toLocaleString('en-us') : '';
+    listing?.rewardAmount?.toFixed(0) ||
+    listing?.maxRewardAsk?.toFixed(0);
+  const rewardLabel =
+    reward && listing?.compensationType !== 'variable'
+      ? '$' + Number(reward).toLocaleString('en-us')
+      : '';
   const type = listing?.type;
   const verb = listing?.type === 'bounty' ? 'submissions' : 'applications';
   const sponsorName = listing?.sponsor?.name;
+
   return {
     0: {
       title: `Don’t miss out on this ${rewardLabel} ${type}`,

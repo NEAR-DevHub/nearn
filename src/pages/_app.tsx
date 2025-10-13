@@ -17,6 +17,7 @@ import { fontFKGrotesk, fontSans } from '@/theme/fonts';
 
 import '../styles/globals.scss';
 import '@/components/tiptap/styles/index.css';
+import 'flag-icons/css/flag-icons.min.css';
 
 const Toaster = dynamic(() => import('sonner').then((mod) => mod.Toaster), {
   ssr: false,

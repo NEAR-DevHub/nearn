@@ -1,3 +1,4 @@
+import Gleap from 'gleap';
 import { Menu } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -13,6 +14,8 @@ import { useDisclosure } from '@/hooks/use-disclosure';
 import { useUser } from '@/store/user';
 import { cn } from '@/utils/cn';
 
+import { NotificationsPopover } from '@/features/notifications/components';
+
 import {
   CATEGORY_NAV_ITEMS,
   LISTING_NAV_ITEMS,
@@ -23,13 +26,14 @@ import { UserMenu } from './UserMenu';
 
 interface Props {
   onLoginOpen: () => void;
+  hideListingNavigation?: boolean;
 }
 
 // const AnnouncementBar = dynamic(() =>
 //   import('@/features/navbar').then((mod) => mod.AnnouncementBar),
 // );
 
-export const MobileNavbar = ({ onLoginOpen }: Props) => {
+export const MobileNavbar = ({ onLoginOpen, hideListingNavigation }: Props) => {
   const {
     isOpen: isDrawerOpen,
     onOpen: onDrawerOpen,
@@ -151,6 +155,15 @@ export const MobileNavbar = ({ onLoginOpen }: Props) => {
                 onClick={onDrawerClose}
               />
             )}
+            <Button
+              variant="link"
+              className="text-semibold mr-3 p-0 text-lg text-slate-500 lg:text-sm"
+              onClick={() => {
+                Gleap.open();
+              }}
+            >
+              Get Help
+            </Button>
           </div>
         </SheetContent>
       </Sheet>
@@ -190,7 +203,14 @@ export const MobileNavbar = ({ onLoginOpen }: Props) => {
               />
             </Link>
           </div>
-          {status === 'authenticated' && session && <UserMenu />}
+          {status === 'authenticated' && session && (
+            <div className="flex items-center gap-2">
+              <div className="hidden lg:block">
+                <NotificationsPopover />
+              </div>
+              <UserMenu />
+            </div>
+          )}
           {status === 'unauthenticated' && !session && (
             <Button
               variant="ghost"
@@ -205,7 +225,7 @@ export const MobileNavbar = ({ onLoginOpen }: Props) => {
           )}
         </div>
       </div>
-      {!router.asPath.startsWith('/new/') && (
+      {!hideListingNavigation && (
         <div className="flex items-center justify-between bg-slate-50 px-3 py-0 sm:px-4 lg:hidden">
           <div
             className={cn(

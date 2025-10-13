@@ -1,13 +1,15 @@
-import Gleap from 'gleap';
-import { Home, MessageCircle, Newspaper, Search, User } from 'lucide-react';
+import { Bell, Home, Newspaper, Search, User } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
 
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useUser } from '@/store/user';
 import { cn } from '@/utils/cn';
 
 import { AuthWrapper } from '@/features/auth/components/AuthWrapper';
+import { useNotificationsInfinite } from '@/features/notifications/queries/useNotifications';
 
 interface Props {
   onSearchOpen: () => void;
@@ -16,10 +18,29 @@ interface Props {
 export function BottomBar({ onSearchOpen }: Props) {
   const { user } = useUser();
   const router = useRouter();
+  const [showBadge, setShowBadge] = useState(false);
 
   function setColor(href: string, routerPath: string) {
     return routerPath === href ? 'text-black' : 'text-slate-400';
   }
+  const { data } = useNotificationsInfinite({
+    read: false,
+    limit: 10,
+  });
+  const unreadCount = data?.pages?.[0]?.pagination?.totalCount || 0;
+
+  // Check if we should show the badge based on cached count
+  useEffect(() => {
+    if (unreadCount > 0) {
+      const cachedCount = parseInt(
+        localStorage.getItem('notificationCount') || '0',
+        10,
+      );
+      if (unreadCount > cachedCount) {
+        setShowBadge(true);
+      }
+    }
+  }, [unreadCount]);
 
   const iconStyle = { width: '1.5rem', height: '1.5rem' };
 
@@ -32,76 +53,92 @@ export function BottomBar({ onSearchOpen }: Props) {
   }
 
   return (
-    <div
-      className={cn(
-        'flex w-full justify-between border-t border-slate-200 bg-white px-4 py-2',
-        'lg:hidden',
-      )}
-    >
-      <Link href="/" style={linkStyle}>
-        <Button
-          variant="ghost"
-          className={cn(
-            setColor('/', router.asPath),
-            'hover:bg-transparent active:bg-transparent',
-          )}
-        >
-          <Home style={iconStyle} />
-        </Button>
-      </Link>
-
-      <Button
-        variant="ghost"
-        onClick={onSearchOpen}
-        style={linkStyle}
+    <>
+      <div
         className={cn(
-          setColor('/search', router.pathname),
-          'hover:bg-transparent active:bg-transparent',
+          'flex w-full justify-between border-t border-slate-200 bg-white px-4 py-2',
+          'lg:hidden',
         )}
       >
-        <Search style={iconStyle} />
-      </Button>
-
-      <Link href="/feed/" style={linkStyle}>
-        <Button
-          variant="ghost"
-          className={cn(
-            setColor('/feed/', router.asPath),
-            'relative hover:bg-transparent active:bg-transparent',
-          )}
-        >
-          <Newspaper style={iconStyle} />
-          <div className="absolute right-3 top-1 h-2.5 w-2.5 rounded-full bg-red-500" />
-        </Button>
-      </Link>
-
-      <AuthWrapper>
-        <Link
-          href={`/t/${user?.username}`}
-          style={{
-            ...linkStyle,
-            pointerEvents: user ? 'auto' : 'none',
-          }}
-        >
+        <Link href="/" style={linkStyle}>
           <Button
             variant="ghost"
             className={cn(
-              setColor(`/t/${user?.username}/`, router.asPath),
+              setColor('/', router.asPath),
               'hover:bg-transparent active:bg-transparent',
             )}
           >
-            <User style={iconStyle} />
+            <Home style={iconStyle} />
           </Button>
         </Link>
-      </AuthWrapper>
 
-      <Button
-        variant="ghost"
-        onClick={() => Gleap.open()}
-        className="text-slate-400 hover:bg-transparent active:bg-transparent"
-      >
-        <MessageCircle style={iconStyle} />
-      </Button>
-    </div>
+        <Button
+          variant="ghost"
+          onClick={onSearchOpen}
+          style={linkStyle}
+          className={cn(
+            setColor('/search', router.pathname),
+            'hover:bg-transparent active:bg-transparent',
+          )}
+        >
+          <Search style={iconStyle} />
+        </Button>
+
+        <Link href="/feed/" style={linkStyle}>
+          <Button
+            variant="ghost"
+            className={cn(
+              setColor('/feed/', router.asPath),
+              'relative hover:bg-transparent active:bg-transparent',
+            )}
+          >
+            <Newspaper style={iconStyle} />
+            <div className="absolute right-3 top-1 h-2.5 w-2.5 rounded-full bg-red-500" />
+          </Button>
+        </Link>
+
+        {user && (
+          <Link href="/notifications" style={linkStyle}>
+            <Button
+              variant="ghost"
+              className={cn(
+                setColor('/notifications/', router.asPath),
+                'relative hover:bg-transparent active:bg-transparent',
+              )}
+            >
+              <Bell style={iconStyle} />
+              {showBadge && unreadCount > 0 && (
+                <Badge
+                  variant="destructive"
+                  className="absolute right-2 top-0 scale-[0.8] rounded-full p-0.5 px-1.5"
+                >
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </Badge>
+              )}
+            </Button>
+          </Link>
+        )}
+
+        <AuthWrapper>
+          <Link
+            href={`/t/${user?.username}`}
+            style={{
+              ...linkStyle,
+              pointerEvents: user ? 'auto' : 'none',
+            }}
+          >
+            <Button
+              variant="ghost"
+              className={cn(
+                setColor(`/t/${user?.username}/`, router.asPath),
+                'hover:bg-transparent active:bg-transparent',
+              )}
+            >
+              <User style={iconStyle} />
+            </Button>
+          </Link>
+        </AuthWrapper>
+      </div>
+    </>
   );
 }

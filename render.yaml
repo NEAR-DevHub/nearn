@@ -202,11 +202,6 @@ services:
         sync: false
       - key: GOOGLE_SECRET
         sync: false
-      - key: EMAIL_SECRET
-        fromService:
-          name: nearn-email-staging
-          type: pserv
-          envVarKey: AUTH_SECRET
       - key: EMAIL_BACKEND
         sync: false
       - key: NEXT_PUBLIC_POSTHOG_HOST
@@ -229,63 +224,6 @@ services:
   - type: pserv
     repo: https://github.com/akorchyn/nearn-emails
     branch: staging
-    name: nearn-email-staging
-    runtime: node
-    region: frankfurt
-    plan: starter
-    previews:
-      generation: off
-    buildCommand: pnpm install && pnpm prisma generate && pnpm build
-    startCommand: node dist/index.js
-    envVars:
-      - key: REDIS_URL
-        fromService:
-          name: nearn-redis-for-emails-staging
-          type: keyvalue
-          property: connectionString
-      - key: AUTH_SECRET
-        generateValue: true
-      - key: LISTINGS_EMAIL
-        value: staging@nearn.io
-      - key: ALERTS_EMAIL
-        value: staging@nearn.io
-      - key: MAIN_APP_URL
-        value: 'https://nearn-app-staging.onrender.com'
-      - key: AIRTABLE_FORM_URL
-        value: 'https://nearn-app-staging.onrender.com'
-      - key: DEV_EMAILS
-        sync: false
-      - key: BCC_EMAILS
-        sync: false
-      - key: BASE_URL
-        value: 'https://nearn-app-staging.onrender.com'
-      - key: RESEND_API_KEY
-        fromService:
-          name: nearn-app-staging
-          type: web
-          envVarKey: RESEND_API_KEY
-      - key: UNSUB_SECRET
-        fromService:
-          name: nearn-app-staging
-          type: web
-          envVarKey: UNSUB_SECRET
-      - key: DATABASE_URL
-        fromService:
-          name: nearn-app-staging
-          type: web
-          envVarKey: DATABASE_URL
-      - key: CEO_EMAIL
-        fromService:
-          name: nearn-app-staging
-          type: web
-          envVarKey: CEO_EMAIL
-    autoDeploy: true
-  - type: keyvalue
-    name: nearn-redis-for-emails-staging
-    maxmemoryPolicy: noeviction
-    region: frankfurt
-    ipAllowList: []
-    plan: starter
   - type: web
     region: frankfurt
     plan: standard

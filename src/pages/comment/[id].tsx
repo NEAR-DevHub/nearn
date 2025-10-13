@@ -79,6 +79,13 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
           permanent: true,
         },
       };
+    case 'POW':
+      return {
+        redirect: {
+          destination: wrapWithCommentId(`/feed/pow/${comment.pow?.id}`),
+          permanent: true,
+        },
+      };
   }
 
   return {

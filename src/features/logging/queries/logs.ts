@@ -1,9 +1,16 @@
-import { type EventLog, type EventVisibility } from '@prisma/client';
+import {
+  ActorType,
+  type CommentRefType,
+  type EventLog,
+  type EventVisibility,
+  type Prisma,
+} from '@prisma/client';
 import { useInfiniteQuery } from '@tanstack/react-query';
 
+import { PROJECT_NAME } from '@/constants/project';
 import { api } from '@/lib/api';
 
-import { EventType } from '@/features/logging/types/event-data';
+import { EventType, isRoleAtLeast } from '@/features/logging/types/event-data';
 
 interface GetLogsParams {
   refType: 'submission' | 'listing' | 'sponsor';
@@ -98,23 +105,103 @@ export function eventFilters(
   return mapping[category];
 }
 
+export const prismaLogInclude: Prisma.EventLogInclude = {
+  submission: {
+    select: {
+      sequentialId: true,
+      userId: true,
+      user: {
+        select: {
+          username: true,
+        },
+      },
+    },
+  },
+  listing: {
+    select: {
+      id: true,
+      sequentialId: true,
+      slug: true,
+      type: true,
+      title: true,
+      pocId: true,
+      poc: {
+        select: {
+          username: true,
+        },
+      },
+    },
+  },
+  sponsor: {
+    select: {
+      name: true,
+      slug: true,
+      logo: true,
+    },
+  },
+  actor: {
+    select: {
+      username: true,
+      name: true,
+      photo: true,
+      private: true,
+    },
+  },
+  comment: {
+    select: {
+      id: true,
+      author: {
+        select: {
+          username: true,
+          name: true,
+          photo: true,
+          private: true,
+        },
+      },
+      refType: true,
+      message: true,
+      repliedTo: {
+        select: {
+          id: true,
+          authorId: true,
+          author: {
+            select: {
+              username: true,
+            },
+          },
+        },
+      },
+    },
+  },
+  pow: {
+    select: {
+      id: true,
+      userId: true,
+    },
+  },
+};
+
 export type Log = EventLog & {
   actor?: {
     username: string;
     name?: string;
     photo: string;
+    private: boolean;
   };
   submission?: {
     sequentialId: number;
+    userId: string;
     user: {
       username: string;
     };
   };
   listing?: {
+    id: string;
     sequentialId: number;
     type: 'bounty' | 'sponsorship' | 'project' | 'hackathon';
     title: string;
     slug: string;
+    pocId: string;
     poc: {
       username: string;
     };
@@ -123,12 +210,15 @@ export type Log = EventLog & {
     id: string;
     author: {
       username: string;
+      private: boolean;
       name?: string;
       photo: string;
     };
     message: string;
+    refType: CommentRefType;
     repliedTo?: {
       id: string;
+      authorId: string;
       author: {
         username: string;
       };
@@ -138,6 +228,10 @@ export type Log = EventLog & {
     name: string;
     slug: string;
     logo: string;
+  };
+  pow?: {
+    id: string;
+    userId: string;
   };
 };
 
@@ -170,4 +264,41 @@ export const useGetLogsInfinite = (params: Omit<GetLogsParams, 'page'>) => {
     },
     initialPageParam: 1,
   });
+};
+
+export const prepareLogData = (log: Log, visibility: EventVisibility) => {
+  const isAtLeastSponsor = isRoleAtLeast(visibility, 'SPONSOR');
+  const isAtLeastPlatformAdmin = isRoleAtLeast(visibility, 'PLATFORM_ADMIN');
+  const actorHidden =
+    (log.actorType === ActorType.SPONSOR && !isAtLeastSponsor) ||
+    (log.actorType === ActorType.PLATFORM_ADMIN && !isAtLeastPlatformAdmin);
+
+  return {
+    ...log,
+    actor:
+      log.actor && !actorHidden
+        ? {
+            ...log.actor,
+            name: log.actor.private ? undefined : log.actor.name,
+            private: undefined,
+          }
+        : undefined,
+    submissionId: !isAtLeastSponsor ? undefined : log.submissionId,
+    // We don't want to expose who behind the scenes for sponsors and platform admins
+    actorId: actorHidden ? undefined : log.actorId,
+    comment: log.comment
+      ? {
+          ...log.comment,
+          author: {
+            ...log.comment.author,
+            name: log.comment.author?.private
+              ? undefined
+              : log.comment.author?.name ||
+                log.comment.author?.username ||
+                PROJECT_NAME,
+            private: undefined,
+          },
+        }
+      : undefined,
+  };
 };

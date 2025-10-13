@@ -1,14 +1,12 @@
 import { type CommentRefType } from '@prisma/client';
 import type { NextApiResponse } from 'next';
 
-import { PROJECT_NAME } from '@/constants/project';
 import logger from '@/lib/logger';
 import { prisma } from '@/prisma';
 import { safeStringify } from '@/utils/safeStringify';
 
 import { type NextApiRequestWithUser } from '@/features/auth/types';
 import { withAuth } from '@/features/auth/utils/withAuth';
-import { sendEmailNotification } from '@/features/emails/utils/sendEmailNotification';
 import { eventLogger } from '@/features/logging/services/event-logger';
 import { EventType } from '@/features/logging/types/event-data';
 
@@ -19,8 +17,7 @@ async function comment(req: NextApiRequestWithUser, res: NextApiResponse) {
   logger.debug(`Request body: ${safeStringify(req.body)}`);
 
   try {
-    const { pocId, message, refId, replyToId, submissionId, replyToUserId } =
-      req.body;
+    const { message, refId, replyToId, submissionId } = req.body;
     const refType = req.body.refType as CommentRefType;
     let { type } = req.body as { type: CommentType | undefined };
     if (!type) type = 'NORMAL';
@@ -104,131 +101,57 @@ async function comment(req: NextApiRequestWithUser, res: NextApiResponse) {
         },
       },
     });
-    if (refType === 'SUBMISSION' || refType === 'BOUNTY') {
-      let entities;
-      if (refType === 'SUBMISSION') {
-        const submissionListingId = await prisma.submission.findUnique({
-          where: {
-            id: refId,
-          },
-          select: {
-            listingId: true,
-          },
-        });
-        entities = {
-          submissionId: refId,
-          listingId: submissionListingId?.listingId,
-        };
-      } else {
-        entities = {
-          listingId: refId,
-        };
-      }
-      eventLogger.log({
-        eventType: EventType.COMMENT_ADDED,
-        actor: {
-          id: userId,
-          type: type === 'INTERNAL_SUBMISSION_NOTES' ? 'SPONSOR' : 'USER',
-        },
-        data: {},
-        entities: {
-          ...entities,
-          commentId: result.id,
-        },
-        visibility:
-          type === 'INTERNAL_SUBMISSION_NOTES' ? 'SPONSOR' : undefined,
-      });
-    }
-
-    logger.debug('Checking for tagged users in the comment');
-    const taggedUsernames = (message as string)
-      .split(' ')
-      .filter((tag) => tag.startsWith('@'))
-      .map((tag) => tag.substring(1));
-    const taggedUsers = await prisma.user.findMany({
-      select: {
-        id: true,
-      },
-      where: {
-        AND: [
-          {
-            username: {
-              in: taggedUsernames,
-            },
-          },
-          {
-            NOT: {
-              id: userId as string,
-            },
-          },
-        ],
-      },
-    });
-
-    try {
-      if (taggedUsers.length > 0) {
-        logger.debug('Sending email notifications to tagged users');
-        for (const taggedUser of taggedUsers) {
-          sendEmailNotification({
-            type: 'commentTag',
-            id: refId,
-            userId: taggedUser.id,
-            otherInfo: {
-              personName:
-                result.author?.name || result.author?.username || PROJECT_NAME,
-              type: refType,
-            },
-            triggeredBy: userId,
-          });
-        }
-      }
-
-      if (replyToUserId && replyToUserId !== userId) {
-        logger.debug(
-          `Sending email notification to user ID: ${replyToUserId} for comment reply`,
-        );
-        sendEmailNotification({
-          type: 'commentReply',
+    let entities;
+    if (refType === 'SUBMISSION') {
+      const submissionListingId = await prisma.submission.findUnique({
+        where: {
           id: refId,
-          userId: replyToUserId as string,
-          triggeredBy: userId,
-          otherInfo: {
-            type: refType,
-          },
-        });
-      }
-
-      if (
-        userId !== pocId &&
-        !taggedUsers.find((t) => t.id.includes(pocId)) &&
-        !replyToId
-      ) {
-        if (refType === 'BOUNTY' && type === 'NORMAL') {
-          logger.info(`Sending email notification to POC ID: ${pocId}`);
-          sendEmailNotification({
-            type: 'commentSponsor',
-            id: refId,
-            userId: pocId as string,
-            triggeredBy: userId,
-          });
-        }
-
-        if (refType !== 'BOUNTY' && type === 'NORMAL') {
-          logger.info(`Sending email notification for activity comment`);
-          sendEmailNotification({
-            type: 'commentActivity',
-            id: refId,
-            otherInfo: {
-              personName: result?.author?.name,
-              type: refType,
+        },
+        select: {
+          listingId: true,
+          listing: {
+            select: {
+              sponsorId: true,
             },
-            triggeredBy: userId,
-          });
-        }
-      }
-    } catch (err) {
-      logger.error(`Error Sending Email Notifications - ${err}`);
+          },
+        },
+      });
+      entities = {
+        submissionId: refId,
+        listingId: submissionListingId?.listingId,
+        sponsorId: submissionListingId?.listing?.sponsorId,
+      };
+    } else if (refType === 'BOUNTY') {
+      const bountyListingId = await prisma.bounties.findUnique({
+        where: {
+          id: refId,
+        },
+        select: {
+          sponsorId: true,
+        },
+      });
+      entities = {
+        listingId: refId,
+        sponsorId: bountyListingId?.sponsorId,
+      };
+    } else if (refType === 'POW') {
+      entities = {
+        powId: refId,
+      };
     }
+    await eventLogger.log({
+      eventType: EventType.COMMENT_ADDED,
+      actor: {
+        id: userId,
+        type: type === 'INTERNAL_SUBMISSION_NOTES' ? 'SPONSOR' : 'USER',
+      },
+      data: {},
+      entities: {
+        ...entities,
+        commentId: result.id,
+      },
+      visibility: type === 'INTERNAL_SUBMISSION_NOTES' ? 'SPONSOR' : undefined,
+    });
 
     logger.info(`Comment added successfully by user ID: ${userId}`);
     return res.status(200).json(result);

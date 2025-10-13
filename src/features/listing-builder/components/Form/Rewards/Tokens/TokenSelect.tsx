@@ -28,7 +28,7 @@ import { cn } from '@/utils/cn';
 import { useListingForm } from '../../../../hooks';
 import { TokenLabel } from './TokenLabel';
 
-export function TokenSelect() {
+export function TokenSelect({ disableAny }: { disableAny: boolean }) {
   const form = useListingForm();
   return (
     <FormField
@@ -75,6 +75,9 @@ export function TokenSelect() {
                         (token) =>
                           token.tokenSymbol !== 'Other' &&
                           token.tokenSymbol !== 'Fiat',
+                      )
+                      .filter(
+                        (token) => !disableAny || token.tokenSymbol !== 'Any',
                       )
                       .map((token) => (
                         <CommandItem

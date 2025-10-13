@@ -18,8 +18,8 @@ import { HELP_URL } from '@/constants/project';
 import { useDisclosure } from '@/hooks/use-disclosure';
 import { useLogout, useUser } from '@/store/user';
 
+import { NotificationSettingsModal } from '@/features/notification-settings/components/NotificationSettingModal';
 import { EarnAvatar } from '@/features/talent/components/EarnAvatar';
-import { EmailSettingsModal } from '@/features/talent/components/EmailSettingsModal';
 
 export function UserMenu() {
   const router = useRouter();
@@ -56,7 +56,7 @@ export function UserMenu() {
 
   return (
     <>
-      <EmailSettingsModal isOpen={isOpen} onClose={handleClose} />
+      <NotificationSettingsModal isOpen={isOpen} onClose={handleClose} />
       {user &&
         !user.currentSponsorId &&
         !user.isTalentFilled &&
@@ -151,18 +151,6 @@ export function UserMenu() {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
             </div>
-          )}
-
-          {(user?.isTalentFilled || !!user?.currentSponsorId) && (
-            <DropdownMenuItem
-              onClick={() => {
-                onOpen();
-                posthog.capture('email preferences_user menu');
-              }}
-              className="text-sm text-slate-500"
-            >
-              Email Preferences
-            </DropdownMenuItem>
           )}
 
           <DropdownMenuItem

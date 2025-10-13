@@ -78,6 +78,8 @@ const LOG_IMPLEMENTATION_MAPPING: Record<
   [EventType.PLATFORM_ADMIN_SUBMISSION_STATUS_EDITED]:
     PlatformAdminSubmissionStatusEdited,
   [EventType.SYSTEM_STATUS_CHANGED]: SystemStatusChanged,
+  // TODO: add scout invite component
+  [EventType.SCOUT_INVITE]: null,
   [EventType.AUTOMATION_LOG]: (props: LogProperties) => {
     const data = props.event.data as EventDataMap[EventType.AUTOMATION_LOG];
     return SimpleLogMessage({ message: data.message });

@@ -12,6 +12,7 @@ import { useDisclosure } from '@/hooks/use-disclosure';
 import { useUser } from '@/store/user';
 
 import { UserMenu } from '@/features/navbar/components/UserMenu';
+import { NotificationsPopover } from '@/features/notifications/components';
 
 import { NAV_LINKS } from '../utils/constants';
 
@@ -145,7 +146,14 @@ export const MobileNavbar = () => {
         </Link>
       </div>
 
-      {status === 'authenticated' && session && <UserMenu />}
+      {status === 'authenticated' && session && (
+        <div className="flex items-center gap-2">
+          <div className="hidden md:block">
+            <NotificationsPopover />
+          </div>
+          <UserMenu />
+        </div>
+      )}
       {status === 'unauthenticated' && !session && (
         <Link
           className="ph-no-capture"

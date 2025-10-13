@@ -1,4 +1,4 @@
-import { memo, useMemo, useState } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
 import { useWatch } from 'react-hook-form';
 
 import {
@@ -37,6 +37,17 @@ export function RewardsSheet() {
     control: form.control,
     name: 'type',
   });
+
+  const token = useWatch({
+    control: form.control,
+    name: 'token',
+  });
+
+  useEffect(() => {
+    if (token === 'Any') {
+      form.setValue('compensationType', 'variable');
+    }
+  }, [token]);
 
   const hasRewardsErrors = useMemo(() => {
     const errors = form.formState.errors;
@@ -93,9 +104,11 @@ export function RewardsSheet() {
       >
         <SheetHeader className="shrink-0 space-y-6 p-6 pb-0">
           <SheetTitle>Add Rewards</SheetTitle>
-          <TokenSelect />
+          <TokenSelect disableAny={type === 'bounty'} />
           {(type === 'project' || type === 'sponsorship') && (
-            <PaymentType isDisabled={type === 'sponsorship'} />
+            <PaymentType
+              isDisabled={type === 'sponsorship' || token === 'Any'}
+            />
           )}
         </SheetHeader>
 

@@ -5,7 +5,6 @@ import logger from '@/lib/logger';
 import { prisma } from '@/prisma';
 import { safeStringify } from '@/utils/safeStringify';
 
-import { sendEmailNotification } from '@/features/emails/utils/sendEmailNotification';
 import { eventLogger } from '@/features/logging/services/event-logger';
 import { EventType } from '@/features/logging/types/event-data';
 
@@ -19,7 +18,7 @@ export async function POST(request: Request) {
     const requestBody = await request.json();
     logger.debug(`Request body: ${safeStringify(requestBody)}`);
 
-    const { message, submissionId } = requestBody;
+    const { message, submissionId, note } = requestBody;
 
     if (!message || !submissionId) {
       return NextResponse.json(
@@ -53,7 +52,7 @@ export async function POST(request: Request) {
         message: message as string,
         refId: submissionId,
         refType: 'SUBMISSION',
-        type: 'NORMAL',
+        type: note ? 'INTERNAL_SUBMISSION_NOTES' : 'NORMAL',
       },
     });
 
@@ -70,61 +69,6 @@ export async function POST(request: Request) {
         sponsorId: submission.listing.sponsor.id,
       },
     });
-
-    const taggedUsernames = (message as string)
-      .split(' ')
-      .filter((tag) => tag.startsWith('@'))
-      .map((tag) => tag.substring(1));
-    const taggedUsers = await prisma.user.findMany({
-      select: {
-        id: true,
-      },
-      where: {
-        AND: [
-          {
-            username: {
-              in: taggedUsernames,
-            },
-          },
-          {
-            NOT: {
-              id: submission.listing.sponsor.id,
-            },
-          },
-        ],
-      },
-    });
-
-    try {
-      if (taggedUsers.length > 0) {
-        logger.debug('Sending email notifications to tagged users');
-        for (const taggedUser of taggedUsers) {
-          sendEmailNotification({
-            type: 'commentTag',
-            id: submissionId,
-            userId: taggedUser.id,
-            otherInfo: {
-              personName: submission.listing.poc.name,
-              type: 'SUBMISSION',
-            },
-            triggeredBy: submission.listing.poc.id,
-          });
-        }
-      }
-
-      logger.info(`Sending email notification for activity comment`);
-      sendEmailNotification({
-        type: 'commentActivity',
-        id: submissionId,
-        otherInfo: {
-          personName: submission.listing.poc.name,
-          type: 'SUBMISSION',
-        },
-        triggeredBy: submission.listing.sponsor.id,
-      });
-    } catch (err) {
-      logger.error(`Error Sending Email Notifications - ${err}`);
-    }
 
     logger.info(
       `Comment added successfully by sponsor ID: ${submission.listing.sponsor.id}`,
