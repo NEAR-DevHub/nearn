@@ -1,5 +1,6 @@
 import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 
 import {
   Breadcrumb,
@@ -13,6 +14,8 @@ import { Default } from '@/layouts/Default';
 import { AlertSettings } from '@/features/notification-settings/components/AlertSettings';
 
 export default function NotificationSettingsPage() {
+  const router = useRouter();
+
   return (
     <Default
       className="bg-white"
@@ -25,7 +28,7 @@ export default function NotificationSettingsPage() {
           <Breadcrumbs />
           <Header />
         </div>
-        <AlertSettings />
+        <AlertSettings onSave={() => router.push('/notifications/')} />
       </div>
     </Default>
   );

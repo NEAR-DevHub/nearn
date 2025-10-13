@@ -9,6 +9,7 @@ import { PROJECT_NAME } from '@/constants/project';
 
 import { formatFromNow } from '@/features/comments/utils';
 import { getListingIcon } from '@/features/listings/utils/getListingIcon';
+import { EarnAvatar } from '@/features/talent/components/EarnAvatar';
 
 import {
   type Notification as NotificationData,
@@ -37,21 +38,25 @@ export function Notification({
   const { message, subtitle, actor } = getNotificationAction(notification);
   let username;
   let icon;
+  let avatarId;
 
   switch (actor) {
     case 'platform':
       icon = '/favicon.ico';
       username = PROJECT_NAME;
+      avatarId = 'SYSTEM';
       break;
 
     case 'sponsor':
       icon = notification?.sponsor?.logo;
       username = notification?.sponsor?.name;
+      avatarId = notification?.sponsorId;
       break;
 
     case 'user':
       icon = notification?.actor?.photo;
       username = notification?.actor?.name ?? notification?.actor?.username;
+      avatarId = notification?.actorId;
       break;
   }
 
@@ -62,12 +67,10 @@ export function Notification({
 
   return (
     <div className="group flex items-start gap-2 p-4 hover:bg-slate-50">
-      <Image
-        src={icon ?? ''}
-        alt={username ?? ''}
+      <EarnAvatar
+        avatar={icon}
+        id={avatarId ?? username ?? 'username avatar'}
         className="size-6 flex-shrink-0 rounded-full"
-        width={24}
-        height={24}
       />
       <div className="flex flex-col gap-1">
         <div className="flex w-full gap-2">
