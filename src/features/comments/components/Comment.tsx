@@ -278,7 +278,7 @@ export const Comment = ({
     }
   };
 
-  const avatar = comment.author ? comment.author.photo : '/favicon.ico';
+  const avatar = comment.authorId ? comment.author.photo : '/favicon.ico';
 
   return (
     <>
