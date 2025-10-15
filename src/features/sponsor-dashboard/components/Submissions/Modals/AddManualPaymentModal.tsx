@@ -93,7 +93,7 @@ export default function AddManualPaymentModal({
         notes: manualPayment.notes,
         isPrivate: !manualPayment.isPublic,
       });
-    } else {
+    } else if (milestone) {
       form.reset({
         paymentDate: new Date().toISOString().split('T')[0],
         token: milestone.token,
@@ -114,7 +114,7 @@ export default function AddManualPaymentModal({
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            id: milestone.submissionId,
+            id: milestone.id,
             amount: data.amount,
             token: data.token,
             fiatCurrency: data.fiatCurrency,
