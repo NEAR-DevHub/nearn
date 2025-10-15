@@ -53,15 +53,21 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
         BountyCounts: true,
       },
     });
-    const submissions = await prisma.submission.findMany({
+    const milestones = await prisma.milestone.findMany({
       where: {
         id: {
-          in: paymentLinks.map((d) => d.submissionId),
+          in: paymentLinks.map((d) => d.milestoneId),
         },
-        isPaid: false,
+        NOT: {
+          status: 'Paid',
+        },
       },
       include: {
-        user: true,
+        submission: {
+          include: {
+            user: true,
+          },
+        },
       },
     });
 
@@ -75,12 +81,16 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
     for (const paymentLink of paymentLinks) {
       try {
         logger.debug(
-          `Beginning External Payment Verification for submission ID: ${paymentLink.submissionId} with TxId: ${paymentLink.txId}`,
+          `Beginning External Payment Verification for milestone ID: ${paymentLink.milestoneId} with TxId: ${paymentLink.txId}`,
+        );
+        const milestone = milestones.find(
+          (m) => m.id === paymentLink.milestoneId,
         );
 
         if (paymentLink.isVerified) {
           validationResults.push({
-            submissionId: paymentLink.submissionId,
+            milestoneId: paymentLink.milestoneId,
+            submissionId: milestone?.submissionId || '',
             txId: paymentLink.txId,
             link: paymentLink.link || '',
             status: 'ALREADY_VERIFIED',
@@ -89,13 +99,10 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
           continue;
         }
 
-        const submission = submissions.find(
-          (s) => s.id === paymentLink.submissionId,
-        );
-        if (!submission) throw new Error('Submission not found');
+        if (!milestone) throw new Error('Milestone not found');
 
         const isUSDbased = listing.token === 'Any';
-        const tokenSymbol = isUSDbased ? submission.token : listing.token;
+        const tokenSymbol = milestone.token;
         const isOtherToken = tokenSymbol === 'Other';
 
         if (!paymentLink.txId && !isOtherToken) {
@@ -105,11 +112,11 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
         const {
           user: { publicKey },
           winnerPosition,
-        } = submission;
+        } = milestone.submission;
 
         if (!winnerPosition) {
-          logger.error('Submission has no winner position');
-          throw new Error('Submission has no winner position');
+          logger.error('Milestone has no winner position');
+          throw new Error('Milestone has no winner position');
         }
 
         const winnerReward = (listing.rewards as Record<string, any>)?.[
@@ -143,7 +150,8 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
           throw new Error(`Failed (${validationResult.error})`);
         }
         validationResults.push({
-          submissionId: paymentLink.submissionId,
+          milestoneId: paymentLink.milestoneId,
+          submissionId: milestone?.submissionId || '',
           txId: paymentLink.txId,
           link: paymentLink.link || '',
           transactionDate: validationResult.transactionDate,
@@ -151,12 +159,16 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
         });
 
         logger.info(
-          `External Payment Validation Successful for Submission ID: ${paymentLink.submissionId} with TxId: ${paymentLink.txId}`,
+          `External Payment Validation Successful for Milestone ID: ${paymentLink.milestoneId} with TxId: ${paymentLink.txId}`,
         );
         await wait(5000);
       } catch (error: any) {
+        const milestone = milestones.find(
+          (m) => m.id === paymentLink.milestoneId,
+        );
         validationResults.push({
-          submissionId: paymentLink.submissionId,
+          milestoneId: paymentLink.milestoneId,
+          submissionId: milestone?.submissionId || '',
           txId: paymentLink.txId || '',
           link: paymentLink.link || '',
           status: 'FAIL',
@@ -164,7 +176,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
         });
         await wait(5000);
         logger.warn(
-          `External Payment Verification Failed for Submission ID: ${paymentLink.submissionId} with TxId: ${paymentLink.txId} with message: ${error.message}`,
+          `External Payment Verification Failed for Milestone ID: ${paymentLink.milestoneId} with TxId: ${paymentLink.txId} with message: ${error.message}`,
         );
       }
     }
@@ -173,19 +185,19 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       if (validationResult.status !== 'SUCCESS') continue;
 
       logger.debug(
-        `Updating submission with ID: ${validationResult.submissionId} with new external payment details`,
+        `Updating milestone with ID: ${validationResult.milestoneId} with new external payment details`,
       );
-      await prisma.submission.update({
+      await prisma.milestone.update({
         where: {
-          id: validationResult.submissionId,
+          id: validationResult.milestoneId,
         },
         data: {
-          isPaid: true,
+          status: 'Paid',
           paymentDetails: {
             txId: validationResult.txId,
             link: validationResult.link,
           },
-          paymentDate: validationResult.transactionDate,
+          paidDate: validationResult.transactionDate,
           paidBy: req.userId,
         },
       });

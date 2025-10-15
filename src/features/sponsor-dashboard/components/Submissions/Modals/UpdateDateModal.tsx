@@ -15,7 +15,7 @@ import { api } from '@/lib/api';
 interface UpdateDateModalProps {
   isOpen: boolean;
   onClose: () => void;
-  submissionId: string;
+  milestoneId: string;
   listingId: string;
   currentDate?: string;
   onSuccess?: (date: string) => void;
@@ -24,7 +24,7 @@ interface UpdateDateModalProps {
 export const UpdatePaymentDateModal = ({
   isOpen,
   onClose,
-  submissionId,
+  milestoneId,
   listingId,
   currentDate,
   onSuccess,
@@ -46,7 +46,7 @@ export const UpdatePaymentDateModal = ({
     try {
       setIsLoading(true);
       await api.post('/api/sponsor-dashboard/listings/update-date', {
-        submissionId,
+        milestoneId,
         listingId,
         dateType: 'payment',
         date: newDate,

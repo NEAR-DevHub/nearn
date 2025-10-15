@@ -19,13 +19,17 @@ import { KycComponent } from '@/components/ui/KycComponent';
 import { Tooltip } from '@/components/ui/tooltip';
 import { tokenList } from '@/constants/tokenList';
 import { useClipboard } from '@/hooks/use-clipboard';
-import type { SubmissionWithUser } from '@/interface/submission';
+import type {
+  MilestoneWithUser,
+  SubmissionWithUser,
+} from '@/interface/submission';
 import { ListingPageLayout } from '@/layouts/Listing';
 import { api } from '@/lib/api';
 import { authOptions } from '@/pages/api/auth/[...nextauth]';
 import { getBountyUrl, getSubmissionUrl } from '@/utils/bounty-urls';
 import { cn } from '@/utils/cn';
 import { setupCommentLinking } from '@/utils/comment-highlighting';
+import { getSubmissionPaymentStatus } from '@/utils/milestone-helpers';
 import { truncatePublicKey } from '@/utils/truncatePublicKey';
 import { truncateString } from '@/utils/truncateString';
 import { getURL } from '@/utils/validUrl';
@@ -150,6 +154,8 @@ function Content({
   if (submission?.isWinner && submission?.winnerPosition) {
     amount = bounty?.rewards?.[submission?.winnerPosition] ?? 0;
   }
+
+  const milestone = submission?.Milestones[0];
 
   if (!submission) {
     return <div>Submission not found</div>;
@@ -290,28 +296,30 @@ function Content({
                 </div>
                 {submission?.isWinner &&
                   submission?.winnerPosition &&
-                  submission?.isPaid &&
+                  getSubmissionPaymentStatus({ ...submission, listing: bounty })
+                    .isPaid &&
                   bounty && (
                     <DisplayPayment
-                      submission={{ ...submission, listing: bounty } as any}
+                      milestone={milestone as MilestoneWithUser}
+                      listing={bounty}
                       isSponsorView={false}
                     />
                   )}
               </div>
             </div>
 
-            {submission.paymentDetails?.treasury && (
+            {milestone?.paymentDetails?.treasury ? (
               <div className="ml-auto flex w-fit px-4 py-1 text-xs">
                 <TreasuryStatus
-                  treasury={submission.paymentDetails?.treasury}
-                  submissionId={submission.id}
-                  submissionIsPaid={submission.isPaid}
+                  treasury={milestone.paymentDetails?.treasury}
+                  milestoneId={milestone.id}
+                  milestoneIsPaid={milestone.status === 'Paid'}
                   updateSubmission={() => {
                     refetch();
                   }}
                 />
               </div>
-            )}
+            ) : null}
 
             <div className="flex items-center justify-between py-2">
               <div className="flex gap-5">

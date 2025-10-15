@@ -298,8 +298,6 @@ model Submission {
   updatedAt          DateTime         @updatedAt
   like               Json?
   likeCount          Int              @default(0)
-  isPaid             Boolean          @default(false)
-  paymentDetails     Json?
   otherInfo          String?          @db.Text
   ask                Int?
   token              String?
@@ -309,15 +307,13 @@ model Submission {
   listing            Bounties         @relation(fields: [listingId], references: [id])
   user               User             @relation(fields: [userId], references: [id])
   ogImage            String?          @db.Text
-  paymentDate        DateTime?
   approveDate        DateTime?
-  paidBy             String?
   approvedBy         String?
   Comments           Comment[]
   EventLog           EventLog[]
-  paidByUser         User?            @relation("PaidBy", fields: [paidBy], references: [id])
   approvedByUser     User?            @relation("ApprovedBy", fields: [approvedBy], references: [id])
   Notification       Notification[]
+  Milestones         Milestone[]
 
   @@index([id, listingId])
   @@index([userId])
@@ -332,8 +328,37 @@ model Submission {
   @@index([userId, listingId, createdAt])
   @@index([createdAt(sort: Desc)])
   @@index([likeCount(sort: Desc), createdAt(sort: Desc)])
+  @@index([approvedBy])
+}
+
+model Milestone {
+  id             String          @id @default(uuid())
+  submissionId   String
+  milestoneIndex Int
+  title          String
+  description    String?         @db.Text
+  deadline       DateTime?
+  reward         Float
+  token          String
+  status         MilestoneStatus @default(NotStarted)
+  paymentDetails Json?
+  paidDate       DateTime?
+  approvedDate   DateTime?
+  paidBy         String?
+  approvedBy     String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  submission     Submission      @relation(fields: [submissionId], references: [id])
+  paidByUser     User?           @relation("MilestonePaidBy", fields: [paidBy], references: [id])
+  approvedByUser User?           @relation("MilestoneApprovedBy", fields: [approvedBy], references: [id])
+
+  @@unique([submissionId, milestoneIndex])
+  @@index([submissionId])
+  @@index([status])
+  @@index([deadline])
   @@index([paidBy])
   @@index([approvedBy])
+  @@index([createdAt(sort: Desc)])
 }
 
 model Sponsors {
@@ -466,8 +491,9 @@ model User {
   SubscribeHackathon     SubscribeHackathon[]
   isBlocked              Boolean                @default(false)
   EventLog               EventLog[]
-  SubmissionPaidBy       Submission[]           @relation("PaidBy")
   SubmissionApprovedBy   Submission[]           @relation("ApprovedBy")
+  MilestonePaidBy        Milestone[]            @relation("MilestonePaidBy")
+  MilestoneApprovedBy    Milestone[]            @relation("MilestoneApprovedBy")
   ReceivedNotifications  Notification[]
   TriggeredNotifications Notification[]         @relation("Actor")
 
@@ -916,4 +942,12 @@ enum SubmissionLimitType {
 enum MultipleSubmissionRule {
   immediately
   afterReview
+}
+
+enum MilestoneStatus {
+  NotStarted
+  Pending
+  Approved
+  Paid
+  Rejected
 }

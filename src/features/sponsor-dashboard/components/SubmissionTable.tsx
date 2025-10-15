@@ -92,7 +92,7 @@ const columnLabels: Record<ColumnKey, string> = {
   status: 'Status',
   submissionDate: 'Submission Date',
   approvedDate: 'Approved Date',
-  paymentDate: 'Payment Date',
+  paymentDate: 'Last Payment Date',
   notes: 'Notes',
   activity: 'Activity',
 };
@@ -304,10 +304,11 @@ export const SubmissionTable = ({
               const submissionDate = dayjs(submission?.createdAt).format(
                 "DD MMM'YY",
               );
-              const paymentDate =
-                submission?.paymentDate && submission?.isPaid
-                  ? dayjs(submission?.paymentDate).format("DD MMM'YY")
-                  : '';
+              const milestone = submission?.Milestones[0];
+
+              const paymentDate = milestone?.paidDate
+                ? dayjs(milestone.paidDate).format("DD MMM'YY")
+                : '';
               const approveDate =
                 submission?.approveDate && submission.status === 'Approved'
                   ? dayjs(submission?.approveDate).format("DD MMM'YY")
@@ -506,10 +507,10 @@ export const SubmissionTable = ({
                       onAuxClick={(e) => handleClick(e, listingSubmissionLink)}
                     >
                       <Tooltip
-                        disabled={!submission?.paidByUser}
+                        disabled={!milestone?.paidByUser}
                         content={
                           <DoneBy
-                            doneBy={submission?.paidByUser as User | undefined}
+                            doneBy={milestone?.paidByUser as User | undefined}
                             doneByType="paid"
                           />
                         }
@@ -594,22 +595,22 @@ export const SubmissionTable = ({
                               <Copy className="mr-2 h-4 w-4" />
                               Copy Link
                             </DropdownMenuItem>
+                            {milestone?.status === 'Paid' &&
+                              milestone?.paymentDetails?.link && (
+                                <DropdownMenuItem
+                                  className="cursor-pointer text-sm font-medium text-slate-500"
+                                  onClick={() => {
+                                    copyToClipboard(
+                                      milestone?.paymentDetails?.link || '',
+                                    );
+                                  }}
+                                >
+                                  <Copy className="mr-2 h-4 w-4" />
+                                  Copy Payment Link
+                                </DropdownMenuItem>
+                              )}
                           </>
                         )}
-                        {submission?.isPaid &&
-                          submission.paymentDetails?.link && (
-                            <DropdownMenuItem
-                              className="cursor-pointer text-sm font-medium text-slate-500"
-                              onClick={() => {
-                                copyToClipboard(
-                                  submission.paymentDetails?.link || '',
-                                );
-                              }}
-                            >
-                              <Copy className="mr-2 h-4 w-4" />
-                              Copy Payment Link
-                            </DropdownMenuItem>
-                          )}
                         {isGodUser && submission.listing.isActive && (
                           <>
                             {!submission.isArchived && (

@@ -15,9 +15,8 @@ export default async function handler(
     const result = await syncSubmissionTreasuryStatus(id);
 
     if (!result.success) {
-      // Map different error types to appropriate status codes
       let statusCode = 400;
-      if (result.error === 'Submission not found') {
+      if (result.error === 'Milestone not found') {
         statusCode = 404;
       }
 
@@ -33,13 +32,13 @@ export default async function handler(
     });
   } catch (error: any) {
     logger.error(
-      `Error syncing treasury status for submission ${id}: ${safeStringify(
+      `Error syncing treasury status for milestone ${id}: ${safeStringify(
         error,
       )}`,
     );
     return res.status(400).json({
       error: error.message,
-      message: `Error occurred while syncing treasury status for submission ${id}.`,
+      message: `Error occurred while syncing treasury status for milestone ${id}.`,
     });
   }
 }

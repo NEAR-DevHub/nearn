@@ -13,7 +13,7 @@ import { EventType } from '@/features/logging/types/event-data';
 type DateType = 'payment' | 'approved';
 
 interface UpdateDateRequest {
-  submissionId: string;
+  milestoneId: string;
   listingId: string;
   dateType: DateType;
   date: string;
@@ -24,10 +24,10 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
 
   try {
     logger.debug(`Request body: ${safeStringify(req.body)}`);
-    const { submissionId, listingId, dateType, date } =
+    const { milestoneId, listingId, dateType, date } =
       req.body as UpdateDateRequest;
 
-    if (!listingId || !submissionId || !date || !dateType) {
+    if (!listingId || !milestoneId || !date || !dateType) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
@@ -40,29 +40,27 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       return res.status(error.status).json({ error: error.message });
     }
 
-    const submission = await prisma.submission.findUnique({
+    const milestone = await prisma.milestone.findUnique({
       where: {
-        id: submissionId,
+        id: milestoneId,
       },
     });
 
-    if (!submission) {
-      return res.status(404).json({ error: 'Submission not found' });
+    if (!milestone) {
+      return res.status(404).json({ error: 'Milestone not found' });
     }
 
     // Validate based on date type
-    if (dateType === 'payment' && !submission.isPaid) {
-      return res
-        .status(400)
-        .json({ error: 'Submission is not marked as paid' });
+    if (dateType === 'payment' && milestone.status !== 'Paid') {
+      return res.status(400).json({ error: 'Milestone is not marked as paid' });
     }
 
-    const updatedSubmission = await prisma.submission.update({
+    const updatedMilestone = await prisma.milestone.update({
       where: {
-        id: submissionId,
+        id: milestoneId,
       },
       data: {
-        paymentDate: new Date(date),
+        paidDate: new Date(date),
       },
     });
 
@@ -73,21 +71,21 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
         type: 'SPONSOR',
       },
       data: {
-        before: submission.paymentDate,
+        before: milestone.paidDate,
         after: new Date(date),
       },
       entities: {
         listingId: listingId,
-        submissionId: submissionId,
+        submissionId: milestone.submissionId,
         sponsorId: userSponsorId,
       },
     });
 
     logger.info(
-      `Updated ${dateType} date for submission ID: ${submissionId} to ${date}`,
+      `Updated ${dateType} date for milestone ID: ${milestoneId} to ${date}`,
     );
 
-    return res.status(200).json({ submission: updatedSubmission });
+    return res.status(200).json({ milestone: updatedMilestone });
   } catch (err: any) {
     logger.error(
       `Error updating ${req.body?.dateType || 'unknown'} date: ${userSponsorId}: ${err.message}`,

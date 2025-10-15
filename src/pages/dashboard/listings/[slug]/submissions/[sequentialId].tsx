@@ -13,14 +13,15 @@ import { ExternalImage } from '@/components/ui/cloudinary-image';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDisclosure } from '@/hooks/use-disclosure';
+import { type MilestoneWithUser } from '@/interface/submission';
 import { SponsorLayout } from '@/layouts/Sponsor';
 import { useUser } from '@/store/user';
 import { cn } from '@/utils/cn';
 import { dayjs } from '@/utils/dayjs';
+import { getSubmissionPaymentStatus } from '@/utils/milestone-helpers';
 import { cleanRewards } from '@/utils/rank';
 
 import { BONUS_REWARD_POSITION } from '@/features/listing-builder/constants';
-import type { Listing } from '@/features/listings/types';
 import {
   selectedSubmissionAtom,
   selectedSubmissionIdsAtom,
@@ -222,13 +223,18 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
         );
 
       let matchesLabel = false;
+      const paymentStatus = getSubmissionPaymentStatus({
+        ...submission,
+        listing: bounty,
+      });
 
       if (filterLabel === 'All') {
         matchesLabel = true;
       } else if (filterLabel === 'Paid') {
-        matchesLabel = submission.isPaid;
+        matchesLabel = paymentStatus.isPaid;
       } else if (filterLabel === 'Approved') {
-        matchesLabel = submission.status === 'Approved' && !submission.isPaid;
+        matchesLabel =
+          submission.status === 'Approved' && !paymentStatus.isPaid;
       } else if (filterLabel === 'Rejected') {
         matchesLabel = submission.status === 'Rejected';
       } else {
@@ -316,7 +322,13 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
     .filter((key: number) => !isNaN(key));
 
   const totalWinners = submissions?.filter((sub) => sub.isWinner).length;
-  const totalPaymentsMade = submissions?.filter((sub) => sub.isPaid).length;
+  const totalPaymentsMade = submissions?.filter((sub) => {
+    const paymentStatus = getSubmissionPaymentStatus({
+      ...sub,
+      listing: bounty,
+    });
+    return paymentStatus.isPaid;
+  }).length;
 
   const isExpired = dayjs(bounty?.deadline).isBefore(dayjs());
 
@@ -351,10 +363,13 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
               );
             }}
             allTransactionsVerified={
-              submissions?.every(
-                (submission) =>
-                  submission.status !== 'Approved' || submission.isPaid,
-              ) ?? true
+              submissions?.every((submission) => {
+                const paymentStatus = getSubmissionPaymentStatus({
+                  ...submission,
+                  listing: bounty,
+                });
+                return submission.status === 'Approved' && paymentStatus.isPaid;
+              }) ?? true
             }
             onVerifyPayments={onVerifyPayments}
           />
@@ -642,12 +657,7 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
           <AddManualPaymentModal
             isOpen={isAddManualPaymentModalOpen}
             onClose={onAddManualPaymentClose}
-            submission={
-              {
-                ...selectedSubmission,
-                listing: bounty as Listing,
-              } as SubmissionWithListingUser
-            }
+            milestone={selectedSubmission?.Milestones[0] as MilestoneWithUser}
             onSuccess={(_) => {
               refetchSubmissions();
             }}
