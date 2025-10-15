@@ -62,7 +62,7 @@ SELECT
     0 as `milestoneIndex`,
     CONCAT('Payment for submission #', s.`sequentialId`) as `title`,
     COALESCE(b.`deadline`, DATE_ADD(NOW(), INTERVAL 30 DAY)) as `deadline`,
-    COALESCE(s.`rewardInUSD`, s.`ask`, b.`rewardAmount`, b.`usdValue`, 0) as `reward`,
+    COALESCE(JSON_EXTRACT(b.`rewards`, CONCAT('$."', s.`winnerPosition`, '"')), s.`ask`, 0) as `reward`,
     CASE 
         WHEN b.`token` = 'Any' THEN s.`token`
         ELSE b.`token`
