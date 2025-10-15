@@ -130,19 +130,10 @@ export async function POST(
         amount = Math.ceil(rewards[winnerPosition as keyof Rewards] ?? 0);
       }
 
-      console.log({
-        token: listing.token,
-        amount,
-        usdValue: listing.usdValue,
-        rewardAmount: listing.rewardAmount,
-      });
-
       const rewardInUSD =
         listing.token === 'Any'
           ? amount
           : (listing.usdValue! / listing.rewardAmount!) * amount;
-
-      console.log({ rewardInUSD });
 
       promises.push(
         prisma.submission.update({
@@ -174,6 +165,24 @@ export async function POST(
           continue;
         }
       }
+
+      //(todo: remove:) Temporary until UI implemented for multi-milestone we will auto-create a milestone for each winner
+      // This should be handled in separate API. User should be able to choose to create a milestones or keep it as a single milestone
+      promises.push(
+        prisma.milestone.create({
+          data: {
+            milestoneIndex: 1,
+            reward: rewards[winnerPosition as keyof Rewards] ?? 0,
+            token:
+              listing.token === 'Any'
+                ? winners[currentIndex]?.token!
+                : listing.token!,
+            title: 'Full Milestone',
+            status: 'Approved',
+            submissionId: winners[currentIndex]?.id!,
+          },
+        }),
+      );
 
       promises.push(
         eventLogger.log({
