@@ -57,7 +57,12 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
         },
         user: true,
         approvedByUser: true,
-        paidByUser: true,
+        Milestones: {
+          include: {
+            paidByUser: true,
+            approvedByUser: true,
+          },
+        },
         Comments: {
           where: {
             type: 'INTERNAL_SUBMISSION_NOTES',

@@ -58,7 +58,11 @@ export const selectedSubmissionAtom = atom<SubmissionWithUser | undefined>(
 
 export const sponsorshipSubmissionStatus = (submission: SubmissionWithUser) => {
   if (submission.isArchived || submission.listing?.isArchived) return 'Deleted';
-  if (submission.isPaid) return 'Paid';
+  if (
+    submission.status === 'Approved' &&
+    submission.Milestones?.every((milestone) => milestone.status === 'Paid')
+  )
+    return 'Paid';
   if (submission.status !== 'Pending') return submission.status;
   return submission.label;
 };

@@ -16,7 +16,7 @@ export const config = {
 };
 
 export type ValidatePaymentResult = {
-  submissionId: string;
+  milestoneId: string;
   link?: string;
   status: 'SUCCESS' | 'FAIL' | 'ALREADY_VERIFIED';
   message?: string;
@@ -63,12 +63,12 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
     for (const paymentLink of paymentLinks) {
       try {
         logger.debug(
-          `Force verifying payment for submission ID: ${paymentLink.submissionId}`,
+          `Force verifying payment for milestone ID: ${paymentLink.milestoneId}`,
         );
 
         if (paymentLink.isVerified) {
           validationResults.push({
-            submissionId: paymentLink.submissionId,
+            milestoneId: paymentLink.milestoneId,
             link: paymentLink.link,
             status: 'ALREADY_VERIFIED',
             message: 'Already Verified',
@@ -77,23 +77,23 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
         }
 
         validationResults.push({
-          submissionId: paymentLink.submissionId,
+          milestoneId: paymentLink.milestoneId,
           link: paymentLink.link,
           status: 'SUCCESS',
         });
 
         logger.info(
-          `Force Payment Verification Successful for Submission ID: ${paymentLink.submissionId}`,
+          `Force Payment Verification Successful for Milestone ID: ${paymentLink.milestoneId}`,
         );
       } catch (error: any) {
         validationResults.push({
-          submissionId: paymentLink.submissionId,
+          milestoneId: paymentLink.milestoneId,
           link: paymentLink.link,
           status: 'FAIL',
           message: error.message,
         });
         logger.warn(
-          `Force Payment Verification Failed for Submission ID: ${paymentLink.submissionId} with message: ${error.message}`,
+          `Force Payment Verification Failed for Milestone ID: ${paymentLink.milestoneId} with message: ${error.message}`,
         );
       }
     }
@@ -102,17 +102,23 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       if (validationResult.status !== 'SUCCESS') continue;
 
       logger.debug(
-        `Updating submission with ID: ${validationResult.submissionId} with new external payment details`,
+        `Updating milestone with ID: ${validationResult.milestoneId} with new external payment details`,
       );
-      await prisma.submission.update({
+      await prisma.milestone.update({
         where: {
-          id: validationResult.submissionId,
+          id: validationResult.milestoneId,
         },
         data: {
-          isPaid: true,
+          status: 'Paid',
           paymentDetails: { link: validationResult.link },
-          paymentDate: new Date(),
+          paidDate: new Date(),
           paidBy: req.userId,
+        },
+      });
+
+      const milestone = await prisma.milestone.findUnique({
+        where: {
+          id: validationResult.milestoneId,
         },
       });
 
@@ -127,7 +133,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
         },
         entities: {
           listingId: listingId,
-          submissionId: validationResult.submissionId,
+          submissionId: milestone?.submissionId || '',
           sponsorId: userSponsorId,
         },
       });

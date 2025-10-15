@@ -12,6 +12,8 @@ import { BONUS_REWARD_POSITION } from '@/features/listing-builder/constants';
 import { fetchKyc } from '@/features/listings/queries/check-kyc';
 import { type SubmissionWithListingUser } from '@/features/sponsor-dashboard/queries/dashboard-submissions';
 
+// TODO: think how to display csv for multiple milestones
+
 // Strip HTML tags and decode HTML entities
 function stripHtml(html: string): string {
   if (!html) return '';
@@ -212,6 +214,10 @@ export async function convertToCSV(
           uniqueQuestionsForListing,
         );
 
+        const isPaid = submission.Milestones.every(
+          (milestone) => milestone.status === 'Paid',
+        );
+
         return {
           'Listing Type': listingTypeWithUppercaseFirstLetter,
           'Listing Name': submission.listing.title,
@@ -245,18 +251,20 @@ export async function convertToCSV(
             ? dayjs(submission.approveDate).utc().format('YYYY-MM-DD HH:mm UTC')
             : '',
           'Payment Status': submission.isWinner
-            ? submission.isPaid
+            ? isPaid
               ? 'Paid'
               : 'Unpaid'
             : '',
-          'Payment Date':
-            submission.isPaid && submission.paymentDate
-              ? dayjs(submission.paymentDate)
+          'Paid Date':
+            isPaid && submission.Milestones[0]?.paidDate
+              ? dayjs(submission.Milestones[0]?.paidDate)
                   .utc()
                   .format('YYYY-MM-DD HH:mm UTC')
               : '',
-          'Payment Link': submission.paymentDetails?.link ?? '',
-          'Paid By': submission.paidByUser ? submission.paidByUser.name : '',
+          'Payment Link': submission.Milestones[0]?.paymentDetails?.link ?? '',
+          'Paid By': submission.Milestones[0]?.paidByUser
+            ? submission.Milestones[0]?.paidByUser.name
+            : '',
           'Requested in USD': isUSDBased ? displayAmount : '',
           'Requested in Token': isUSDBased ? '' : displayAmount,
           Token: token,

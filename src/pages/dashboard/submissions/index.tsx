@@ -152,6 +152,8 @@ export default function SponsorListings() {
     if (currentSort.direction && currentSort.column) {
       return [...filtered].sort((a, b) => {
         const factor = currentSort.direction === 'desc' ? 1 : -1;
+        const milestoneA = a.Milestones[0];
+        const milestoneB = b.Milestones[0];
 
         switch (currentSort.column) {
           case 'id':
@@ -193,11 +195,11 @@ export default function SponsorListings() {
             return (approvedAtB - approvedAtA) * factor;
 
           case 'paidAt':
-            const paidAtA = a.paymentDate
-              ? new Date(a.paymentDate).getTime()
+            const paidAtA = milestoneA?.paidDate
+              ? new Date(milestoneA.paidDate).getTime()
               : 0;
-            const paidAtB = b.paymentDate
-              ? new Date(b.paymentDate).getTime()
+            const paidAtB = milestoneB?.paidDate
+              ? new Date(milestoneB.paidDate).getTime()
               : 0;
             return (paidAtB - paidAtA) * factor;
 

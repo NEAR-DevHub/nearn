@@ -36,18 +36,22 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
   }
 
   try {
-    const currentSubmission = await prisma.submission.findUnique({
+    const currentMilestone = await prisma.milestone.findUnique({
       where: { id },
       include: {
-        user: true,
-        listing: true,
+        submission: {
+          include: {
+            user: true,
+            listing: true,
+          },
+        },
       },
     });
 
-    if (!currentSubmission) {
-      logger.warn(`Submission with ID ${id} not found`);
+    if (!currentMilestone) {
+      logger.warn(`Milestone with ID ${id} not found`);
       return res.status(404).json({
-        message: `Submission with ID ${id} not found.`,
+        message: `Milestone with ID ${id} not found.`,
       });
     }
 
@@ -55,13 +59,13 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
 
     const { error } = await checkListingSponsorAuth(
       userSponsorId,
-      currentSubmission.listingId,
+      currentMilestone.submission.listingId,
     );
     if (error) {
       return res.status(error.status).json({ error: error.message });
     }
 
-    const { winnerPosition } = currentSubmission;
+    const { winnerPosition } = currentMilestone.submission;
     if (!winnerPosition) {
       return res.status(400).json({
         error: 'Submission has no winner position',
@@ -78,22 +82,23 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       isPublic: isPublic === true,
     };
 
-    const isUpdating = !!currentSubmission.paymentDetails;
+    const isUpdating = !!currentMilestone.paymentDetails;
+
     const existingPaymentDetails =
-      (currentSubmission.paymentDetails as any) || {};
+      (currentMilestone.paymentDetails as any) || {};
     const updatedPaymentDetails = {
       ...existingPaymentDetails,
       manual: manualPaymentDetails,
     };
 
-    logger.debug(`Updating submission with ID: ${id} for manual payment`);
-    const result = await prisma.submission.update({
-      where: {
-        id,
-      },
+    logger.debug(
+      `Updating milestone for submission ID: ${id} for manual payment`,
+    );
+    const result = await prisma.milestone.update({
+      where: { id },
       data: {
-        isPaid: true,
-        paymentDate: new Date(paymentDate),
+        status: 'Paid',
+        paidDate: new Date(paymentDate),
         paidBy: userId,
         paymentDetails: updatedPaymentDetails,
       },
@@ -121,7 +126,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
         entities: {
           sponsorId: userSponsorId,
           submissionId: id,
-          listingId: currentSubmission.listingId,
+          listingId: currentMilestone.submission.listingId,
         },
         data: {
           changes: changes,
@@ -131,7 +136,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
 
     const bounty = await prisma.bounties.findUnique({
       where: {
-        id: currentSubmission.listingId,
+        id: currentMilestone.submission.listingId,
       },
       include: {
         BountyCounts: true,
@@ -153,8 +158,8 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
           newStatus: 'Completed',
         },
         entities: {
-          listingId: currentSubmission.listingId,
-          sponsorId: currentSubmission.listing.sponsorId,
+          listingId: currentMilestone.submission.listingId,
+          sponsorId: currentMilestone.submission.listing.sponsorId,
         },
       });
     }

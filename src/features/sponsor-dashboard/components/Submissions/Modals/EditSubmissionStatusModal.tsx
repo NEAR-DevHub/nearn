@@ -30,6 +30,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import type { SubmissionWithUser } from '@/interface/submission';
+import { getSubmissionPaymentStatus } from '@/utils/milestone-helpers';
 import { cleanRewards, nthLabelGenerator, sortRank } from '@/utils/rank';
 
 const formSchema = z
@@ -83,13 +84,17 @@ export const EditSubmissionStatusModal = ({
   onSuccess,
   onEditFullSubmission,
 }: EditSubmissionStatusModalProps) => {
+  const paymentStatus = submission
+    ? getSubmissionPaymentStatus(submission)
+    : null;
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       status: submission?.status || 'Pending',
       label: submission?.label || 'New',
-      isPaid: submission?.isPaid || false,
-      paymentLink: submission?.paymentDetails?.link,
+      isPaid: paymentStatus?.isPaid || false,
+      paymentLink: paymentStatus?.lastPaymentDetails?.link,
       winnerPosition:
         (submission?.winnerPosition as unknown as number) || undefined,
     },
@@ -107,8 +112,9 @@ export const EditSubmissionStatusModal = ({
     if (submission) {
       setValue('status', submission.status || 'Pending');
       setValue('label', submission.label || 'New');
-      setValue('isPaid', submission.isPaid || false);
-      setValue('paymentLink', submission.paymentDetails?.link);
+      const submissionPaymentStatus = getSubmissionPaymentStatus(submission);
+      setValue('isPaid', submissionPaymentStatus.isPaid || false);
+      setValue('paymentLink', submissionPaymentStatus.lastPaymentDetails?.link);
       setValue(
         'winnerPosition',
         (submission.winnerPosition as unknown as number) || undefined,

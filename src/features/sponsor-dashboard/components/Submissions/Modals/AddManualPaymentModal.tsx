@@ -27,15 +27,15 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { TokenInput } from '@/components/ui/token-input';
 import { Tooltip } from '@/components/ui/tooltip';
+import { type MilestoneWithUser } from '@/interface/submission';
 import { cn } from '@/utils/cn';
 
 import { DEADLINE_FORMAT } from '@/features/listing-builder/components/Form/Deadline';
-import { type SubmissionWithListingUser } from '@/features/sponsor-dashboard/queries/dashboard-submissions';
 
 interface AddManualPaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  submission: SubmissionWithListingUser;
+  milestone: MilestoneWithUser;
   onSuccess: (paymentData: {
     amount: number;
     token: string;
@@ -57,7 +57,7 @@ type FormData = {
 export default function AddManualPaymentModal({
   isOpen,
   onClose,
-  submission,
+  milestone,
   onSuccess,
 }: AddManualPaymentModalProps) {
   const form = useForm<FormData>({
@@ -80,32 +80,29 @@ export default function AddManualPaymentModal({
     }
   }, [token]);
 
-  const isUpdating = submission && submission.paymentDetails?.manual;
+  const isUpdating = milestone && milestone.paymentDetails?.manual;
 
   useEffect(() => {
-    if (isUpdating && submission.paymentDetails?.manual) {
+    if (isUpdating && milestone.paymentDetails?.manual) {
+      const manualPayment = milestone.paymentDetails.manual;
       form.reset({
-        paymentDate: submission.paymentDetails.manual.paymentDate,
-        token: submission.paymentDetails.manual.token,
-        fiatCurrency: submission.paymentDetails.manual.fiatCurrency,
-        amount: submission.paymentDetails.manual.amount,
-        notes: submission.paymentDetails.manual.notes,
-        isPrivate: !submission.paymentDetails.manual.isPublic,
+        paymentDate: manualPayment.paymentDate,
+        token: manualPayment.token,
+        fiatCurrency: manualPayment.fiatCurrency,
+        amount: manualPayment.amount,
+        notes: manualPayment.notes,
+        isPrivate: !manualPayment.isPublic,
       });
     } else {
-      const isAny = submission.listing.token === 'Any';
-      const amount = submission.winnerPosition
-        ? submission.listing.rewards?.[submission.winnerPosition] || 0
-        : 0;
       form.reset({
         paymentDate: new Date().toISOString().split('T')[0],
-        token: isAny ? submission.token : submission.listing.token,
-        amount: amount,
+        token: milestone.token,
+        amount: milestone.reward,
         notes: '',
         isPrivate: false,
       });
     }
-  }, [submission]);
+  }, [milestone]);
 
   const handleSubmit = async (data: FormData) => {
     try {
@@ -117,7 +114,7 @@ export default function AddManualPaymentModal({
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            id: submission.id,
+            id: milestone.submissionId,
             amount: data.amount,
             token: data.token,
             fiatCurrency: data.fiatCurrency,

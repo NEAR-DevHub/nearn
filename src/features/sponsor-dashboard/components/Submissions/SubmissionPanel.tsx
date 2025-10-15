@@ -35,12 +35,14 @@ import {
 import { Tooltip } from '@/components/ui/tooltip';
 import { tokenList } from '@/constants/tokenList';
 import { useClipboard } from '@/hooks/use-clipboard';
+import { type MilestoneWithUser } from '@/interface/submission';
 import type { User } from '@/interface/user';
 import { getSubmissionUrl } from '@/utils/bounty-urls';
 import { cn } from '@/utils/cn';
 import { setupCommentLinking } from '@/utils/comment-highlighting';
 import { dayjs } from '@/utils/dayjs';
 import { getURLSanitized } from '@/utils/getURLSanitized';
+import { getSubmissionPaymentStatus } from '@/utils/milestone-helpers';
 import { truncatePublicKey } from '@/utils/truncatePublicKey';
 import { truncateString } from '@/utils/truncateString';
 
@@ -234,6 +236,10 @@ export const SubmissionPanel = ({
   const [selectedSubmission, setSelectedSubmission] = useAtom(
     selectedSubmissionAtom,
   );
+  const milestone = selectedSubmission?.Milestones[0];
+  const paymentStatus = selectedSubmission
+    ? getSubmissionPaymentStatus(selectedSubmission)
+    : null;
   const { data: commentData, refetch: refetchCommentCount } = useCommentCount(
     selectedSubmission?.id,
   );
@@ -321,7 +327,7 @@ export const SubmissionPanel = ({
     setIsUpdateDateModalOpen(true);
   };
 
-  const treasury = selectedSubmission?.paymentDetails?.treasury;
+  const treasury = milestone?.paymentDetails?.treasury;
 
   const { data: proposalStatus, isLoading: isLoadingProposalStatus } = useQuery(
     treasuryProposalStatusQuery(treasury?.dao, treasury?.proposalId ?? 0),
@@ -463,7 +469,7 @@ export const SubmissionPanel = ({
                 >
                   {selectedSubmission?.isWinner &&
                     selectedSubmission?.winnerPosition &&
-                    !selectedSubmission?.isPaid &&
+                    !paymentStatus?.isPaid &&
                     (bounty?.isWinnersAnnounced || isSponsorship) && (
                       <PaymentButton
                         treasury={treasury}
@@ -478,14 +484,15 @@ export const SubmissionPanel = ({
                     )}
                   {selectedSubmission?.isWinner &&
                     selectedSubmission?.winnerPosition &&
-                    selectedSubmission?.isPaid && (
+                    paymentStatus?.isPaid && (
                       <DisplayPayment
-                        submission={selectedSubmission}
+                        milestone={milestone as MilestoneWithUser}
+                        listing={bounty as Listing}
                         isSponsorView={true}
                       />
                     )}
                   {selectedSubmission?.status === 'Pending' &&
-                    !selectedSubmission?.isPaid && (
+                    milestone?.status !== 'Paid' && (
                       <SelectLabel listingSlug={bounty?.slug!} />
                     )}
 
@@ -537,26 +544,41 @@ export const SubmissionPanel = ({
               <div className="ml-auto flex w-fit px-4 py-1 text-xs">
                 <TreasuryStatus
                   treasury={treasury}
-                  submissionId={selectedSubmission?.id ?? ''}
-                  submissionIsPaid={selectedSubmission?.isPaid ?? false}
+                  milestoneId={milestone?.id ?? ''}
+                  milestoneIsPaid={milestone?.status === 'Paid'}
                   updateSubmission={(status) => {
                     setSelectedSubmission((prev) =>
                       prev && prev.id === selectedSubmission?.id
                         ? {
                             ...prev,
-                            isPaid: true,
-                            paymentDetails: {
-                              ...(status === 'Approved'
-                                ? {
-                                    link: prev.paymentDetails?.treasury?.link,
+                            Milestones:
+                              prev.Milestones?.map((m) => {
+                                if (m.id === milestone?.id) {
+                                  if (status === 'Approved') {
+                                    return {
+                                      ...m,
+                                      status: 'Paid',
+                                      paidDate: new Date(),
+                                      paymentDetails: {
+                                        ...m.paymentDetails,
+                                        link: m.paymentDetails?.treasury?.link,
+                                      },
+                                    };
+                                  } else {
+                                    return {
+                                      ...m,
+                                      paymentDetails: {
+                                        ...m.paymentDetails,
+                                        treasury: {
+                                          ...m.paymentDetails?.treasury,
+                                          synced: true,
+                                        },
+                                      },
+                                    };
                                   }
-                                : {
-                                    treasury: {
-                                      ...prev.paymentDetails?.treasury,
-                                      synced: true,
-                                    },
-                                  }),
-                            },
+                                }
+                                return m;
+                              }) || [],
                           }
                         : prev,
                     );
@@ -693,39 +715,38 @@ export const SubmissionPanel = ({
                         </Tooltip>
                       </div>
                     )}
-                  {selectedSubmission?.isPaid &&
-                    selectedSubmission?.paymentDate && (
-                      <div className="flex items-center">
-                        <Tooltip
-                          content={
-                            <DoneBy
-                              doneBy={
-                                selectedSubmission?.paidByUser as
-                                  | User
-                                  | undefined
-                              }
-                              doneByType="paid"
-                            />
-                          }
-                          contentProps={{ side: 'top' }}
-                          disabled={!selectedSubmission?.paidByUser}
-                        >
-                          <p className="text-sm text-slate-400">
-                            Paid on:{' '}
-                            {dayjs(selectedSubmission.paymentDate).format(
-                              'MMM D, YYYY',
-                            )}
-                          </p>
-                        </Tooltip>
-                        <Button
-                          variant="ghost"
-                          className="h-4 w-4 p-0 hover:bg-transparent"
-                          onClick={handleUpdatePaymentDate}
-                        >
-                          <Pencil className="ml-3 h-4 w-4 text-slate-400" />
-                        </Button>
-                      </div>
-                    )}
+                  {milestone?.status === 'Paid' && (
+                    <div className="flex items-center">
+                      <Tooltip
+                        content={
+                          <DoneBy
+                            doneBy={
+                              selectedSubmission?.Milestones[0]?.paidByUser as
+                                | User
+                                | undefined
+                            }
+                            doneByType="paid"
+                          />
+                        }
+                        contentProps={{ side: 'top' }}
+                        disabled={
+                          !selectedSubmission?.Milestones[0]?.paidByUser
+                        }
+                      >
+                        <p className="text-sm text-slate-400">
+                          Paid on:{' '}
+                          {dayjs(milestone?.paidDate).format('MMM D, YYYY')}
+                        </p>
+                      </Tooltip>
+                      <Button
+                        variant="ghost"
+                        className="h-4 w-4 p-0 hover:bg-transparent"
+                        onClick={handleUpdatePaymentDate}
+                      >
+                        <Pencil className="ml-3 h-4 w-4 text-slate-400" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
                 <Details
                   bounty={bounty}
@@ -883,9 +904,9 @@ export const SubmissionPanel = ({
       <UpdatePaymentDateModal
         isOpen={isUpdateDateModalOpen}
         onClose={() => setIsUpdateDateModalOpen(false)}
-        submissionId={selectedSubmission?.id || ''}
+        milestoneId={milestone?.id || ''}
         listingId={bounty?.id || ''}
-        currentDate={selectedSubmission?.paymentDate}
+        currentDate={dayjs(milestone?.paidDate).format('YYYY-MM-DD')}
         onSuccess={(date: string) => {
           setSelectedSubmission((prev) =>
             prev && prev.id === selectedSubmission?.id
@@ -899,7 +920,7 @@ export const SubmissionPanel = ({
         <NearTreasuryPaymentModal
           isOpen={isNearTreasuryPaymentModalOpen}
           onClose={() => setIsNearTreasuryPaymentModalOpen(false)}
-          submissionId={selectedSubmission?.id || ''}
+          milestoneId={milestone?.id || ''}
           onSuccess={(
             treasuryLink: string,
             proposalId: number,

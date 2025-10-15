@@ -107,7 +107,12 @@ export const SubmissionList = ({
     }
     if (submission?.isWinner && submission?.winnerPosition) {
       if (type === 'project' || type === 'sponsorship') {
-        if (submission.isPaid) return 'Paid';
+        if (
+          submission.Milestones.every(
+            (milestone) => milestone.status === 'Paid',
+          )
+        )
+          return 'Paid';
         return 'Approved';
       } else {
         return nthLabelGenerator(submission.winnerPosition, false);

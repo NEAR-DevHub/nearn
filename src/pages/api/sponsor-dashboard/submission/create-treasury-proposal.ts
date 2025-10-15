@@ -29,22 +29,26 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
   const { id } = req.body;
 
   try {
-    const currentSubmission = await prisma.submission.findUnique({
+    const currentMilestone = await prisma.milestone.findUnique({
       where: { id },
       include: {
-        user: true,
-        listing: {
+        submission: {
           include: {
-            sponsor: true,
+            user: true,
+            listing: {
+              include: {
+                sponsor: true,
+              },
+            },
           },
         },
       },
     });
 
-    if (!currentSubmission) {
-      logger.warn(`Submission with ID ${id} not found`);
+    if (!currentMilestone) {
+      logger.warn(`Milestone with ID ${id} not found`);
       return res.status(404).json({
-        message: `Submission with ID ${id} not found.`,
+        message: `Milestone with ID ${id} not found.`,
       });
     }
 
@@ -52,13 +56,13 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
 
     const { error } = await checkListingSponsorAuth(
       userSponsorId,
-      currentSubmission.listingId,
+      currentMilestone.submission.listingId,
     );
     if (error) {
       return res.status(error.status).json({ error: error.message });
     }
 
-    const { listing, user } = currentSubmission;
+    const { listing, user } = currentMilestone.submission;
 
     const nearTreasury = listing.sponsor.nearTreasury as {
       dao: string;
@@ -83,7 +87,10 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       });
     }
 
-    if (!listing.rewards || currentSubmission.winnerPosition === null) {
+    if (
+      !listing.rewards ||
+      currentMilestone.submission.winnerPosition === null
+    ) {
       logger.warn(
         'Listing has no rewards or submission has no winner position',
       );
@@ -94,11 +101,11 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
     }
 
     const inUsd = listing.token === 'Any';
-    const tokenSymbol = inUsd ? currentSubmission.token : listing.token;
+    const tokenSymbol = currentMilestone.token;
     const token = tokenList.find((t) => t.tokenSymbol === tokenSymbol);
     let amount =
       (listing.rewards as Rewards)[
-        Number(currentSubmission.winnerPosition) as keyof Rewards
+        Number(currentMilestone.submission.winnerPosition) as keyof Rewards
       ] ?? 0;
 
     if (amount === undefined) {
@@ -117,7 +124,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       });
     }
 
-    if (!currentSubmission.user.publicKey) {
+    if (!currentMilestone.submission.user.publicKey) {
       logger.warn('User does not have a public key');
       return res.status(400).json({
         error: 'User does not have a public key',
@@ -131,7 +138,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
     const link =
       listing.type === 'project'
         ? listingLink
-        : `${listingLink}${currentSubmission.sequentialId}`;
+        : `${listingLink}${currentMilestone.submission.sequentialId}`;
     const description = generateProposalDescription(
       listingName,
       userName || 'user',
@@ -145,21 +152,21 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       amount = amount / usdAmount;
     }
 
-    logger.debug(`Creating proposal for submission ID: ${id}`);
+    logger.debug(`Creating proposal for milestone ID: ${id}`);
     const proposalId = await createSputnikProposal(
       nearTreasury.dao,
       description,
       token,
-      currentSubmission.user.publicKey!,
+      currentMilestone.submission.user.publicKey!,
       amount,
     );
 
     const treasuryLink = `${nearTreasury.frontend}/?page=payments&id=${proposalId}`;
-    logger.debug(`Updating submission with ID: ${id}`);
-    await prisma.submission.update({
+    logger.debug(`Updating milestone with ID: ${id}`);
+    await prisma.milestone.update({
       where: { id },
       data: {
-        paymentDate: new Date(),
+        paidDate: new Date(),
         paidBy: req.userId,
         paymentDetails: {
           treasury: {
@@ -188,7 +195,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
     });
 
     logger.info(
-      `Successfully created treasury proposal for submission ID: ${id}`,
+      `Successfully created treasury proposal for milestone ID: ${id}`,
     );
     return res.status(200).json({
       message: 'Proposal created successfully',
@@ -197,13 +204,13 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
     });
   } catch (error: any) {
     logger.error(
-      `Error creating treasury proposal for submission ${id}: ${safeStringify(
+      `Error creating treasury proposal for milestone ${id}: ${safeStringify(
         error,
       )}`,
     );
     return res.status(400).json({
       error: error.message,
-      message: `Error occurred while creating treasury proposal for submission ${id}.`,
+      message: `Error occurred while creating treasury proposal for milestone ${id}.`,
     });
   }
 }

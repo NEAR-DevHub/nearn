@@ -23,6 +23,7 @@ import { api } from '@/lib/api';
 import { useUser } from '@/store/user';
 import { cn } from '@/utils/cn';
 import { formatNumberWithSuffix } from '@/utils/formatNumberWithSuffix';
+import { getSubmissionPaymentStatus } from '@/utils/milestone-helpers';
 import { nthLabelGenerator } from '@/utils/rank';
 
 import { BONUS_REWARD_POSITION } from '@/features/listing-builder/constants';
@@ -103,10 +104,16 @@ export const VerifyPaymentModal = ({
             .filter((sub) => sub.winnerPosition !== null)
             .sort((a, b) => (a.winnerPosition || 0) - (b.winnerPosition || 0))
             .map((submission) => ({
-              submissionId: submission.id,
               link: '',
-              isVerified: submission.isPaid,
-              txId: submission.paymentDetails?.txId || '',
+              milestoneId:
+                submission.Milestones?.find((m) => m.status === 'Approved')
+                  ?.id || '',
+              isVerified:
+                submission.Milestones?.some((m) => m.status === 'Paid') ||
+                false,
+              txId:
+                submission.Milestones?.find((m) => m.status === 'Paid')
+                  ?.paymentDetails?.txId || '',
             })),
         },
         {
@@ -164,7 +171,7 @@ export const VerifyPaymentModal = ({
         clearErrors();
         failedResults.forEach((result) => {
           const fieldIndex = paymentLinks.findIndex(
-            (link) => link.submissionId === result.submissionId,
+            (link) => link.milestoneId === result.milestoneId,
           );
           if (fieldIndex !== -1) {
             setError(`paymentLinks.${fieldIndex}.link`, {
@@ -183,7 +190,7 @@ export const VerifyPaymentModal = ({
 
     nonFailResults.forEach((result) => {
       const fieldIndex = paymentLinks.findIndex(
-        (link) => link.submissionId === result.submissionId,
+        (link) => link.milestoneId === result.milestoneId,
       );
       if (fieldIndex !== -1) {
         const verifyOptions =
@@ -524,8 +531,11 @@ export const VerifyPaymentModal = ({
                       (s) => s.tokenSymbol === tokenName,
                     );
 
-                    const paymentLink = paymentLinks?.find(
-                      (link) => link.submissionId === submission.id,
+                    const paymentLink = paymentLinks?.find((link) =>
+                      submission.Milestones?.some(
+                        (m) =>
+                          m.id === link.milestoneId && m.status === 'Approved',
+                      ),
                     );
                     return (
                       <FormField
@@ -669,7 +679,9 @@ export const VerifyPaymentModal = ({
               <div className="flex flex-col gap-2">
                 <Button
                   className="w-full"
-                  disabled={submissions?.every((sub) => sub.isPaid)}
+                  disabled={submissions?.every(
+                    (sub) => getSubmissionPaymentStatus(sub).isPaid,
+                  )}
                   type="submit"
                 >
                   Add External Payment

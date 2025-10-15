@@ -4,36 +4,39 @@ import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Tooltip } from '@/components/ui/tooltip';
+import { type MilestoneWithUser } from '@/interface/submission';
 import { getURLSanitized } from '@/utils/getURLSanitized';
 
 import PaymentDetailsModal from '@/features/listings/components/PaymentDetailsModal';
+import { type Listing } from '@/features/listings/types';
 
-import type { SubmissionWithListingUser } from '../../queries/dashboard-submissions';
 import AddManualPaymentModal from './Modals/AddManualPaymentModal';
 
 interface DisplayPaymentProps {
-  submission: SubmissionWithListingUser;
+  milestone: MilestoneWithUser;
+  listing: Listing;
   className?: string;
   isSponsorView: boolean;
 }
 
 export function DisplayPayment({
-  submission,
+  milestone,
+  listing,
   className,
   isSponsorView,
 }: DisplayPaymentProps) {
   const [isPaymentDetailsModalOpen, setIsPaymentDetailsModalOpen] =
     useState(false);
 
-  if (!submission.isPaid) {
+  if (milestone.status !== 'Paid') {
     return null;
   }
 
-  const paymentType = submission.paymentDetails?.link
+  const paymentType = milestone.paymentDetails?.link
     ? 'external'
-    : submission.paymentDetails?.manual
+    : milestone.paymentDetails?.manual
       ? 'manual'
-      : submission.paymentDetails?.treasury?.link
+      : milestone.paymentDetails?.treasury?.link
         ? 'treasury'
         : 'marked';
 
@@ -45,7 +48,7 @@ export function DisplayPayment({
             className={className || 'text-slate-500'}
             onClick={() => {
               window.open(
-                getURLSanitized(submission.paymentDetails?.link ?? ''),
+                getURLSanitized(milestone.paymentDetails?.link ?? ''),
                 '_blank',
               );
             }}
@@ -77,7 +80,7 @@ export function DisplayPayment({
             <AddManualPaymentModal
               isOpen={isPaymentDetailsModalOpen}
               onClose={() => setIsPaymentDetailsModalOpen(false)}
-              submission={submission}
+              milestone={milestone}
               onSuccess={() => {
                 setIsPaymentDetailsModalOpen(false);
               }}
@@ -86,9 +89,9 @@ export function DisplayPayment({
             <PaymentDetailsModal
               isOpen={isPaymentDetailsModalOpen}
               onClose={() => setIsPaymentDetailsModalOpen(false)}
-              paymentData={submission.paymentDetails?.manual as any}
-              submissionId={submission.id}
-              listing={submission.listing}
+              paymentData={milestone.paymentDetails?.manual as any}
+              submissionId={milestone.submissionId}
+              listing={listing}
             />
           )}
         </>
@@ -104,9 +107,7 @@ export function DisplayPayment({
             className={className || 'text-slate-500'}
             onClick={() => {
               window.open(
-                getURLSanitized(
-                  submission.paymentDetails?.treasury?.link ?? '',
-                ),
+                getURLSanitized(milestone.paymentDetails?.treasury?.link ?? ''),
                 '_blank',
               );
             }}
