@@ -414,7 +414,7 @@ export const SubmissionPanel = ({
 
   return (
     <>
-      <div className="sticky top-[3rem] w-full">
+      <div className="sticky top-[3rem] flex h-full w-full flex-col">
         {submissions.length ? (
           <>
             <div className="rounded-t-xl border-b border-slate-200 bg-white py-1">
@@ -656,8 +656,8 @@ export const SubmissionPanel = ({
               </div>
             </div>
 
-            <div className="flex w-full">
-              <div className="w-2/3">
+            <div className="flex h-full min-h-0 w-full">
+              <div className="flex min-h-0 w-2/3 flex-col">
                 <div className="flex gap-4 px-4 pt-4">
                   <div className="flex items-center">
                     <p className="text-sm text-slate-400">
@@ -732,9 +732,12 @@ export const SubmissionPanel = ({
                   selectedSubmission={selectedSubmission}
                 />
               </div>
-              <div className="w-1/3 border-l">
-                <Tabs defaultValue={activeTab} className="w-full">
-                  <TabsList className="grid h-auto w-full grid-cols-3 rounded-none">
+              <div className="flex h-full min-h-0 w-1/3 flex-col border-l">
+                <Tabs
+                  defaultValue={activeTab}
+                  className="flex h-full w-full flex-col"
+                >
+                  <TabsList className="grid h-auto w-full shrink-0 grid-cols-3 rounded-none">
                     <TabsTrigger
                       value="notes"
                       className={cn(
@@ -841,8 +844,11 @@ export const SubmissionPanel = ({
                     </div>
                   </TabsContent>
 
-                  <TabsContent value="activity" className="p-0">
-                    <div className="flex max-h-[30rem] flex-col gap-4 overflow-y-auto px-4 py-4 scrollbar-thin scrollbar-track-slate-100 scrollbar-thumb-slate-300">
+                  <TabsContent
+                    value="activity"
+                    className="min-h-0 w-full flex-1 overflow-hidden p-0"
+                  >
+                    <div className="flex h-full flex-col gap-4 overflow-y-auto px-4 py-4 scrollbar-thin scrollbar-track-slate-100 scrollbar-thumb-slate-300">
                       <div className="flex items-center gap-2 font-semibold text-slate-500">
                         Activity
                         <Tooltip content="A contributor can only see their own changes to a submission. Changes made by other contributor are not visible.">
