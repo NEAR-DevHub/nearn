@@ -88,6 +88,11 @@ const eventIcons: Record<EventType, React.ReactNode> = {
   ),
   [EventType.AUTOMATION_LOG]: <RefreshCcw className="h-4 w-4" />,
   [EventType.SCOUT_INVITE]: <UserCog className="h-4 w-4" />,
+  [EventType.MILESTONE_CREATED]: <Plus className="h-4 w-4" />,
+  [EventType.MILESTONE_STATUS_UPDATED]: <Pencil className="h-4 w-4" />,
+  [EventType.MILESTONE_APPROVED]: <Check className="h-4 w-4" />,
+  [EventType.MILESTONE_REJECTED]: <X className="h-4 w-4" />,
+  [EventType.MILESTONES_EDITED]: <Pencil className="h-4 w-4" />,
 };
 
 export default function LogsTimeline({

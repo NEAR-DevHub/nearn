@@ -7,6 +7,10 @@ import { type Log } from '../../queries/logs';
 import Comment, { CommentPinnedUnpinned } from './Comment';
 import CreateListing from './ListingCreated';
 import ListingEdit from './ListingEdit';
+import MilestoneApproveReject from './MilestoneApproveReject';
+import MilestoneCreated from './MilestoneCreated';
+import MilestonesEdited from './MilestonesEdited';
+import MilestoneStatusChanged from './MilestoneStatusChanged';
 import Paid from './Paid';
 import PaymentDateEdited from './PaymentDateEdited';
 import PlatformAdminSubmissionStatusEdited from './PlatformAdminSubmissionStatusEdited';
@@ -30,6 +34,7 @@ export interface LogProperties {
   event: Log;
   onSubmissionClick?: (event: Log) => void;
   onListingClick?: (event: Log) => void;
+  onMilestoneClick?: (event: Log) => void;
 }
 
 const LOG_IMPLEMENTATION_MAPPING: Record<
@@ -84,6 +89,11 @@ const LOG_IMPLEMENTATION_MAPPING: Record<
     const data = props.event.data as EventDataMap[EventType.AUTOMATION_LOG];
     return SimpleLogMessage({ message: data.message });
   },
+  [EventType.MILESTONE_CREATED]: MilestoneCreated,
+  [EventType.MILESTONE_STATUS_UPDATED]: MilestoneStatusChanged,
+  [EventType.MILESTONE_APPROVED]: MilestoneApproveReject,
+  [EventType.MILESTONE_REJECTED]: MilestoneApproveReject,
+  [EventType.MILESTONES_EDITED]: MilestonesEdited,
 };
 
 export default LOG_IMPLEMENTATION_MAPPING;

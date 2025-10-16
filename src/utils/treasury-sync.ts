@@ -120,6 +120,7 @@ export async function syncSubmissionTreasuryStatus(
           listingId: result.submission.listingId,
           submissionId: result.submissionId,
           sponsorId: result.submission.listing.sponsor.id,
+          milestoneId,
         },
       });
 
@@ -158,7 +159,7 @@ export async function syncSubmissionTreasuryStatus(
       logger.debug(
         `Updating milestone with ID: ${milestoneId} to unpaid status`,
       );
-      await prisma.milestone.update({
+      const milestone = await prisma.milestone.update({
         where: { id: milestoneId },
         data: {
           paymentDetails: {
@@ -166,6 +167,13 @@ export async function syncSubmissionTreasuryStatus(
               proposalId: paymentDetails.treasury.proposalId,
               dao: paymentDetails.treasury.dao,
               synced: true,
+            },
+          },
+        },
+        include: {
+          submission: {
+            include: {
+              Milestones: true,
             },
           },
         },
@@ -186,6 +194,11 @@ export async function syncSubmissionTreasuryStatus(
           listingId: currentMilestone.submission.listing.id,
           submissionId: currentMilestone.submissionId,
           sponsorId: currentMilestone.submission.listing.sponsor.id,
+          milestoneId:
+            milestone?.submission.Milestones.length &&
+            milestone.submission.Milestones.length > 1
+              ? milestone.id
+              : undefined,
         },
       });
 

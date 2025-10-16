@@ -23,6 +23,7 @@ export interface Log<T extends EventType> {
     powId?: string;
     sponsorId?: string;
     commentId?: string;
+    milestoneId?: string;
   };
   data: EventDataMap[T];
   visibility?: EventVisibility;
@@ -57,6 +58,11 @@ function getDefaultVisibility(eventType: EventType): EventVisibility {
     [EventType.SYSTEM_STATUS_CHANGED]: 'PUBLIC',
     [EventType.SUBMISSION_LABEL_CHANGED]: 'TALENT',
     [EventType.SUBMISSION_EDITED]: 'TALENT',
+    [EventType.MILESTONE_CREATED]: 'TALENT',
+    [EventType.MILESTONE_STATUS_UPDATED]: 'TALENT',
+    [EventType.MILESTONE_APPROVED]: 'TALENT',
+    [EventType.MILESTONE_REJECTED]: 'TALENT',
+    [EventType.MILESTONES_EDITED]: 'TALENT',
     [EventType.SUBMISSION_MANUAL_PAYMENT_UPDATED]: 'SPONSOR',
     [EventType.COMMENT_DELETED]: 'SPONSOR',
     [EventType.SUBMISSION_TOGGLED_WINNER]: 'SPONSOR',
@@ -155,6 +161,7 @@ class EventLoggerService implements EventLogger {
           powId: event.entities?.powId || null,
           sponsorId: event.entities?.sponsorId || null,
           commentId: event.entities?.commentId || null,
+          milestoneId: event.entities?.milestoneId || null,
           data: event.data as Prisma.JsonObject,
           visibility: event.visibility || getDefaultVisibility(event.eventType),
           eventTime: event.eventTime || new Date(),

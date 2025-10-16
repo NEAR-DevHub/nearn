@@ -34,6 +34,11 @@ export enum EventType {
   SUBMISSION_PAID = 'SUBMISSION_PAID',
   SUBMISSION_MANUAL_PAYMENT_ADDED = 'SUBMISSION_MANUAL_PAYMENT_ADDED',
   SUBMISSION_MANUAL_PAYMENT_UPDATED = 'SUBMISSION_MANUAL_PAYMENT_UPDATED',
+  MILESTONE_CREATED = 'MILESTONE_CREATED',
+  MILESTONE_STATUS_UPDATED = 'MILESTONE_STATUS_UPDATED',
+  MILESTONE_APPROVED = 'MILESTONE_APPROVED',
+  MILESTONE_REJECTED = 'MILESTONE_REJECTED',
+  MILESTONES_EDITED = 'MILESTONES_EDITED',
   COMMENT_ADDED = 'COMMENT_ADDED',
   COMMENT_DELETED = 'COMMENT_DELETED',
   COMMENT_PINNED = 'COMMENT_PINNED',
@@ -63,6 +68,25 @@ export type ManualPaymentEditableFieldsValueMap = {
   notes: string;
   isPublic: boolean;
 };
+
+/**
+ * Fields that can be edited in a milestone
+ */
+export type MilestoneEditableFields =
+  | 'title'
+  | 'description'
+  | 'deadline'
+  | 'reward';
+
+/**
+ * Type mapping for milestone field values
+ */
+export interface MilestoneFieldValueMap {
+  title: string;
+  description: string | null;
+  deadline: Date | null;
+  reward: number;
+}
 
 /**
  * Fields that can be edited in a sponsor profile
@@ -304,6 +328,41 @@ export interface EventDataMap {
         | null;
     }>;
   };
+
+  [EventType.MILESTONE_CREATED]: {
+    rewardDistribution: Array<{
+      milestoneIndex: number;
+      reward: number;
+    }>;
+    useSingleMilestone: boolean;
+  };
+
+  [EventType.MILESTONE_STATUS_UPDATED]: {
+    previousStatus: string;
+    newStatus: string;
+  };
+
+  [EventType.MILESTONE_APPROVED]: Record<string, never>;
+
+  [EventType.MILESTONE_REJECTED]: {
+    reason: string;
+  };
+
+  [EventType.MILESTONES_EDITED]: {
+    oldMilestones: Array<{
+      milestoneIndex: number;
+      title: string;
+      reward: number;
+      status: string;
+    }>;
+    newMilestones: Array<{
+      milestoneIndex: number;
+      title: string;
+      reward: number;
+      status: string;
+    }>;
+  };
+
   // Comment Events
   [EventType.COMMENT_ADDED]: Record<string, never>;
   [EventType.COMMENT_DELETED]: Record<string, never>;
@@ -380,6 +439,7 @@ export interface CreateEventLogParams<T extends EventType> {
     submissionId?: string;
     sponsorId?: string;
     commentId?: string;
+    milestoneId?: string;
   };
 }
 
@@ -624,6 +684,57 @@ export function detectManualPaymentChanges(
           | null,
         newValue: newVal as
           | ManualPaymentEditableFieldsValueMap[ManualPaymentEditableFields]
+          | null,
+      });
+    }
+  }
+
+  return changes;
+}
+
+export function detectMilestoneChanges(
+  oldData: Partial<MilestoneFieldValueMap>,
+  newData: Partial<MilestoneFieldValueMap>,
+): Array<{
+  field: MilestoneEditableFields;
+  oldValue: MilestoneFieldValueMap[MilestoneEditableFields] | null;
+  newValue: MilestoneFieldValueMap[MilestoneEditableFields] | null;
+}> {
+  const changes: Array<{
+    field: MilestoneEditableFields;
+    oldValue: MilestoneFieldValueMap[MilestoneEditableFields] | null;
+    newValue: MilestoneFieldValueMap[MilestoneEditableFields] | null;
+  }> = [];
+
+  const fields: MilestoneEditableFields[] = [
+    'title',
+    'description',
+    'deadline',
+    'reward',
+  ];
+
+  for (const field of fields) {
+    const oldVal = oldData[field] ?? null;
+    const newVal = newData[field] ?? null;
+
+    if (field === 'deadline') {
+      const oldDeadline = oldData.deadline?.toString();
+      const newDeadline = newData.deadline?.toString();
+      if (oldDeadline !== newDeadline) {
+        changes.push({
+          field,
+          oldValue: oldData.deadline ?? null,
+          newValue: newData.deadline ?? null,
+        });
+      }
+    } else if (oldVal !== newVal) {
+      changes.push({
+        field,
+        oldValue: oldVal as
+          | MilestoneFieldValueMap[MilestoneEditableFields]
+          | null,
+        newValue: newVal as
+          | MilestoneFieldValueMap[MilestoneEditableFields]
           | null,
       });
     }
