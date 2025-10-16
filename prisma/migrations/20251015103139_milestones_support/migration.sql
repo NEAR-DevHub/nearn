@@ -19,7 +19,7 @@ CREATE TABLE `Milestone` (
     `deadline` DATETIME(3) NULL,
     `reward` DOUBLE NOT NULL,
     `token` VARCHAR(191) NOT NULL,
-    `status` ENUM('NotStarted', 'Pending', 'Approved', 'Paid', 'Rejected') NOT NULL DEFAULT 'NotStarted',
+    `status` ENUM('NotStarted', 'Pending', 'WorkCompleted', 'Approved', 'Paid', 'Rejected') NOT NULL DEFAULT 'NotStarted',
     `paymentDetails` JSON NULL,
     `paidDate` DATETIME(3) NULL,
     `approvedDate` DATETIME(3) NULL,
@@ -112,5 +112,12 @@ CREATE VIEW `BountyCounts` AS
   FROM Bounties b
   LEFT JOIN Submission s ON s.listingId = b.id
   GROUP BY b.id;
+
+ALTER TABLE `EventLog` ADD COLUMN `milestoneId` VARCHAR(191) NULL;
+ALTER TABLE `Notification` ADD COLUMN `milestoneId` VARCHAR(191) NULL;
+
+CREATE INDEX `EventLog_milestoneId_eventTime_idx` ON `EventLog`(`milestoneId`, `eventTime` DESC);
+CREATE INDEX `Notification_milestoneId_idx` ON `Notification`(`milestoneId`);
+
 
 COMMIT;

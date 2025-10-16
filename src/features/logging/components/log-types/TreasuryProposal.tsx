@@ -9,6 +9,8 @@ export default function TreasuryProposal(props: LogProperties) {
   const { event } = props;
   const eventType = event.eventType;
   const username = event.submission?.user?.username;
+  const milestone = event.milestone;
+  const isMilestonePayment = Boolean(milestone);
 
   // Get proposal link from event data
   const proposalLink = (() => {
@@ -38,7 +40,24 @@ export default function TreasuryProposal(props: LogProperties) {
       return (
         <div className="flex flex-col gap-1">
           <p className="flex items-center gap-1 text-slate-500">
-            Created payment request via NEAR Treasury
+            Created payment request via NEAR Treasury for{' '}
+            {isMilestonePayment && milestone ? (
+              <>
+                Milestone {milestone.milestoneIndex} -{' '}
+                <span className="text-slate-900">{milestone.title}</span>
+              </>
+            ) : (
+              <>
+                {username && (
+                  <>
+                    <a href={`/t/${username}`} className="text-slate-900">
+                      @{username}
+                    </a>{' '}
+                  </>
+                )}
+                submission
+              </>
+            )}
           </p>
           {proposalLink && (
             <a
@@ -59,6 +78,12 @@ export default function TreasuryProposal(props: LogProperties) {
         <div className="flex flex-col gap-1">
           <p className="items-center gap-1 text-slate-500">
             Payment request for{' '}
+            {isMilestonePayment && milestone ? (
+              <>
+                Milestone {milestone.milestoneIndex} -{' '}
+                <span className="text-slate-900">{milestone.title}</span> of{' '}
+              </>
+            ) : null}
             {username && (
               <>
                 <a href={`/t/${username}`} className="text-slate-900">
@@ -66,8 +91,8 @@ export default function TreasuryProposal(props: LogProperties) {
                 </a>{' '}
               </>
             )}
-            submission approved on NEAR Treasury and submission status changed
-            to{' '}
+            submission approved on NEAR Treasury and{' '}
+            {isMilestonePayment ? 'milestone' : 'submission'} status changed to{' '}
             <span className="inline-block rounded-xl bg-emerald-100 px-3 py-0.5 text-emerald-800">
               Paid
             </span>
@@ -91,6 +116,12 @@ export default function TreasuryProposal(props: LogProperties) {
       return (
         <p className="gap-1 text-slate-500">
           Payment proposal for{' '}
+          {isMilestonePayment && milestone ? (
+            <>
+              Milestone {milestone.milestoneIndex} -{' '}
+              <span className="text-slate-900">{milestone.title}</span> of{' '}
+            </>
+          ) : null}
           {username && (
             <>
               <a href={`/t/${username}`} className="font-medium text-slate-900">
@@ -98,6 +129,7 @@ export default function TreasuryProposal(props: LogProperties) {
               </a>{' '}
             </>
           )}
+          {!isMilestonePayment && 'submission '}
           via NEAR Treasury
           <br />
           <span className="text-slate-600">

@@ -166,23 +166,28 @@ export async function POST(
         }
       }
 
-      //(todo: remove:) Temporary until UI implemented for multi-milestone we will auto-create a milestone for each winner
-      // This should be handled in separate API. User should be able to choose to create a milestones or keep it as a single milestone
-      promises.push(
-        prisma.milestone.create({
-          data: {
-            milestoneIndex: 1,
-            reward: rewards[winnerPosition as keyof Rewards] ?? 0,
-            token:
-              listing.token === 'Any'
-                ? winners[currentIndex]?.token!
-                : listing.token!,
-            title: 'Full Milestone',
-            status: 'Approved',
-            submissionId: winners[currentIndex]?.id!,
-          },
-        }),
-      );
+      // For bounties, pre-create auto-approved dummy milestone
+      // For sponsorships, milestone creation is handled separately by sponsor
+      if (listing.type === 'bounty') {
+        promises.push(
+          prisma.milestone.create({
+            data: {
+              milestoneIndex: 1,
+              reward: rewards[winnerPosition as keyof Rewards] ?? 0,
+              token:
+                listing.token === 'Any'
+                  ? winners[currentIndex]?.token!
+                  : listing.token!,
+              title: 'Full Payment',
+              description: 'Auto-created milestone for bounty payment',
+              status: 'Approved',
+              submissionId: winners[currentIndex]?.id!,
+              approvedDate: new Date(),
+              approvedBy: userId,
+            },
+          }),
+        );
+      }
 
       promises.push(
         eventLogger.log({

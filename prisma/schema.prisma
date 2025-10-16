@@ -351,6 +351,8 @@ model Milestone {
   submission     Submission      @relation(fields: [submissionId], references: [id])
   paidByUser     User?           @relation("MilestonePaidBy", fields: [paidBy], references: [id])
   approvedByUser User?           @relation("MilestoneApprovedBy", fields: [approvedBy], references: [id])
+  EventLog       EventLog[]
+  Notification   Notification[]
 
   @@unique([submissionId, milestoneIndex])
   @@index([submissionId])
@@ -695,6 +697,7 @@ model EventLog {
   sponsorId    String?
   commentId    String?
   powId        String?
+  milestoneId  String?
 
   eventType String
   subType   String?
@@ -714,9 +717,11 @@ model EventLog {
   actor      User?       @relation(fields: [actorId], references: [id])
   comment    Comment?    @relation(fields: [commentId], references: [id])
   pow        PoW?        @relation(fields: [powId], references: [id])
+  milestone  Milestone?  @relation(fields: [milestoneId], references: [id])
 
   @@index([listingId, eventTime(sort: Desc)])
   @@index([submissionId, eventTime(sort: Desc)])
+  @@index([milestoneId, eventTime(sort: Desc)])
   @@index([powId, eventTime(sort: Desc)])
   @@index([sponsorId, eventTime(sort: Desc)])
   @@index([commentId, eventTime(sort: Desc)])
@@ -739,6 +744,7 @@ model Notification {
   commentId    String?
   powId        String?
   sponsorId    String?
+  milestoneId  String?
 
   notificationRelationType NotificationRelationType
 
@@ -753,6 +759,7 @@ model Notification {
   submission Submission? @relation(fields: [submissionId], references: [id])
   comment    Comment?    @relation(fields: [commentId], references: [id])
   pow        PoW?        @relation(fields: [powId], references: [id])
+  milestone  Milestone?  @relation(fields: [milestoneId], references: [id])
 
   @@index([receiverId])
   @@index([actorId])
@@ -761,6 +768,7 @@ model Notification {
   @@index([submissionId])
   @@index([commentId])
   @@index([powId])
+  @@index([milestoneId])
   @@index([sponsorId])
   @@index([type])
   @@index([receiverId, deliveredAt(sort: Desc)])
@@ -947,6 +955,7 @@ enum MultipleSubmissionRule {
 enum MilestoneStatus {
   NotStarted
   Pending
+  WorkCompleted
   Approved
   Paid
   Rejected
