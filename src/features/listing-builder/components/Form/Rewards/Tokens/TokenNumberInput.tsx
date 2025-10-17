@@ -17,6 +17,8 @@ interface TokenNumberInputProps {
   name?: string;
   placeholder?: string;
   hideToken?: boolean;
+  borderless?: boolean;
+  noTokenText?: boolean;
 }
 
 export const TokenNumberInput = React.forwardRef<
@@ -36,6 +38,8 @@ export const TokenNumberInput = React.forwardRef<
       name,
       placeholder,
       hideToken = false,
+      borderless = false,
+      noTokenText = false,
       ...props
     },
     ref,
@@ -99,17 +103,18 @@ export const TokenNumberInput = React.forwardRef<
     return (
       <div
         className={cn(
-          'flex w-full items-center rounded-md border border-input bg-transparent font-medium transition-colors',
+          'flex w-full items-center rounded-md bg-transparent font-medium transition-colors',
+          !borderless &&
+            'border border-input focus-within:ring-1 focus-within:ring-primary',
           disabled && 'cursor-not-allowed opacity-50',
-          'focus-within:ring-1 focus-within:ring-primary',
           className,
         )}
       >
         {!hideToken && (
-          <div className="w-max py-2 pl-4">
+          <div className={cn('w-max py-2', !borderless && 'pl-4')}>
             <TokenLabel
               showIcon
-              showSymbol
+              showSymbol={!noTokenText}
               symbol={symbol}
               classNames={{
                 symbol: 'text-slate-500',
@@ -128,10 +133,12 @@ export const TokenNumberInput = React.forwardRef<
           onFocus={handleFocus}
           onBlur={handleBlur}
           disabled={disabled}
+          borderless={borderless}
           className={cn(
-            'border-0 bg-transparent py-2 pl-2 text-left focus-visible:ring-0 focus-visible:ring-offset-0',
+            'border-0 bg-transparent py-2 text-left focus-visible:ring-0 focus-visible:ring-offset-0',
             '[-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none',
             'placeholder:text-slate-400',
+            noTokenText ? 'pl-1' : 'pl-2',
           )}
         />
       </div>
