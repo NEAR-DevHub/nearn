@@ -45,6 +45,11 @@ export async function POST(request: Request) {
         submission: {
           include: {
             listing: true,
+            Milestones: {
+              select: {
+                id: true,
+              },
+            },
           },
         },
       },
@@ -79,6 +84,8 @@ export async function POST(request: Request) {
         submissionId: milestone.submissionId,
         sponsorId: milestone.submission.listing.sponsorId,
         listingId: milestone.submission.listing.id,
+        milestoneId:
+          milestone.submission.Milestones.length > 1 ? milestone.id : undefined,
       },
       data: {
         link: paymentLink,

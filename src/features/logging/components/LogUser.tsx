@@ -22,6 +22,7 @@ export default function LogUser({
   hideActorRole = false,
   onListingClick,
   onSubmissionClick,
+  onMilestoneClick,
 }: Properties) {
   const now = dayjs();
   const eventTime = dayjs(event.eventTime);
@@ -120,6 +121,17 @@ export default function LogUser({
             className="text-sm font-medium text-slate-900"
           >
             #{event.submission.sequentialId}
+          </button>
+        </>
+      )}
+
+      {event.milestoneId && onMilestoneClick && (
+        <>
+          <button
+            onClick={() => onMilestoneClick(event)}
+            className="text-sm font-medium text-slate-900"
+          >
+            (M{event.milestoneId})
           </button>
         </>
       )}

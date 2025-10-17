@@ -147,6 +147,7 @@ const getEntities = (event: Log) => {
     commentId: event.commentId,
     powId: event.powId,
     actorId: event.actorId,
+    milestoneId: event.milestoneId,
   };
 };
 
@@ -502,6 +503,13 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
   [EventType.PLATFORM_ADMIN_SUBMISSION_STATUS_EDITED]: noNotification,
   [EventType.SYSTEM_STATUS_CHANGED]: noNotification,
   [EventType.AUTOMATION_LOG]: noNotification,
+
+  // TODO: add notifications for milestones
+  [EventType.MILESTONE_CREATED]: noNotification,
+  [EventType.MILESTONE_STATUS_UPDATED]: noNotification,
+  [EventType.MILESTONE_APPROVED]: noNotification,
+  [EventType.MILESTONE_REJECTED]: noNotification,
+  [EventType.MILESTONES_EDITED]: noNotification,
 };
 
 export const createNotificationFromEvent = async (event: Log) => {

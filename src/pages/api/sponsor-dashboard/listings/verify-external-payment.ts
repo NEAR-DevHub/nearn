@@ -187,7 +187,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       logger.debug(
         `Updating milestone with ID: ${validationResult.milestoneId} with new external payment details`,
       );
-      await prisma.milestone.update({
+      const milestone = await prisma.milestone.update({
         where: {
           id: validationResult.milestoneId,
         },
@@ -199,6 +199,13 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
           },
           paidDate: validationResult.transactionDate,
           paidBy: req.userId,
+        },
+        include: {
+          submission: {
+            include: {
+              Milestones: true,
+            },
+          },
         },
       });
 
@@ -215,6 +222,11 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
           listingId: listingId,
           submissionId: validationResult.submissionId,
           sponsorId: userSponsorId,
+          milestoneId:
+            milestone?.submission.Milestones.length &&
+            milestone.submission.Milestones.length > 1
+              ? milestone.id
+              : undefined,
         },
       });
     }
