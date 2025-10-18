@@ -1,6 +1,20 @@
+import {
+  closestCenter,
+  DndContext,
+  type DragEndEvent,
+  DragOverlay,
+  type DragStartEvent,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 import type { Prisma } from '@prisma/client';
 import { Plus } from 'lucide-react';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useFieldArray, useForm, useWatch } from 'react-hook-form';
 
 import { Button } from '@/components/ui/button';
@@ -63,7 +77,7 @@ export function PaymentSetupDialog({
   });
 
   const mode = form.watch('mode');
-  const { fields, append, remove, insert } = useFieldArray({
+  const { fields, append, remove, insert, move } = useFieldArray({
     control: form.control,
     name: 'milestones',
     keyName: 'key',
@@ -80,6 +94,32 @@ export function PaymentSetupDialog({
       0,
     );
   }, [milestones]);
+
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 5 },
+    }),
+  );
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    setActiveId(null);
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIndex = fields.findIndex((f) => f.key === active.id);
+      const newIndex = fields.findIndex((f) => f.key === over.id);
+      if (oldIndex !== -1 && newIndex !== -1) {
+        move(oldIndex, newIndex);
+        fields.forEach((_, index) => {
+          form.setValue(`milestones.${index}.milestoneIndex`, index + 1);
+        });
+      }
+    }
+  };
 
   const handleAddMilestone = () => {
     const nextId = String(fields.length + 1);
@@ -135,6 +175,57 @@ export function PaymentSetupDialog({
     } catch (_) {}
   };
 
+  const duplicateMilestoneAt = (index: number) =>
+    insert(index + 1, {
+      id: String(fields.length + 1),
+      submissionId: submissionId,
+      title: `Milestone ${fields.length + 1}`,
+      description: form.getValues(`milestones.${index}.description`) || '',
+      reward: Number(form.getValues(`milestones.${index}.reward`) || 0),
+      deadline: form.getValues(`milestones.${index}.deadline`),
+      milestoneIndex: fields.length + 1,
+      token: tokenSymbol,
+    });
+
+  const MilestoneItem = ({
+    index,
+    fieldKey,
+  }: {
+    index: number;
+    fieldKey: string;
+  }) => (
+    <MilestoneCard
+      key={fieldKey}
+      id={fieldKey}
+      tokenSymbol={tokenSymbol}
+      amount={
+        form.watch(`milestones.${index}.reward`) as unknown as number | null
+      }
+      onAmountChange={(val) =>
+        form.setValue(`milestones.${index}.reward`, Number(val || 0))
+      }
+      title={form.watch(`milestones.${index}.title`) || ''}
+      onTitleChange={(title) =>
+        form.setValue(`milestones.${index}.title`, title)
+      }
+      description={form.watch(`milestones.${index}.description`) || ''}
+      onDescriptionChange={(description: string) =>
+        form.setValue(`milestones.${index}.description`, description)
+      }
+      dueDate={
+        form.watch(`milestones.${index}.deadline`) as unknown as
+          | Date
+          | undefined
+      }
+      onDueDateChange={(date) =>
+        form.setValue(`milestones.${index}.deadline`, date)
+      }
+      onDelete={() => remove(index)}
+      onDuplicate={() => duplicateMilestoneAt(index)}
+      hideDeleteButton={fields.length === 1}
+    />
+  );
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <Form {...form}>
@@ -180,70 +271,42 @@ export function PaymentSetupDialog({
                 </div>
 
                 {mode === PaymentMode.MILESTONE && (
-                  <div className="space-y-4">
-                    <div className="space-y-4">
-                      {fields.map((field, index) => (
-                        <MilestoneCard
-                          key={field.key}
-                          tokenSymbol={tokenSymbol}
-                          amount={
-                            form.watch(
-                              `milestones.${index}.reward`,
-                            ) as unknown as number | null
-                          }
-                          onAmountChange={(val) =>
-                            form.setValue(
-                              `milestones.${index}.reward`,
-                              Number(val || 0),
-                            )
-                          }
-                          title={form.watch(`milestones.${index}.title`) || ''}
-                          onTitleChange={(title) =>
-                            form.setValue(`milestones.${index}.title`, title)
-                          }
-                          description={
-                            form.watch(`milestones.${index}.description`) || ''
-                          }
-                          onDescriptionChange={(description: string) =>
-                            form.setValue(
-                              `milestones.${index}.description`,
-                              description,
-                            )
-                          }
-                          dueDate={
-                            form.watch(
-                              `milestones.${index}.deadline`,
-                            ) as unknown as Date | undefined
-                          }
-                          onDueDateChange={(date) =>
-                            form.setValue(`milestones.${index}.deadline`, date)
-                          }
-                          onDelete={() => remove(index)}
-                          onDuplicate={() =>
-                            insert(index + 1, {
-                              id: String(fields.length + 1),
-                              submissionId: submissionId,
-                              title: `Milestone ${fields.length + 1}`,
-                              description:
-                                form.getValues(
-                                  `milestones.${index}.description`,
-                                ) || '',
-                              reward: Number(
-                                form.getValues(`milestones.${index}.reward`) ||
-                                  0,
-                              ),
-                              deadline: form.getValues(
-                                `milestones.${index}.deadline`,
-                              ),
-                              milestoneIndex: fields.length + 1,
-                              token: tokenSymbol,
-                            })
-                          }
-                          hideDeleteButton={fields.length === 1}
-                        />
-                      ))}
-                    </div>
-                    <div className="mr-7 flex justify-end">
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragStart={handleDragStart}
+                    onDragEnd={handleDragEnd}
+                  >
+                    <SortableContext
+                      items={fields.map((f) => f.key)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      <div className="space-y-4">
+                        {fields.map((field, index) => (
+                          <MilestoneItem
+                            key={field.key}
+                            index={index}
+                            fieldKey={field.key}
+                          />
+                        ))}
+                      </div>
+                    </SortableContext>
+                    <DragOverlay>
+                      {activeId ? (
+                        <div className="w-full rounded-md bg-white opacity-80 shadow-lg">
+                          {fields.map((field, index) =>
+                            field.key === activeId ? (
+                              <MilestoneItem
+                                key={field.key}
+                                index={index}
+                                fieldKey={field.key}
+                              />
+                            ) : null,
+                          )}
+                        </div>
+                      ) : null}
+                    </DragOverlay>
+                    <div className="mr-7 mt-4 flex justify-end">
                       <Button
                         type="button"
                         variant="link"
@@ -254,7 +317,7 @@ export function PaymentSetupDialog({
                         <Plus /> Add Milestone
                       </Button>
                     </div>
-                  </div>
+                  </DndContext>
                 )}
               </div>
             </div>
