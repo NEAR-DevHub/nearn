@@ -1,3 +1,5 @@
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { Copy, GripVertical, Info, Trash2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -6,10 +8,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip } from '@/components/ui/tooltip';
+import { cn } from '@/utils/cn';
 
 import { TokenNumberInput } from '@/features/listing-builder/components/Form/Rewards/Tokens/TokenNumberInput';
 
 interface MilestoneCardProps {
+  id: string;
   tokenSymbol: string;
   amount: number | null;
   onAmountChange: (amount: number | null) => void;
@@ -25,6 +29,7 @@ interface MilestoneCardProps {
 }
 
 export function MilestoneCard({
+  id,
   tokenSymbol,
   amount,
   onAmountChange,
@@ -38,14 +43,38 @@ export function MilestoneCard({
   onDelete,
   hideDeleteButton = false,
 }: MilestoneCardProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    width: '100%',
+    height: 'auto',
+  } as const;
   const capitalizeFirstLetter = (value: string) => {
     return value.charAt(0).toUpperCase() + value.slice(1);
   };
   return (
-    <div className="group relative pr-7">
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cn('group relative pr-7', isDragging && 'opacity-50')}
+    >
       <div className="rounded-md border p-2">
         <div className="flex items-center gap-2">
-          <GripVertical className="h-4 w-4 text-slate-400" />
+          <div
+            {...attributes}
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing"
+          >
+            <GripVertical className="h-4 w-4 text-slate-400" />
+          </div>
           <Input
             placeholder="Milestone Title"
             borderless
