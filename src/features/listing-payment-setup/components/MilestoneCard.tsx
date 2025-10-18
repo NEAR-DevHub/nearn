@@ -1,5 +1,4 @@
 import { Copy, GripVertical, Info, Trash2 } from 'lucide-react';
-import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { DateTimePicker } from '@/components/ui/datetime-picker';
@@ -14,28 +13,41 @@ interface MilestoneCardProps {
   tokenSymbol: string;
   amount: number | null;
   onAmountChange: (amount: number | null) => void;
-  milestoneName?: string;
-  onMilestoneNameChange?: (name: string) => void;
-  onDuplicate?: () => void;
-  onDelete?: () => void;
+  onDescriptionChange: (description: string) => void;
+  onTitleChange: (title: string) => void;
+  dueDate: Date | undefined;
+  onDueDateChange: (date: Date | undefined) => void;
+  onDuplicate: () => void;
+  onDelete: () => void;
+  title?: string;
+  description?: string;
 }
 
 export function MilestoneCard({
   tokenSymbol,
   amount,
   onAmountChange,
-  milestoneName = '',
-  onMilestoneNameChange,
+  description = '',
+  onDescriptionChange,
+  title = '',
+  onTitleChange,
+  dueDate,
+  onDueDateChange,
   onDuplicate,
   onDelete,
 }: MilestoneCardProps) {
-  const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
   return (
     <div className="group relative pr-7">
       <div className="rounded-md border p-2">
         <div className="flex items-center gap-2">
           <GripVertical className="h-4 w-4 text-slate-400" />
-          <div className="text-sm font-medium text-slate-700">Milestone 1</div>
+          <Input
+            placeholder="Milestone Title"
+            borderless
+            value={title}
+            onChange={(e) => onTitleChange?.(e.target.value)}
+            className="text-sm font-medium text-slate-700"
+          />
         </div>
 
         <Separator className="mb-2 mt-3" />
@@ -44,8 +56,8 @@ export function MilestoneCard({
           <Input
             placeholder="Milestone Description"
             borderless
-            value={milestoneName}
-            onChange={(e) => onMilestoneNameChange?.(e.target.value)}
+            value={description}
+            onChange={(e) => onDescriptionChange?.(e.target.value)}
           />
         </div>
 
@@ -66,7 +78,7 @@ export function MilestoneCard({
             </div>
             <DateTimePicker
               value={dueDate}
-              onChange={setDueDate}
+              onChange={(d) => onDueDateChange?.(d)}
               hideTime
               borderless
               placeholder="dd.mm.yyyy"
