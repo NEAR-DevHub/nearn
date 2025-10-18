@@ -21,6 +21,7 @@ interface MilestoneCardProps {
   onDelete: () => void;
   title?: string;
   description?: string;
+  hideDeleteButton?: boolean;
 }
 
 export function MilestoneCard({
@@ -35,7 +36,11 @@ export function MilestoneCard({
   onDueDateChange,
   onDuplicate,
   onDelete,
+  hideDeleteButton = false,
 }: MilestoneCardProps) {
+  const capitalizeFirstLetter = (value: string) => {
+    return value.charAt(0).toUpperCase() + value.slice(1);
+  };
   return (
     <div className="group relative pr-7">
       <div className="rounded-md border p-2">
@@ -45,7 +50,9 @@ export function MilestoneCard({
             placeholder="Milestone Title"
             borderless
             value={title}
-            onChange={(e) => onTitleChange?.(e.target.value)}
+            onChange={(e) =>
+              onTitleChange?.(capitalizeFirstLetter(e.target.value))
+            }
             className="text-sm font-medium text-slate-700"
           />
         </div>
@@ -57,7 +64,9 @@ export function MilestoneCard({
             placeholder="Milestone Description"
             borderless
             value={description}
-            onChange={(e) => onDescriptionChange?.(e.target.value)}
+            onChange={(e) =>
+              onDescriptionChange?.(capitalizeFirstLetter(e.target.value))
+            }
           />
         </div>
 
@@ -99,14 +108,16 @@ export function MilestoneCard({
         </div>
       </div>
       <div className="absolute right-0 top-0 flex flex-col gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-6 w-6 p-1"
-          onClick={onDelete}
-        >
-          <Trash2 className="h-4 w-4 text-slate-500" />
-        </Button>
+        {!hideDeleteButton && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 w-6 p-1"
+            onClick={onDelete}
+          >
+            <Trash2 className="h-4 w-4 text-slate-500" />
+          </Button>
+        )}
         <Button
           variant="ghost"
           size="sm"

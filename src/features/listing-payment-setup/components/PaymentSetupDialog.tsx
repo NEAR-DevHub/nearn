@@ -114,7 +114,9 @@ export function PaymentSetupDialog({
             title: m.title || `Milestone ${idx + 1}`,
             description: m.description || '',
             deadline: m.deadline
-              ? new Date(m.deadline).toISOString()
+              ? new Date(
+                  new Date(m.deadline).setHours(23, 59, 0, 0),
+                ).toISOString()
               : undefined,
             reward: Number(m.reward || 0),
             milestoneIndex: idx + 1,
@@ -237,6 +239,7 @@ export function PaymentSetupDialog({
                               token: tokenSymbol,
                             })
                           }
+                          hideDeleteButton={fields.length === 1}
                         />
                       ))}
                     </div>
