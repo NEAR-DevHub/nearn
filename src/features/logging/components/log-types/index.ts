@@ -92,7 +92,7 @@ const LOG_IMPLEMENTATION_MAPPING: Record<
   [EventType.MILESTONE_CREATED]: MilestoneCreated,
   [EventType.MILESTONE_STATUS_UPDATED]: MilestoneStatusChanged,
   [EventType.MILESTONE_APPROVED]: MilestoneApproveReject,
-  [EventType.MILESTONE_REJECTED]: MilestoneApproveReject,
+  [EventType.MILESTONE_CANCELLED]: MilestoneApproveReject,
   [EventType.MILESTONES_EDITED]: MilestonesEdited,
 };
 

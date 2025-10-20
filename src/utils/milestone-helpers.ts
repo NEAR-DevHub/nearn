@@ -44,7 +44,7 @@ export function getSubmissionPaymentStatus(
       total: milestones.length,
       paid: milestones.filter((m) => m.status === 'Paid').length,
       approved: milestones.filter((m) => m.status === 'Approved').length,
-      pending: milestones.filter((m) => m.status === 'Pending').length,
+      pending: milestones.filter((m) => m.status === 'InReview').length,
     },
   };
 }

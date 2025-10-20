@@ -97,6 +97,38 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       },
     });
 
+    const nextMilestone = await prisma.milestone.findFirst({
+      where: {
+        submissionId: milestone.submissionId,
+        milestoneIndex: milestone.milestoneIndex + 1,
+      },
+    });
+
+    if (nextMilestone) {
+      await prisma.milestone.update({
+        where: { id: nextMilestone.id },
+        data: { status: 'InReview' },
+      });
+
+      await eventLogger.log({
+        eventType: EventType.MILESTONE_STATUS_UPDATED,
+        actor: {
+          id: userId as string,
+          type: 'SPONSOR',
+        },
+        data: {
+          previousStatus: 'NotStarted',
+          newStatus: 'InReview',
+        },
+        entities: {
+          listingId: milestone.submission.listingId,
+          submissionId: milestone.submissionId,
+          sponsorId: userSponsorId,
+          milestoneId: nextMilestone.id,
+        },
+      });
+    }
+
     logger.info(`Successfully approved milestone ${milestoneId}`);
     return res.status(200).json({
       message: 'Milestone approved successfully',

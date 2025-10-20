@@ -1,4 +1,4 @@
-import { type MilestoneStatus } from '@prisma/client';
+import { MilestoneStatus, type Prisma } from '@prisma/client';
 import type { NextApiResponse } from 'next';
 
 import logger from '@/lib/logger';
@@ -106,7 +106,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
           description: 'Single milestone for full payment',
           reward: totalReward,
           token: token!,
-          status: 'NotStarted',
+          status: 'InReview',
         },
       });
       createdMilestones = [createdMilestones];
@@ -128,19 +128,22 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       }
 
       // Create multiple milestones
-      const milestoneData = milestones.map((milestone) => ({
-        submissionId,
-        milestoneIndex: milestone.milestoneIndex,
-        title: milestone.title,
-        description: milestone.description || null,
-        deadline: milestone.deadline ? new Date(milestone.deadline) : null,
-        reward: milestone.reward,
-        token: token!,
-        status:
-          milestone.milestoneIndex !== 1
-            ? 'NotStarted'
-            : ('Pending' as MilestoneStatus),
-      }));
+      const milestoneData = milestones.map(
+        (milestone) =>
+          ({
+            submissionId,
+            milestoneIndex: milestone.milestoneIndex,
+            title: milestone.title,
+            description: milestone.description || null,
+            deadline: milestone.deadline ? new Date(milestone.deadline) : null,
+            reward: milestone.reward,
+            token: token!,
+            status:
+              milestone.milestoneIndex !== 1
+                ? MilestoneStatus.NotStarted
+                : MilestoneStatus.InReview,
+          }) as Prisma.MilestoneCreateManyInput,
+      );
 
       createdMilestones = await prisma.milestone.createMany({
         data: milestoneData,

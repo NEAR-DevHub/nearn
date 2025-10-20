@@ -200,8 +200,10 @@ export const SubmissionList = ({
                 <ChevronDown className="ml-2 h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-
-            <DropdownMenuContent className="min-w-32 border-slate-300">
+            <DropdownMenuContent
+              align="end"
+              className="z-[70] max-w-60 bg-white"
+            >
               <DropdownMenuItem
                 className="focus:bg-slate-100"
                 onClick={() => setFilterLabel(undefined)}

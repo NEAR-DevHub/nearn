@@ -508,7 +508,7 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
   [EventType.MILESTONE_CREATED]: noNotification,
   [EventType.MILESTONE_STATUS_UPDATED]: noNotification,
   [EventType.MILESTONE_APPROVED]: noNotification,
-  [EventType.MILESTONE_REJECTED]: noNotification,
+  [EventType.MILESTONE_CANCELLED]: noNotification,
   [EventType.MILESTONES_EDITED]: noNotification,
 };
 

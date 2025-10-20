@@ -528,7 +528,10 @@ export const SubmissionTable = ({
                   )}
                   {visibleColumns.activity && (
                     <TableCell className="items-center py-2">
-                      <ActivityHistoryMinified submission={submission} />
+                      <ActivityHistoryMinified
+                        id={submission.id}
+                        refType="submission"
+                      />
                     </TableCell>
                   )}
                   <TableCell>

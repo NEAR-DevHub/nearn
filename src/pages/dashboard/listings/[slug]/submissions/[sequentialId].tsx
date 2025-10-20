@@ -26,6 +26,7 @@ import {
   selectedSubmissionAtom,
   selectedSubmissionIdsAtom,
 } from '@/features/sponsor-dashboard/atoms';
+import ListingMilestoneTable from '@/features/sponsor-dashboard/components/Milestones/ListingMilestoneTable';
 import { VerifyPaymentModal } from '@/features/sponsor-dashboard/components/Modals/VerifyPayment';
 import { PublishResults } from '@/features/sponsor-dashboard/components/PublishResults';
 import { ScoutTable } from '@/features/sponsor-dashboard/components/Scouts/ScoutTable';
@@ -50,6 +51,7 @@ const submissionsPerPage = 10;
 
 export default function BountySubmissions({ slug, sequentialId }: Props) {
   const router = useRouter();
+  const { tab } = router.query;
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { user } = useUser();
 
@@ -78,6 +80,13 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
 
   const queryClient = useQueryClient();
   const posthog = usePostHog();
+
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    const validTabs = ['submissions', 'scout', 'milestones'];
+    return tab && validTabs.includes(tab as string)
+      ? (tab as string)
+      : 'submissions';
+  });
 
   const [selectedSubmissionIds, setSelectedSubmissionIds] = useAtom(
     selectedSubmissionIdsAtom,
@@ -334,6 +343,24 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
 
   const isSponsorVerified = bounty?.sponsor?.isVerified;
 
+  useEffect(() => {
+    if (tab && ['submissions', 'scout', 'milestones'].includes(tab as string)) {
+      setActiveTab(tab as string);
+    }
+  }, [tab]);
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    router.push(
+      {
+        pathname: router.pathname,
+        query: { ...router.query, tab: value },
+      },
+      undefined,
+      { shallow: true },
+    );
+  };
+
   return (
     <SponsorLayout isCollapsible className="bg-slate-50">
       {isBountyLoading || isSubmissionsLoading ? (
@@ -373,30 +400,41 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
             }
             onVerifyPayments={onVerifyPayments}
           />
-          <Tabs defaultValue={'submissions'}>
-            {bounty?.isPublished &&
+          <Tabs value={activeTab} onValueChange={handleTabChange}>
+            {((bounty?.isPublished &&
               !bounty?.isWinnersAnnounced &&
-              !isExpired && (
-                <>
-                  <TabsList className="gap-4 font-medium text-slate-400">
-                    <TabsTrigger value="submissions">Submissions</TabsTrigger>
-                    {isSponsorVerified && (
-                      <TabsTrigger
-                        value="scout"
-                        className={cn(
-                          'ph-no-capture',
-                          !isSponsorVerified &&
-                            'cursor-not-allowed text-slate-400',
-                        )}
-                        onClick={() => posthog.capture('scout tab_scout')}
-                      >
-                        Scout Talent
-                      </TabsTrigger>
-                    )}
-                  </TabsList>
-                  <div className="h-[1.5px] w-full bg-slate-200/70" />
-                </>
-              )}
+              !isExpired) ||
+              (bounty?.type !== 'bounty' &&
+                submissions?.some(
+                  (submission) => submission.Milestones.length > 1,
+                ))) && (
+              <>
+                <TabsList className="gap-4 font-medium text-slate-400">
+                  <TabsTrigger value="submissions">Submissions</TabsTrigger>
+                  {isSponsorVerified && (
+                    <TabsTrigger
+                      value="scout"
+                      className={cn(
+                        'ph-no-capture',
+                        !isSponsorVerified &&
+                          'cursor-not-allowed text-slate-400',
+                      )}
+                      onClick={() => posthog.capture('scout tab_scout')}
+                    >
+                      Scout Talent
+                    </TabsTrigger>
+                  )}
+                  {submissions?.some(
+                    (submission) => submission.Milestones.length > 1,
+                  ) && (
+                    <TabsTrigger value="milestones">
+                      Milestone Payments
+                    </TabsTrigger>
+                  )}
+                </TabsList>
+                <div className="h-[1.5px] w-full bg-slate-200/70" />
+              </>
+            )}
 
             <TabsContent value="submissions" className="w-full px-0">
               <div className="flex w-full items-start rounded-xl bg-white">
@@ -576,6 +614,23 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
                         },
                       );
                     }}
+                  />
+                </TabsContent>
+              )}
+
+            {bounty &&
+              submissions &&
+              submissions?.some(
+                (submission) => submission.Milestones.length > 1,
+              ) && (
+                <TabsContent
+                  value="milestones"
+                  className="h-[calc(100vh-400px)] px-0"
+                >
+                  <ListingMilestoneTable
+                    listing={bounty}
+                    submissions={submissions!}
+                    sequentialId={sequentialId}
                   />
                 </TabsContent>
               )}

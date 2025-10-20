@@ -19,7 +19,7 @@ CREATE TABLE `Milestone` (
     `deadline` DATETIME(3) NULL,
     `reward` DOUBLE NOT NULL,
     `token` VARCHAR(191) NOT NULL,
-    `status` ENUM('NotStarted', 'Pending', 'WorkCompleted', 'Approved', 'Paid', 'Rejected') NOT NULL DEFAULT 'NotStarted',
+    `status` ENUM('NotStarted', 'InReview', 'Approved', 'Paid', 'Cancelled') NOT NULL DEFAULT 'NotStarted',
     `paymentDetails` JSON NULL,
     `paidDate` DATETIME(3) NULL,
     `approvedDate` DATETIME(3) NULL,

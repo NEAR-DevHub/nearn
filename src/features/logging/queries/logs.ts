@@ -13,7 +13,7 @@ import { api } from '@/lib/api';
 import { EventType, isRoleAtLeast } from '@/features/logging/types/event-data';
 
 interface GetLogsParams {
-  refType: 'submission' | 'listing' | 'sponsor';
+  refType: 'submission' | 'listing' | 'sponsor' | 'milestone';
   refId?: string;
   eventTypes?: EventType[];
   searchText?: string;
@@ -75,7 +75,7 @@ export function eventFilters(
       EventType.MILESTONE_CREATED,
       EventType.MILESTONE_STATUS_UPDATED,
       EventType.MILESTONE_APPROVED,
-      EventType.MILESTONE_REJECTED,
+      EventType.MILESTONE_CANCELLED,
       EventType.MILESTONES_EDITED,
     ],
     team: [
@@ -99,7 +99,7 @@ export function eventFilters(
       EventType.SUBMISSION_PAYMENT_DATE_EDITED,
       EventType.SUBMISSION_TREASURY_CREATED,
       EventType.MILESTONE_APPROVED,
-      EventType.MILESTONE_REJECTED,
+      EventType.MILESTONE_CANCELLED,
     ],
     comments: [
       EventType.COMMENT_ADDED,
@@ -111,7 +111,7 @@ export function eventFilters(
       EventType.MILESTONE_CREATED,
       EventType.MILESTONE_STATUS_UPDATED,
       EventType.MILESTONE_APPROVED,
-      EventType.MILESTONE_REJECTED,
+      EventType.MILESTONE_CANCELLED,
       EventType.MILESTONES_EDITED,
       EventType.SUBMISSION_PAID,
       EventType.TREASURY_PROPOSAL_APPROVED,

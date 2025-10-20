@@ -138,10 +138,12 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       submission.listing.token === 'Any'
         ? submission.token || submission.listing.token
         : submission.listing.token;
+    const maxApprovedOrPaidMilestoneIndex = approvedOrPaidMilestones.reduce(
+      (max, m) => Math.max(max, m.milestoneIndex),
+      0,
+    );
 
-    // Perform the update in a transaction
     const result = await prisma.$transaction(async (tx) => {
-      // Remove all milestones that are not approved or paid
       await tx.milestone.deleteMany({
         where: {
           submissionId,
@@ -151,7 +153,6 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
         },
       });
 
-      // Insert the provided milestones
       const milestoneData = milestones.map((milestone) => ({
         submissionId,
         milestoneIndex: milestone.milestoneIndex,
@@ -160,7 +161,10 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
         deadline: milestone.deadline ? new Date(milestone.deadline) : null,
         reward: milestone.reward,
         token: token!,
-        status: 'NotStarted' as const,
+        status:
+          milestone.milestoneIndex === maxApprovedOrPaidMilestoneIndex + 1
+            ? ('InReview' as const)
+            : ('NotStarted' as const),
       }));
 
       await tx.milestone.createMany({

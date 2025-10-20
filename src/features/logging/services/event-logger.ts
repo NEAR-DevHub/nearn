@@ -61,7 +61,7 @@ function getDefaultVisibility(eventType: EventType): EventVisibility {
     [EventType.MILESTONE_CREATED]: 'TALENT',
     [EventType.MILESTONE_STATUS_UPDATED]: 'TALENT',
     [EventType.MILESTONE_APPROVED]: 'TALENT',
-    [EventType.MILESTONE_REJECTED]: 'TALENT',
+    [EventType.MILESTONE_CANCELLED]: 'TALENT',
     [EventType.MILESTONES_EDITED]: 'TALENT',
     [EventType.SUBMISSION_MANUAL_PAYMENT_UPDATED]: 'SPONSOR',
     [EventType.COMMENT_DELETED]: 'SPONSOR',

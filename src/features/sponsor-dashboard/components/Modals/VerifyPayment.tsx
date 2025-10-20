@@ -23,7 +23,7 @@ import { api } from '@/lib/api';
 import { useUser } from '@/store/user';
 import { cn } from '@/utils/cn';
 import { formatNumberWithSuffix } from '@/utils/formatNumberWithSuffix';
-import { getSubmissionPaymentStatus } from '@/utils/milestone-helpers';
+import { getNextPayableMilestone } from '@/utils/milestone-helpers';
 import { nthLabelGenerator } from '@/utils/rank';
 
 import { BONUS_REWARD_POSITION } from '@/features/listing-builder/constants';
@@ -105,15 +105,9 @@ export const VerifyPaymentModal = ({
             .sort((a, b) => (a.winnerPosition || 0) - (b.winnerPosition || 0))
             .map((submission) => ({
               link: '',
-              milestoneId:
-                submission.Milestones?.find((m) => m.status === 'Approved')
-                  ?.id || '',
-              isVerified:
-                submission.Milestones?.some((m) => m.status === 'Paid') ||
-                false,
-              txId:
-                submission.Milestones?.find((m) => m.status === 'Paid')
-                  ?.paymentDetails?.txId || '',
+              milestoneId: getNextPayableMilestone(submission)?.id || '',
+              isVerified: false,
+              txId: '',
             })),
         },
         {
@@ -378,8 +372,7 @@ export const VerifyPaymentModal = ({
               </p>
             </div>
 
-            {listing?.BountyCounts.totalPaymentsMade !==
-              listing?.BountyCounts.totalWinnersSelected && (
+            {submissions?.some((sub) => getNextPayableMilestone(sub)) && (
               <Button
                 className="bg-none text-sm font-normal underline"
                 onClick={tryAgain}
@@ -518,151 +511,182 @@ export const VerifyPaymentModal = ({
 
               <div className="my-6 flex flex-col gap-6">
                 {submissions
-                  ?.filter((sub) => sub.winnerPosition !== null)
+                  ?.filter(
+                    (sub) =>
+                      sub.winnerPosition !== null &&
+                      getNextPayableMilestone(sub),
+                  )
                   .sort(
                     (a, b) => (a.winnerPosition || 0) - (b.winnerPosition || 0),
-                  )
-                  .map((submission, index) => {
-                    const isUsdBased = listing?.token === 'Any';
-                    const tokenName = isUsdBased
-                      ? submission.token
-                      : listing?.token;
-                    const token = tokenList.find(
-                      (s) => s.tokenSymbol === tokenName,
-                    );
+                  ).length === 0 ? (
+                  <p className="text-center text-sm text-slate-500">
+                    No approved milestones available for payment. Please ensure
+                    milestones are created and approved first.
+                  </p>
+                ) : (
+                  submissions
+                    ?.filter(
+                      (sub) =>
+                        sub.winnerPosition !== null &&
+                        getNextPayableMilestone(sub),
+                    )
+                    .sort(
+                      (a, b) =>
+                        (a.winnerPosition || 0) - (b.winnerPosition || 0),
+                    )
+                    .map((submission, index) => {
+                      const isUsdBased = listing?.token === 'Any';
+                      const tokenName = isUsdBased
+                        ? submission.token
+                        : listing?.token;
+                      const token = tokenList.find(
+                        (s) => s.tokenSymbol === tokenName,
+                      );
 
-                    const paymentLink = paymentLinks?.find((link) =>
-                      submission.Milestones?.some(
-                        (m) =>
-                          m.id === link.milestoneId && m.status === 'Approved',
-                      ),
-                    );
-                    return (
-                      <FormField
-                        key={submission.id}
-                        control={control}
-                        name={`paymentLinks.${index}.link`}
-                        render={({ field }) => (
-                          <FormItem
-                            className={cn(
-                              'space-y-2',
-                              errors.paymentLinks?.[index]?.root ||
-                                errors.paymentLinks?.[index]?.link
-                                ? 'text-red-500'
-                                : '',
-                            )}
-                          >
-                            <div className="flex justify-between gap-2">
-                              <div className="flex w-[40%] flex-col items-start gap-1">
-                                <div className="flex gap-1 text-xs font-semibold uppercase text-slate-500">
-                                  <p>
-                                    {nthLabelGenerator(
-                                      submission.winnerPosition || 0,
-                                      false,
-                                    ).toUpperCase()}{' '}
-                                    PAYMENT
-                                  </p>
-                                  {(submission.winnerPosition ===
-                                    BONUS_REWARD_POSITION ||
-                                    listing?.type === 'sponsorship') && (
-                                    <div className="flex">
-                                      <p>(</p>
-                                      <p className="line-clamp-1 max-w-[5rem] normal-case">
-                                        @{submission.user.username}
-                                      </p>
-                                      <p>)</p>
-                                    </div>
-                                  )}
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <img
-                                    className="h-[1.2rem] w-[1.2rem] rounded-full"
-                                    alt={token?.tokenName}
-                                    src={token?.icon}
-                                  />
-                                  <p className="font-semibold text-slate-800">
-                                    {isUsdBased ? '$' : ''}
-                                    {formatNumberWithSuffix(
-                                      listing?.rewards?.[
-                                        submission.winnerPosition || 0
-                                      ] || 0,
+                      const nextMilestone = getNextPayableMilestone(submission);
+                      const paymentLink = paymentLinks?.find(
+                        (link) => link.milestoneId === nextMilestone?.id,
+                      );
+                      return (
+                        <FormField
+                          key={submission.id}
+                          control={control}
+                          name={`paymentLinks.${index}.link`}
+                          render={({ field }) => (
+                            <FormItem
+                              className={cn(
+                                'space-y-2',
+                                errors.paymentLinks?.[index]?.root ||
+                                  errors.paymentLinks?.[index]?.link
+                                  ? 'text-red-500'
+                                  : '',
+                              )}
+                            >
+                              <div className="flex justify-between gap-2">
+                                <div className="flex w-[40%] flex-col items-start gap-1">
+                                  <div className="flex gap-1 text-xs font-semibold uppercase text-slate-500">
+                                    <p>
+                                      {nthLabelGenerator(
+                                        submission.winnerPosition || 0,
+                                        false,
+                                      ).toUpperCase()}{' '}
+                                      PAYMENT
+                                    </p>
+                                    {(submission.winnerPosition ===
+                                      BONUS_REWARD_POSITION ||
+                                      listing?.type === 'sponsorship') && (
+                                      <div className="flex">
+                                        <p>(</p>
+                                        <p className="line-clamp-1 max-w-[5rem] normal-case">
+                                          @{submission.user.username}
+                                        </p>
+                                        <p>)</p>
+                                      </div>
                                     )}
-                                  </p>
-                                  <p className="font-semibold text-slate-400">
-                                    {isUsdBased && 'in '} {token?.tokenSymbol}
-                                  </p>
+                                  </div>
+                                  {(() => {
+                                    const milestone =
+                                      getNextPayableMilestone(submission);
+                                    return milestone ? (
+                                      <p className="text-xs text-slate-500">
+                                        {milestone.title}
+                                      </p>
+                                    ) : null;
+                                  })()}
+                                  <div className="flex items-center gap-1">
+                                    <img
+                                      className="h-[1.2rem] w-[1.2rem] rounded-full"
+                                      alt={token?.tokenName}
+                                      src={token?.icon}
+                                    />
+                                    <p className="font-semibold text-slate-800">
+                                      {isUsdBased ? '$' : ''}
+                                      {formatNumberWithSuffix(
+                                        getNextPayableMilestone(submission)
+                                          ?.reward ||
+                                          listing?.rewards?.[
+                                            submission.winnerPosition || 0
+                                          ] ||
+                                          0,
+                                      )}
+                                    </p>
+                                    <p className="font-semibold text-slate-400">
+                                      {isUsdBased && 'in '} {token?.tokenSymbol}
+                                    </p>
+                                  </div>
                                 </div>
-                              </div>
 
-                              <div className="flex w-full flex-col items-start gap-1">
-                                {paymentLink?.isVerified ? (
-                                  <div className="flex w-full items-center gap-2">
-                                    {paymentLink.txId !== 'External Payment' ? (
-                                      <a
-                                        className="w-full"
-                                        href={
-                                          paymentLink.link ??
-                                          `${EXPLORER_TX_URL}${paymentLink?.txId}`
-                                        }
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                      >
+                                <div className="flex w-full flex-col items-start gap-1">
+                                  {paymentLink?.isVerified ? (
+                                    <div className="flex w-full items-center gap-2">
+                                      {paymentLink.txId !==
+                                      'External Payment' ? (
+                                        <a
+                                          className="w-full"
+                                          href={
+                                            paymentLink.link ??
+                                            `${EXPLORER_TX_URL}${paymentLink?.txId}`
+                                          }
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                        >
+                                          <Button
+                                            type="button"
+                                            className="w-full justify-start border-green-500 text-sm font-medium text-slate-500 hover:bg-green-100"
+                                            variant="outline"
+                                          >
+                                            <p className="mr-2">
+                                              Payment Verified. View Tx
+                                            </p>
+                                            <ExternalLink className="ml-auto h-4 w-4" />
+                                          </Button>
+                                        </a>
+                                      ) : (
                                         <Button
                                           type="button"
                                           className="w-full justify-start border-green-500 text-sm font-medium text-slate-500 hover:bg-green-100"
                                           variant="outline"
+                                          disabled
                                         >
                                           <p className="mr-2">
-                                            Payment Verified. View Tx
+                                            External payment marked as paid
                                           </p>
-                                          <ExternalLink className="ml-auto h-4 w-4" />
                                         </Button>
-                                      </a>
-                                    ) : (
-                                      <Button
-                                        type="button"
-                                        className="w-full justify-start border-green-500 text-sm font-medium text-slate-500 hover:bg-green-100"
-                                        variant="outline"
-                                        disabled
-                                      >
-                                        <p className="mr-2">
-                                          External payment marked as paid
-                                        </p>
-                                      </Button>
-                                    )}
+                                      )}
 
-                                    <div className="h-6 w-6 rounded-full bg-green-500 p-1">
-                                      <Check className="h-full w-full stroke-[3] text-white" />
+                                      <div className="h-6 w-6 rounded-full bg-green-500 p-1">
+                                        <Check className="h-full w-full stroke-[3] text-white" />
+                                      </div>
                                     </div>
-                                  </div>
-                                ) : (
-                                  <FormControl>
-                                    <Input
-                                      {...field}
-                                      className="text-sm placeholder:text-slate-400"
-                                      placeholder="Paste your link here"
-                                    />
-                                  </FormControl>
-                                )}
-                                <FormMessage />
-                                <FormField
-                                  name={`paymentLinks.${index}.root` as any}
-                                  control={control}
-                                  render={() => {
-                                    return (
-                                      <FormItem>
-                                        <FormMessage />
-                                      </FormItem>
-                                    );
-                                  }}
-                                />
+                                  ) : (
+                                    <FormControl>
+                                      <Input
+                                        {...field}
+                                        className="text-sm placeholder:text-slate-400"
+                                        placeholder="Paste your link here"
+                                      />
+                                    </FormControl>
+                                  )}
+                                  <FormMessage />
+                                  <FormField
+                                    name={`paymentLinks.${index}.root` as any}
+                                    control={control}
+                                    render={() => {
+                                      return (
+                                        <FormItem>
+                                          <FormMessage />
+                                        </FormItem>
+                                      );
+                                    }}
+                                  />
+                                </div>
                               </div>
-                            </div>
-                          </FormItem>
-                        )}
-                      />
-                    );
-                  })}
+                            </FormItem>
+                          )}
+                        />
+                      );
+                    })
+                )}
               </div>
               <FormField
                 name={`paymentLinks.root` as any}
@@ -680,7 +704,7 @@ export const VerifyPaymentModal = ({
                 <Button
                   className="w-full"
                   disabled={submissions?.every(
-                    (sub) => getSubmissionPaymentStatus(sub).isPaid,
+                    (sub) => !getNextPayableMilestone(sub),
                   )}
                   type="submit"
                 >

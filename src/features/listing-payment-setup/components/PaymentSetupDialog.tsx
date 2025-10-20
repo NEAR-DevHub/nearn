@@ -33,6 +33,7 @@ import { tokenList } from '@/constants/tokenList';
 import { type MilestoneWithUser } from '@/interface/submission';
 
 import { PaymentMode } from '../constants';
+import { useCreateMilestones } from '../mutations/useCreateMilestones';
 import { MilestoneCard } from './MilestoneCard';
 import { PaymentSetupDialogFooter } from './PaymentSetupDialogFooter';
 import { ProjectAmountPanel } from './ProjectAmountPanel';
@@ -56,7 +57,7 @@ const milestoneItemSchema = z.object({
     .min(1, 'Title is required')
     .max(100, 'Title must be less than 100 characters'),
   description: z.string().optional().nullable(),
-  deadline: z.date().optional().nullable(),
+  deadline: z.date(),
   reward: z.number().min(0, 'Amount must be greater than or equal to 0'),
   milestoneIndex: z.number().int().positive(),
   token: z.string(),
@@ -80,6 +81,8 @@ export function PaymentSetupDialog({
   submissionId,
   onSave,
 }: PaymentSetupDialogProps) {
+  const createMilestonesMutation = useCreateMilestones();
+
   const form = useForm<PaymentSetupForm>({
     resolver: zodResolver(paymentSetupFormSchema),
     mode: 'onChange',
@@ -173,7 +176,6 @@ export function PaymentSetupDialog({
         return;
       }
     }
-
     const useSingleMilestone = values.mode === PaymentMode.FULL;
     const body = useSingleMilestone
       ? { submissionId, useSingleMilestone: true }
@@ -193,31 +195,12 @@ export function PaymentSetupDialog({
           })),
         };
 
-    try {
-      const res = await fetch('/api/milestones/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) {
-        const errorData = await res.json();
-        console.error('Failed to save milestones:', res.status, errorData);
-        form.setError('root', {
-          type: 'manual',
-          message: errorData.error || 'Failed to save milestones',
-        });
-        return;
-      }
-      const result = await res.json();
-      onSave?.(result.milestones);
-      onOpenChange(false);
-    } catch (error) {
-      console.error('Error saving milestones:', error);
-      form.setError('root', {
-        type: 'manual',
-        message: 'An unexpected error occurred',
-      });
-    }
+    createMilestonesMutation.mutate(body, {
+      onSuccess: (data) => {
+        onSave?.(data.milestones);
+        onOpenChange(false);
+      },
+    });
   };
 
   const duplicateMilestoneAt = (index: number) => {
@@ -265,7 +248,10 @@ export function PaymentSetupDialog({
                     render={({ field }) => (
                       <RadioGroup
                         value={field.value}
-                        onValueChange={field.onChange}
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          form.setValue('milestones', []);
+                        }}
                         className="mt-2 space-y-5"
                       >
                         <PaymentOption
@@ -354,7 +340,7 @@ export function PaymentSetupDialog({
                 tokenSymbol={tokenSymbol}
                 tokenIconSrc={tokenIconSrc}
                 paymentMode={mode}
-                isSubmitting={form.formState.isSubmitting}
+                isSubmitting={createMilestonesMutation.isPending}
                 errors={form.formState.errors}
               />
             </div>

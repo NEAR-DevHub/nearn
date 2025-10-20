@@ -25,6 +25,7 @@ interface MilestoneCardProps {
   onDuplicate: () => void;
   onDelete: () => void;
   hideDeleteButton?: boolean;
+  disabled?: boolean;
 }
 
 export const MilestoneCard = ({
@@ -34,6 +35,7 @@ export const MilestoneCard = ({
   onDuplicate,
   onDelete,
   hideDeleteButton = false,
+  disabled = false,
 }: MilestoneCardProps) => {
   const { control } = useFormContext();
   const {
@@ -54,14 +56,21 @@ export const MilestoneCard = ({
     <div
       ref={setNodeRef}
       style={style}
-      className={cn('group relative pr-7', isDragging && 'opacity-50')}
+      className={cn(
+        'group relative pr-7',
+        isDragging && 'opacity-50',
+        disabled && 'pointer-events-none opacity-60',
+      )}
     >
       <div className="rounded-md border">
         <div className="flex items-center gap-2 border-b p-2">
           <div
             {...attributes}
             {...listeners}
-            className="cursor-grab active:cursor-grabbing"
+            className={cn(
+              'cursor-grab active:cursor-grabbing',
+              disabled && 'cursor-not-allowed',
+            )}
           >
             <GripVertical className="h-4 w-4 text-slate-400" />
           </div>
@@ -165,6 +174,7 @@ export const MilestoneCard = ({
       <div className="absolute right-0 top-0 flex flex-col gap-1 opacity-0 transition-opacity group-hover:opacity-100">
         {!hideDeleteButton && (
           <Button
+            type="button"
             variant="ghost"
             size="sm"
             className="h-6 w-6 p-1"
@@ -177,6 +187,7 @@ export const MilestoneCard = ({
           variant="ghost"
           size="sm"
           className="h-6 w-6 p-1"
+          type="button"
           onClick={onDuplicate}
         >
           <Copy className="h-4 w-4 text-slate-500" />
