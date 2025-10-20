@@ -12,13 +12,15 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
+import { zodResolver } from '@hookform/resolvers/zod';
 import type { Prisma } from '@prisma/client';
 import { Plus } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useFieldArray, useForm, useWatch } from 'react-hook-form';
+import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
-import { Form } from '@/components/ui/form';
+import { Form, FormField } from '@/components/ui/form';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
@@ -28,6 +30,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { tokenList } from '@/constants/tokenList';
+import { type MilestoneWithUser } from '@/interface/submission';
 
 import { PaymentMode } from '../constants';
 import { MilestoneCard } from './MilestoneCard';
@@ -40,10 +43,29 @@ interface PaymentSetupDialogProps {
   projectAmount: number;
   tokenSymbol: string;
   submissionId: string;
-  onSave?: (mode: PaymentMode) => void;
+  onSave?: (milestones: MilestoneWithUser[]) => void;
 }
 
 type MilestonePayloadItem = Prisma.MilestoneCreateManyInput & { id: string };
+
+const milestoneItemSchema = z.object({
+  id: z.string(),
+  submissionId: z.string(),
+  title: z
+    .string()
+    .min(1, 'Title is required')
+    .max(100, 'Title must be less than 100 characters'),
+  description: z.string().optional().nullable(),
+  deadline: z.date().optional().nullable(),
+  reward: z.number().min(0, 'Amount must be greater than or equal to 0'),
+  milestoneIndex: z.number().int().positive(),
+  token: z.string(),
+});
+
+const paymentSetupFormSchema = z.object({
+  mode: z.nativeEnum(PaymentMode),
+  milestones: z.array(milestoneItemSchema),
+});
 
 interface PaymentSetupForm {
   mode: PaymentMode;
@@ -59,6 +81,8 @@ export function PaymentSetupDialog({
   onSave,
 }: PaymentSetupDialogProps) {
   const form = useForm<PaymentSetupForm>({
+    resolver: zodResolver(paymentSetupFormSchema),
+    mode: 'onChange',
     defaultValues: {
       mode: PaymentMode.FULL,
       milestones: [
@@ -136,10 +160,16 @@ export function PaymentSetupDialog({
     });
   };
 
-  const handleSave = async () => {
-    const values = form.getValues();
+  const handleSave = async (values: PaymentSetupForm) => {
     if (values.mode === PaymentMode.MILESTONE) {
-      if (!values.milestones?.length || currentAmount !== projectAmount) {
+      if (!values.milestones?.length) {
+        return;
+      }
+      if (currentAmount !== projectAmount) {
+        form.setError('milestones', {
+          type: 'manual',
+          message: 'The total of all milestones must match the project amount',
+        });
         return;
       }
     }
@@ -169,77 +199,58 @@ export function PaymentSetupDialog({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
-      if (!res.ok) return;
-      onSave?.(values.mode);
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error('Failed to save milestones:', res.status, errorData);
+        form.setError('root', {
+          type: 'manual',
+          message: errorData.error || 'Failed to save milestones',
+        });
+        return;
+      }
+      const result = await res.json();
+      onSave?.(result.milestones);
       onOpenChange(false);
-    } catch (_) {}
+    } catch (error) {
+      console.error('Error saving milestones:', error);
+      form.setError('root', {
+        type: 'manual',
+        message: 'An unexpected error occurred',
+      });
+    }
   };
 
-  const duplicateMilestoneAt = (index: number) =>
+  const duplicateMilestoneAt = (index: number) => {
+    const values = form.getValues();
     insert(index + 1, {
       id: String(fields.length + 1),
       submissionId: submissionId,
-      title: `Milestone ${fields.length + 1}`,
-      description: form.getValues(`milestones.${index}.description`) || '',
-      reward: Number(form.getValues(`milestones.${index}.reward`) || 0),
-      deadline: form.getValues(`milestones.${index}.deadline`),
+      title: values.milestones[index]?.title || '',
+      description: values.milestones[index]?.description || '',
+      reward: Number(values.milestones[index]?.reward || 0),
+      deadline: values.milestones[index]?.deadline,
       milestoneIndex: fields.length + 1,
       token: tokenSymbol,
     });
-
-  const MilestoneItem = ({
-    index,
-    fieldKey,
-  }: {
-    index: number;
-    fieldKey: string;
-  }) => (
-    <MilestoneCard
-      key={fieldKey}
-      id={fieldKey}
-      tokenSymbol={tokenSymbol}
-      amount={
-        form.watch(`milestones.${index}.reward`) as unknown as number | null
-      }
-      onAmountChange={(val) =>
-        form.setValue(`milestones.${index}.reward`, Number(val || 0))
-      }
-      title={form.watch(`milestones.${index}.title`) || ''}
-      onTitleChange={(title) =>
-        form.setValue(`milestones.${index}.title`, title)
-      }
-      description={form.watch(`milestones.${index}.description`) || ''}
-      onDescriptionChange={(description: string) =>
-        form.setValue(`milestones.${index}.description`, description)
-      }
-      dueDate={
-        form.watch(`milestones.${index}.deadline`) as unknown as
-          | Date
-          | undefined
-      }
-      onDueDateChange={(date) =>
-        form.setValue(`milestones.${index}.deadline`, date)
-      }
-      onDelete={() => remove(index)}
-      onDuplicate={() => duplicateMilestoneAt(index)}
-      hideDeleteButton={fields.length === 1}
-    />
-  );
+  };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <Form {...form}>
-        <SheetContent
-          showCloseIcon={false}
-          side="right"
-          className="flex h-[100vh] flex-col gap-0 p-0 sm:max-w-xl"
-        >
-          <div className="h-full overflow-y-auto">
-            <SheetHeader className="shrink-0 space-y-6 p-6 pb-0">
-              <SheetTitle>Payment Setup</SheetTitle>
-            </SheetHeader>
+      <SheetContent
+        showCloseIcon={false}
+        side="right"
+        className="flex h-[100vh] flex-col p-0 sm:max-w-xl"
+      >
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(handleSave)}
+            className="flex h-[100vh] flex-col"
+          >
+            <div className="flex h-full flex-col gap-6 overflow-y-auto p-6 pb-0">
+              <SheetHeader className="shrink-0">
+                <SheetTitle>Payment Setup</SheetTitle>
+              </SheetHeader>
 
-            <div className="p-6 pt-2">
               <div className="space-y-6">
                 <ProjectAmountPanel
                   projectAmount={projectAmount}
@@ -248,93 +259,108 @@ export function PaymentSetupDialog({
                 />
 
                 <div className="space-y-6">
-                  <RadioGroup
-                    value={mode}
-                    onValueChange={(v) =>
-                      form.setValue('mode', v as PaymentMode)
-                    }
-                    className="mt-2 space-y-5"
-                  >
-                    <PaymentOption
-                      id="pay-full"
-                      value={PaymentMode.FULL}
-                      title="Pay for whole project"
-                      description="Make the full amount"
-                    />
-                    <PaymentOption
-                      id="pay-ms"
-                      value={PaymentMode.MILESTONE}
-                      title="Pay by milestones"
-                      description="Split payment into milestones"
-                    />
-                  </RadioGroup>
-                </div>
-
-                {mode === PaymentMode.MILESTONE && (
-                  <DndContext
-                    sensors={sensors}
-                    collisionDetection={closestCenter}
-                    onDragStart={handleDragStart}
-                    onDragEnd={handleDragEnd}
-                  >
-                    <SortableContext
-                      items={fields.map((f) => f.key)}
-                      strategy={verticalListSortingStrategy}
-                    >
-                      <div className="space-y-4">
-                        {fields.map((field, index) => (
-                          <MilestoneItem
-                            key={field.key}
-                            index={index}
-                            fieldKey={field.key}
-                          />
-                        ))}
-                      </div>
-                    </SortableContext>
-                    <DragOverlay>
-                      {activeId ? (
-                        <div className="w-full rounded-md bg-white opacity-80 shadow-lg">
-                          {fields.map((field, index) =>
-                            field.key === activeId ? (
-                              <MilestoneItem
-                                key={field.key}
-                                index={index}
-                                fieldKey={field.key}
-                              />
-                            ) : null,
-                          )}
-                        </div>
-                      ) : null}
-                    </DragOverlay>
-                    <div className="mr-7 mt-4 flex justify-end">
-                      <Button
-                        type="button"
-                        variant="link"
-                        size="sm"
-                        className="flex w-fit px-0"
-                        onClick={handleAddMilestone}
+                  <FormField
+                    control={form.control}
+                    name="mode"
+                    render={({ field }) => (
+                      <RadioGroup
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        className="mt-2 space-y-5"
                       >
-                        <Plus /> Add Milestone
-                      </Button>
-                    </div>
-                  </DndContext>
-                )}
+                        <PaymentOption
+                          id="pay-full"
+                          value={PaymentMode.FULL}
+                          title="Pay for whole project"
+                          description="Make a one-time payment for the whole project — either at the start or after the work is completed."
+                        />
+                        <PaymentOption
+                          id="pay-ms"
+                          value={PaymentMode.MILESTONE}
+                          title="Pay by milestones"
+                          description="Split payment into milestones"
+                        />
+                      </RadioGroup>
+                    )}
+                  />
+
+                  {mode === PaymentMode.MILESTONE && (
+                    <DndContext
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragStart={handleDragStart}
+                      onDragEnd={handleDragEnd}
+                    >
+                      <SortableContext
+                        items={fields.map((f) => f.key)}
+                        strategy={verticalListSortingStrategy}
+                      >
+                        <div className="space-y-4">
+                          {fields.map((field, index) => (
+                            <MilestoneCard
+                              id={field.key}
+                              key={field.key}
+                              index={index}
+                              tokenSymbol={tokenSymbol}
+                              onDelete={() => remove(index)}
+                              onDuplicate={() => duplicateMilestoneAt(index)}
+                              hideDeleteButton={fields.length === 1}
+                            />
+                          ))}
+                        </div>
+                      </SortableContext>
+                      <DragOverlay>
+                        {activeId ? (
+                          <div className="w-full rounded-md bg-white opacity-80 shadow-lg">
+                            {fields.map((field, index) =>
+                              field.key === activeId ? (
+                                <MilestoneCard
+                                  id={field.key}
+                                  key={field.key}
+                                  index={index}
+                                  tokenSymbol={tokenSymbol}
+                                  onDelete={() => remove(index)}
+                                  onDuplicate={() =>
+                                    duplicateMilestoneAt(index)
+                                  }
+                                  hideDeleteButton={fields.length === 1}
+                                />
+                              ) : null,
+                            )}
+                          </div>
+                        ) : null}
+                      </DragOverlay>
+                      <div className="mr-7 mt-4 flex justify-end">
+                        <Button
+                          type="button"
+                          variant="link"
+                          size="sm"
+                          className="flex w-fit px-0"
+                          onClick={handleAddMilestone}
+                        >
+                          <Plus /> Add Milestone
+                        </Button>
+                      </div>
+                    </DndContext>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="shrink-0">
-            <PaymentSetupDialogFooter
-              totalAmount={projectAmount}
-              currentAmount={currentAmount}
-              tokenSymbol={tokenSymbol}
-              tokenIconSrc={tokenIconSrc}
-              paymentMode={mode}
-              onSave={handleSave}
-            />
-          </div>
-        </SheetContent>
-      </Form>
+            <div className="shrink-0 border-t">
+              <PaymentSetupDialogFooter
+                totalAmount={projectAmount}
+                currentAmount={currentAmount}
+                tokenSymbol={tokenSymbol}
+                tokenIconSrc={tokenIconSrc}
+                paymentMode={mode}
+                isSubmitting={form.formState.isSubmitting}
+                errors={form.formState.errors}
+              />
+            </div>
+          </form>
+        </Form>
+      </SheetContent>
     </Sheet>
   );
 }

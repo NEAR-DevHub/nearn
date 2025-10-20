@@ -108,6 +108,8 @@ export const SubmissionList = ({
     if (submission?.isWinner && submission?.winnerPosition) {
       if (type === 'project' || type === 'sponsorship') {
         if (
+          submission.Milestones &&
+          submission.Milestones.length > 0 &&
           submission.Milestones.every(
             (milestone) => milestone.status === 'Paid',
           )

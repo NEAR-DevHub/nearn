@@ -48,6 +48,7 @@ import { truncateString } from '@/utils/truncateString';
 
 import { Comments } from '@/features/comments/components/Comments';
 import { useCommentCount } from '@/features/comments/queries/comment-count';
+import { PaymentSetupDialog } from '@/features/listing-payment-setup/components/PaymentSetupDialog';
 import type { Listing } from '@/features/listings/types';
 import LogsTimeline from '@/features/logging/components/LogsTimeline';
 import { useGetLogsInfinite } from '@/features/logging/queries';
@@ -198,6 +199,258 @@ export const PaymentButton = ({
   );
 };
 
+interface SubmissionMenuProps {
+  submissions: SubmissionWithListingUser[];
+  bounty: Listing | undefined;
+  usedPositions: number[];
+  isHackathonPage: boolean;
+  onWinnersAnnounceOpen: () => void;
+  remainings: { podiums: number; bonus: number } | null;
+  setRemainings: Dispatch<
+    SetStateAction<{ podiums: number; bonus: number } | null>
+  >;
+  isMultiSelectOn: boolean;
+  onVerifyPayment: () => void;
+  onManualPaymentOpen: () => void;
+}
+
+export function SubmissionMenu({
+  submissions,
+  bounty,
+  usedPositions,
+  isHackathonPage,
+  onWinnersAnnounceOpen,
+  remainings,
+  setRemainings,
+  isMultiSelectOn,
+  onVerifyPayment,
+  onManualPaymentOpen,
+}: SubmissionMenuProps) {
+  const [isNearTreasuryPaymentModalOpen, setIsNearTreasuryPaymentModalOpen] =
+    useState(false);
+  const [selectedSubmission, setSelectedSubmission] = useAtom(
+    selectedSubmissionAtom,
+  );
+  const [isPaymentSetupDialogOpen, setIsPaymentSetupDialogOpen] =
+    useState(false);
+
+  const afterAnnounceDate =
+    bounty?.type === 'hackathon'
+      ? dayjs().isAfter(bounty?.Hackathon?.announceDate)
+      : true;
+
+  const isProject = bounty?.type === 'project';
+  const isSponsorship = bounty?.type === 'sponsorship';
+
+  const milestones = selectedSubmission?.Milestones || [];
+  const milestone = milestones[0];
+  const paymentStatus = selectedSubmission
+    ? getSubmissionPaymentStatus(selectedSubmission)
+    : null;
+
+  const treasury = milestone?.paymentDetails?.treasury;
+
+  const { data: proposalStatus, isLoading: isLoadingProposalStatus } = useQuery(
+    treasuryProposalStatusQuery(treasury?.dao, treasury?.proposalId ?? 0),
+  );
+
+  let announceWinnerText =
+    'All winners have been selected. Click the button to announce them and move to the payment stage';
+  if (bounty?.isWinnersAnnounced) {
+    announceWinnerText =
+      'You cannot change the winners once the results are published!';
+  }
+
+  if (remainings?.podiums !== 0 || remainings?.bonus !== 0) {
+    announceWinnerText =
+      'Allocate the whole prize pool or edit the listing to shrink it before you can continue';
+  }
+
+  const renderPaymentSection = () => {
+    if (
+      !selectedSubmission?.isWinner ||
+      !selectedSubmission?.winnerPosition ||
+      paymentStatus?.isPaid
+    ) {
+      return null;
+    }
+
+    if (!(bounty?.isWinnersAnnounced || isSponsorship)) {
+      return null;
+    }
+
+    // Case 1: No milestones -> Show PaymentSetupDialog
+    if (milestones.length === 0) {
+      return (
+        <Button
+          onClick={() => setIsPaymentSetupDialogOpen(true)}
+          className="ph-no-capture min-w-[150px]"
+        >
+          Payment Setup
+        </Button>
+      );
+    }
+
+    // Case 2: 1 Milestone -> Use existing logic
+    if (milestones.length === 1) {
+      return (
+        <PaymentButton
+          treasury={treasury}
+          proposalStatus={proposalStatus}
+          isLoadingProposalStatus={isLoadingProposalStatus}
+          onVerifyPayment={onVerifyPayment}
+          setIsNearTreasuryPaymentModalOpen={setIsNearTreasuryPaymentModalOpen}
+          onManualPaymentOpen={onManualPaymentOpen}
+        />
+      );
+    }
+
+    // Case 3: >1 Milestone -> Show "View Milestones" button with status
+    const completedMilestones = milestones.filter(
+      (m) => m.status === 'Paid',
+    ).length;
+    const totalMilestones = milestones.length;
+
+    return (
+      <div className="flex items-center gap-2">
+        <Button
+          onClick={() => {
+            /* TODO: Open milestone view modal */
+          }}
+          className="ph-no-capture min-w-[120px]"
+          variant="outline"
+        >
+          View Milestones
+        </Button>
+        <span className="text-sm text-slate-500">
+          {completedMilestones}/{totalMilestones} completed
+        </span>
+      </div>
+    );
+  };
+
+  return (
+    <>
+      <div
+        className={'ph-no-capture flex w-full items-center justify-end gap-2'}
+      >
+        {renderPaymentSection()}
+
+        {selectedSubmission?.isWinner &&
+          selectedSubmission?.winnerPosition &&
+          paymentStatus?.isPaid && (
+            <DisplayPayment
+              milestone={milestone as MilestoneWithUser}
+              listing={bounty as Listing}
+              isSponsorView={true}
+            />
+          )}
+        {selectedSubmission?.status === 'Pending' &&
+          milestone?.status !== 'Paid' && (
+            <SelectLabel listingSlug={bounty?.slug!} />
+          )}
+
+        {!bounty?.isWinnersAnnounced &&
+          selectedSubmission?.status === 'Pending' && (
+            <>
+              <SelectWinner
+                onWinnersAnnounceOpen={onWinnersAnnounceOpen}
+                isMultiSelectOn={!!isMultiSelectOn}
+                bounty={bounty}
+                usedPositions={usedPositions}
+                setRemainings={setRemainings}
+                submissions={submissions}
+                isHackathonPage={isHackathonPage}
+              />
+              {!isProject && !isSponsorship && (
+                <div className="flex items-center gap-2">
+                  <Tooltip
+                    content={announceWinnerText}
+                    contentProps={{
+                      side: 'bottom',
+                      align: 'center',
+                      className: 'w-[97%]',
+                    }}
+                  >
+                    <Button
+                      className={cn(
+                        'bg-slate-900 hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-gray-500 disabled:hover:bg-gray-500',
+                      )}
+                      disabled={
+                        !afterAnnounceDate ||
+                        isHackathonPage ||
+                        remainings?.podiums !== 0 ||
+                        remainings?.bonus !== 0
+                      }
+                      onClick={onWinnersAnnounceOpen}
+                      variant="default"
+                    >
+                      Announce Winners
+                    </Button>
+                  </Tooltip>
+                  <SelectWinnersGuide />
+                </div>
+              )}
+            </>
+          )}
+      </div>
+
+      {selectedSubmission && (
+        <>
+          <NearTreasuryPaymentModal
+            isOpen={isNearTreasuryPaymentModalOpen}
+            onClose={() => setIsNearTreasuryPaymentModalOpen(false)}
+            milestoneId={milestone?.id || ''}
+            onSuccess={(
+              treasuryLink: string,
+              proposalId: number,
+              dao: string,
+            ) => {
+              setSelectedSubmission((prev) =>
+                prev && prev.id === selectedSubmission?.id
+                  ? {
+                      ...prev,
+                      paymentDetails: {
+                        treasury: { link: treasuryLink, proposalId, dao },
+                      },
+                    }
+                  : prev,
+              );
+            }}
+          />
+
+          {milestones.length === 0 && selectedSubmission?.winnerPosition && (
+            <PaymentSetupDialog
+              open={isPaymentSetupDialogOpen}
+              onOpenChange={setIsPaymentSetupDialogOpen}
+              projectAmount={
+                bounty?.rewards?.[selectedSubmission?.winnerPosition] ?? 0
+              }
+              tokenSymbol={
+                bounty?.token === 'Any'
+                  ? selectedSubmission?.token!
+                  : bounty?.token!
+              }
+              submissionId={selectedSubmission?.id}
+              onSave={(milestones: MilestoneWithUser[]) => {
+                setSelectedSubmission((prev) =>
+                  prev && prev.id === selectedSubmission?.id
+                    ? {
+                        ...prev,
+                        Milestones: milestones,
+                      }
+                    : prev,
+                );
+                setIsPaymentSetupDialogOpen(false);
+              }}
+            />
+          )}
+        </>
+      )}
+    </>
+  );
+}
+
 export const DoneBy = ({
   doneBy,
   doneByType,
@@ -226,20 +479,10 @@ export const SubmissionPanel = ({
   onVerifyPayment,
   onManualPaymentOpen,
 }: Props) => {
-  const afterAnnounceDate =
-    bounty?.type === 'hackathon'
-      ? dayjs().isAfter(bounty?.Hackathon?.announceDate)
-      : true;
-
-  const isProject = bounty?.type === 'project';
-  const isSponsorship = bounty?.type === 'sponsorship';
   const [selectedSubmission, setSelectedSubmission] = useAtom(
     selectedSubmissionAtom,
   );
-  const milestone = selectedSubmission?.Milestones[0];
-  const paymentStatus = selectedSubmission
-    ? getSubmissionPaymentStatus(selectedSubmission)
-    : null;
+
   const { data: commentData, refetch: refetchCommentCount } = useCommentCount(
     selectedSubmission?.id,
   );
@@ -293,9 +536,6 @@ export const SubmissionPanel = ({
     getSubmissionUrl(selectedSubmission, bounty),
   );
 
-  const [isNearTreasuryPaymentModalOpen, setIsNearTreasuryPaymentModalOpen] =
-    useState(false);
-
   const handleCopySubmissionLink = () => {
     if (selectedSubmission?.id) {
       onCopySubmissionLink();
@@ -326,12 +566,6 @@ export const SubmissionPanel = ({
   const handleUpdatePaymentDate = () => {
     setIsUpdateDateModalOpen(true);
   };
-
-  const treasury = milestone?.paymentDetails?.treasury;
-
-  const { data: proposalStatus, isLoading: isLoadingProposalStatus } = useQuery(
-    treasuryProposalStatusQuery(treasury?.dao, treasury?.proposalId ?? 0),
-  );
 
   const socials = [
     {
@@ -406,17 +640,10 @@ export const SubmissionPanel = ({
     amount = bounty?.rewards?.[selectedSubmission?.winnerPosition] ?? 0;
   }
 
-  let announceWinnerText =
-    'All winners have been selected. Click the button to announce them and move to the payment stage';
-  if (bounty?.isWinnersAnnounced) {
-    announceWinnerText =
-      'You cannot change the winners once the results are published!';
-  }
-
-  if (remainings?.podiums !== 0 || remainings?.bonus !== 0) {
-    announceWinnerText =
-      'Allocate the whole prize pool or edit the listing to shrink it before you can continue';
-  }
+  const milestone =
+    selectedSubmission?.Milestones && selectedSubmission?.Milestones.length > 0
+      ? selectedSubmission?.Milestones[0]
+      : null;
 
   return (
     <>
@@ -462,129 +689,66 @@ export const SubmissionPanel = ({
                     </Link>
                   </div>
                 </div>
-                <div
-                  className={
-                    'ph-no-capture flex w-full items-center justify-end gap-2'
-                  }
-                >
-                  {selectedSubmission?.isWinner &&
-                    selectedSubmission?.winnerPosition &&
-                    !paymentStatus?.isPaid &&
-                    (bounty?.isWinnersAnnounced || isSponsorship) && (
-                      <PaymentButton
-                        treasury={treasury}
-                        proposalStatus={proposalStatus}
-                        isLoadingProposalStatus={isLoadingProposalStatus}
-                        onVerifyPayment={onVerifyPayment}
-                        setIsNearTreasuryPaymentModalOpen={
-                          setIsNearTreasuryPaymentModalOpen
-                        }
-                        onManualPaymentOpen={onManualPaymentOpen}
-                      />
-                    )}
-                  {selectedSubmission?.isWinner &&
-                    selectedSubmission?.winnerPosition &&
-                    paymentStatus?.isPaid && (
-                      <DisplayPayment
-                        milestone={milestone as MilestoneWithUser}
-                        listing={bounty as Listing}
-                        isSponsorView={true}
-                      />
-                    )}
-                  {selectedSubmission?.status === 'Pending' &&
-                    milestone?.status !== 'Paid' && (
-                      <SelectLabel listingSlug={bounty?.slug!} />
-                    )}
-
-                  {!bounty?.isWinnersAnnounced &&
-                    selectedSubmission?.status === 'Pending' && (
-                      <>
-                        <SelectWinner
-                          onWinnersAnnounceOpen={onWinnersAnnounceOpen}
-                          isMultiSelectOn={!!isMultiSelectOn}
-                          bounty={bounty}
-                          usedPositions={usedPositions}
-                          setRemainings={setRemainings}
-                          submissions={submissions}
-                          isHackathonPage={isHackathonPage}
-                        />
-                        {!isProject && !isSponsorship && (
-                          <div className="flex items-center gap-2">
-                            <Tooltip
-                              content={announceWinnerText}
-                              contentProps={{
-                                side: 'bottom',
-                                align: 'center',
-                                className: 'w-[97%]',
-                              }}
-                            >
-                              <Button
-                                className={cn(
-                                  'bg-slate-900 hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-gray-500 disabled:hover:bg-gray-500',
-                                )}
-                                disabled={
-                                  !afterAnnounceDate ||
-                                  isHackathonPage ||
-                                  remainings?.podiums !== 0 ||
-                                  remainings?.bonus !== 0
-                                }
-                                onClick={onWinnersAnnounceOpen}
-                                variant="default"
-                              >
-                                Announce Winners
-                              </Button>
-                            </Tooltip>
-                            <SelectWinnersGuide />
-                          </div>
-                        )}
-                      </>
-                    )}
-                </div>
-              </div>
-              <div className="ml-auto flex w-fit px-4 py-1 text-xs">
-                <TreasuryStatus
-                  treasury={treasury}
-                  milestoneId={milestone?.id ?? ''}
-                  milestoneIsPaid={milestone?.status === 'Paid'}
-                  updateSubmission={(status) => {
-                    setSelectedSubmission((prev) =>
-                      prev && prev.id === selectedSubmission?.id
-                        ? {
-                            ...prev,
-                            Milestones:
-                              prev.Milestones?.map((m) => {
-                                if (m.id === milestone?.id) {
-                                  if (status === 'Approved') {
-                                    return {
-                                      ...m,
-                                      status: 'Paid',
-                                      paidDate: new Date(),
-                                      paymentDetails: {
-                                        ...m.paymentDetails,
-                                        link: m.paymentDetails?.treasury?.link,
-                                      },
-                                    };
-                                  } else {
-                                    return {
-                                      ...m,
-                                      paymentDetails: {
-                                        ...m.paymentDetails,
-                                        treasury: {
-                                          ...m.paymentDetails?.treasury,
-                                          synced: true,
-                                        },
-                                      },
-                                    };
-                                  }
-                                }
-                                return m;
-                              }) || [],
-                          }
-                        : prev,
-                    );
-                  }}
+                <SubmissionMenu
+                  submissions={submissions}
+                  bounty={bounty}
+                  isMultiSelectOn={isMultiSelectOn ?? false}
+                  usedPositions={usedPositions}
+                  isHackathonPage={isHackathonPage ?? false}
+                  onWinnersAnnounceOpen={onWinnersAnnounceOpen}
+                  remainings={remainings}
+                  setRemainings={setRemainings}
+                  onVerifyPayment={onVerifyPayment}
+                  onManualPaymentOpen={onManualPaymentOpen}
                 />
               </div>
+              {milestone && (
+                <div className="ml-auto flex w-fit px-4 py-1 text-xs">
+                  <TreasuryStatus
+                    treasury={milestone?.paymentDetails?.treasury}
+                    milestoneId={milestone?.id ?? ''}
+                    milestoneIsPaid={milestone?.status === 'Paid'}
+                    updateSubmission={(status) => {
+                      setSelectedSubmission((prev) =>
+                        prev && prev.id === selectedSubmission?.id
+                          ? {
+                              ...prev,
+                              Milestones:
+                                prev.Milestones?.map((m) => {
+                                  if (m.id === milestone?.id) {
+                                    if (status === 'Approved') {
+                                      return {
+                                        ...m,
+                                        status: 'Paid',
+                                        paidDate: new Date(),
+                                        paymentDetails: {
+                                          ...m.paymentDetails,
+                                          link: m.paymentDetails?.treasury
+                                            ?.link,
+                                        },
+                                      };
+                                    } else {
+                                      return {
+                                        ...m,
+                                        paymentDetails: {
+                                          ...m.paymentDetails,
+                                          treasury: {
+                                            ...m.paymentDetails?.treasury,
+                                            synced: true,
+                                          },
+                                        },
+                                      };
+                                    }
+                                  }
+                                  return m;
+                                }) || [],
+                            }
+                          : prev,
+                      );
+                    }}
+                  />
+                </div>
+              )}
 
               <div className="flex items-center justify-between px-4 py-2">
                 <div className="flex gap-5">
@@ -921,30 +1085,6 @@ export const SubmissionPanel = ({
           );
         }}
       />
-
-      {selectedSubmission && (
-        <NearTreasuryPaymentModal
-          isOpen={isNearTreasuryPaymentModalOpen}
-          onClose={() => setIsNearTreasuryPaymentModalOpen(false)}
-          milestoneId={milestone?.id || ''}
-          onSuccess={(
-            treasuryLink: string,
-            proposalId: number,
-            dao: string,
-          ) => {
-            setSelectedSubmission((prev) =>
-              prev && prev.id === selectedSubmission?.id
-                ? {
-                    ...prev,
-                    paymentDetails: {
-                      treasury: { link: treasuryLink, proposalId, dao },
-                    },
-                  }
-                : prev,
-            );
-          }}
-        />
-      )}
     </>
   );
 };

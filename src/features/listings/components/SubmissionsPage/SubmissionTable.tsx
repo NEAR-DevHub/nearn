@@ -60,7 +60,9 @@ export const sponsorshipSubmissionStatus = (submission: SubmissionWithUser) => {
   if (submission.isArchived || submission.listing?.isArchived) return 'Deleted';
   if (
     submission.status === 'Approved' &&
-    submission.Milestones?.every((milestone) => milestone.status === 'Paid')
+    submission.Milestones &&
+    submission.Milestones.length > 0 &&
+    submission.Milestones.every((milestone) => milestone.status === 'Paid')
   )
     return 'Paid';
   if (submission.status !== 'Pending') return submission.status;

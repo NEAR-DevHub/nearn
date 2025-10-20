@@ -1,3 +1,5 @@
+import { type FieldErrors } from 'react-hook-form';
+
 import { Button } from '@/components/ui/button';
 import { LocalImage } from '@/components/ui/local-image';
 import { SheetFooter } from '@/components/ui/sheet';
@@ -10,7 +12,8 @@ interface PaymentSetupDialogFooterProps {
   tokenSymbol: string;
   tokenIconSrc: string;
   paymentMode: PaymentMode;
-  onSave: () => void;
+  isSubmitting?: boolean;
+  errors?: FieldErrors;
 }
 
 const getAmountText = (
@@ -30,8 +33,12 @@ export function PaymentSetupDialogFooter({
   tokenSymbol,
   tokenIconSrc,
   paymentMode,
-  onSave,
+  isSubmitting = false,
+  errors,
 }: PaymentSetupDialogFooterProps) {
+  const isDisabled =
+    paymentMode === PaymentMode.MILESTONE && currentAmount !== totalAmount;
+
   return (
     <SheetFooter className="border-t p-6">
       <div className="flex w-full flex-col items-center space-y-6">
@@ -53,14 +60,23 @@ export function PaymentSetupDialogFooter({
             </div>
           </div>
           {paymentMode === PaymentMode.MILESTONE && (
-            <p className="mt-1 w-full text-left text-sm text-slate-600">
+            <p className="mt-1 w-full text-left text-xs text-slate-600">
               The total of all milestones must match the overall prize pool to
               continue
             </p>
           )}
+          {errors?.root && (
+            <p className="mt-1 w-full text-left text-xs text-red-600">
+              {errors.root.message}
+            </p>
+          )}
         </div>
-        <Button className="w-full" onClick={onSave}>
-          Save
+        <Button
+          className="w-full"
+          type="submit"
+          disabled={isDisabled || isSubmitting}
+        >
+          {isSubmitting ? 'Saving...' : 'Save'}
         </Button>
       </div>
     </SheetFooter>

@@ -1,5 +1,5 @@
+import { type MilestoneStatus } from '@prisma/client';
 import type { NextApiResponse } from 'next';
-import { z } from 'zod';
 
 import logger from '@/lib/logger';
 import { prisma } from '@/prisma';
@@ -8,23 +8,10 @@ import { safeStringify } from '@/utils/safeStringify';
 import { type NextApiRequestWithSponsor } from '@/features/auth/types';
 import { checkListingSponsorAuth } from '@/features/auth/utils/checkListingSponsorAuth';
 import { withSponsorAuth } from '@/features/auth/utils/withSponsorAuth';
+import { createMilestonesSchema } from '@/features/listing-payment-setup/schemas/milestone.schema';
 import { type Rewards } from '@/features/listings/types';
 import { eventLogger } from '@/features/logging/services/event-logger';
 import { EventType } from '@/features/logging/types/event-data';
-
-const milestoneSchema = z.object({
-  title: z.string().min(1).max(100),
-  description: z.string().optional(),
-  deadline: z.string().datetime().optional(),
-  reward: z.number().positive(),
-  milestoneIndex: z.number().int().positive(),
-});
-
-const createMilestonesSchema = z.object({
-  submissionId: z.string().uuid(),
-  useSingleMilestone: z.boolean(),
-  milestones: z.array(milestoneSchema).optional(),
-});
 
 async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
   const userId = req.userId;
@@ -149,7 +136,10 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
         deadline: milestone.deadline ? new Date(milestone.deadline) : null,
         reward: milestone.reward,
         token: token!,
-        status: 'NotStarted' as const,
+        status:
+          milestone.milestoneIndex !== 1
+            ? 'NotStarted'
+            : ('Pending' as MilestoneStatus),
       }));
 
       createdMilestones = await prisma.milestone.createMany({
@@ -159,6 +149,10 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       createdMilestones = await prisma.milestone.findMany({
         where: { submissionId },
         orderBy: { milestoneIndex: 'asc' },
+        include: {
+          approvedByUser: true,
+          paidByUser: true,
+        },
       });
     }
 

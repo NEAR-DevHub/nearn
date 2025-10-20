@@ -24,7 +24,9 @@ export function ProjectAmountPanel({
           src={tokenIconSrc}
         />
         <div className="space-x-2">
-          <span className="font-semibold text-slate-900">{projectAmount}</span>
+          <span className="font-semibold text-slate-900">
+            {projectAmount.toLocaleString('en-US')}
+          </span>
           <span className="font-semibold text-slate-400">{tokenSymbol}</span>
         </div>
       </div>
