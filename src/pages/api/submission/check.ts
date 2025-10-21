@@ -55,7 +55,8 @@ async function handler(req: NextApiRequestWithUser, res: NextApiResponse) {
       status: submission ? submission?.status : null,
       label: submission ? submission?.label : null,
       isPaid: submission
-        ? submission?.Milestones.every(
+        ? submission?.Milestones.length > 0 &&
+          submission?.Milestones.every(
             (milestone) => milestone.status === 'Paid',
           )
         : null,

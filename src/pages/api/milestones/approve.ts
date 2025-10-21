@@ -65,7 +65,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       return res.status(error.status).json({ error: error.message });
     }
 
-    if (['Approved', 'Paid', 'Rejected'].includes(milestone.status)) {
+    if (['Approved', 'Paid', 'Cancelled'].includes(milestone.status)) {
       logger.warn(`Milestone ${milestoneId} is already ${milestone.status}`);
       return res.status(400).json({
         error: `Milestone ${milestoneId} is already ${milestone.status}`,
