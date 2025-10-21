@@ -37,6 +37,7 @@ import TreasuryStatus from '@/features/treasury/components/TreasuryStatus';
 
 import { selectedSubmissionAtom } from '../../atoms';
 import { type SubmissionWithListingUser } from '../../queries/dashboard-submissions';
+import MilestoneCompletionLine from '../Milestones/CompletionLine';
 import { PaymentButton } from '../Shared/PaymentButton';
 import { Details } from './Details';
 import { DisplayPayment } from './DisplayPayment';
@@ -127,7 +128,7 @@ export function SubmissionMenu({
     if (
       !selectedSubmission?.isWinner ||
       !selectedSubmission?.winnerPosition ||
-      paymentStatus?.isPaid
+      (paymentStatus?.isPaid && milestones.length === 1)
     ) {
       return null;
     }
@@ -161,13 +162,9 @@ export function SubmissionMenu({
     }
 
     // Case 3: >1 Milestone -> Show "View Milestones" button with status
-    const completedMilestones = milestones.filter(
-      (m) => m.status === 'Paid',
-    ).length;
-    const totalMilestones = milestones.length;
-
     return (
       <div className="flex items-center gap-2">
+        <MilestoneCompletionLine submission={selectedSubmission} />
         <Button
           onClick={() => {
             router.push(
@@ -184,9 +181,6 @@ export function SubmissionMenu({
         >
           View Milestones
         </Button>
-        <span className="text-sm text-slate-500">
-          {completedMilestones}/{totalMilestones} completed
-        </span>
       </div>
     );
   };
@@ -200,13 +194,15 @@ export function SubmissionMenu({
 
         {selectedSubmission?.isWinner &&
           selectedSubmission?.winnerPosition &&
-          paymentStatus?.isPaid && (
+          paymentStatus?.isPaid &&
+          milestones.length === 1 && (
             <DisplayPayment
               milestone={milestone as MilestoneWithUser}
               listing={bounty as Listing}
               isSponsorView={true}
             />
           )}
+
         {selectedSubmission?.status === 'Pending' &&
           milestone?.status !== 'Paid' && (
             <SelectLabel listingSlug={bounty?.slug!} />

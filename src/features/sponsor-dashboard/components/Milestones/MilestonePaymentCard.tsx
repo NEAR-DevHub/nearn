@@ -23,6 +23,7 @@ import {
   SubmissionSocialRow,
   SubmissionTalent,
 } from '../Submissions/SubmissionTalent';
+import MilestoneCompletionLine from './CompletionLine';
 import { EditMilestoneDialog } from './EditMilestoneDialog';
 import MilestoneTable from './MilestoneTable';
 
@@ -58,6 +59,7 @@ export default function MilestonePaymentCard({
           <div className="flex items-center justify-between">
             <SubmissionTalent submission={submission} bounty={bounty} />
             <div className="flex items-center gap-2">
+              <MilestoneCompletionLine submission={submission} />
               <SubmissionDropdown
                 submission={submission}
                 onEditClick={onEditMilestoneOpen}

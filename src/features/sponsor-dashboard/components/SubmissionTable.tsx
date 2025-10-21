@@ -67,6 +67,7 @@ import { EarnAvatar } from '@/features/talent/components/EarnAvatar';
 import { type SubmissionWithListingUser } from '../queries/dashboard-submissions';
 import { colorMap } from '../utils/statusColorMap';
 import { ListingTh } from './ListingTable';
+import MilestoneCompletionLine from './Milestones/CompletionLine';
 import { ApproveButton } from './Milestones/MilestoneTable';
 import { VerifyPaymentModal } from './Modals/VerifyPayment';
 import { PaymentButton } from './Shared/PaymentButton';
@@ -511,6 +512,12 @@ export const SubmissionTable = ({
                               </span>
                             </span>
                           </div>
+                          {submission.Milestones.length > 1 && (
+                            <MilestoneCompletionLine
+                              submission={submission}
+                              hideText={true}
+                            />
+                          )}
                         </TableCell>
                       )}
                       {visibleColumns.status && (
@@ -528,7 +535,7 @@ export const SubmissionTable = ({
                               bgColor,
                             )}
                           >
-                            {listingStatus}
+                            {listingStatus.replace(/([A-Z])/g, ' $1').trim()}
                           </p>
                         </TableCell>
                       )}

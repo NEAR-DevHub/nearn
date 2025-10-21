@@ -267,6 +267,7 @@ export default function SponsorListings() {
       'Shortlisted',
       'Reviewed',
       'Approved',
+      'InProgress',
       'Paid',
     ];
     if (session?.user.role === 'GOD') {
@@ -332,7 +333,8 @@ export default function SponsorListings() {
                       getColorStyles(selectedStatus).bg,
                     )}
                   >
-                    {selectedStatus || 'Everything'}
+                    {selectedStatus?.replace(/([A-Z])/g, ' $1').trim() ||
+                      'Everything'}
                   </span>
                   <ChevronDown className="ml-2 h-4 w-4" />
                 </Button>
@@ -367,7 +369,7 @@ export default function SponsorListings() {
                         getColorStyles(status).bg,
                       )}
                     >
-                      {status}
+                      {status.replace(/([A-Z])/g, ' $1').trim()}
                     </span>
                   </DropdownMenuItem>
                 ))}
