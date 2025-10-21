@@ -4,7 +4,6 @@ import { useSession } from 'next-auth/react';
 import React, { type Dispatch, type SetStateAction, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,9 +39,6 @@ interface Props {
       SubmissionLabels | 'Paid' | 'Approved' | 'Rejected' | undefined
     >
   >;
-  toggleSubmission?: (id: string) => void;
-  isToggled?: (id: string) => boolean;
-  toggleAllSubmissions?: () => void;
   selectedSubmission: SubmissionWithListingUser | undefined;
   setSelectedSubmission: (submission: SubmissionWithListingUser) => void;
   isAllToggled?: boolean;
@@ -56,12 +52,8 @@ export const SubmissionList = ({
   type,
   filterLabel,
   setFilterLabel,
-  toggleSubmission,
-  isToggled,
-  toggleAllSubmissions,
   selectedSubmission,
   setSelectedSubmission,
-  isAllToggled,
   refetchSubmissions,
 }: Props) => {
   const { data: session } = useSession();
@@ -115,6 +107,12 @@ export const SubmissionList = ({
           )
         )
           return 'Paid';
+        else if (
+          submission.Milestones.some(
+            (milestone) => milestone.status === 'Cancelled',
+          )
+        )
+          return 'Cancelled';
         return 'Approved';
       } else {
         return nthLabelGenerator(submission.winnerPosition, false);
@@ -132,7 +130,10 @@ export const SubmissionList = ({
     if (submission.isArchived) {
       return { bg: 'bg-red-500', color: 'text-white' };
     }
-    if (submission.listing?.type === 'sponsorship') {
+    if (
+      submission.listing?.type === 'sponsorship' ||
+      submission.listing?.type === 'project'
+    ) {
       const status = sponsorshipSubmissionStatus({
         ...submission,
         listing: undefined,
@@ -158,17 +159,6 @@ export const SubmissionList = ({
     <div className="h-full w-full rounded-l-xl border border-slate-200 bg-white">
       <div className="flex cursor-pointer flex-col items-center justify-between gap-4 border-b border-slate-200 px-4 py-3">
         <div className="flex w-full items-center justify-between gap-4 py-[3px]">
-          {listing?.type === 'project' && (
-            <Checkbox
-              className="data-[state=checked]:border-brand-green data-[state=checked]:bg-brand-green"
-              checked={isAllToggled}
-              disabled={listing?.isWinnersAnnounced}
-              onCheckedChange={() =>
-                toggleAllSubmissions && toggleAllSubmissions()
-              }
-            />
-          )}
-
           <div className="relative w-full">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <Input
@@ -300,19 +290,6 @@ export const SubmissionList = ({
             }}
           >
             <div className="flex items-center gap-2">
-              {listing?.type === 'project' && (
-                <Checkbox
-                  className="data-[state=checked]:border-brand-green data-[state=checked]:bg-brand-green"
-                  checked={isToggled && isToggled(submission.id)}
-                  disabled={
-                    listing?.isWinnersAnnounced ||
-                    submission?.status !== 'Pending'
-                  }
-                  onCheckedChange={() =>
-                    toggleSubmission && toggleSubmission(submission.id)
-                  }
-                />
-              )}
               <p className="w-6 shrink-0 text-xs text-slate-500">
                 {submission.sequentialId}
               </p>

@@ -2,17 +2,13 @@ import { cn } from '@/utils/cn';
 
 import { colorMap } from '@/features/sponsor-dashboard/utils/statusColorMap';
 
-import { EventType } from '../../types/event-data';
 import { type LogProperties } from '.';
 
-export default function MilestoneApproveReject(props: LogProperties) {
+export default function MilestoneApprove(props: LogProperties) {
   const { event } = props;
   const milestone = event.milestone;
 
-  const status =
-    event.eventType === EventType.MILESTONE_APPROVED ? 'Approved' : 'Rejected';
-
-  const labelStyle = colorMap[status];
+  const labelStyle = colorMap['Approved'];
   const username = event.submission?.user?.username;
 
   return (
@@ -48,7 +44,7 @@ export default function MilestoneApproveReject(props: LogProperties) {
           labelStyle.color,
         )}
       >
-        {status}
+        Approved
       </span>
     </p>
   );

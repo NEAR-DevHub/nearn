@@ -40,6 +40,10 @@ const statusExplanation = (
         waitingForSponsor: true,
         editable: true,
       };
+    case 'Cancelled':
+      return {
+        final: true,
+      };
     case 'Deleted':
       return {};
   }

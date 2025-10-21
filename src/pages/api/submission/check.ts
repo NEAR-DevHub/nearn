@@ -36,6 +36,9 @@ async function handler(req: NextApiRequestWithUser, res: NextApiResponse) {
           select: {
             status: true,
           },
+          orderBy: {
+            milestoneIndex: 'asc',
+          },
         },
       },
       orderBy: {

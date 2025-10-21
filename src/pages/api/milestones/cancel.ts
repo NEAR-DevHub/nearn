@@ -63,25 +63,52 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       return res.status(error.status).json({ error: error.message });
     }
 
-    await prisma.milestone.updateMany({
-      where: {
-        submissionId: submissionId,
-        status: {
-          in: ['InReview', 'NotStarted'],
+    await prisma.$transaction(async (tx) => {
+      await tx.milestone.updateMany({
+        where: {
+          submissionId: submissionId,
+          status: {
+            in: ['InReview', 'NotStarted'],
+          },
         },
-      },
-      data: {
-        status: 'Cancelled',
-      },
+        data: {
+          status: 'Cancelled',
+        },
+      });
     });
 
     const cancelledMilestones = await prisma.milestone.findMany({
       where: { submissionId: submissionId, status: 'Cancelled' },
     });
 
+    const promises = [];
     for (const milestone of cancelledMilestones) {
-      await eventLogger.log({
-        eventType: EventType.MILESTONE_CANCELLED,
+      promises.push(
+        eventLogger.log({
+          eventType: EventType.MILESTONE_STATUS_UPDATED,
+          actor: {
+            id: userId as string,
+            type: 'SPONSOR',
+          },
+          data: {
+            previousStatus:
+              submission.Milestones.find((m) => m.id === milestone.id)
+                ?.status || 'NotStarted',
+            newStatus: 'Cancelled',
+          },
+          entities: {
+            listingId: submission.listingId,
+            submissionId: submissionId,
+            sponsorId: userSponsorId,
+            milestoneId: milestone.id,
+          },
+        }),
+      );
+    }
+
+    promises.push(
+      eventLogger.log({
+        eventType: EventType.SUBMISSION_CANCELLED,
         actor: {
           id: userId as string,
           type: 'SPONSOR',
@@ -93,10 +120,11 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
           listingId: submission.listingId,
           submissionId: submissionId,
           sponsorId: userSponsorId,
-          milestoneId: milestone.id,
         },
-      });
-    }
+      }),
+    );
+
+    await Promise.all(promises);
 
     logger.info(
       `Successfully cancelled milestones for submission ${submissionId}`,

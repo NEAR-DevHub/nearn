@@ -67,6 +67,7 @@ export function eventFilters(
       EventType.SUBMISSION_TREASURY_CREATED,
       EventType.SUBMISSION_PAYMENT_DATE_EDITED,
       EventType.SUBMISSION_PAID,
+      EventType.SUBMISSION_CANCELLED,
       EventType.SUBMISSION_MANUAL_PAYMENT_ADDED,
       EventType.SUBMISSION_MANUAL_PAYMENT_UPDATED,
       EventType.TREASURY_PROPOSAL_APPROVED,
@@ -75,7 +76,6 @@ export function eventFilters(
       EventType.MILESTONE_CREATED,
       EventType.MILESTONE_STATUS_UPDATED,
       EventType.MILESTONE_APPROVED,
-      EventType.MILESTONE_CANCELLED,
       EventType.MILESTONES_EDITED,
     ],
     team: [
@@ -98,8 +98,8 @@ export function eventFilters(
       EventType.TREASURY_PROPOSAL_EXPIRED,
       EventType.SUBMISSION_PAYMENT_DATE_EDITED,
       EventType.SUBMISSION_TREASURY_CREATED,
+      EventType.SUBMISSION_CANCELLED,
       EventType.MILESTONE_APPROVED,
-      EventType.MILESTONE_CANCELLED,
     ],
     comments: [
       EventType.COMMENT_ADDED,
@@ -111,7 +111,6 @@ export function eventFilters(
       EventType.MILESTONE_CREATED,
       EventType.MILESTONE_STATUS_UPDATED,
       EventType.MILESTONE_APPROVED,
-      EventType.MILESTONE_CANCELLED,
       EventType.MILESTONES_EDITED,
       EventType.SUBMISSION_PAID,
       EventType.TREASURY_PROPOSAL_APPROVED,

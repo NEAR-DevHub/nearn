@@ -113,8 +113,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       await eventLogger.log({
         eventType: EventType.MILESTONE_STATUS_UPDATED,
         actor: {
-          id: userId as string,
-          type: 'SPONSOR',
+          type: 'SYSTEM',
         },
         data: {
           previousStatus: 'NotStarted',

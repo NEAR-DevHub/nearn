@@ -7,7 +7,7 @@ import { type Log } from '../../queries/logs';
 import Comment, { CommentPinnedUnpinned } from './Comment';
 import CreateListing from './ListingCreated';
 import ListingEdit from './ListingEdit';
-import MilestoneApproveReject from './MilestoneApproveReject';
+import MilestoneApprove from './MilestoneApproveReject';
 import MilestoneCreated from './MilestoneCreated';
 import MilestonesEdited from './MilestonesEdited';
 import MilestoneStatusChanged from './MilestoneStatusChanged';
@@ -20,7 +20,7 @@ import SimpleLogMessage from './SimpleLogMessage';
 import SponsorEdit from './SponsorEdit';
 import SponsorMember from './SponsorMember';
 import SponsorTreasury from './SponsorTreasury';
-import SubmissionApproveReject from './SubmissionApproveReject';
+import SubmissionApproveRejectCancelled from './SubmissionApproveReject';
 import SubmissionCreated from './SubmissionCreated';
 import SubmissionEdit from './SubmissionEdit';
 import SubmissionLabelChange from './SubmissionLabelChange';
@@ -63,8 +63,9 @@ const LOG_IMPLEMENTATION_MAPPING: Record<
   [EventType.SUBMISSION_NOTE_CHANGED]: SubmissionNoteChanged,
   [EventType.SUBMISSION_LABEL_CHANGED]: SubmissionLabelChange,
   [EventType.SUBMISSION_TOGGLED_WINNER]: SubmissionToggledWinner,
-  [EventType.SUBMISSION_APPROVED]: SubmissionApproveReject,
-  [EventType.SUBMISSION_REJECTED]: SubmissionApproveReject,
+  [EventType.SUBMISSION_APPROVED]: SubmissionApproveRejectCancelled,
+  [EventType.SUBMISSION_REJECTED]: SubmissionApproveRejectCancelled,
+  [EventType.SUBMISSION_CANCELLED]: SubmissionApproveRejectCancelled,
   [EventType.SUBMISSION_TREASURY_CREATED]: TreasuryProposal,
   [EventType.SUBMISSION_PAYMENT_DATE_EDITED]: PaymentDateEdited,
   [EventType.SUBMISSION_PAID]: Paid,
@@ -91,8 +92,7 @@ const LOG_IMPLEMENTATION_MAPPING: Record<
   },
   [EventType.MILESTONE_CREATED]: MilestoneCreated,
   [EventType.MILESTONE_STATUS_UPDATED]: MilestoneStatusChanged,
-  [EventType.MILESTONE_APPROVED]: MilestoneApproveReject,
-  [EventType.MILESTONE_CANCELLED]: MilestoneApproveReject,
+  [EventType.MILESTONE_APPROVED]: MilestoneApprove,
   [EventType.MILESTONES_EDITED]: MilestonesEdited,
 };
 

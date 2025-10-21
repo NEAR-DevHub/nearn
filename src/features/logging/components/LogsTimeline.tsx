@@ -91,7 +91,7 @@ const eventIcons: Record<EventType, React.ReactNode> = {
   [EventType.MILESTONE_CREATED]: <Plus className="h-4 w-4" />,
   [EventType.MILESTONE_STATUS_UPDATED]: <Pencil className="h-4 w-4" />,
   [EventType.MILESTONE_APPROVED]: <Check className="h-4 w-4" />,
-  [EventType.MILESTONE_CANCELLED]: <X className="h-4 w-4" />,
+  [EventType.SUBMISSION_CANCELLED]: <X className="h-4 w-4" />,
   [EventType.MILESTONES_EDITED]: <Pencil className="h-4 w-4" />,
 };
 

@@ -250,6 +250,10 @@ export const VerifyPaymentModal = ({
           }).queryKey,
         });
 
+        queryClient.invalidateQueries({
+          queryKey: ['logs-infinite'],
+        });
+
         const { validationResults } = data.data;
         processValidationResults({
           validationResults,

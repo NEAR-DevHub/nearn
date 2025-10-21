@@ -17,9 +17,12 @@ export const useCancelCollaboration = () => {
     },
     onSuccess: () => {
       toast.success('Collaboration cancelled successfully');
-      // Invalidate submissions query to refetch the updated milestone statuses
-      queryClient.invalidateQueries({ queryKey: ['submissions'] });
-      queryClient.invalidateQueries({ queryKey: ['submission'] });
+      queryClient.invalidateQueries({ queryKey: ['sponsor-submissions'] });
+      queryClient.invalidateQueries({
+        queryKey: ['sponsor-dashboard-listing'],
+      });
+      queryClient.invalidateQueries({ queryKey: ['listing-submissions'] });
+      queryClient.invalidateQueries({ queryKey: ['logs-infinite'] });
     },
     onError: (error: any) => {
       const errorMessage =

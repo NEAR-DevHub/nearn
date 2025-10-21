@@ -23,7 +23,7 @@ import { cleanRewards } from '@/utils/rank';
 
 import { BONUS_REWARD_POSITION } from '@/features/listing-builder/constants';
 import { selectedSubmissionAtom } from '@/features/sponsor-dashboard/atoms';
-import { PublishResults } from '@/features/sponsor-dashboard/components/PublishResults';
+import { PublishModal } from '@/features/sponsor-dashboard/components/PublishModal';
 import { SubmissionHeader } from '@/features/sponsor-dashboard/components/Submissions/SubmissionHeader';
 import { SubmissionList } from '@/features/sponsor-dashboard/components/Submissions/SubmissionList';
 import { SubmissionPanel } from '@/features/sponsor-dashboard/components/Submissions/SubmissionPanel';
@@ -171,7 +171,7 @@ export default function BountySubmissions({ listing }: Props) {
       ) : (
         <>
           {isOpen && (
-            <PublishResults
+            <PublishModal
               remainings={remainings}
               isOpen={isOpen}
               onClose={onClose}

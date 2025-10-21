@@ -18,6 +18,8 @@ export const useApproveMilestone = () => {
       queryClient.invalidateQueries({
         queryKey: ['sponsor-dashboard-listing'],
       });
+      queryClient.invalidateQueries({ queryKey: ['submissions-dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['logs-infinite'] });
     },
     onError: (error: any) => {
       const errorMessage =

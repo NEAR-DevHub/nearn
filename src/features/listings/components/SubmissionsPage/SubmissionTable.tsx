@@ -66,6 +66,10 @@ export const sponsorshipSubmissionStatus = (submission: SubmissionWithUser) => {
     submission.Milestones.every((milestone) => milestone.status === 'Paid')
   )
     return 'Paid';
+  if (
+    submission.Milestones.some((milestone) => milestone.status === 'Cancelled')
+  )
+    return 'Cancelled';
   if (submission.status !== 'Pending') return submission.status;
   return submission.label;
 };

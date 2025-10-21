@@ -61,6 +61,9 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
             paidByUser: true,
             approvedByUser: true,
           },
+          orderBy: {
+            milestoneIndex: 'asc',
+          },
         },
         Comments: {
           where: {

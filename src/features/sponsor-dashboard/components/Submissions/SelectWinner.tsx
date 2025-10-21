@@ -137,7 +137,7 @@ export const SelectWinner = ({
                   disabled={isMultiSelectOn}
                   onClick={onWinnersAnnounceOpen}
                 >
-                  {isSponsorship ? 'Approve Submission' : 'Announce As Winner'}
+                  {isSponsorship ? 'Approve Submission' : 'Hire Talent'}
                 </Button>
               </>
             )}

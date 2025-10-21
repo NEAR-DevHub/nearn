@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query';
 import { DollarSign, ExternalLink, Link2 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -9,31 +10,31 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { type MilestoneWithUser } from '@/interface/submission';
 import { getURLSanitized } from '@/utils/getURLSanitized';
 
+import { treasuryProposalStatusQuery } from '@/features/treasury/queries/treasuryProposalStatus';
+
 interface PaymentButtonProps {
-  treasury?: {
-    link?: string;
-    proposalId?: number;
-    dao?: string;
-  };
-  proposalStatus?: string;
+  milestone: MilestoneWithUser;
   size?: 'sm' | 'default';
-  isLoadingProposalStatus: boolean;
   onVerifyPayment: () => void;
   setIsNearTreasuryPaymentModalOpen: Dispatch<SetStateAction<boolean>>;
   onManualPaymentOpen: () => void;
 }
 
 export const PaymentButton = ({
-  treasury,
-  proposalStatus,
-  isLoadingProposalStatus,
+  milestone,
   onVerifyPayment,
   setIsNearTreasuryPaymentModalOpen,
   onManualPaymentOpen,
   size = 'default',
 }: PaymentButtonProps) => {
+  const treasury = milestone?.paymentDetails?.treasury;
+  const { data: proposalStatus, isLoading: isLoadingProposalStatus } = useQuery(
+    treasuryProposalStatusQuery(treasury?.dao, treasury?.proposalId ?? 0),
+  );
+
   if (isLoadingProposalStatus) {
     return <></>;
   }

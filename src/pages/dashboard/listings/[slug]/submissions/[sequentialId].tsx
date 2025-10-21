@@ -5,12 +5,11 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
 import { usePostHog } from 'posthog-js/react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { LoadingSection } from '@/components/shared/LoadingSection';
 import { Button } from '@/components/ui/button';
 import { ExternalImage } from '@/components/ui/cloudinary-image';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDisclosure } from '@/hooks/use-disclosure';
 import { type MilestoneWithUser } from '@/interface/submission';
@@ -28,14 +27,12 @@ import {
 } from '@/features/sponsor-dashboard/atoms';
 import ListingMilestoneTable from '@/features/sponsor-dashboard/components/Milestones/ListingMilestoneTable';
 import { VerifyPaymentModal } from '@/features/sponsor-dashboard/components/Modals/VerifyPayment';
-import { PublishResults } from '@/features/sponsor-dashboard/components/PublishResults';
+import { PublishModal } from '@/features/sponsor-dashboard/components/PublishModal';
 import { ScoutTable } from '@/features/sponsor-dashboard/components/Scouts/ScoutTable';
 import AddManualPaymentModal from '@/features/sponsor-dashboard/components/Submissions/Modals/AddManualPaymentModal';
-import { RejectAllSubmissionModal } from '@/features/sponsor-dashboard/components/Submissions/Modals/RejectAllModal';
 import { SubmissionHeader } from '@/features/sponsor-dashboard/components/Submissions/SubmissionHeader';
 import { SubmissionList } from '@/features/sponsor-dashboard/components/Submissions/SubmissionList';
 import { SubmissionPanel } from '@/features/sponsor-dashboard/components/Submissions/SubmissionPanel';
-import { useRejectSubmissions } from '@/features/sponsor-dashboard/mutations/useRejectSubmissions';
 import { type SubmissionWithListingUser } from '@/features/sponsor-dashboard/queries/dashboard-submissions';
 import { sponsorDashboardListingQuery } from '@/features/sponsor-dashboard/queries/listing';
 import { scoutsQuery } from '@/features/sponsor-dashboard/queries/scouts';
@@ -92,18 +89,6 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
     selectedSubmissionIdsAtom,
   );
 
-  const [isToggledAll, setIsToggledAll] = useState(false);
-  const {
-    isOpen: isTogglerOpen,
-    onOpen: onTogglerOpen,
-    onClose: onTogglerClose,
-  } = useDisclosure();
-  const {
-    isOpen: rejectedIsOpen,
-    onOpen: rejectedOnOpen,
-    onClose: rejectedOnClose,
-  } = useDisclosure();
-
   const {
     isOpen: verifyPaymentIsOpen,
     onOpen: verifyPaymentOnOpen,
@@ -147,10 +132,6 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
   }, [sequentialId, submissions]);
 
   useEffect(() => {
-    selectedSubmissionIds.size > 0 ? onTogglerOpen() : onTogglerClose();
-  }, [selectedSubmissionIds]);
-
-  useEffect(() => {
     const newSet = new Set(selectedSubmissionIds);
     Array.from(selectedSubmissionIds).forEach((a) => {
       const submissionWithId = submissions?.find(
@@ -162,37 +143,6 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
     });
     setSelectedSubmissionIds(newSet);
   }, [submissions]);
-
-  const isAllCurrentToggled = () =>
-    paginatedSubmissions
-      ?.filter((submission) => submission.status === 'Pending')
-      .every((submission) => selectedSubmissionIds.has(submission.id)) || false;
-
-  const toggleSubmission = (id: string) => {
-    setSelectedSubmissionIds((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(id)) {
-        newSet.delete(id);
-        return newSet;
-      } else {
-        return newSet.add(id);
-      }
-    });
-  };
-
-  const isToggled = useCallback(
-    (id: string) => {
-      return selectedSubmissionIds.has(id);
-    },
-    [selectedSubmissionIds, submissions],
-  );
-
-  const rejectSubmissions = useRejectSubmissions(slug);
-
-  const handleRejectSubmission = (submissionIds: string[]) => {
-    rejectSubmissions.mutate(submissionIds);
-    rejectedOnClose();
-  };
 
   const { data: scouts } = useQuery({
     ...scoutsQuery({
@@ -301,28 +251,6 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
     );
   }, [filteredSubmissions, currentPage]);
 
-  useEffect(() => {
-    setIsToggledAll(isAllCurrentToggled());
-  }, [selectedSubmissionIds, paginatedSubmissions]);
-
-  const toggleAllSubmissions = () => {
-    if (!isAllCurrentToggled()) {
-      setSelectedSubmissionIds((prev) => {
-        const newSet = new Set(prev);
-        paginatedSubmissions
-          ?.filter((submission) => submission.status === 'Pending')
-          .map((submission) => newSet.add(submission.id));
-        return newSet;
-      });
-    } else {
-      setSelectedSubmissionIds((prev) => {
-        const newSet = new Set(prev);
-        paginatedSubmissions?.map((submission) => newSet.delete(submission.id));
-        return newSet;
-      });
-    }
-  };
-
   const totalPages = Math.ceil(filteredSubmissions.length / submissionsPerPage);
 
   const usedPositions = submissions
@@ -368,7 +296,7 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
       ) : (
         <>
           {isOpen && (
-            <PublishResults
+            <PublishModal
               remainings={remainings}
               isOpen={isOpen}
               onClose={onClose}
@@ -471,10 +399,6 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
                         debouncedSearchText(e || '');
                       }}
                       type={bounty?.type}
-                      isToggled={isToggled}
-                      toggleSubmission={toggleSubmission}
-                      isAllToggled={isToggledAll}
-                      toggleAllSubmissions={toggleAllSubmissions}
                       refetchSubmissions={() => {
                         refetchSubmissions();
                       }}
@@ -636,79 +560,6 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
               )}
           </Tabs>
 
-          <Dialog
-            modal={false}
-            onOpenChange={onTogglerClose}
-            open={isTogglerOpen}
-          >
-            <DialogContent
-              onEscapeKeyDown={(e) => e.preventDefault()}
-              onInteractOutside={(e) => e.preventDefault()}
-              classNames={{
-                overlay: 'hidden',
-              }}
-              unsetDefaultPosition
-              hideCloseIcon
-              className="fixed bottom-4 left-1/2 -translate-x-1/2 overflow-hidden p-1"
-            >
-              <div className="mx-auto w-fit rounded-lg px-4">
-                {selectedSubmissionIds.size > 100 && (
-                  <p className="pb-2 text-center text-red-500">
-                    Cannot select more than 100 applications
-                  </p>
-                )}
-
-                <div className="flex items-center gap-4 text-lg">
-                  <div className="flex items-center gap-2 font-medium">
-                    <p>{selectedSubmissionIds.size}</p>
-                    <p className="text-slate-500">Selected</p>
-                  </div>
-
-                  <div className="h-4 w-px bg-slate-300" />
-
-                  <Button
-                    className="focus:none bg-transparent font-medium hover:bg-transparent"
-                    onClick={() => {
-                      setSelectedSubmissionIds(new Set());
-                    }}
-                    variant="ghost"
-                  >
-                    UNSELECT ALL
-                  </Button>
-
-                  <Button
-                    className="gap-2 bg-red-100 font-medium text-rose-600 hover:bg-red-50/90"
-                    disabled={
-                      selectedSubmissionIds.size === 0 ||
-                      selectedSubmissionIds.size > 100
-                    }
-                    onClick={rejectedOnOpen}
-                  >
-                    <svg
-                      width="13"
-                      height="13"
-                      viewBox="0 0 13 13"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M6.11111 0.777832C9.49056 0.777832 12.2222 3.5095 12.2222 6.88894C12.2222 10.2684 9.49056 13.0001 6.11111 13.0001C2.73167 13.0001 0 10.2684 0 6.88894C0 3.5095 2.73167 0.777832 6.11111 0.777832ZM8.305 3.83339L6.11111 6.02728L3.91722 3.83339L3.05556 4.69505L5.24944 6.88894L3.05556 9.08283L3.91722 9.9445L6.11111 7.75061L8.305 9.9445L9.16667 9.08283L6.97278 6.88894L9.16667 4.69505L8.305 3.83339Z"
-                        fill="#E11D48"
-                      />
-                    </svg>
-                    Reject {selectedSubmissionIds.size} Applications
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-          <RejectAllSubmissionModal
-            allSubmissionsLength={submissions?.length || 0}
-            submissionIds={Array.from(selectedSubmissionIds)}
-            rejectIsOpen={rejectedIsOpen}
-            rejectOnClose={rejectedOnClose}
-            onRejectSubmission={handleRejectSubmission}
-          />
           <AddManualPaymentModal
             isOpen={isAddManualPaymentModalOpen}
             onClose={onAddManualPaymentClose}

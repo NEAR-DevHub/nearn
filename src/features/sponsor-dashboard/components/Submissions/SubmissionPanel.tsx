@@ -1,7 +1,13 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@radix-ui/react-tabs';
-import { useQuery } from '@tanstack/react-query';
 import { useAtom } from 'jotai';
-import { Info, Loader2, Pencil } from 'lucide-react';
+import {
+  Clock2,
+  Info,
+  Loader2,
+  MessageSquare,
+  NotebookText,
+  Pencil,
+} from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import router from 'next/router';
 import React, {
@@ -29,7 +35,6 @@ import LogsTimeline from '@/features/logging/components/LogsTimeline';
 import { useGetLogsInfinite } from '@/features/logging/queries';
 import TreasuryStatus from '@/features/treasury/components/TreasuryStatus';
 
-import { treasuryProposalStatusQuery } from '../../../treasury/queries/treasuryProposalStatus';
 import { selectedSubmissionAtom } from '../../atoms';
 import { type SubmissionWithListingUser } from '../../queries/dashboard-submissions';
 import { PaymentButton } from '../Shared/PaymentButton';
@@ -106,12 +111,6 @@ export function SubmissionMenu({
     ? getSubmissionPaymentStatus(selectedSubmission)
     : null;
 
-  const treasury = milestone?.paymentDetails?.treasury;
-
-  const { data: proposalStatus, isLoading: isLoadingProposalStatus } = useQuery(
-    treasuryProposalStatusQuery(treasury?.dao, treasury?.proposalId ?? 0),
-  );
-
   let announceWinnerText =
     'All winners have been selected. Click the button to announce them and move to the payment stage';
   if (bounty?.isWinnersAnnounced) {
@@ -153,9 +152,7 @@ export function SubmissionMenu({
     if (milestones.length === 1) {
       return (
         <PaymentButton
-          treasury={treasury}
-          proposalStatus={proposalStatus}
-          isLoadingProposalStatus={isLoadingProposalStatus}
+          milestone={milestone as MilestoneWithUser}
           onVerifyPayment={onVerifyPayment}
           setIsNearTreasuryPaymentModalOpen={setIsNearTreasuryPaymentModalOpen}
           onManualPaymentOpen={onManualPaymentOpen}
@@ -563,10 +560,10 @@ export const SubmissionPanel = ({
                     <TabsTrigger
                       value="notes"
                       className={cn(
-                        'h-auto rounded-none border-b-2 px-4 py-2 text-muted-foreground data-[state=active]:border-brand-green',
+                        'flex h-auto items-center justify-center gap-1 rounded-none border-b-2 px-4 py-2 text-muted-foreground data-[state=active]:border-brand-green',
                       )}
                     >
-                      Notes:{' '}
+                      <NotebookText className="size-4" />
                       {notesData?.count !== undefined ? (
                         notesData.count
                       ) : (
@@ -576,10 +573,10 @@ export const SubmissionPanel = ({
                     <TabsTrigger
                       value="comments"
                       className={cn(
-                        'flex h-auto items-center justify-center gap-2 rounded-none border-b-2 px-4 py-2 text-muted-foreground data-[state=active]:border-brand-green',
+                        'flex h-auto items-center justify-center gap-1 rounded-none border-b-2 px-4 py-2 text-muted-foreground data-[state=active]:border-brand-green',
                       )}
                     >
-                      Comments:{' '}
+                      <MessageSquare className="size-4" />
                       {commentData?.count !== undefined ? (
                         commentData.count
                       ) : (
@@ -589,10 +586,10 @@ export const SubmissionPanel = ({
                     <TabsTrigger
                       value="activity"
                       className={cn(
-                        'h-auto rounded-none border-b-2 px-4 py-2 text-muted-foreground data-[state=active]:border-brand-green',
+                        'flex h-auto items-center justify-center gap-1 rounded-none border-b-2 px-4 py-2 text-muted-foreground data-[state=active]:border-brand-green',
                       )}
                     >
-                      Activity
+                      <Clock2 className="size-4" />
                     </TabsTrigger>
                   </TabsList>
 

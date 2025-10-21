@@ -125,7 +125,8 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
         },
         entities: {
           sponsorId: userSponsorId,
-          submissionId: id,
+          submissionId: currentMilestone.submissionId,
+          milestoneId: id,
           listingId: currentMilestone.submission.listingId,
         },
         data: {

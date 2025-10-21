@@ -117,6 +117,9 @@ export default async function handler(
             token: true,
             reward: true,
           },
+          orderBy: {
+            milestoneIndex: 'asc',
+          },
         },
         user: {
           select: {

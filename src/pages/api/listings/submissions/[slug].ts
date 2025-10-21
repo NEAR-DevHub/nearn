@@ -108,6 +108,9 @@ async function handler(
             reward: true,
             paymentDetails: true,
           },
+          orderBy: {
+            milestoneIndex: 'asc',
+          },
         },
         listing: {
           select: {

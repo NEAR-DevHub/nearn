@@ -1,16 +1,9 @@
 import { cn } from '@/utils/cn';
 
+import { colorMap } from '@/features/sponsor-dashboard/utils/statusColorMap';
+
 import { type EventDataMap, type EventType } from '../../types/event-data';
 import { type LogProperties } from '.';
-
-const statusStyles: Record<string, { bg: string; color: string }> = {
-  NotStarted: { bg: 'bg-gray-100', color: 'text-gray-700' },
-  Pending: { bg: 'bg-blue-100', color: 'text-blue-700' },
-  WorkCompleted: { bg: 'bg-purple-100', color: 'text-purple-700' },
-  Approved: { bg: 'bg-green-100', color: 'text-green-700' },
-  Rejected: { bg: 'bg-red-100', color: 'text-red-700' },
-  Paid: { bg: 'bg-emerald-100', color: 'text-emerald-800' },
-};
 
 export default function MilestoneStatusChanged(props: LogProperties) {
   const { event } = props;
@@ -18,11 +11,10 @@ export default function MilestoneStatusChanged(props: LogProperties) {
   const milestone = event.milestone;
 
   const oldStyle =
-    statusStyles[data.previousStatus as keyof typeof statusStyles] ||
-    statusStyles.NotStarted;
+    colorMap[data.previousStatus as keyof typeof colorMap] ||
+    colorMap.NotStarted;
   const newStyle =
-    statusStyles[data.newStatus as keyof typeof statusStyles] ||
-    statusStyles.NotStarted;
+    colorMap[data.newStatus as keyof typeof colorMap] || colorMap.NotStarted;
 
   return (
     <p className="text-slate-500">
@@ -40,7 +32,7 @@ export default function MilestoneStatusChanged(props: LogProperties) {
           oldStyle?.color,
         )}
       >
-        {data.previousStatus}
+        {data.previousStatus.replace(/([A-Z])/g, ' $1').trim()}
       </span>
       {' to '}
       <span
@@ -50,7 +42,7 @@ export default function MilestoneStatusChanged(props: LogProperties) {
           newStyle?.color,
         )}
       >
-        {data.newStatus}
+        {data.newStatus.replace(/([A-Z])/g, ' $1').trim()}
       </span>
     </p>
   );

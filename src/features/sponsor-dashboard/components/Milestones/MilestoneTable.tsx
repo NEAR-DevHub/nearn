@@ -1,5 +1,4 @@
-import { type MilestoneStatus } from '@prisma/client';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { Check } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
@@ -28,9 +27,9 @@ import { dayjs } from '@/utils/dayjs';
 import { type Listing } from '@/features/listings/types';
 import { ActivityHistoryMinified } from '@/features/logging/components/ActivityHistoryMinified';
 import { type SubmissionWithListingUser } from '@/features/sponsor-dashboard/queries/dashboard-submissions';
-import { treasuryProposalStatusQuery } from '@/features/treasury/queries/treasuryProposalStatus';
 
 import { useApproveMilestone } from '../../mutations/useApproveMilestone';
+import { colorMap } from '../../utils/statusColorMap';
 import { VerifyPaymentModal } from '../Modals/VerifyPayment';
 import { PaymentButton } from '../Shared/PaymentButton';
 import { DisplayPayment } from '../Submissions/DisplayPayment';
@@ -41,7 +40,6 @@ import { DoneBy } from '../Submissions/SubmissionPanel';
 interface Props {
   listing: Listing;
   submission: SubmissionWithListingUser;
-  hideHeader?: boolean;
   className?: string;
 }
 
@@ -67,18 +65,9 @@ const columnLabels: Record<ColumnKey, string> = {
   activity: 'Activity History',
 };
 
-const statusStyles: Record<MilestoneStatus, { bg: string; color: string }> = {
-  NotStarted: { bg: 'bg-gray-100', color: 'text-gray-600' },
-  InReview: { bg: 'bg-yellow-100', color: 'text-yellow-700' },
-  Approved: { bg: 'bg-green-100', color: 'text-green-700' },
-  Paid: { bg: 'bg-purple-100', color: 'text-purple-700' },
-  Cancelled: { bg: 'bg-red-100', color: 'text-red-700' },
-};
-
 export default function MilestoneTable({
   listing,
   submission,
-  hideHeader,
   className,
 }: Props) {
   const queryClient = useQueryClient();
@@ -192,50 +181,6 @@ export default function MilestoneTable({
     setIsNearTreasuryPaymentModalOpen(true);
   };
 
-  const approveMilestone = useApproveMilestone();
-
-  const ApproveButton = ({ milestone }: { milestone: MilestoneWithUser }) => (
-    <Tooltip content="Approve this milestone to allow payment">
-      <Button
-        size="sm"
-        className="ph-no-capture min-w-[120px]"
-        onClick={() => {
-          approveMilestone.mutate(milestone.id);
-        }}
-        disabled={approveMilestone.isPending}
-      >
-        <Check className="mr-2 h-4 w-4" />
-        {approveMilestone.isPending ? 'Approving...' : 'Approve Milestone'}
-      </Button>
-    </Tooltip>
-  );
-
-  const PaymentButtonWrapper = ({
-    milestone,
-  }: {
-    milestone: MilestoneWithUser;
-  }) => {
-    const treasury = milestone?.paymentDetails?.treasury;
-    const { data: proposalStatus, isLoading: isLoadingProposalStatus } =
-      useQuery(
-        treasuryProposalStatusQuery(treasury?.dao, treasury?.proposalId ?? 0),
-      );
-
-    return (
-      <PaymentButton
-        treasury={treasury}
-        size="sm"
-        proposalStatus={proposalStatus}
-        isLoadingProposalStatus={isLoadingProposalStatus}
-        onVerifyPayment={() => handleOpenVerifyPaymentModal(milestone)}
-        setIsNearTreasuryPaymentModalOpen={() =>
-          handleOpenNearTreasuryModal(milestone)
-        }
-        onManualPaymentOpen={() => handleOpenManualPaymentModal(milestone)}
-      />
-    );
-  };
-
   if (!sortedMilestones.length) {
     return (
       <div className="flex items-center justify-center p-8 text-slate-500">
@@ -243,6 +188,8 @@ export default function MilestoneTable({
       </div>
     );
   }
+
+  const isUSDbased = submission.listing.token === 'Any';
 
   return (
     <>
@@ -253,7 +200,7 @@ export default function MilestoneTable({
         )}
       >
         <Table>
-          <TableHeader className={cn(hideHeader && 'hidden')}>
+          <TableHeader>
             <TableRow className="bg-slate-100 hover:bg-muted">
               {visibleColumns.index && (
                 <SortableTH
@@ -334,13 +281,14 @@ export default function MilestoneTable({
                 (t) => t.tokenSymbol === milestone.token,
               );
               const statusStyle =
-                statusStyles[milestone.status] || statusStyles.NotStarted;
+                colorMap[milestone.status as keyof typeof colorMap] ||
+                colorMap.NotStarted;
 
               return (
                 <TableRow key={milestone.id}>
                   {visibleColumns.index && (
                     <TableCell className="whitespace-nowrap text-sm font-medium text-slate-500">
-                      {milestone.milestoneIndex + 1}
+                      {milestone.milestoneIndex}
                     </TableCell>
                   )}
                   {visibleColumns.dueDate && (
@@ -359,11 +307,13 @@ export default function MilestoneTable({
                           className="h-4 w-4 rounded-full"
                         />
                         <span className="ml-1 truncate text-sm">
+                          {isUSDbased ? '$' : ''}
                           {milestone.reward
                             ? milestone.reward.toLocaleString('en-us')
                             : '0'}
+
                           <span className="ml-1 font-semibold text-slate-400">
-                            {milestone.token}
+                            {isUSDbased ? ' to be paid in ' : milestone.token}
                           </span>
                         </span>
                       </div>
@@ -436,7 +386,19 @@ export default function MilestoneTable({
                         <ApproveButton milestone={milestone} />
                       )}
                       {milestone.status === 'Approved' && (
-                        <PaymentButtonWrapper milestone={milestone} />
+                        <PaymentButton
+                          milestone={milestone}
+                          size="sm"
+                          onVerifyPayment={() =>
+                            handleOpenVerifyPaymentModal(milestone)
+                          }
+                          setIsNearTreasuryPaymentModalOpen={() =>
+                            handleOpenNearTreasuryModal(milestone)
+                          }
+                          onManualPaymentOpen={() =>
+                            handleOpenManualPaymentModal(milestone)
+                          }
+                        />
                       )}
                       {milestone.status === 'Paid' && (
                         <DisplayPayment
@@ -463,16 +425,15 @@ export default function MilestoneTable({
               setSelectedMilestone(null);
             }}
             milestoneId={selectedMilestone.id}
-            onSuccess={(
-              treasuryLink: string,
-              proposalId: number,
-              dao: string,
-            ) => {
-              // Handle success
-              console.log('Near Treasury payment created', {
-                treasuryLink,
-                proposalId,
-                dao,
+            onSuccess={() => {
+              queryClient.invalidateQueries({
+                queryKey: ['sponsor-submissions'],
+              });
+              queryClient.invalidateQueries({
+                queryKey: ['logs-infinite'],
+              });
+              queryClient.invalidateQueries({
+                queryKey: ['sponsor-dashboard-listing'],
               });
             }}
           />
@@ -489,6 +450,9 @@ export default function MilestoneTable({
                 queryKey: ['sponsor-submissions'],
               });
               queryClient.invalidateQueries({
+                queryKey: ['logs-infinite'],
+              });
+              queryClient.invalidateQueries({
                 queryKey: ['sponsor-dashboard-listing'],
               });
             }}
@@ -499,6 +463,9 @@ export default function MilestoneTable({
             setSelectedSubmission={() => {
               queryClient.invalidateQueries({
                 queryKey: ['sponsor-submissions'],
+              });
+              queryClient.invalidateQueries({
+                queryKey: ['logs-infinite'],
               });
             }}
             setListing={() => {
@@ -520,3 +487,27 @@ export default function MilestoneTable({
     </>
   );
 }
+
+export const ApproveButton = ({
+  milestone,
+}: {
+  milestone: MilestoneWithUser;
+}) => {
+  const approveMilestone = useApproveMilestone();
+
+  return (
+    <Tooltip content="Approve this milestone to allow payment">
+      <Button
+        size="sm"
+        className="ph-no-capture min-w-[120px]"
+        onClick={() => {
+          approveMilestone.mutate(milestone.id);
+        }}
+        disabled={approveMilestone.isPending}
+      >
+        <Check className="mr-2 h-4 w-4" />
+        {approveMilestone.isPending ? 'Approving...' : 'Approve Milestone'}
+      </Button>
+    </Tooltip>
+  );
+};

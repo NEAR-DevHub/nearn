@@ -5,11 +5,17 @@ import { colorMap } from '@/features/sponsor-dashboard/utils/statusColorMap';
 import { EventType } from '../../types/event-data';
 import { type LogProperties } from '.';
 
-export default function SubmissionLabelChange(props: LogProperties) {
+export default function SubmissionApproveRejectCancelled(props: LogProperties) {
   const { event } = props;
 
   const status =
-    event.eventType === EventType.SUBMISSION_APPROVED ? 'Approved' : 'Rejected';
+    event.eventType === EventType.SUBMISSION_APPROVED
+      ? 'Approved'
+      : event.eventType === EventType.SUBMISSION_REJECTED
+        ? 'Rejected'
+        : event.eventType === EventType.SUBMISSION_CANCELLED
+          ? 'Cancelled'
+          : 'Approved';
 
   const labelStyle = colorMap[status];
   const username = event.submission?.user.username;
