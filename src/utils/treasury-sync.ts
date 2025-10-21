@@ -13,30 +13,34 @@ export interface TreasurySyncResult {
 }
 
 export async function syncSubmissionTreasuryStatus(
-  submissionId: string,
+  milestoneId: string,
 ): Promise<TreasurySyncResult> {
   try {
-    const currentSubmission = await prisma.submission.findUnique({
-      where: { id: submissionId },
+    const currentMilestone = await prisma.milestone.findUnique({
+      where: { id: milestoneId },
       include: {
-        listing: {
-          include: {
-            sponsor: true,
+        submission: {
+          select: {
+            listing: {
+              include: {
+                sponsor: true,
+              },
+            },
           },
         },
       },
     });
 
-    if (!currentSubmission) {
-      logger.warn(`Submission with ID ${submissionId} not found`);
+    if (!currentMilestone) {
+      logger.warn(`Milestone with ID ${milestoneId} not found`);
       return {
         success: false,
-        error: 'Submission not found',
-        message: `Submission with ID ${submissionId} not found.`,
+        error: 'Milestone not found',
+        message: `Milestone with ID ${milestoneId} not found.`,
       };
     }
 
-    const paymentDetails = currentSubmission.paymentDetails as any;
+    const paymentDetails = currentMilestone.paymentDetails as any;
     if (
       !paymentDetails?.treasury?.dao ||
       !paymentDetails?.treasury?.proposalId
@@ -50,7 +54,7 @@ export async function syncSubmissionTreasuryStatus(
     }
 
     if (paymentDetails?.treasury?.synced) {
-      logger.debug(`Submission with ID: ${submissionId} is already synced`);
+      logger.debug(`Milestone with ID: ${milestoneId} is already synced`);
       return {
         success: false,
         error: 'Treasury status is already synced',
@@ -58,7 +62,7 @@ export async function syncSubmissionTreasuryStatus(
       };
     }
 
-    logger.debug(`Getting proposal status for submission ID: ${submissionId}`);
+    logger.debug(`Getting proposal status for milestone ID: ${milestoneId}`);
     const proposal = await getProposal(
       paymentDetails.treasury.dao,
       paymentDetails.treasury.proposalId,
@@ -70,7 +74,7 @@ export async function syncSubmissionTreasuryStatus(
     );
 
     if (proposalStatus === 'InProgress') {
-      logger.debug(`Submission with ID: ${submissionId} is still in progress`);
+      logger.debug(`Milestone with ID: ${milestoneId} is still in progress`);
       return {
         success: false,
         error: 'Treasury status is still in progress',
@@ -78,22 +82,27 @@ export async function syncSubmissionTreasuryStatus(
       };
     }
 
-    if (proposalStatus === 'Approved' && !currentSubmission.isPaid) {
-      logger.debug(
-        `Updating submission with ID: ${submissionId} to paid status`,
-      );
-      const result = await prisma.submission.update({
-        where: { id: submissionId },
+    if (proposalStatus === 'Approved' && currentMilestone.status !== 'Paid') {
+      logger.debug(`Updating milestone with ID: ${milestoneId} to paid status`);
+      const result = await prisma.milestone.update({
+        where: { id: milestoneId },
         data: {
-          isPaid: true,
+          status: 'Paid',
+          paidDate: new Date(),
           paymentDetails: {
             link: paymentDetails.treasury.link,
           },
         },
         include: {
-          listing: {
-            include: {
-              BountyCounts: true,
+          submission: {
+            select: {
+              listingId: true,
+              listing: {
+                include: {
+                  sponsor: true,
+                  BountyCounts: true,
+                },
+              },
             },
           },
         },
@@ -108,13 +117,14 @@ export async function syncSubmissionTreasuryStatus(
           proposalLink: paymentDetails.treasury.link,
         },
         entities: {
-          listingId: currentSubmission.listingId,
-          submissionId: submissionId,
-          sponsorId: currentSubmission.listing.sponsor.id,
+          listingId: result.submission.listingId,
+          submissionId: result.submissionId,
+          sponsorId: result.submission.listing.sponsor.id,
+          milestoneId,
         },
       });
 
-      const bounty = result.listing;
+      const bounty = result.submission.listing;
       if (
         bounty &&
         bounty.isWinnersAnnounced &&
@@ -131,14 +141,14 @@ export async function syncSubmissionTreasuryStatus(
             newStatus: 'Completed',
           },
           entities: {
-            listingId: currentSubmission.listingId,
-            sponsorId: currentSubmission.listing.sponsor.id,
+            listingId: result.submission.listingId,
+            sponsorId: result.submission.listing.sponsor.id,
           },
         });
       }
 
       logger.info(
-        `Successfully updated submission ID: ${submissionId} to paid status`,
+        `Successfully updated milestone ID: ${milestoneId} to paid status`,
       );
       return {
         success: true,
@@ -147,16 +157,23 @@ export async function syncSubmissionTreasuryStatus(
       };
     } else if (proposalStatus === 'Rejected' || proposalStatus === 'Expired') {
       logger.debug(
-        `Updating submission with ID: ${submissionId} to unpaid status`,
+        `Updating milestone with ID: ${milestoneId} to unpaid status`,
       );
-      await prisma.submission.update({
-        where: { id: submissionId },
+      const milestone = await prisma.milestone.update({
+        where: { id: milestoneId },
         data: {
           paymentDetails: {
             treasury: {
               proposalId: paymentDetails.treasury.proposalId,
               dao: paymentDetails.treasury.dao,
               synced: true,
+            },
+          },
+        },
+        include: {
+          submission: {
+            include: {
+              Milestones: true,
             },
           },
         },
@@ -174,9 +191,14 @@ export async function syncSubmissionTreasuryStatus(
           proposalLink: paymentDetails.treasury.link,
         },
         entities: {
-          listingId: currentSubmission.listingId,
-          submissionId: submissionId,
-          sponsorId: currentSubmission.listing.sponsor.id,
+          listingId: currentMilestone.submission.listing.id,
+          submissionId: currentMilestone.submissionId,
+          sponsorId: currentMilestone.submission.listing.sponsor.id,
+          milestoneId:
+            milestone?.submission.Milestones.length &&
+            milestone.submission.Milestones.length > 1
+              ? milestone.id
+              : undefined,
         },
       });
 
@@ -194,12 +216,12 @@ export async function syncSubmissionTreasuryStatus(
     };
   } catch (error: any) {
     logger.error(
-      `Error syncing treasury status for submission ${submissionId}: ${error.message}`,
+      `Error syncing treasury status for milestone ${milestoneId}: ${error.message}`,
     );
     return {
       success: false,
       error: error.message,
-      message: `Error occurred while syncing treasury status for submission ${submissionId}.`,
+      message: `Error occurred while syncing treasury status for milestone ${milestoneId}.`,
     };
   }
 }

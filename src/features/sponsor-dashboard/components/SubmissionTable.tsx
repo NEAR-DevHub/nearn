@@ -1,5 +1,8 @@
+'use client';
+
 import dayjs from 'dayjs';
 import {
+  ChevronDown,
   Copy,
   ExternalLink,
   Eye,
@@ -23,6 +26,11 @@ import {
 import { SortableTH } from '@/components/shared/sortable-th';
 import { Button } from '@/components/ui/button';
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -40,7 +48,10 @@ import {
 import { Tooltip } from '@/components/ui/tooltip';
 import { tokenList } from '@/constants/tokenList';
 import { useDisclosure } from '@/hooks/use-disclosure';
-import { type SubmissionWithUser } from '@/interface/submission';
+import {
+  type MilestoneWithUser,
+  type SubmissionWithUser,
+} from '@/interface/submission';
 import { type User } from '@/interface/user';
 import { getBountyUrl, getSubmissionUrl } from '@/utils/bounty-urls';
 import { cn } from '@/utils/cn';
@@ -56,9 +67,16 @@ import { EarnAvatar } from '@/features/talent/components/EarnAvatar';
 import { type SubmissionWithListingUser } from '../queries/dashboard-submissions';
 import { colorMap } from '../utils/statusColorMap';
 import { ListingTh } from './ListingTable';
+import MilestoneCompletionLine from './Milestones/CompletionLine';
+import { ApproveButton } from './Milestones/MilestoneTable';
+import { VerifyPaymentModal } from './Modals/VerifyPayment';
+import { PaymentButton } from './Shared/PaymentButton';
 import { SubmissionNotesMinified } from './SubmissionNotesMinified';
+import { DisplayPayment } from './Submissions/DisplayPayment';
+import AddManualPaymentModal from './Submissions/Modals/AddManualPaymentModal';
 import { DeleteRestoreSubmissionModal } from './Submissions/Modals/DeleteRestoreSubmissionModal';
 import { EditSubmissionStatusModal } from './Submissions/Modals/EditSubmissionStatusModal';
+import NearTreasuryPaymentModal from './Submissions/Modals/NearTreasuryPaymentModal';
 import { DoneBy } from './Submissions/SubmissionPanel';
 
 interface SubmissionTableProps {
@@ -92,7 +110,7 @@ const columnLabels: Record<ColumnKey, string> = {
   status: 'Status',
   submissionDate: 'Submission Date',
   approvedDate: 'Approved Date',
-  paymentDate: 'Payment Date',
+  paymentDate: 'Last Payment Date',
   notes: 'Notes',
   activity: 'Activity',
 };
@@ -147,6 +165,24 @@ export const SubmissionTable = ({
   const [interactedSubmission, setInteractedSubmission] = useState<
     SubmissionWithListingUser | undefined
   >(undefined);
+  const [selectedMilestone, setSelectedMilestone] = useState<
+    MilestoneWithUser | undefined
+  >(undefined);
+  const {
+    isOpen: isNearTreasuryPaymentModalOpen,
+    onOpen: onNearTreasuryPaymentModalOpen,
+    onClose: onNearTreasuryPaymentModalClose,
+  } = useDisclosure();
+  const {
+    isOpen: isManualPaymentModalOpen,
+    onOpen: onManualPaymentModalOpen,
+    onClose: onManualPaymentModalClose,
+  } = useDisclosure();
+  const {
+    isOpen: isVerifyPaymentModalOpen,
+    onOpen: onVerifyPaymentModalOpen,
+    onClose: onVerifyPaymentModalClose,
+  } = useDisclosure();
 
   const defaultVisibleColumns: Record<ColumnKey, boolean> = {
     contributor: true,
@@ -202,6 +238,23 @@ export const SubmissionTable = ({
 
     router.push(href);
   }
+
+  const handleOpenManualPaymentModal = (milestone: MilestoneWithUser) => {
+    setSelectedMilestone(milestone);
+    onManualPaymentModalOpen();
+  };
+
+  const handleOpenVerifyPaymentModal = (
+    submission: SubmissionWithListingUser,
+  ) => {
+    setInteractedSubmission(submission);
+    onVerifyPaymentModalOpen();
+  };
+
+  const handleOpenNearTreasuryModal = (milestone: MilestoneWithUser) => {
+    setSelectedMilestone(milestone);
+    onNearTreasuryPaymentModalOpen();
+  };
 
   if (!submissions.length) return;
 
@@ -290,6 +343,7 @@ export const SubmissionTable = ({
                 <ListingTh className="text-nowrap">Activity</ListingTh>
               )}
               <ListingTh className="pl-6">Actions</ListingTh>
+              <TableHead />
               <TableHead className="sticky right-0 z-50 flex items-center bg-slate-100 group-hover:bg-muted">
                 <ColumnVisibilitySettings
                   columns={columnDefinitions}
@@ -304,10 +358,11 @@ export const SubmissionTable = ({
               const submissionDate = dayjs(submission?.createdAt).format(
                 "DD MMM'YY",
               );
-              const paymentDate =
-                submission?.paymentDate && submission?.isPaid
-                  ? dayjs(submission?.paymentDate).format("DD MMM'YY")
-                  : '';
+              const milestone = submission?.Milestones[0];
+
+              const paymentDate = milestone?.paidDate
+                ? dayjs(milestone.paidDate).format("DD MMM'YY")
+                : '';
               const approveDate =
                 submission?.approveDate && submission.status === 'Approved'
                   ? dayjs(submission?.approveDate).format("DD MMM'YY")
@@ -349,316 +404,540 @@ export const SubmissionTable = ({
               );
 
               return (
-                <TableRow key={submission?.id}>
-                  <TableCell
-                    className="cursor-pointer"
-                    onClick={(e) => handleClick(e, listingSubmissionLink)}
-                    onAuxClick={(e) => handleClick(e, listingSubmissionLink)}
-                  >
-                    <p className="whitespace-nowrap text-sm font-medium text-slate-500">
-                      {submission.sequentialId}
-                    </p>
-                  </TableCell>
-                  {visibleColumns.contributor && (
-                    <TableCell className="max-w-80 whitespace-normal break-words font-medium text-slate-700">
-                      <Link
-                        href={`/t/${submission?.user?.username}`}
-                        className="flex items-center"
+                <Collapsible asChild key={submission?.id}>
+                  <>
+                    <TableRow>
+                      <TableCell
+                        className="cursor-pointer"
+                        onClick={(e) => handleClick(e, listingSubmissionLink)}
+                        onAuxClick={(e) =>
+                          handleClick(e, listingSubmissionLink)
+                        }
                       >
-                        <EarnAvatar
-                          id={submission?.user?.id}
-                          avatar={submission?.user?.photo || undefined}
-                        />
-                        <div className="ml-2 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <p className="truncate whitespace-nowrap text-sm font-medium text-slate-700">
-                              {submission?.user?.name}
-                            </p>
-                            {submission?.user?.publicKey && (
-                              <KycComponent
-                                address={submission.user.publicKey}
-                                imageOnly
-                                variant="xs"
-                                listingSponsorId={
-                                  submission?.listing?.sponsorId
-                                }
-                              />
-                            )}
-                          </div>
-                          <p className="truncate text-xs font-medium text-slate-500">
-                            {truncatePublicKey(submission.user.publicKey, 20)}
-                          </p>
-                        </div>
-                      </Link>
-                    </TableCell>
-                  )}
-                  {visibleColumns.title && (
-                    <>
-                      <TableCell className="pr-0">
-                        <Tooltip content={<p>{listingType}</p>}>
-                          <Link href={publicListingLink}>
-                            <img
-                              className="mt-1.5 h-5 min-h-5 w-5 min-w-5 flex-shrink-0 rounded-full"
-                              alt={`New ${listingType}`}
-                              src={getListingIcon(submission?.listing?.type!)}
-                              title={listingType}
+                        <p className="whitespace-nowrap text-sm font-medium text-slate-500">
+                          {submission.sequentialId}
+                        </p>
+                      </TableCell>
+                      {visibleColumns.contributor && (
+                        <TableCell className="max-w-80 whitespace-normal break-words font-medium text-slate-700">
+                          <Link
+                            href={`/t/${submission?.user?.username}`}
+                            className="flex items-center"
+                          >
+                            <EarnAvatar
+                              id={submission?.user?.id}
+                              avatar={submission?.user?.photo || undefined}
                             />
+                            <div className="ml-2 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <p className="truncate whitespace-nowrap text-sm font-medium text-slate-700">
+                                  {submission?.user?.name}
+                                </p>
+                                {submission?.user?.publicKey && (
+                                  <KycComponent
+                                    address={submission.user.publicKey}
+                                    imageOnly
+                                    variant="xs"
+                                    listingSponsorId={
+                                      submission?.listing?.sponsorId
+                                    }
+                                  />
+                                )}
+                              </div>
+                              <p className="truncate text-xs font-medium text-slate-500">
+                                {truncatePublicKey(
+                                  submission.user.publicKey,
+                                  20,
+                                )}
+                              </p>
+                            </div>
                           </Link>
-                        </Tooltip>
-                      </TableCell>
-                      <TableCell className="py-2">
-                        <Link
-                          href={publicListingLink}
-                          className="h-full max-w-80 whitespace-normal break-words font-medium text-slate-700"
+                        </TableCell>
+                      )}
+                      {visibleColumns.title && (
+                        <>
+                          <TableCell className="pr-0">
+                            <Tooltip content={<p>{listingType}</p>}>
+                              <Link href={publicListingLink}>
+                                <img
+                                  className="mt-1.5 h-5 min-h-5 w-5 min-w-5 flex-shrink-0 rounded-full"
+                                  alt={`New ${listingType}`}
+                                  src={getListingIcon(
+                                    submission?.listing?.type!,
+                                  )}
+                                  title={listingType}
+                                />
+                              </Link>
+                            </Tooltip>
+                          </TableCell>
+                          <TableCell className="py-2">
+                            <Link
+                              href={publicListingLink}
+                              className="h-full max-w-80 whitespace-normal break-words font-medium text-slate-700"
+                            >
+                              <p className="h-full w-full">
+                                {submission?.listing?.title}
+                              </p>
+                            </Link>
+                          </TableCell>
+                        </>
+                      )}
+                      {visibleColumns.ask && (
+                        <TableCell
+                          className="min-w-[225px] cursor-pointer font-medium text-slate-700"
+                          onClick={(e) => handleClick(e, listingSubmissionLink)}
+                          onAuxClick={(e) =>
+                            handleClick(e, listingSubmissionLink)
+                          }
                         >
-                          <p className="h-full w-full">
-                            {submission?.listing?.title}
-                          </p>
-                        </Link>
-                      </TableCell>
-                    </>
-                  )}
-                  {visibleColumns.ask && (
-                    <TableCell
-                      className="min-w-[225px] cursor-pointer font-medium text-slate-700"
-                      onClick={(e) => handleClick(e, listingSubmissionLink)}
-                      onAuxClick={(e) => handleClick(e, listingSubmissionLink)}
-                    >
-                      <div className="flex w-full items-center overflow-visible">
-                        <img
-                          src={tokenObject?.icon}
-                          alt={tokenObject?.tokenSymbol}
-                          className="h-4 w-4 rounded-full"
-                        />
-                        <span className="ml-1 truncate text-sm">
-                          {isUsdBased && '$'}
-                          {ask ? ask.toLocaleString('en-us') : '0'}
-                          <span className="text-slate-400">
-                            {isUsdBased && ' to be paid in'}
-                          </span>
-                          <span
+                          <div className="flex w-full items-center overflow-visible">
+                            <img
+                              src={tokenObject?.icon}
+                              alt={tokenObject?.tokenSymbol}
+                              className="h-4 w-4 rounded-full"
+                            />
+                            <span className="ml-1 truncate text-sm">
+                              {isUsdBased && '$'}
+                              {ask ? ask.toLocaleString('en-us') : '0'}
+                              <span className="text-slate-400">
+                                {isUsdBased && ' to be paid in'}
+                              </span>
+                              <span
+                                className={cn(
+                                  'ml-1',
+                                  !isUsdBased && 'font-semibold text-slate-400',
+                                )}
+                              >
+                                {token}
+                              </span>
+                            </span>
+                          </div>
+                          {submission.Milestones.length > 1 && (
+                            <MilestoneCompletionLine
+                              submission={submission}
+                              hideText={true}
+                            />
+                          )}
+                        </TableCell>
+                      )}
+                      {visibleColumns.status && (
+                        <TableCell
+                          className="cursor-pointer items-center py-2"
+                          onClick={(e) => handleClick(e, listingSubmissionLink)}
+                          onAuxClick={(e) =>
+                            handleClick(e, listingSubmissionLink)
+                          }
+                        >
+                          <p
                             className={cn(
-                              'ml-1',
-                              !isUsdBased && 'font-semibold text-slate-400',
+                              'inline-flex items-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium',
+                              textColor,
+                              bgColor,
                             )}
                           >
-                            {token}
-                          </span>
-                        </span>
-                      </div>
-                    </TableCell>
-                  )}
-                  {visibleColumns.status && (
-                    <TableCell
-                      className="cursor-pointer items-center py-2"
-                      onClick={(e) => handleClick(e, listingSubmissionLink)}
-                      onAuxClick={(e) => handleClick(e, listingSubmissionLink)}
-                    >
-                      <p
-                        className={cn(
-                          'inline-flex items-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium',
-                          textColor,
-                          bgColor,
-                        )}
-                      >
-                        {listingStatus}
-                      </p>
-                    </TableCell>
-                  )}
-                  {visibleColumns.submissionDate && (
-                    <TableCell
-                      className="cursor-pointer items-center py-2"
-                      onClick={(e) => handleClick(e, listingSubmissionLink)}
-                      onAuxClick={(e) => handleClick(e, listingSubmissionLink)}
-                    >
-                      <p className="whitespace-nowrap text-sm font-medium text-slate-500">
-                        {submissionDate}
-                      </p>
-                    </TableCell>
-                  )}
-                  {visibleColumns.approvedDate && (
-                    <TableCell
-                      className="cursor-pointer items-center py-2"
-                      onClick={(e) => handleClick(e, listingSubmissionLink)}
-                      onAuxClick={(e) => handleClick(e, listingSubmissionLink)}
-                    >
-                      <Tooltip
-                        disabled={!submission?.approvedByUser}
-                        content={
-                          <DoneBy
-                            doneBy={
-                              submission?.approvedByUser as User | undefined
+                            {listingStatus.replace(/([A-Z])/g, ' $1').trim()}
+                          </p>
+                        </TableCell>
+                      )}
+                      {visibleColumns.submissionDate && (
+                        <TableCell
+                          className="cursor-pointer items-center py-2"
+                          onClick={(e) => handleClick(e, listingSubmissionLink)}
+                          onAuxClick={(e) =>
+                            handleClick(e, listingSubmissionLink)
+                          }
+                        >
+                          <p className="whitespace-nowrap text-sm font-medium text-slate-500">
+                            {submissionDate}
+                          </p>
+                        </TableCell>
+                      )}
+                      {visibleColumns.approvedDate && (
+                        <TableCell
+                          className="cursor-pointer items-center py-2"
+                          onClick={(e) => handleClick(e, listingSubmissionLink)}
+                          onAuxClick={(e) =>
+                            handleClick(e, listingSubmissionLink)
+                          }
+                        >
+                          <Tooltip
+                            disabled={!submission?.approvedByUser}
+                            content={
+                              <DoneBy
+                                doneBy={
+                                  submission?.approvedByUser as User | undefined
+                                }
+                                doneByType="approved"
+                              />
                             }
-                            doneByType="approved"
+                          >
+                            <p className="whitespace-nowrap text-sm font-medium text-slate-500">
+                              {approveDate}
+                            </p>
+                          </Tooltip>
+                        </TableCell>
+                      )}
+                      {visibleColumns.paymentDate && (
+                        <TableCell
+                          className="cursor-pointer"
+                          onClick={(e) => handleClick(e, listingSubmissionLink)}
+                          onAuxClick={(e) =>
+                            handleClick(e, listingSubmissionLink)
+                          }
+                        >
+                          <Tooltip
+                            disabled={!milestone?.paidByUser}
+                            content={
+                              <DoneBy
+                                doneBy={
+                                  milestone?.paidByUser as User | undefined
+                                }
+                                doneByType="paid"
+                              />
+                            }
+                          >
+                            <p className="whitespace-nowrap text-sm font-medium text-slate-500">
+                              {paymentDate}
+                            </p>
+                          </Tooltip>
+                        </TableCell>
+                      )}
+                      {visibleColumns.notes && (
+                        <TableCell className="items-center py-2">
+                          <SubmissionNotesMinified submission={submission} />
+                        </TableCell>
+                      )}
+                      {visibleColumns.activity && (
+                        <TableCell className="items-center py-2">
+                          <ActivityHistoryMinified
+                            id={submission.id}
+                            refType="submission"
                           />
-                        }
-                      >
-                        <p className="whitespace-nowrap text-sm font-medium text-slate-500">
-                          {approveDate}
-                        </p>
-                      </Tooltip>
-                    </TableCell>
-                  )}
-                  {visibleColumns.paymentDate && (
-                    <TableCell
-                      className="cursor-pointer"
-                      onClick={(e) => handleClick(e, listingSubmissionLink)}
-                      onAuxClick={(e) => handleClick(e, listingSubmissionLink)}
-                    >
-                      <Tooltip
-                        disabled={!submission?.paidByUser}
-                        content={
-                          <DoneBy
-                            doneBy={submission?.paidByUser as User | undefined}
-                            doneByType="paid"
-                          />
-                        }
-                      >
-                        <p className="whitespace-nowrap text-sm font-medium text-slate-500">
-                          {paymentDate}
-                        </p>
-                      </Tooltip>
-                    </TableCell>
-                  )}
-                  {visibleColumns.notes && (
-                    <TableCell className="items-center py-2">
-                      <SubmissionNotesMinified submission={submission} />
-                    </TableCell>
-                  )}
-                  {visibleColumns.activity && (
-                    <TableCell className="items-center py-2">
-                      <ActivityHistoryMinified submission={submission} />
-                    </TableCell>
-                  )}
-                  <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="ph-no-capture text-[13px] font-medium text-black"
-                    >
-                      <Link
-                        href={listingSubmissionLink}
-                        className="flex items-center gap-1"
-                      >
-                        <Eye className="h-4 w-4" />
-                        View Submission
-                      </Link>
-                    </Button>
-                  </TableCell>
-                  <TableCell className="px-0 py-2">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
+                        </TableCell>
+                      )}
+                      <TableCell>
                         <Button
-                          className="hover:bg-slate-100"
-                          size="icon"
                           variant="ghost"
+                          size="sm"
+                          className="ph-no-capture text-[13px] font-medium text-black"
                         >
-                          <MoreVertical className="h-4 w-4" />
+                          <Link
+                            href={listingSubmissionLink}
+                            className="flex items-center gap-1"
+                          >
+                            <Eye className="h-4 w-4" />
+                            View Submission
+                          </Link>
                         </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="max-w-60">
-                        <DropdownMenuItem
-                          className="cursor-pointer text-sm font-medium text-slate-500"
-                          onClick={() => {
-                            posthog.capture('sponsor_view_profile');
-                            router.push(`/t/${submission?.user.username}`);
-                          }}
-                        >
-                          <User2 className="mr-2 h-4 w-4" />
-                          View Profile
-                        </DropdownMenuItem>
-
-                        {(submission?.listing?.type === 'sponsorship' ||
-                          (submission?.listing?.type === 'bounty' &&
-                            submission?.listing?.isWinnersAnnounced)) && (
-                          <>
-                            <DropdownMenuItem
-                              className="cursor-pointer text-sm font-medium text-slate-500"
-                              onClick={() => {
-                                posthog.capture(
-                                  'sponsor_public_submission_view',
-                                );
-                                router.push(submissionLink);
-                              }}
+                      </TableCell>
+                      <TableCell className="m-0 p-0">
+                        {submission.Milestones.length > 1 && (
+                          <CollapsibleTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="ph-no-capture flex justify-start text-[13px] font-medium text-black aria-expanded:rotate-180"
                             >
-                              <ExternalLink className="mr-2 h-4 w-4" />
-                              View Public Submission
-                            </DropdownMenuItem>
-
-                            <DropdownMenuItem
-                              className="cursor-pointer text-sm font-medium text-slate-500"
-                              onClick={() => {
-                                copyToClipboard(submissionLink);
-                              }}
-                            >
-                              <Copy className="mr-2 h-4 w-4" />
-                              Copy Link
-                            </DropdownMenuItem>
-                          </>
+                              <ChevronDown className={cn('h-4 w-4')} />
+                            </Button>
+                          </CollapsibleTrigger>
                         )}
-                        {submission?.isPaid &&
-                          submission.paymentDetails?.link && (
+                      </TableCell>
+                      <TableCell className="px-0 py-2">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              className="hover:bg-slate-100"
+                              size="icon"
+                              variant="ghost"
+                            >
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="max-w-60">
                             <DropdownMenuItem
                               className="cursor-pointer text-sm font-medium text-slate-500"
                               onClick={() => {
-                                copyToClipboard(
-                                  submission.paymentDetails?.link || '',
-                                );
+                                posthog.capture('sponsor_view_profile');
+                                router.push(`/t/${submission?.user.username}`);
                               }}
                             >
-                              <Copy className="mr-2 h-4 w-4" />
-                              Copy Payment Link
+                              <User2 className="mr-2 h-4 w-4" />
+                              View Profile
                             </DropdownMenuItem>
-                          )}
-                        {isGodUser && submission.listing.isActive && (
-                          <>
-                            {!submission.isArchived && (
-                              <DropdownMenuItem
-                                className="cursor-pointer text-sm font-medium text-slate-500"
-                                onClick={() => {
-                                  setInteractedSubmission(submission);
-                                  onEditModalOpen();
-                                }}
-                              >
-                                <Pencil className="mr-2 h-4 w-4" />
-                                Edit Status
-                              </DropdownMenuItem>
+
+                            {(submission?.listing?.type === 'sponsorship' ||
+                              (submission?.listing?.type === 'bounty' &&
+                                submission?.listing?.isWinnersAnnounced)) && (
+                              <>
+                                <DropdownMenuItem
+                                  className="cursor-pointer text-sm font-medium text-slate-500"
+                                  onClick={() => {
+                                    posthog.capture(
+                                      'sponsor_public_submission_view',
+                                    );
+                                    router.push(submissionLink);
+                                  }}
+                                >
+                                  <ExternalLink className="mr-2 h-4 w-4" />
+                                  View Public Submission
+                                </DropdownMenuItem>
+
+                                <DropdownMenuItem
+                                  className="cursor-pointer text-sm font-medium text-slate-500"
+                                  onClick={() => {
+                                    copyToClipboard(submissionLink);
+                                  }}
+                                >
+                                  <Copy className="mr-2 h-4 w-4" />
+                                  Copy Link
+                                </DropdownMenuItem>
+                                {milestone?.status === 'Paid' &&
+                                  milestone?.paymentDetails?.link && (
+                                    <DropdownMenuItem
+                                      className="cursor-pointer text-sm font-medium text-slate-500"
+                                      onClick={() => {
+                                        copyToClipboard(
+                                          milestone?.paymentDetails?.link || '',
+                                        );
+                                      }}
+                                    >
+                                      <Copy className="mr-2 h-4 w-4" />
+                                      Copy Payment Link
+                                    </DropdownMenuItem>
+                                  )}
+                              </>
                             )}
-                            <DropdownMenuItem
-                              className={cn(
-                                'cursor-pointer text-sm font-medium text-slate-500',
-                                submission.isArchived
-                                  ? 'hover:text-brand-green'
-                                  : 'hover:text-destructive',
-                              )}
-                              onClick={() => {
-                                setInteractedSubmission(submission);
-                                onDeleteModalOpen();
-                              }}
+                            {isGodUser && submission.listing.isActive && (
+                              <>
+                                {!submission.isArchived && (
+                                  <DropdownMenuItem
+                                    className="cursor-pointer text-sm font-medium text-slate-500"
+                                    onClick={() => {
+                                      setInteractedSubmission(submission);
+                                      onEditModalOpen();
+                                    }}
+                                  >
+                                    <Pencil className="mr-2 h-4 w-4" />
+                                    Edit Status
+                                  </DropdownMenuItem>
+                                )}
+                                <DropdownMenuItem
+                                  className={cn(
+                                    'cursor-pointer text-sm font-medium text-slate-500',
+                                    submission.isArchived
+                                      ? 'hover:text-brand-green'
+                                      : 'hover:text-destructive',
+                                  )}
+                                  onClick={() => {
+                                    setInteractedSubmission(submission);
+                                    onDeleteModalOpen();
+                                  }}
+                                >
+                                  {submission.isArchived ||
+                                  !submission.isActive ? (
+                                    <>
+                                      <RefreshCw className="mr-2 h-4 w-4" />
+                                      Restore Submission
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Trash className="mr-2 h-4 w-4" />
+                                      Delete Submission
+                                    </>
+                                  )}
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                    <CollapsibleContent className="w-full" asChild>
+                      <>
+                        {submission.Milestones.map((milestone) => {
+                          const statusStyle =
+                            colorMap[
+                              milestone.status as keyof typeof colorMap
+                            ] || colorMap.NotStarted;
+
+                          return (
+                            <TableRow
+                              key={milestone.id}
+                              className="bg-slate-50"
                             >
-                              {submission.isArchived || !submission.isActive ? (
+                              <TableCell className="py-2">
+                                <p className="whitespace-nowrap text-sm font-medium text-slate-500">
+                                  {milestone.milestoneIndex}
+                                </p>
+                              </TableCell>
+                              {visibleColumns.contributor && <TableCell />}
+                              {visibleColumns.title && (
                                 <>
-                                  <RefreshCw className="mr-2 h-4 w-4" />
-                                  Restore Submission
-                                </>
-                              ) : (
-                                <>
-                                  <Trash className="mr-2 h-4 w-4" />
-                                  Delete Submission
+                                  <TableCell />
+                                  <TableCell>
+                                    <p className="whitespace-nowrap text-sm font-medium text-slate-500">
+                                      {milestone.title}
+                                    </p>
+                                  </TableCell>
                                 </>
                               )}
-                            </DropdownMenuItem>
-                          </>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
+                              {visibleColumns.ask && (
+                                <TableCell>
+                                  <div className="flex w-full items-center overflow-visible">
+                                    <img
+                                      src={tokenObject?.icon}
+                                      alt={tokenObject?.tokenSymbol}
+                                      className="h-4 w-4 rounded-full"
+                                    />
+                                    <span className="ml-1 truncate text-sm">
+                                      {isUsdBased && '$'}
+                                      {milestone.reward
+                                        ? milestone.reward.toLocaleString(
+                                            'en-us',
+                                          )
+                                        : '0'}
+                                      <span className="text-slate-400">
+                                        {isUsdBased && ' to be paid in'}
+                                      </span>
+                                      <span
+                                        className={cn(
+                                          'ml-1',
+                                          !isUsdBased &&
+                                            'font-semibold text-slate-400',
+                                        )}
+                                      >
+                                        {milestone.token}
+                                      </span>
+                                    </span>
+                                  </div>
+                                </TableCell>
+                              )}
+                              {visibleColumns.status && (
+                                <TableCell>
+                                  <p
+                                    className={cn(
+                                      'inline-flex items-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium',
+                                      statusStyle?.color,
+                                      statusStyle?.bg,
+                                    )}
+                                  >
+                                    {milestone.status
+                                      .replace(/([A-Z])/g, ' $1')
+                                      .trim()}
+                                  </p>
+                                </TableCell>
+                              )}
+                              {visibleColumns.submissionDate && <TableCell />}
+                              {visibleColumns.approvedDate && (
+                                <TableCell>
+                                  <p className="whitespace-nowrap text-sm font-medium text-slate-500">
+                                    {milestone.approvedDate
+                                      ? dayjs(milestone.approvedDate).format(
+                                          "DD MMM'YY",
+                                        )
+                                      : ''}
+                                  </p>
+                                </TableCell>
+                              )}
+                              {visibleColumns.paymentDate && (
+                                <TableCell>
+                                  <p className="whitespace-nowrap text-sm font-medium text-slate-500">
+                                    {milestone.paidDate
+                                      ? dayjs(milestone.paidDate).format(
+                                          "DD MMM'YY",
+                                        )
+                                      : ''}
+                                  </p>
+                                </TableCell>
+                              )}
+                              {visibleColumns.notes && <TableCell />}
+                              {visibleColumns.activity && (
+                                <TableCell>
+                                  <ActivityHistoryMinified
+                                    id={milestone.id}
+                                    refType="milestone"
+                                  />
+                                </TableCell>
+                              )}
+                              <TableCell className="pl-6">
+                                <div className="flex items-center gap-2">
+                                  {milestone.status === 'InReview' && (
+                                    <ApproveButton milestone={milestone} />
+                                  )}
+                                  {milestone.status === 'Approved' && (
+                                    <PaymentButton
+                                      milestone={milestone}
+                                      size="sm"
+                                      onVerifyPayment={() =>
+                                        handleOpenVerifyPaymentModal(submission)
+                                      }
+                                      setIsNearTreasuryPaymentModalOpen={() =>
+                                        handleOpenNearTreasuryModal(milestone)
+                                      }
+                                      onManualPaymentOpen={() =>
+                                        handleOpenManualPaymentModal(milestone)
+                                      }
+                                    />
+                                  )}
+                                  {milestone.status === 'Paid' && (
+                                    <DisplayPayment
+                                      milestone={milestone}
+                                      listing={submission.listing}
+                                      isSponsorView={true}
+                                    />
+                                  )}
+                                </div>
+                              </TableCell>
+                              <TableCell colSpan={2} />
+                            </TableRow>
+                          );
+                        })}
+                      </>
+                    </CollapsibleContent>
+                  </>
+                </Collapsible>
               );
             })}
           </TableBody>
         </Table>
       </div>
+
+      {selectedMilestone && (
+        <NearTreasuryPaymentModal
+          isOpen={isNearTreasuryPaymentModalOpen}
+          onClose={onNearTreasuryPaymentModalClose}
+          milestoneId={selectedMilestone?.id}
+          onSuccess={refetchSubmissions}
+        />
+      )}
+      {selectedMilestone && (
+        <AddManualPaymentModal
+          isOpen={isManualPaymentModalOpen}
+          onClose={onManualPaymentModalClose}
+          milestone={selectedMilestone}
+          onSuccess={refetchSubmissions}
+        />
+      )}
+      {selectedMilestone && (
+        <VerifyPaymentModal
+          listing={interactedSubmission?.listing}
+          setSelectedSubmission={() => {
+            refetchSubmissions();
+          }}
+          setListing={() => {
+            refetchSubmissions();
+          }}
+          isOpen={isVerifyPaymentModalOpen}
+          onClose={() => {
+            onVerifyPaymentModalClose();
+            setSelectedMilestone(undefined);
+          }}
+          listingId={interactedSubmission?.listing?.id}
+          listingType={interactedSubmission?.listing?.type}
+          selectedSubmission={interactedSubmission}
+        />
+      )}
 
       <EditSubmissionStatusModal
         isOpen={isEditModalOpen}

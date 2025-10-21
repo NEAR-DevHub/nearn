@@ -13,15 +13,15 @@ interface TreasuryStatusProps {
     proposalId?: number;
     synced?: boolean;
   };
-  submissionIsPaid: boolean;
-  submissionId: string;
+  milestoneIsPaid: boolean;
+  milestoneId: string;
   updateSubmission: (status: string) => void;
 }
 
 export default function TreasuryStatus({
   treasury,
-  submissionIsPaid,
-  submissionId,
+  milestoneIsPaid,
+  milestoneId,
   updateSubmission,
 }: TreasuryStatusProps) {
   const { data: proposalStatus, isLoading: isLoadingProposalStatus } = useQuery(
@@ -33,11 +33,11 @@ export default function TreasuryStatus({
     if (
       proposalStatus &&
       proposalStatus !== 'InProgress' &&
-      !submissionIsPaid &&
+      !milestoneIsPaid &&
       !treasury?.synced
     ) {
       syncTreasuryStatus(
-        { id: submissionId },
+        { id: milestoneId },
         {
           onSuccess: () => {
             updateSubmission(proposalStatus);
@@ -45,7 +45,7 @@ export default function TreasuryStatus({
         },
       );
     }
-  }, [proposalStatus, submissionIsPaid, syncTreasuryStatus]);
+  }, [proposalStatus, milestoneIsPaid, syncTreasuryStatus]);
 
   if (isLoadingProposalStatus || !proposalStatus || !treasury) {
     return <></>;

@@ -100,6 +100,18 @@ async function handler(
             private: true,
           },
         },
+        Milestones: {
+          select: {
+            status: true,
+            paidDate: true,
+            token: true,
+            reward: true,
+            paymentDetails: true,
+          },
+          orderBy: {
+            milestoneIndex: 'asc',
+          },
+        },
         listing: {
           select: {
             eligibility: true,
@@ -142,18 +154,21 @@ async function handler(
             ? undefined
             : submission.user?.publicKey,
         },
-        paymentDetails:
-          submission.user?.private && submission.user.id !== req.userId
-            ? undefined
-            : {
-                ...(submission.paymentDetails as any),
-                manual: {
-                  ...(submission.paymentDetails as any)?.manual,
-                  notes: (submission.paymentDetails as any)?.manual?.isPublic
-                    ? (submission.paymentDetails as any)?.manual?.notes
-                    : undefined,
+        Milestones: submission.Milestones.map((milestone) => ({
+          ...milestone,
+          paymentDetails:
+            submission.user?.private && submission.user.id !== req.userId
+              ? undefined
+              : {
+                  ...(milestone.paymentDetails as any),
+                  manual: {
+                    ...(milestone.paymentDetails as any)?.manual,
+                    notes: (milestone.paymentDetails as any)?.manual?.isPublic
+                      ? (milestone.paymentDetails as any)?.manual?.notes
+                      : undefined,
+                  },
                 },
-              },
+        })),
       })),
     });
   } catch (error: any) {

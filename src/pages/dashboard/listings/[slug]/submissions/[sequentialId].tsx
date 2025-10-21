@@ -5,35 +5,34 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
 import { usePostHog } from 'posthog-js/react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { LoadingSection } from '@/components/shared/LoadingSection';
 import { Button } from '@/components/ui/button';
 import { ExternalImage } from '@/components/ui/cloudinary-image';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDisclosure } from '@/hooks/use-disclosure';
+import { type MilestoneWithUser } from '@/interface/submission';
 import { SponsorLayout } from '@/layouts/Sponsor';
 import { useUser } from '@/store/user';
 import { cn } from '@/utils/cn';
 import { dayjs } from '@/utils/dayjs';
+import { getSubmissionPaymentStatus } from '@/utils/milestone-helpers';
 import { cleanRewards } from '@/utils/rank';
 
 import { BONUS_REWARD_POSITION } from '@/features/listing-builder/constants';
-import type { Listing } from '@/features/listings/types';
 import {
   selectedSubmissionAtom,
   selectedSubmissionIdsAtom,
 } from '@/features/sponsor-dashboard/atoms';
+import ListingMilestoneTable from '@/features/sponsor-dashboard/components/Milestones/ListingMilestoneTable';
 import { VerifyPaymentModal } from '@/features/sponsor-dashboard/components/Modals/VerifyPayment';
-import { PublishResults } from '@/features/sponsor-dashboard/components/PublishResults';
+import { PublishModal } from '@/features/sponsor-dashboard/components/PublishModal';
 import { ScoutTable } from '@/features/sponsor-dashboard/components/Scouts/ScoutTable';
 import AddManualPaymentModal from '@/features/sponsor-dashboard/components/Submissions/Modals/AddManualPaymentModal';
-import { RejectAllSubmissionModal } from '@/features/sponsor-dashboard/components/Submissions/Modals/RejectAllModal';
 import { SubmissionHeader } from '@/features/sponsor-dashboard/components/Submissions/SubmissionHeader';
 import { SubmissionList } from '@/features/sponsor-dashboard/components/Submissions/SubmissionList';
 import { SubmissionPanel } from '@/features/sponsor-dashboard/components/Submissions/SubmissionPanel';
-import { useRejectSubmissions } from '@/features/sponsor-dashboard/mutations/useRejectSubmissions';
 import { type SubmissionWithListingUser } from '@/features/sponsor-dashboard/queries/dashboard-submissions';
 import { sponsorDashboardListingQuery } from '@/features/sponsor-dashboard/queries/listing';
 import { scoutsQuery } from '@/features/sponsor-dashboard/queries/scouts';
@@ -49,6 +48,7 @@ const submissionsPerPage = 10;
 
 export default function BountySubmissions({ slug, sequentialId }: Props) {
   const router = useRouter();
+  const { pageTab } = router.query;
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { user } = useUser();
 
@@ -78,21 +78,16 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
   const queryClient = useQueryClient();
   const posthog = usePostHog();
 
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    const validTabs = ['submissions', 'scout', 'milestones'];
+    return pageTab && validTabs.includes(pageTab as string)
+      ? (pageTab as string)
+      : 'submissions';
+  });
+
   const [selectedSubmissionIds, setSelectedSubmissionIds] = useAtom(
     selectedSubmissionIdsAtom,
   );
-
-  const [isToggledAll, setIsToggledAll] = useState(false);
-  const {
-    isOpen: isTogglerOpen,
-    onOpen: onTogglerOpen,
-    onClose: onTogglerClose,
-  } = useDisclosure();
-  const {
-    isOpen: rejectedIsOpen,
-    onOpen: rejectedOnOpen,
-    onClose: rejectedOnClose,
-  } = useDisclosure();
 
   const {
     isOpen: verifyPaymentIsOpen,
@@ -137,10 +132,6 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
   }, [sequentialId, submissions]);
 
   useEffect(() => {
-    selectedSubmissionIds.size > 0 ? onTogglerOpen() : onTogglerClose();
-  }, [selectedSubmissionIds]);
-
-  useEffect(() => {
     const newSet = new Set(selectedSubmissionIds);
     Array.from(selectedSubmissionIds).forEach((a) => {
       const submissionWithId = submissions?.find(
@@ -152,37 +143,6 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
     });
     setSelectedSubmissionIds(newSet);
   }, [submissions]);
-
-  const isAllCurrentToggled = () =>
-    paginatedSubmissions
-      ?.filter((submission) => submission.status === 'Pending')
-      .every((submission) => selectedSubmissionIds.has(submission.id)) || false;
-
-  const toggleSubmission = (id: string) => {
-    setSelectedSubmissionIds((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(id)) {
-        newSet.delete(id);
-        return newSet;
-      } else {
-        return newSet.add(id);
-      }
-    });
-  };
-
-  const isToggled = useCallback(
-    (id: string) => {
-      return selectedSubmissionIds.has(id);
-    },
-    [selectedSubmissionIds, submissions],
-  );
-
-  const rejectSubmissions = useRejectSubmissions(slug);
-
-  const handleRejectSubmission = (submissionIds: string[]) => {
-    rejectSubmissions.mutate(submissionIds);
-    rejectedOnClose();
-  };
 
   const { data: scouts } = useQuery({
     ...scoutsQuery({
@@ -222,13 +182,18 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
         );
 
       let matchesLabel = false;
+      const paymentStatus = getSubmissionPaymentStatus({
+        ...submission,
+        listing: bounty,
+      });
 
       if (filterLabel === 'All') {
         matchesLabel = true;
       } else if (filterLabel === 'Paid') {
-        matchesLabel = submission.isPaid;
+        matchesLabel = paymentStatus.isPaid;
       } else if (filterLabel === 'Approved') {
-        matchesLabel = submission.status === 'Approved' && !submission.isPaid;
+        matchesLabel =
+          submission.status === 'Approved' && !paymentStatus.isPaid;
       } else if (filterLabel === 'Rejected') {
         matchesLabel = submission.status === 'Rejected';
       } else {
@@ -286,28 +251,6 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
     );
   }, [filteredSubmissions, currentPage]);
 
-  useEffect(() => {
-    setIsToggledAll(isAllCurrentToggled());
-  }, [selectedSubmissionIds, paginatedSubmissions]);
-
-  const toggleAllSubmissions = () => {
-    if (!isAllCurrentToggled()) {
-      setSelectedSubmissionIds((prev) => {
-        const newSet = new Set(prev);
-        paginatedSubmissions
-          ?.filter((submission) => submission.status === 'Pending')
-          .map((submission) => newSet.add(submission.id));
-        return newSet;
-      });
-    } else {
-      setSelectedSubmissionIds((prev) => {
-        const newSet = new Set(prev);
-        paginatedSubmissions?.map((submission) => newSet.delete(submission.id));
-        return newSet;
-      });
-    }
-  };
-
   const totalPages = Math.ceil(filteredSubmissions.length / submissionsPerPage);
 
   const usedPositions = submissions
@@ -316,11 +259,38 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
     .filter((key: number) => !isNaN(key));
 
   const totalWinners = submissions?.filter((sub) => sub.isWinner).length;
-  const totalPaymentsMade = submissions?.filter((sub) => sub.isPaid).length;
+  const totalPaymentsMade = submissions?.filter((sub) => {
+    const paymentStatus = getSubmissionPaymentStatus({
+      ...sub,
+      listing: bounty,
+    });
+    return paymentStatus.isPaid;
+  }).length;
 
   const isExpired = dayjs(bounty?.deadline).isBefore(dayjs());
 
   const isSponsorVerified = bounty?.sponsor?.isVerified;
+
+  useEffect(() => {
+    if (
+      pageTab &&
+      ['submissions', 'scout', 'milestones'].includes(pageTab as string)
+    ) {
+      setActiveTab(pageTab as string);
+    }
+  }, [pageTab]);
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    router.push(
+      {
+        pathname: router.pathname,
+        query: { ...router.query, pageTab: value },
+      },
+      undefined,
+      { shallow: true },
+    );
+  };
 
   return (
     <SponsorLayout isCollapsible className="bg-slate-50">
@@ -329,7 +299,7 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
       ) : (
         <>
           {isOpen && (
-            <PublishResults
+            <PublishModal
               remainings={remainings}
               isOpen={isOpen}
               onClose={onClose}
@@ -351,37 +321,51 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
               );
             }}
             allTransactionsVerified={
-              submissions?.every(
-                (submission) =>
-                  submission.status !== 'Approved' || submission.isPaid,
-              ) ?? true
+              submissions?.every((submission) => {
+                const paymentStatus = getSubmissionPaymentStatus({
+                  ...submission,
+                  listing: bounty,
+                });
+                return submission.status === 'Approved' && paymentStatus.isPaid;
+              }) ?? true
             }
             onVerifyPayments={onVerifyPayments}
           />
-          <Tabs defaultValue={'submissions'}>
-            {bounty?.isPublished &&
+          <Tabs value={activeTab} onValueChange={handleTabChange}>
+            {((bounty?.isPublished &&
               !bounty?.isWinnersAnnounced &&
-              !isExpired && (
-                <>
-                  <TabsList className="gap-4 font-medium text-slate-400">
-                    <TabsTrigger value="submissions">Submissions</TabsTrigger>
-                    {isSponsorVerified && (
-                      <TabsTrigger
-                        value="scout"
-                        className={cn(
-                          'ph-no-capture',
-                          !isSponsorVerified &&
-                            'cursor-not-allowed text-slate-400',
-                        )}
-                        onClick={() => posthog.capture('scout tab_scout')}
-                      >
-                        Scout Talent
-                      </TabsTrigger>
-                    )}
-                  </TabsList>
-                  <div className="h-[1.5px] w-full bg-slate-200/70" />
-                </>
-              )}
+              !isExpired) ||
+              (bounty?.type !== 'bounty' &&
+                submissions?.some(
+                  (submission) => submission.Milestones.length > 1,
+                ))) && (
+              <>
+                <TabsList className="gap-4 font-medium text-slate-400">
+                  <TabsTrigger value="submissions">Submissions</TabsTrigger>
+                  {isSponsorVerified && (
+                    <TabsTrigger
+                      value="scout"
+                      className={cn(
+                        'ph-no-capture',
+                        !isSponsorVerified &&
+                          'cursor-not-allowed text-slate-400',
+                      )}
+                      onClick={() => posthog.capture('scout tab_scout')}
+                    >
+                      Scout Talent
+                    </TabsTrigger>
+                  )}
+                  {submissions?.some(
+                    (submission) => submission.Milestones.length > 1,
+                  ) && (
+                    <TabsTrigger value="milestones">
+                      Milestone Payments
+                    </TabsTrigger>
+                  )}
+                </TabsList>
+                <div className="h-[1.5px] w-full bg-slate-200/70" />
+              </>
+            )}
 
             <TabsContent value="submissions" className="w-full px-0">
               <div className="flex w-full items-start rounded-xl bg-white">
@@ -418,10 +402,6 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
                         debouncedSearchText(e || '');
                       }}
                       type={bounty?.type}
-                      isToggled={isToggled}
-                      toggleSubmission={toggleSubmission}
-                      isAllToggled={isToggledAll}
-                      toggleAllSubmissions={toggleAllSubmissions}
                       refetchSubmissions={() => {
                         refetchSubmissions();
                       }}
@@ -564,90 +544,29 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
                   />
                 </TabsContent>
               )}
+
+            {bounty &&
+              submissions &&
+              submissions?.some(
+                (submission) => submission.Milestones.length > 1,
+              ) && (
+                <TabsContent
+                  value="milestones"
+                  className="h-[calc(100vh-400px)] px-0"
+                >
+                  <ListingMilestoneTable
+                    listing={bounty}
+                    submissions={submissions!}
+                    sequentialId={sequentialId}
+                  />
+                </TabsContent>
+              )}
           </Tabs>
 
-          <Dialog
-            modal={false}
-            onOpenChange={onTogglerClose}
-            open={isTogglerOpen}
-          >
-            <DialogContent
-              onEscapeKeyDown={(e) => e.preventDefault()}
-              onInteractOutside={(e) => e.preventDefault()}
-              classNames={{
-                overlay: 'hidden',
-              }}
-              unsetDefaultPosition
-              hideCloseIcon
-              className="fixed bottom-4 left-1/2 -translate-x-1/2 overflow-hidden p-1"
-            >
-              <div className="mx-auto w-fit rounded-lg px-4">
-                {selectedSubmissionIds.size > 100 && (
-                  <p className="pb-2 text-center text-red-500">
-                    Cannot select more than 100 applications
-                  </p>
-                )}
-
-                <div className="flex items-center gap-4 text-lg">
-                  <div className="flex items-center gap-2 font-medium">
-                    <p>{selectedSubmissionIds.size}</p>
-                    <p className="text-slate-500">Selected</p>
-                  </div>
-
-                  <div className="h-4 w-px bg-slate-300" />
-
-                  <Button
-                    className="focus:none bg-transparent font-medium hover:bg-transparent"
-                    onClick={() => {
-                      setSelectedSubmissionIds(new Set());
-                    }}
-                    variant="ghost"
-                  >
-                    UNSELECT ALL
-                  </Button>
-
-                  <Button
-                    className="gap-2 bg-red-100 font-medium text-rose-600 hover:bg-red-50/90"
-                    disabled={
-                      selectedSubmissionIds.size === 0 ||
-                      selectedSubmissionIds.size > 100
-                    }
-                    onClick={rejectedOnOpen}
-                  >
-                    <svg
-                      width="13"
-                      height="13"
-                      viewBox="0 0 13 13"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M6.11111 0.777832C9.49056 0.777832 12.2222 3.5095 12.2222 6.88894C12.2222 10.2684 9.49056 13.0001 6.11111 13.0001C2.73167 13.0001 0 10.2684 0 6.88894C0 3.5095 2.73167 0.777832 6.11111 0.777832ZM8.305 3.83339L6.11111 6.02728L3.91722 3.83339L3.05556 4.69505L5.24944 6.88894L3.05556 9.08283L3.91722 9.9445L6.11111 7.75061L8.305 9.9445L9.16667 9.08283L6.97278 6.88894L9.16667 4.69505L8.305 3.83339Z"
-                        fill="#E11D48"
-                      />
-                    </svg>
-                    Reject {selectedSubmissionIds.size} Applications
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-          <RejectAllSubmissionModal
-            allSubmissionsLength={submissions?.length || 0}
-            submissionIds={Array.from(selectedSubmissionIds)}
-            rejectIsOpen={rejectedIsOpen}
-            rejectOnClose={rejectedOnClose}
-            onRejectSubmission={handleRejectSubmission}
-          />
           <AddManualPaymentModal
             isOpen={isAddManualPaymentModalOpen}
             onClose={onAddManualPaymentClose}
-            submission={
-              {
-                ...selectedSubmission,
-                listing: bounty as Listing,
-              } as SubmissionWithListingUser
-            }
+            milestone={selectedSubmission?.Milestones[0] as MilestoneWithUser}
             onSuccess={(_) => {
               refetchSubmissions();
             }}

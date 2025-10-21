@@ -87,6 +87,9 @@ export interface Notification<T extends NotificationType> {
       };
     };
   };
+  milestone?: {
+    milestoneIndex: number;
+  };
   sponsor?: {
     name: string;
     slug: string;
@@ -150,6 +153,11 @@ export const notificationInclude: Prisma.NotificationInclude = {
       name: true,
       photo: true,
       private: true,
+    },
+  },
+  milestone: {
+    select: {
+      milestoneIndex: true,
     },
   },
   comment: {

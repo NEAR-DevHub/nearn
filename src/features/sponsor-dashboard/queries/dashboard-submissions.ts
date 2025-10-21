@@ -10,7 +10,6 @@ import { type Listing } from '@/features/listings/types';
 export type SubmissionWithListingUser = SubmissionWithUser & {
   listing: Listing;
   approvedByUser: User;
-  paidByUser: User;
   internalNotes: (Comment & { author: User })[];
 };
 

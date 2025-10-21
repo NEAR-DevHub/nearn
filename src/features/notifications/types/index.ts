@@ -38,6 +38,13 @@ export const NotificationType = {
   [EventType.SPONSOR_MEMBER_ACCEPTED]: EventType.SPONSOR_MEMBER_ACCEPTED,
   [EventType.SCOUT_INVITE]: EventType.SCOUT_INVITE,
   LIKE: 'LIKE',
+  [EventType.MILESTONES_EDITED]: EventType.MILESTONES_EDITED,
+  [EventType.MILESTONE_CREATED]: EventType.MILESTONE_CREATED,
+  [EventType.MILESTONE_APPROVED]: EventType.MILESTONE_APPROVED,
+  [EventType.SUBMISSION_CANCELLED]: EventType.SUBMISSION_CANCELLED,
+  MILESTONE_DEADLINE_IS_COMING_UP: 'MILESTONE_DEADLINE_IS_COMING_UP',
+  SPONSOR_MILESTONE_DEADLINE_IS_COMING_UP:
+    'SPONSOR_MILESTONE_DEADLINE_IS_COMING_UP',
 
   WEEKLY_ROUNDUP: 'WEEKLY_ROUNDUP',
   NEW_LISTING_FOR_SKILLS: 'NEW_LISTING_FOR_SKILLS',
@@ -53,6 +60,7 @@ export type NotificationDataMap = {
     | 'TREASURY_PROPOSAL_STATUS_CHANGED'
     | 'SUBMISSION_PAID'
     | 'WEEKLY_ROUNDUP'
+    | 'SUBMISSION_CANCELLED'
   >]: undefined;
 } & {
   [EventType.SUBMISSION_APPROVED]: {
@@ -78,6 +86,9 @@ export type NotificationDataMap = {
   [NotificationType.WEEKLY_ROUNDUP]: {
     listings: WeeklyRoundupListing[];
     userSkills: WeeklyRoundupSkill[];
+  };
+  [NotificationType.SUBMISSION_CANCELLED]: {
+    reason: string;
   };
 };
 

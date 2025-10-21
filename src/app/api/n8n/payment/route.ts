@@ -17,13 +17,13 @@ export async function POST(request: Request) {
   try {
     const requestBody = await request.json();
 
-    const { submissionId, paymentLink, paymentDate } = requestBody;
+    const { milestoneId, paymentLink, paymentDate } = requestBody;
 
-    if (!submissionId || !paymentLink || !paymentDate) {
+    if (!milestoneId || !paymentLink || !paymentDate) {
       return NextResponse.json(
         {
           error:
-            'Missing required fields: [submissionId, paymentLink, paymentDate]',
+            'Missing required fields: [milestoneId, paymentLink, paymentDate]',
         },
         { status: 400 },
       );
@@ -37,29 +37,38 @@ export async function POST(request: Request) {
       );
     }
 
-    const submission = await prisma.submission.findUnique({
+    const milestone = await prisma.milestone.findUnique({
       where: {
-        id: submissionId,
+        id: milestoneId,
       },
       include: {
-        listing: true,
+        submission: {
+          include: {
+            listing: true,
+            Milestones: {
+              select: {
+                id: true,
+              },
+            },
+          },
+        },
       },
     });
 
-    if (!submission) {
+    if (!milestone) {
       return NextResponse.json(
-        { error: 'Submission not found' },
+        { error: 'Milestone not found' },
         { status: 404 },
       );
     }
 
-    await prisma.submission.update({
+    await prisma.milestone.update({
       where: {
-        id: submissionId,
+        id: milestoneId,
       },
       data: {
-        isPaid: true,
-        paymentDate: date,
+        status: 'Paid',
+        paidDate: date,
         paymentDetails: {
           link: paymentLink,
         },
@@ -72,9 +81,11 @@ export async function POST(request: Request) {
         type: 'SYSTEM',
       },
       entities: {
-        submissionId,
-        sponsorId: submission.listing.sponsorId,
-        listingId: submission.listing.id,
+        submissionId: milestone.submissionId,
+        sponsorId: milestone.submission.listing.sponsorId,
+        listingId: milestone.submission.listing.id,
+        milestoneId:
+          milestone.submission.Milestones.length > 1 ? milestone.id : undefined,
       },
       data: {
         link: paymentLink,
@@ -83,7 +94,7 @@ export async function POST(request: Request) {
 
     const bounty = await prisma.bounties.findUnique({
       where: {
-        id: submission.listingId,
+        id: milestone.submission.listingId,
       },
       include: {
         BountyCounts: true,
@@ -105,8 +116,8 @@ export async function POST(request: Request) {
           newStatus: 'Completed',
         },
         entities: {
-          listingId: submission.listingId,
-          sponsorId: submission.listing.sponsorId,
+          listingId: milestone.submission.listingId,
+          sponsorId: milestone.submission.listing.sponsorId,
         },
       });
     }

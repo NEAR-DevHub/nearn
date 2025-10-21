@@ -13,7 +13,7 @@ import { api } from '@/lib/api';
 import { EventType, isRoleAtLeast } from '@/features/logging/types/event-data';
 
 interface GetLogsParams {
-  refType: 'submission' | 'listing' | 'sponsor';
+  refType: 'submission' | 'listing' | 'sponsor' | 'milestone';
   refId?: string;
   eventTypes?: EventType[];
   searchText?: string;
@@ -67,11 +67,16 @@ export function eventFilters(
       EventType.SUBMISSION_TREASURY_CREATED,
       EventType.SUBMISSION_PAYMENT_DATE_EDITED,
       EventType.SUBMISSION_PAID,
+      EventType.SUBMISSION_CANCELLED,
       EventType.SUBMISSION_MANUAL_PAYMENT_ADDED,
       EventType.SUBMISSION_MANUAL_PAYMENT_UPDATED,
       EventType.TREASURY_PROPOSAL_APPROVED,
       EventType.TREASURY_PROPOSAL_REJECTED,
       EventType.TREASURY_PROPOSAL_EXPIRED,
+      EventType.MILESTONE_CREATED,
+      EventType.MILESTONE_STATUS_UPDATED,
+      EventType.MILESTONE_APPROVED,
+      EventType.MILESTONES_EDITED,
     ],
     team: [
       EventType.SPONSOR_MEMBER_INVITED,
@@ -93,12 +98,24 @@ export function eventFilters(
       EventType.TREASURY_PROPOSAL_EXPIRED,
       EventType.SUBMISSION_PAYMENT_DATE_EDITED,
       EventType.SUBMISSION_TREASURY_CREATED,
+      EventType.SUBMISSION_CANCELLED,
+      EventType.MILESTONE_APPROVED,
     ],
     comments: [
       EventType.COMMENT_ADDED,
       EventType.COMMENT_DELETED,
       EventType.COMMENT_PINNED,
       EventType.COMMENT_UNPINNED,
+    ],
+    milestones: [
+      EventType.MILESTONE_CREATED,
+      EventType.MILESTONE_STATUS_UPDATED,
+      EventType.MILESTONE_APPROVED,
+      EventType.MILESTONES_EDITED,
+      EventType.SUBMISSION_PAID,
+      EventType.TREASURY_PROPOSAL_APPROVED,
+      EventType.TREASURY_PROPOSAL_REJECTED,
+      EventType.TREASURY_PROPOSAL_EXPIRED,
     ],
   };
 
@@ -173,6 +190,18 @@ export const prismaLogInclude: Prisma.EventLogInclude = {
       },
     },
   },
+  milestone: {
+    select: {
+      id: true,
+      milestoneIndex: true,
+      title: true,
+      description: true,
+      deadline: true,
+      reward: true,
+      token: true,
+      status: true,
+    },
+  },
   pow: {
     select: {
       id: true,
@@ -228,6 +257,16 @@ export type Log = EventLog & {
     name: string;
     slug: string;
     logo: string;
+  };
+  milestone?: {
+    id: string;
+    milestoneIndex: number;
+    title: string;
+    description: string | null;
+    deadline: Date | null;
+    reward: number;
+    token: string;
+    status: string;
   };
   pow?: {
     id: string;

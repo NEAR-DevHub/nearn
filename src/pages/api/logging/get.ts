@@ -16,7 +16,7 @@ import {
   isRoleAtLeast,
 } from '@/features/logging/types/event-data';
 
-type RefType = 'submission' | 'listing' | 'sponsor';
+type RefType = 'submission' | 'listing' | 'sponsor' | 'milestone';
 
 async function getAuthorizedVisibility(
   userId: string,
@@ -44,10 +44,23 @@ async function getAuthorizedVisibility(
   const userSponsors = user.UserSponsors.map((sponsor) => sponsor.sponsorId);
 
   switch (refType) {
+    case 'milestone':
     case 'submission':
-      const submission = await prisma.submission.findUnique({
+      const whereClause =
+        refType === 'milestone'
+          ? ({
+              Milestones: {
+                Some: {
+                  id: refId,
+                },
+              },
+            } as Prisma.SubmissionWhereInput)
+          : {
+              id: refId,
+            };
+      const submission = await prisma.submission.findFirst({
         where: {
-          id: refId,
+          ...whereClause,
         },
         include: {
           listing: {
@@ -88,6 +101,21 @@ async function getAuthorizedVisibility(
       }
 
       return 'PUBLIC';
+    case 'milestone':
+      const milestone = await prisma.milestone.findUnique({
+        where: {
+          id: refId,
+        },
+      });
+
+      if (
+        milestone?.submissionId &&
+        userSponsors.includes(milestone?.submissionId)
+      ) {
+        return 'SPONSOR';
+      }
+
+      return 'PUBLIC';
   }
 }
 
@@ -96,6 +124,10 @@ async function getLogRef(
   refId: string,
 ): Promise<Prisma.EventLogWhereInput> {
   switch (refType) {
+    case 'milestone':
+      return {
+        milestoneId: refId,
+      };
     case 'submission':
       const submission = await prisma.submission.findUnique({
         select: {

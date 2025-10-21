@@ -46,7 +46,7 @@ export default async function handler(
   let statusFilter: Prisma.SubmissionWhereInput;
   switch (status?.toLowerCase()) {
     case 'paid':
-      statusFilter = { isPaid: true };
+      statusFilter = { Milestones: { every: { status: 'Paid' } } };
       break;
     case 'approved':
       statusFilter = { status: 'Approved' };
@@ -110,6 +110,17 @@ export default async function handler(
         ...(questionSearchIds ? { id: { in: questionSearchIds } } : {}),
       },
       include: {
+        Milestones: {
+          select: {
+            status: true,
+            paidDate: true,
+            token: true,
+            reward: true,
+          },
+          orderBy: {
+            milestoneIndex: 'asc',
+          },
+        },
         user: {
           select: {
             id: true,

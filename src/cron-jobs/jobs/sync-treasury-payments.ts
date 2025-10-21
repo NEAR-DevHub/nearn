@@ -15,13 +15,19 @@ export async function syncTreasuryPayments(): Promise<CronJobResult> {
   try {
     logger.info('Starting treasury payments sync');
 
-    const submissions = await prisma.submission.findMany({
+    const milestones = await prisma.milestone.findMany({
       where: {
-        isArchived: false,
-        isActive: true,
-        isPaid: false,
-        isWinner: true,
+        NOT: {
+          status: 'Paid',
+        },
         AND: [
+          {
+            submission: {
+              isArchived: false,
+              isActive: true,
+              isWinner: true,
+            },
+          },
           {
             paymentDetails: {
               not: Prisma.DbNull,
@@ -53,23 +59,26 @@ export async function syncTreasuryPayments(): Promise<CronJobResult> {
       },
       select: {
         id: true,
-        listingId: true,
+        submissionId: true,
+        submission: {
+          select: { listingId: true },
+        },
       },
     });
 
-    logger.info(`Found ${submissions.length} submissions to sync`);
+    logger.info(`Found ${milestones.length} milestones to sync`);
 
     // Process each submission
-    for (const submission of submissions) {
+    for (const milestone of milestones) {
       try {
-        const result = await syncSubmissionTreasuryStatus(submission.id);
+        const result = await syncSubmissionTreasuryStatus(milestone.id);
         processed++;
 
         if (result.success && result.status !== 'InProgress') {
           synced++;
-          logger.info(`Synced submission ${submission.id}`, {
+          logger.info(`Synced milestone ${milestone.id}`, {
             status: result.status,
-            listingId: submission.listingId,
+            listingId: milestone.submission.listingId,
           });
         } else if (
           !result.success &&
@@ -77,12 +86,12 @@ export async function syncTreasuryPayments(): Promise<CronJobResult> {
           result.error !== 'Treasury status is still in progress'
         ) {
           // Only log as error if it's not already synced
-          const errorMsg = `Failed to sync submission ${submission.id}: ${result.error}`;
+          const errorMsg = `Failed to sync milestone ${milestone.id}: ${result.error}`;
           logger.error(errorMsg);
           errors.push(errorMsg);
         }
       } catch (error) {
-        const errorMsg = `Failed to process submission ${submission.id}: ${error}`;
+        const errorMsg = `Failed to process milestone ${milestone.id}: ${error}`;
         logger.error(errorMsg, error);
         errors.push(errorMsg);
       }

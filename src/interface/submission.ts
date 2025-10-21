@@ -1,25 +1,17 @@
-import { type SubmissionLabels, type SubmissionStatus } from '@prisma/client';
+import {
+  type Milestone,
+  type SubmissionLabels,
+  type SubmissionStatus,
+} from '@prisma/client';
 
 import type { Listing, Rewards } from '@/features/listings/types';
 
 import { type User } from './user';
 
-interface SubmissionWithUser {
-  id: string;
-  sequentialId: number;
-  status: SubmissionStatus | 'Deleted';
-  link?: string;
-  tweet?: string;
-  otherInfo?: string;
-  otherTokenDetails?: string;
-  eligibilityAnswers?: any;
-  userId: string;
-  listingId: string;
-  isWinner: boolean;
-  winnerPosition?: keyof Rewards;
-  isPaid: boolean;
-  paymentDate?: string;
-  approveDate?: string;
+interface MilestoneWithUser extends Omit<Milestone, 'paymentDetails'> {
+  milestoneIndex: number;
+  paidByUser?: User;
+  approvedByUser?: User;
   paymentDetails?: {
     txId?: string;
     link?: string;
@@ -38,7 +30,22 @@ interface SubmissionWithUser {
       isPublic?: boolean;
     };
   };
-  rewardInUSD: number;
+}
+
+interface SubmissionWithUser {
+  id: string;
+  sequentialId: number;
+  status: SubmissionStatus | 'Deleted';
+  link?: string;
+  tweet?: string;
+  otherInfo?: string;
+  otherTokenDetails?: string;
+  eligibilityAnswers?: any;
+  userId: string;
+  listingId: string;
+  isWinner: boolean;
+  winnerPosition?: keyof Rewards;
+  approveDate?: string;
   isActive: boolean;
   isArchived: boolean;
   createdAt: string;
@@ -51,7 +58,7 @@ interface SubmissionWithUser {
   totalEarnings?: number;
   token?: string;
   approvedBy?: string;
-  paidBy?: string;
+  Milestones: MilestoneWithUser[];
 }
 
-export type { SubmissionWithUser };
+export type { MilestoneWithUser, SubmissionWithUser };

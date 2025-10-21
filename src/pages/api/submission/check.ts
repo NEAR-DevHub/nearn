@@ -32,7 +32,14 @@ async function handler(req: NextApiRequestWithUser, res: NextApiResponse) {
         id: true,
         status: true,
         label: true,
-        isPaid: true,
+        Milestones: {
+          select: {
+            status: true,
+          },
+          orderBy: {
+            milestoneIndex: 'asc',
+          },
+        },
       },
       orderBy: {
         createdAt: 'desc',
@@ -47,7 +54,11 @@ async function handler(req: NextApiRequestWithUser, res: NextApiResponse) {
       id: submission ? submission?.id : null,
       status: submission ? submission?.status : null,
       label: submission ? submission?.label : null,
-      isPaid: submission ? submission?.isPaid : null,
+      isPaid: submission
+        ? submission?.Milestones.every(
+            (milestone) => milestone.status === 'Paid',
+          )
+        : null,
     });
   } catch (error: any) {
     logger.error(

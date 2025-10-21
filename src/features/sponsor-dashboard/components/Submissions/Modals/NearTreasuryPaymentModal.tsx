@@ -35,7 +35,7 @@ import { sponsorQuery } from '@/features/sponsor-dashboard/queries/sponsor';
 interface NearTreasuryPaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  submissionId: string;
+  milestoneId: string;
   onSuccess: (treasuryLink: string, proposalId: number, dao: string) => void;
 }
 
@@ -44,7 +44,7 @@ type ModalState = 'not_requestor' | 'loading' | 'success' | 'error';
 export default function NearTreasuryPaymentModal({
   isOpen,
   onClose,
-  submissionId,
+  milestoneId,
   onSuccess,
 }: NearTreasuryPaymentModalProps) {
   const { user } = useUser();
@@ -67,7 +67,7 @@ export default function NearTreasuryPaymentModal({
     try {
       setModalState('loading');
       const response = await createTreasuryProposal.mutateAsync({
-        id: submissionId,
+        id: milestoneId,
       });
 
       setTreasuryLink(response.url);

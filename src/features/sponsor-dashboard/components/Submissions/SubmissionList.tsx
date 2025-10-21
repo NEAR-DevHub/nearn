@@ -4,7 +4,6 @@ import { useSession } from 'next-auth/react';
 import React, { type Dispatch, type SetStateAction, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,7 +18,6 @@ import { cn } from '@/utils/cn';
 import { nthLabelGenerator } from '@/utils/rank';
 
 import { SubmissionDrawer } from '@/features/listings/components/Submission/SubmissionDrawer';
-import { sponsorshipSubmissionStatus } from '@/features/listings/components/SubmissionsPage/SubmissionTable';
 import { type Listing } from '@/features/listings/types';
 import { EarnAvatar } from '@/features/talent/components/EarnAvatar';
 
@@ -40,9 +38,6 @@ interface Props {
       SubmissionLabels | 'Paid' | 'Approved' | 'Rejected' | undefined
     >
   >;
-  toggleSubmission?: (id: string) => void;
-  isToggled?: (id: string) => boolean;
-  toggleAllSubmissions?: () => void;
   selectedSubmission: SubmissionWithListingUser | undefined;
   setSelectedSubmission: (submission: SubmissionWithListingUser) => void;
   isAllToggled?: boolean;
@@ -56,12 +51,8 @@ export const SubmissionList = ({
   type,
   filterLabel,
   setFilterLabel,
-  toggleSubmission,
-  isToggled,
-  toggleAllSubmissions,
   selectedSubmission,
   setSelectedSubmission,
-  isAllToggled,
   refetchSubmissions,
 }: Props) => {
   const { data: session } = useSession();
@@ -107,7 +98,21 @@ export const SubmissionList = ({
     }
     if (submission?.isWinner && submission?.winnerPosition) {
       if (type === 'project' || type === 'sponsorship') {
-        if (submission.isPaid) return 'Paid';
+        if (
+          submission.Milestones &&
+          submission.Milestones.length > 0 &&
+          submission.Milestones.every(
+            (milestone) => milestone.status === 'Paid',
+          )
+        )
+          return 'Paid';
+        else if (
+          submission.Milestones.some(
+            (milestone) => milestone.status === 'Cancelled',
+          )
+        )
+          return 'Cancelled';
+        if (submission.Milestones.length > 1) return 'InProgress';
         return 'Approved';
       } else {
         return nthLabelGenerator(submission.winnerPosition, false);
@@ -121,47 +126,10 @@ export const SubmissionList = ({
     }
   };
 
-  const getSubmissionColors = (submission: SubmissionWithUser) => {
-    if (submission.isArchived) {
-      return { bg: 'bg-red-500', color: 'text-white' };
-    }
-    if (submission.listing?.type === 'sponsorship') {
-      const status = sponsorshipSubmissionStatus({
-        ...submission,
-        listing: undefined,
-      });
-      return colorMap[status as keyof typeof colorMap];
-    }
-
-    if (submission?.isWinner) {
-      return colorMap.winner;
-    } else if (submission.status === 'Rejected') {
-      return colorMap.Rejected;
-    } else if (submission?.label && colorMap[submission.label]) {
-      return colorMap[submission.label];
-    } else {
-      return {
-        bg: 'gray.100',
-        color: 'gray.600',
-      };
-    }
-  };
-
   return (
     <div className="h-full w-full rounded-l-xl border border-slate-200 bg-white">
       <div className="flex cursor-pointer flex-col items-center justify-between gap-4 border-b border-slate-200 px-4 py-3">
         <div className="flex w-full items-center justify-between gap-4 py-[3px]">
-          {listing?.type === 'project' && (
-            <Checkbox
-              className="data-[state=checked]:border-brand-green data-[state=checked]:bg-brand-green"
-              checked={isAllToggled}
-              disabled={listing?.isWinnersAnnounced}
-              onCheckedChange={() =>
-                toggleAllSubmissions && toggleAllSubmissions()
-              }
-            />
-          )}
-
           <div className="relative w-full">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <Input
@@ -193,8 +161,10 @@ export const SubmissionList = ({
                 <ChevronDown className="ml-2 h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-
-            <DropdownMenuContent className="min-w-32 border-slate-300">
+            <DropdownMenuContent
+              align="end"
+              className="z-[70] max-w-60 bg-white"
+            >
               <DropdownMenuItem
                 className="focus:bg-slate-100"
                 onClick={() => setFilterLabel(undefined)}
@@ -275,7 +245,8 @@ export const SubmissionList = ({
         </div>
       </div>
       {submissions.map((submission) => {
-        const { bg, color } = getSubmissionColors(submission);
+        const { bg, color } =
+          colorMap[getSubmissionLabel(submission) as keyof typeof colorMap];
         return (
           <div
             key={submission?.id}
@@ -291,19 +262,6 @@ export const SubmissionList = ({
             }}
           >
             <div className="flex items-center gap-2">
-              {listing?.type === 'project' && (
-                <Checkbox
-                  className="data-[state=checked]:border-brand-green data-[state=checked]:bg-brand-green"
-                  checked={isToggled && isToggled(submission.id)}
-                  disabled={
-                    listing?.isWinnersAnnounced ||
-                    submission?.status !== 'Pending'
-                  }
-                  onCheckedChange={() =>
-                    toggleSubmission && toggleSubmission(submission.id)
-                  }
-                />
-              )}
               <p className="w-6 shrink-0 text-xs text-slate-500">
                 {submission.sequentialId}
               </p>
@@ -338,7 +296,9 @@ export const SubmissionList = ({
                   color,
                 )}
               >
-                {getSubmissionLabel(submission)}
+                {getSubmissionLabel(submission)
+                  .replace(/([A-Z])/g, ' $1')
+                  .trim()}
               </span>
               {isGodUser && (
                 <>
