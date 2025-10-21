@@ -342,6 +342,7 @@ export const SubmissionTable = ({
                 <ListingTh className="text-nowrap">Activity</ListingTh>
               )}
               <ListingTh className="pl-6">Actions</ListingTh>
+              <TableHead />
               <TableHead className="sticky right-0 z-50 flex items-center bg-slate-100 group-hover:bg-muted">
                 <ColumnVisibilitySettings
                   columns={columnDefinitions}
@@ -607,7 +608,7 @@ export const SubmissionTable = ({
                           />
                         </TableCell>
                       )}
-                      <TableCell className="flex items-center justify-end gap-2">
+                      <TableCell>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -621,12 +622,14 @@ export const SubmissionTable = ({
                             View Submission
                           </Link>
                         </Button>
+                      </TableCell>
+                      <TableCell className="m-0 p-0">
                         {submission.Milestones.length > 1 && (
                           <CollapsibleTrigger asChild>
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="ph-no-capture text-[13px] font-medium text-black"
+                              className="ph-no-capture flex justify-start text-[13px] font-medium text-black aria-expanded:rotate-180"
                             >
                               <ChevronDown className={cn('h-4 w-4')} />
                             </Button>
@@ -879,7 +882,7 @@ export const SubmissionTable = ({
                                   )}
                                 </div>
                               </TableCell>
-                              <TableCell />
+                              <TableCell colSpan={2} />
                             </TableRow>
                           );
                         })}

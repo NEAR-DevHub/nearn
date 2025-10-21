@@ -1,8 +1,11 @@
 import { ChevronDownIcon, MoreVertical, Pencil, X } from 'lucide-react';
-import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
-import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,7 +39,6 @@ export default function MilestonePaymentCard({
   singleSubmission,
   isExpanded,
 }: Props) {
-  const [isOpen, setIsOpen] = useState(singleSubmission ? true : isExpanded);
   const {
     isOpen: isEditMilestoneOpen,
     onOpen: onEditMilestoneOpen,
@@ -46,8 +48,7 @@ export default function MilestonePaymentCard({
   return (
     <>
       <Collapsible
-        open={isOpen}
-        onOpenChange={setIsOpen}
+        defaultOpen={isExpanded}
         className={cn(
           'rounded-lg border bg-white',
           singleSubmission && 'h-full min-h-fit',
@@ -62,18 +63,15 @@ export default function MilestonePaymentCard({
                 onEditClick={onEditMilestoneOpen}
               />
               {!singleSubmission && (
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setIsOpen(!isOpen)}
-                >
-                  <ChevronDownIcon
-                    className={cn(
-                      'h-4 w-4 transition-transform',
-                      isOpen ? 'rotate-180' : '',
-                    )}
-                  />
-                </Button>
+                <CollapsibleTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="aria-expanded:rotate-180"
+                  >
+                    <ChevronDownIcon className="h-4 w-4 transition-transform" />
+                  </Button>
+                </CollapsibleTrigger>
               )}
             </div>
           </div>

@@ -15,6 +15,7 @@ export const getColorStyles = (status: string) => {
     case 'Draft':
       return { bgColor: 'bg-slate-100', color: 'text-slate-400' };
     case 'In Review':
+    case 'Work in Progress':
       return { bgColor: 'bg-cyan-100', color: 'text-cyan-600' };
     case 'In Progress':
       return { bgColor: 'bg-purple-100', color: 'text-violet-500' };

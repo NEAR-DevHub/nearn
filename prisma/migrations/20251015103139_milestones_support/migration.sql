@@ -96,22 +96,16 @@ DROP VIEW IF EXISTS `BountyCounts`;
 
 -- Recreate view with new logic
 CREATE VIEW `BountyCounts` AS
-  SELECT
-    b.id AS bountyId,
-    COUNT(CASE WHEN s.isWinner = TRUE THEN 1 END) AS totalWinnersSelected,
-    COUNT(CASE 
-        WHEN s.isWinner = TRUE 
-        AND NOT EXISTS (
-            SELECT 1 
-            FROM Milestone m 
-            WHERE m.submissionId = s.id 
-            AND m.status != 'Paid'
-        )
-        THEN 1 
-    END) AS totalPaymentsMade
-  FROM Bounties b
-  LEFT JOIN Submission s ON s.listingId = b.id
-  GROUP BY b.id;
+SELECT
+  b.id AS bountyId,
+  COUNT(m.id) AS totalWinnersSelected,
+  COUNT(CASE WHEN m.status IN ('Paid', 'Cancelled') THEN 1 END) AS totalPaymentsMade
+FROM Bounties b
+LEFT JOIN Submission s ON s.listingId = b.id
+LEFT JOIN Milestone m ON m.submissionId = s.id
+GROUP BY b.id;
+
+
 
 ALTER TABLE `EventLog` ADD COLUMN `milestoneId` VARCHAR(191) NULL;
 ALTER TABLE `Notification` ADD COLUMN `milestoneId` VARCHAR(191) NULL;

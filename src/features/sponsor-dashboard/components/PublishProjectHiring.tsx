@@ -173,7 +173,7 @@ export function PublishProjectHiring({
             <div className="mb-4 mt-4">
               <NextSteps nextSteps={successModalNextSteps} />
             </div>
-            <Button className="w-full" onClick={onClose}>
+            <Button className="w-full" onClick={handleClose}>
               Back to Project Details
             </Button>
           </div>

@@ -332,25 +332,6 @@ export default function MilestoneTable({
                       </p>
                     </TableCell>
                   )}
-                  {visibleColumns.paymentDate && (
-                    <TableCell>
-                      <Tooltip
-                        disabled={!milestone.paidByUser}
-                        content={
-                          <DoneBy
-                            doneBy={milestone.paidByUser as User | undefined}
-                            doneByType="paid"
-                          />
-                        }
-                      >
-                        <p className="whitespace-nowrap text-sm font-medium text-slate-500">
-                          {milestone.paidDate
-                            ? dayjs(milestone.paidDate).format("DD MMM'YY")
-                            : '-'}
-                        </p>
-                      </Tooltip>
-                    </TableCell>
-                  )}
                   {visibleColumns.approvedDate && (
                     <TableCell>
                       <Tooltip
@@ -372,6 +353,26 @@ export default function MilestoneTable({
                       </Tooltip>
                     </TableCell>
                   )}
+                  {visibleColumns.paymentDate && (
+                    <TableCell>
+                      <Tooltip
+                        disabled={!milestone.paidByUser}
+                        content={
+                          <DoneBy
+                            doneBy={milestone.paidByUser as User | undefined}
+                            doneByType="paid"
+                          />
+                        }
+                      >
+                        <p className="whitespace-nowrap text-sm font-medium text-slate-500">
+                          {milestone.paidDate
+                            ? dayjs(milestone.paidDate).format("DD MMM'YY")
+                            : '-'}
+                        </p>
+                      </Tooltip>
+                    </TableCell>
+                  )}
+
                   {visibleColumns.activity && (
                     <TableCell className="items-center py-2">
                       <ActivityHistoryMinified

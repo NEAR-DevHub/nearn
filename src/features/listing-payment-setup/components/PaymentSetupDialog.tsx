@@ -88,18 +88,7 @@ export function PaymentSetupDialog({
     mode: 'onChange',
     defaultValues: {
       mode: PaymentMode.FULL,
-      milestones: [
-        {
-          id: '1',
-          submissionId: submissionId,
-          title: 'Milestone 1',
-          description: '',
-          reward: 0,
-          deadline: undefined,
-          milestoneIndex: 1,
-          token: tokenSymbol,
-        },
-      ],
+      milestones: [],
     },
   });
 
@@ -250,7 +239,11 @@ export function PaymentSetupDialog({
                         value={field.value}
                         onValueChange={(value) => {
                           field.onChange(value);
-                          form.setValue('milestones', []);
+                          if (value === PaymentMode.FULL) {
+                            form.setValue('milestones', []);
+                          } else {
+                            handleAddMilestone();
+                          }
                         }}
                         className="mt-2 space-y-5"
                       >

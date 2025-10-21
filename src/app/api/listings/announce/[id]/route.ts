@@ -74,10 +74,18 @@ export async function POST(
       ...Array(listing?.maxBonusSpots ?? 0).map(() => BONUS_REWARD_POSITION),
     ].length;
 
+    const totalWinnersSelected = await prisma.submission.count({
+      where: {
+        listingId: id,
+        isWinner: true,
+        isActive: true,
+        isArchived: false,
+      },
+    });
     if (
       !!totalRewards &&
       !isSponsorship &&
-      listing?.BountyCounts.totalWinnersSelected !== totalRewards
+      totalWinnersSelected !== totalRewards
     ) {
       logger.warn(
         'All winners have not been selected before publishing the results',

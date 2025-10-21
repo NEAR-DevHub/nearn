@@ -18,7 +18,6 @@ import { cn } from '@/utils/cn';
 import { nthLabelGenerator } from '@/utils/rank';
 
 import { SubmissionDrawer } from '@/features/listings/components/Submission/SubmissionDrawer';
-import { sponsorshipSubmissionStatus } from '@/features/listings/components/SubmissionsPage/SubmissionTable';
 import { type Listing } from '@/features/listings/types';
 import { EarnAvatar } from '@/features/talent/components/EarnAvatar';
 
@@ -123,35 +122,6 @@ export const SubmissionList = ({
       return submission.label;
     } else {
       return '';
-    }
-  };
-
-  const getSubmissionColors = (submission: SubmissionWithUser) => {
-    if (submission.isArchived) {
-      return { bg: 'bg-red-500', color: 'text-white' };
-    }
-    if (
-      submission.listing?.type === 'sponsorship' ||
-      submission.listing?.type === 'project'
-    ) {
-      const status = sponsorshipSubmissionStatus({
-        ...submission,
-        listing: undefined,
-      });
-      return colorMap[status as keyof typeof colorMap];
-    }
-
-    if (submission?.isWinner) {
-      return colorMap.winner;
-    } else if (submission.status === 'Rejected') {
-      return colorMap.Rejected;
-    } else if (submission?.label && colorMap[submission.label]) {
-      return colorMap[submission.label];
-    } else {
-      return {
-        bg: 'gray.100',
-        color: 'gray.600',
-      };
     }
   };
 
@@ -274,7 +244,8 @@ export const SubmissionList = ({
         </div>
       </div>
       {submissions.map((submission) => {
-        const { bg, color } = getSubmissionColors(submission);
+        const { bg, color } =
+          colorMap[getSubmissionLabel(submission) as keyof typeof colorMap];
         return (
           <div
             key={submission?.id}
