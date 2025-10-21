@@ -21,7 +21,10 @@ export const sections = {
     },
     {
       title: 'Deadline related reminders',
-      types: [NotificationType.DEADLINE_EXCEEDED_BY_WEEK],
+      types: [
+        NotificationType.DEADLINE_EXCEEDED_BY_WEEK,
+        NotificationType.SPONSOR_MILESTONE_DEADLINE_IS_COMING_UP,
+      ],
     },
     {
       title: 'Notes received on submission',
@@ -48,11 +51,18 @@ export const sections = {
         NotificationType.SUBMISSION_REJECTED,
         NotificationType.SUBMISSION_PAID,
         NotificationType.SUBMISSION_RECEIVED,
+        NotificationType.SUBMISSION_CANCELLED,
+        NotificationType.MILESTONE_CREATED,
+        NotificationType.MILESTONE_APPROVED,
+        NotificationType.MILESTONES_EDITED,
       ],
     },
     {
       title: 'Deadline related reminders',
-      type: NotificationType.DEADLINE_IN_3_DAYS,
+      types: [
+        NotificationType.DEADLINE_IN_3_DAYS,
+        NotificationType.MILESTONE_DEADLINE_IS_COMING_UP,
+      ],
     },
     {
       title: 'Listing related notifications',

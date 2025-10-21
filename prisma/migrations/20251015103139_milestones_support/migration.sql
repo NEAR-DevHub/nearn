@@ -113,5 +113,49 @@ ALTER TABLE `Notification` ADD COLUMN `milestoneId` VARCHAR(191) NULL;
 CREATE INDEX `EventLog_milestoneId_eventTime_idx` ON `EventLog`(`milestoneId`, `eventTime` DESC);
 CREATE INDEX `Notification_milestoneId_idx` ON `Notification`(`milestoneId`);
 
+INSERT INTO `NotificationSettings` (`id`, `channel`, `type`, `userId`, `sponsorId`, `listingScope`, `createdAt`, `updatedAt`)
+SELECT 
+    UUID() as `id`,
+    ns.channel as `channel`,
+    'SPONSOR_MILESTONE_DEADLINE_IS_COMING_UP' as `type`,
+    ns.userId as `userId`,
+    ns.sponsorId as `sponsorId`,
+    ns.listingScope as `listingScope`,
+    NOW() as `createdAt`,
+    NOW() as `updatedAt`
+FROM `NotificationSettings` ns
+WHERE ns.type = 'DEADLINE_EXCEEDED_BY_WEEK';
+
+INSERT INTO `NotificationSettings` (`id`, `channel`, `type`, `userId`, `sponsorId`, `listingScope`, `createdAt`, `updatedAt`)
+SELECT 
+    UUID() as `id`,
+    ns.channel as `channel`,
+    notification_type as `type`,
+    ns.userId as `userId`,
+    ns.sponsorId as `sponsorId`,
+    ns.listingScope as `listingScope`,
+    NOW() as `createdAt`,
+    NOW() as `updatedAt`
+FROM `NotificationSettings` ns
+CROSS JOIN (
+    SELECT 'MILESTONES_EDITED' as notification_type
+    UNION SELECT 'MILESTONE_APPROVED'
+    UNION SELECT 'MILESTONE_CREATED'
+    UNION SELECT 'SUBMISSION_CANCELLED'
+) as notification_types
+WHERE ns.type = 'SUBMISSION_APPROVED';
+
+INSERT INTO `NotificationSettings` (`id`, `channel`, `type`, `userId`, `sponsorId`, `listingScope`, `createdAt`, `updatedAt`)
+SELECT 
+    UUID() as `id`,
+    ns.channel as `channel`,
+    'MILESTONE_DEADLINE_IS_COMING_UP' as `type`,
+    ns.userId as `userId`,
+    ns.sponsorId as `sponsorId`,
+    ns.listingScope as `listingScope`,
+    NOW() as `createdAt`,
+    NOW() as `updatedAt`
+FROM `NotificationSettings` ns
+WHERE ns.type = 'DEADLINE_IN_3_DAYS';
 
 COMMIT;
