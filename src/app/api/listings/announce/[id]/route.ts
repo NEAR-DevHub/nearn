@@ -245,7 +245,8 @@ export async function POST(
           oldStatus: !isDeadlineOver(listing.deadline ?? undefined)
             ? 'In Progress'
             : 'In Review',
-          newStatus: 'Payment Pending',
+          newStatus:
+            listing.type === 'project' ? 'Work in Progress' : 'Payment Pending',
         },
         entities: {
           listingId: id,
