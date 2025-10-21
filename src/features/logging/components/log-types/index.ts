@@ -55,7 +55,6 @@ const LOG_IMPLEMENTATION_MAPPING: Record<
     SimpleLogMessage({ message: 'Marked listing as Completed' }),
   [EventType.LISTING_UNPUBLISHED]: () =>
     SimpleLogMessage({ message: 'Unpublished listing' }),
-  // TODO: this component should have winners data (userIds, we need to display those usernames)
   [EventType.LISTING_WINNERS_ANNOUNCED]: () =>
     SimpleLogMessage({ message: 'Announced winners' }),
   [EventType.SUBMISSION_CREATED]: SubmissionCreated,

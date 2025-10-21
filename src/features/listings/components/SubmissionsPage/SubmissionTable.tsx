@@ -70,6 +70,8 @@ export const sponsorshipSubmissionStatus = (submission: SubmissionWithUser) => {
     submission.Milestones.some((milestone) => milestone.status === 'Cancelled')
   )
     return 'Cancelled';
+  if (submission.status === 'Approved' && submission.Milestones.length > 1)
+    return 'InProgress';
   if (submission.status !== 'Pending') return submission.status;
   return submission.label;
 };

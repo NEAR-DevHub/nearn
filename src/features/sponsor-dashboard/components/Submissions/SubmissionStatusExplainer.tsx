@@ -11,6 +11,11 @@ const statusExplanation = (
       return {
         final: true,
       };
+    case 'InProgress':
+      return {
+        approved: true,
+        milestones: true,
+      };
     case 'Approved':
       return {
         approved: true,
@@ -66,7 +71,9 @@ export default function SubmissionStatusExplanation({
         className={`w-full rounded-lg p-4 ${statusColors.bg} ${statusColors.color}`}
       >
         <div className="flex flex-col space-y-2">
-          <h3 className="text-sm font-semibold">Status: {sponsorshipStatus}</h3>
+          <h3 className="text-sm font-semibold">
+            Status: {sponsorshipStatus.replace(/([A-Z])/g, ' $1').trim()}
+          </h3>
           <ul className="list-inside list-disc space-y-1 text-sm">
             {explanation.waitingForSponsor && (
               <li>The sponsor action is required</li>
@@ -92,6 +99,16 @@ export default function SubmissionStatusExplanation({
             {explanation.final && (
               <>
                 <li>The submission has reached its final state</li>
+              </>
+            )}
+            {explanation.milestones && (
+              <>
+                {' '}
+                <li>The submission has active milestones.</li>
+                <li>
+                  The status will change once all submissions will be paid or
+                  cancelled.
+                </li>
               </>
             )}
             {explanation.approved ||

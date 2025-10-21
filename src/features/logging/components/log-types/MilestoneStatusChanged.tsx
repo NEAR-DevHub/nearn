@@ -1,4 +1,5 @@
 import { cn } from '@/utils/cn';
+import { nthLabelGenerator } from '@/utils/rank';
 
 import { colorMap } from '@/features/sponsor-dashboard/utils/statusColorMap';
 
@@ -18,13 +19,11 @@ export default function MilestoneStatusChanged(props: LogProperties) {
 
   return (
     <p className="text-slate-500">
-      Changed milestone{' '}
-      {milestone && (
-        <>
-          <span className="text-slate-900">{milestone.title}</span>{' '}
-        </>
-      )}
-      status from{' '}
+      <span className="text-slate-900">
+        {milestone?.milestoneIndex &&
+          nthLabelGenerator(milestone?.milestoneIndex, false)}
+      </span>{' '}
+      milestone status changed from{' '}
       <span
         className={cn(
           'inline-flex rounded-full px-2 py-0.5 text-center text-sm font-medium',

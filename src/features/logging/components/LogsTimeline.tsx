@@ -130,7 +130,12 @@ export default function LogsTimeline({
             return false;
           } else if (
             log.eventType === EventType.SUBMISSION_APPROVED &&
-            log.listing?.type !== 'sponsorship'
+            log.listing?.type === 'bounty'
+          ) {
+            return false;
+          } else if (
+            log.eventType === EventType.LISTING_WINNERS_ANNOUNCED &&
+            log.listing?.type === 'project'
           ) {
             return false;
           }

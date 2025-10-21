@@ -25,9 +25,11 @@ export const useEditMilestones = () => {
     },
     onSuccess: (data) => {
       toast.success('Milestones updated successfully');
-      // Invalidate submissions query to refetch the updated milestones
-      queryClient.invalidateQueries({ queryKey: ['submissions'] });
-      queryClient.invalidateQueries({ queryKey: ['submission'] });
+      queryClient.invalidateQueries({ queryKey: ['sponsor-submissions'] });
+      queryClient.invalidateQueries({ queryKey: ['logs-infinite'] });
+      queryClient.invalidateQueries({
+        queryKey: ['sponsor-dashboard-listing'],
+      });
       return data.milestones;
     },
     onError: (error: any) => {

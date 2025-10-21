@@ -112,6 +112,7 @@ export const SubmissionList = ({
           )
         )
           return 'Cancelled';
+        if (submission.Milestones.length > 1) return 'InProgress';
         return 'Approved';
       } else {
         return nthLabelGenerator(submission.winnerPosition, false);
@@ -295,7 +296,9 @@ export const SubmissionList = ({
                   color,
                 )}
               >
-                {getSubmissionLabel(submission)}
+                {getSubmissionLabel(submission)
+                  .replace(/([A-Z])/g, ' $1')
+                  .trim()}
               </span>
               {isGodUser && (
                 <>

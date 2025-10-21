@@ -48,7 +48,7 @@ const submissionsPerPage = 10;
 
 export default function BountySubmissions({ slug, sequentialId }: Props) {
   const router = useRouter();
-  const { tab } = router.query;
+  const { pageTab } = router.query;
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { user } = useUser();
 
@@ -80,8 +80,8 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
 
   const [activeTab, setActiveTab] = useState<string>(() => {
     const validTabs = ['submissions', 'scout', 'milestones'];
-    return tab && validTabs.includes(tab as string)
-      ? (tab as string)
+    return pageTab && validTabs.includes(pageTab as string)
+      ? (pageTab as string)
       : 'submissions';
   });
 
@@ -272,17 +272,20 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
   const isSponsorVerified = bounty?.sponsor?.isVerified;
 
   useEffect(() => {
-    if (tab && ['submissions', 'scout', 'milestones'].includes(tab as string)) {
-      setActiveTab(tab as string);
+    if (
+      pageTab &&
+      ['submissions', 'scout', 'milestones'].includes(pageTab as string)
+    ) {
+      setActiveTab(pageTab as string);
     }
-  }, [tab]);
+  }, [pageTab]);
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
     router.push(
       {
         pathname: router.pathname,
-        query: { ...router.query, tab: value },
+        query: { ...router.query, pageTab: value },
       },
       undefined,
       { shallow: true },

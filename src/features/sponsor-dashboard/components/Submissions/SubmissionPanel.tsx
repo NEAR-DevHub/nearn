@@ -173,7 +173,7 @@ export function SubmissionMenu({
             router.push(
               {
                 pathname: router.pathname,
-                query: { ...router.query, tab: 'milestones' },
+                query: { ...router.query, pageTab: 'milestones' },
               },
               undefined,
               { shallow: true },

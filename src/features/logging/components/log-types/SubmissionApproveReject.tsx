@@ -19,9 +19,11 @@ export default function SubmissionApproveRejectCancelled(props: LogProperties) {
 
   const labelStyle = colorMap[status];
   const username = event.submission?.user.username;
+  const isProject = event.listing?.type === 'project';
 
   return (
     <p className="items-center text-slate-500">
+      {isProject ? 'Hired talent and ' : ''}
       <a href={`/t/${username}`} className="text-slate-900">
         @{username}
       </a>{' '}

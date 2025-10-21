@@ -2,6 +2,7 @@ import { ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 
 import { getURLSanitized } from '@/utils/getURLSanitized';
+import { nthLabelGenerator } from '@/utils/rank';
 
 import { type EventDataMap, type EventType } from '../../types/event-data';
 import { type LogProperties } from '.';
@@ -24,16 +25,18 @@ export default function Paid({ event, onSubmissionClick }: LogProperties) {
         <ExternalLink className="h-4 w-4" />
       </Link>{' '}
       for{' '}
-      {isMilestonePayment && milestone ? (
-        <>
-          Milestone {milestone.milestoneIndex} -{' '}
-          <span className="text-slate-900">{milestone.title}</span> of{' '}
-        </>
-      ) : null}
       <Link href={`/t/${username}`} className="text-slate-900">
         @{username}
       </Link>{' '}
-      {onSubmissionClick ? (
+      {isMilestonePayment && milestone ? (
+        <>
+          <span className="text-slate-900">
+            {milestone?.milestoneIndex &&
+              nthLabelGenerator(milestone?.milestoneIndex, false)}
+          </span>{' '}
+          milestone{' '}
+        </>
+      ) : onSubmissionClick ? (
         <button
           className="text-slate-900"
           onClick={() => onSubmissionClick(event)}
@@ -43,21 +46,12 @@ export default function Paid({ event, onSubmissionClick }: LogProperties) {
       ) : (
         <span>submission</span>
       )}
-      {isMilestonePayment && milestone ? (
-        <>
-          {' and milestone status changed to '}
-          <span className="inline-block rounded-xl bg-emerald-100 px-3 py-0.5 text-sm text-emerald-800">
-            Paid
-          </span>
-        </>
-      ) : (
-        <>
-          {' and status changed to '}
-          <span className="inline-block rounded-xl bg-emerald-100 px-3 py-0.5 text-sm text-emerald-800">
-            Paid
-          </span>
-        </>
-      )}
+      <>
+        {' and status changed to '}
+        <span className="inline-block rounded-xl bg-emerald-100 px-3 py-0.5 text-sm text-emerald-800">
+          Paid
+        </span>
+      </>
     </p>
   );
 }

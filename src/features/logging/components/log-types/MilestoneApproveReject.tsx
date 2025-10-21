@@ -1,4 +1,5 @@
 import { cn } from '@/utils/cn';
+import { nthLabelGenerator } from '@/utils/rank';
 
 import { colorMap } from '@/features/sponsor-dashboard/utils/statusColorMap';
 
@@ -13,12 +14,10 @@ export default function MilestoneApprove(props: LogProperties) {
 
   return (
     <p className="items-center text-slate-500">
-      Milestone {milestone?.milestoneIndex} -{' '}
-      {milestone && (
-        <>
-          <span className="text-slate-900">{milestone.title}</span> for{' '}
-        </>
-      )}
+      <span className="text-slate-900">
+        {milestone?.milestoneIndex &&
+          nthLabelGenerator(milestone?.milestoneIndex, false)}
+      </span>{' '}
       {username && (
         <>
           <a href={`/t/${username}`} className="text-slate-900">
@@ -31,10 +30,10 @@ export default function MilestoneApprove(props: LogProperties) {
           className="text-slate-900"
           onClick={() => props.onSubmissionClick!(event)}
         >
-          submission
+          milestone
         </button>
       ) : (
-        <span>submission</span>
+        <span>milestone</span>
       )}{' '}
       has been
       <span
