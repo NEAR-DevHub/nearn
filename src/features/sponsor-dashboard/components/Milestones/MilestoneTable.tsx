@@ -335,7 +335,15 @@ export default function MilestoneTable({
                             : '0'}
 
                           <span className="ml-1 font-semibold text-slate-400">
-                            {isUSDbased ? ' to be paid in ' : milestone.token}
+                            {isUSDbased ? ' to be paid in ' : ''}
+                          </span>
+                          <span
+                            className={cn(
+                              'ml-1',
+                              !isUSDbased && 'font-semibold text-slate-400',
+                            )}
+                          >
+                            {milestone.token}
                           </span>
                         </span>
                       </div>

@@ -193,10 +193,20 @@ export function ListingHeader({
     segments.length === 5 &&
     segments[segments.length - 2] === 'submission';
 
+  const isMilestonePageActive =
+    !isTemplate &&
+    segments.length === 5 &&
+    segments[segments.length - 2] === 'milestones';
+
   const isSubmissionViewActive =
     !isTemplate &&
     segments.length === 5 &&
-    segments[segments.length - 2] !== 'user-submissions';
+    segments[segments.length - 2] !== 'user-submissions' &&
+    segments[segments.length - 2] !== 'milestones';
+
+  const showYourMilestones =
+    userSubmissions.filter((submission) => submission.Milestones.length > 1)
+      .length === 1;
 
   const dashboardPath = `/dashboard/${isHackathon ? 'hackathon' : 'listings'}/${listing.slug}`;
   const manageListingLink = isSubmissionViewActive
@@ -358,6 +368,7 @@ export function ListingHeader({
               isActive={
                 !isSubmissionsPageActive &&
                 !isUserSubmissionActive &&
+                !isMilestonePageActive &&
                 !(
                   isSingleSubmissionActive ||
                   (isSubmissionViewActive && !isSingleSubmissionActive)
@@ -372,7 +383,9 @@ export function ListingHeader({
                 text="Submissions"
                 isActive={
                   isSubmissionsPageActive ||
-                  (isSubmissionViewActive && !isSingleSubmissionActive)
+                  (isSubmissionViewActive &&
+                    !isSingleSubmissionActive &&
+                    !isMilestonePageActive)
                 }
                 subText={
                   isSubmissionNumberLoading ? '...' : submissionNumber + ''
@@ -388,6 +401,13 @@ export function ListingHeader({
                 }
                 text={`Your Submission${userSubmissions.length > 1 ? `s` : ''}`}
                 isActive={isUserSubmissionActive || isSingleSubmissionActive}
+              />
+            )}
+            {showYourMilestones && (
+              <ListingTabLink
+                href={`${getBountyUrl(listing)}milestones/`}
+                text="Milestones"
+                isActive={isMilestonePageActive}
               />
             )}
           </div>
