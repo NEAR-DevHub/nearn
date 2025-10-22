@@ -127,7 +127,7 @@ export const SubmissionList = ({
   };
 
   return (
-    <div className="h-full w-full rounded-l-xl border border-slate-200 bg-white">
+    <div className="flex flex-col h-full w-full rounded-l-xl border border-slate-200 bg-white">
       <div className="flex cursor-pointer flex-col items-center justify-between gap-4 border-b border-slate-200 px-4 py-3">
         <div className="flex w-full items-center justify-between gap-4 py-[3px]">
           <div className="relative w-full">
@@ -244,6 +244,7 @@ export const SubmissionList = ({
           </DropdownMenu>
         </div>
       </div>
+      <div className="flex-1 overflow-y-auto">
       {submissions.map((submission) => {
         const { bg, color } =
           colorMap[getSubmissionLabel(submission) as keyof typeof colorMap];
@@ -338,6 +339,7 @@ export const SubmissionList = ({
           </div>
         );
       })}
+      </div>
 
       <EditSubmissionStatusModal
         isOpen={isEditModalOpen}
