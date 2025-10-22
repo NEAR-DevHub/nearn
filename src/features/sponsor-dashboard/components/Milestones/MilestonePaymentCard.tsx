@@ -141,6 +141,12 @@ function SubmissionDropdown({ submission, onEditClick }: DropdownProps) {
   const cancelCollaboration = useCancelCollaboration();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [reason, setReason] = useState('');
+  const allMilestonesFinalized = submission.Milestones.every(
+    (milestone) =>
+      milestone.status === 'Paid' ||
+      milestone.status === 'Cancelled' ||
+      milestone.status === 'Approved',
+  );
 
   const handleCancelCollaboration = () => {
     cancelCollaboration.mutate(
@@ -159,7 +165,7 @@ function SubmissionDropdown({ submission, onEditClick }: DropdownProps) {
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
+        <DropdownMenuTrigger asChild disabled={allMilestonesFinalized}>
           <Button variant="outline" size="icon">
             <MoreVertical className="h-4 w-4" />
           </Button>

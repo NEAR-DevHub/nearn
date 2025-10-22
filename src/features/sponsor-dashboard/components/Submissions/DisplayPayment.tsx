@@ -15,6 +15,7 @@ import AddManualPaymentModal from './Modals/AddManualPaymentModal';
 interface DisplayPaymentProps {
   milestone: MilestoneWithUser;
   listing: Listing;
+  size?: 'default' | 'sm';
   className?: string;
   isSponsorView: boolean;
 }
@@ -22,6 +23,7 @@ interface DisplayPaymentProps {
 export function DisplayPayment({
   milestone,
   listing,
+  size = 'default',
   className,
   isSponsorView,
 }: DisplayPaymentProps) {
@@ -52,7 +54,7 @@ export function DisplayPayment({
                 '_blank',
               );
             }}
-            size="default"
+            size={size}
             variant="outline"
           >
             <Link2 className="mr-2 h-4 w-4" />
@@ -68,7 +70,7 @@ export function DisplayPayment({
             <Button
               className={className || 'text-slate-500'}
               onClick={() => setIsPaymentDetailsModalOpen(true)}
-              size="default"
+              size={size}
               variant="outline"
             >
               <DollarSign className="mr-2 h-4 w-4" />
@@ -111,7 +113,7 @@ export function DisplayPayment({
                 '_blank',
               );
             }}
-            size="default"
+            size={size}
             variant="outline"
           >
             <Image
@@ -136,7 +138,7 @@ export function DisplayPayment({
           <Button
             className={className || 'gap-2 text-slate-500'}
             disabled
-            size="default"
+            size={size}
             variant="outline"
           >
             <DollarSign className="h-4 w-4" />

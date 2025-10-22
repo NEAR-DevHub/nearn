@@ -176,10 +176,10 @@ export function SubmissionMenu({
               { shallow: true },
             );
           }}
-          className="ph-no-capture min-w-[120px]"
-          variant="outline"
+          className="ph-no-capture w-full min-w-[120px]"
+          variant="default"
         >
-          View Milestones
+          Manage Milestones
         </Button>
       </div>
     );

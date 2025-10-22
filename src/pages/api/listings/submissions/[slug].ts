@@ -102,6 +102,8 @@ async function handler(
         },
         Milestones: {
           select: {
+            milestoneIndex: true,
+            title: true,
             status: true,
             paidDate: true,
             token: true,
