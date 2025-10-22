@@ -31,6 +31,7 @@ import { type MilestoneWithUser } from '@/interface/submission';
 import { cn } from '@/utils/cn';
 
 import { DEADLINE_FORMAT } from '@/features/listing-builder/components/Form/Deadline';
+import { fetchTokenUSDValue } from '@/utils/fetchTokenUSDValue';
 
 interface AddManualPaymentModalProps {
   isOpen: boolean;
@@ -72,6 +73,7 @@ export default function AddManualPaymentModal({
 
   const fiatCurrency = form.watch('fiatCurrency');
   const token = form.watch('token');
+  const isUpdating = milestone && milestone.paymentDetails?.manual;
   useEffect(() => {
     if (token === 'Fiat' && !fiatCurrency) {
       form.setValue('fiatCurrency', 'USD');
@@ -79,8 +81,6 @@ export default function AddManualPaymentModal({
       form.setValue('fiatCurrency', undefined);
     }
   }, [token]);
-
-  const isUpdating = milestone && milestone.paymentDetails?.manual;
 
   useEffect(() => {
     if (isUpdating && milestone.paymentDetails?.manual) {
@@ -103,6 +103,32 @@ export default function AddManualPaymentModal({
       });
     }
   }, [milestone]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const currentToken = form.getValues('token');
+    const baseUsd = milestone?.reward || 0;
+    if (!currentToken || !baseUsd || baseUsd <= 0) return;
+    if (currentToken === 'Fiat' || currentToken === 'Other') {
+      form.setValue('amount', baseUsd, {
+        shouldDirty: true,
+        shouldTouch: true,
+      });
+      return;
+    }
+    (async () => {
+      try {
+        const price = await fetchTokenUSDValue(currentToken);
+        if (price && price > 0) {
+          const converted = baseUsd / price;
+          form.setValue('amount', Number(Number(converted).toFixed(6)), {
+            shouldDirty: true,
+            shouldTouch: true,
+          });
+        }
+      } catch (_) { }
+    })();
+  }, [isOpen, token]);
 
   const handleSubmit = async (data: FormData) => {
     try {
