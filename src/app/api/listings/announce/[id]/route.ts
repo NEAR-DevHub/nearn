@@ -218,6 +218,24 @@ export async function POST(
     }
 
     await Promise.all(promises);
+
+    // Reject all submissions that are not approved
+    if (listing.type === 'project') {
+      await prisma.submission.updateMany({
+        where: {
+          listingId: id,
+          isActive: true,
+          isArchived: false,
+          NOT: {
+            status: 'Approved',
+          },
+        },
+        data: {
+          status: 'Rejected',
+        },
+      });
+    }
+
     if (listing.type !== 'sponsorship') {
       await eventLogger.log({
         eventType: EventType.LISTING_WINNERS_ANNOUNCED,
