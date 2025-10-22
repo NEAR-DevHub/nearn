@@ -1,10 +1,17 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAtom } from 'jotai';
-import { ArrowRight, ChevronLeft, Copy } from 'lucide-react';
+import {
+  ArrowRight,
+  ChevronLeft,
+  Copy,
+  DollarSign,
+  Eye,
+  Link2,
+} from 'lucide-react';
 import type { GetServerSideProps } from 'next';
 import Link from 'next/link';
 import { getServerSession } from 'next-auth';
-import React, { Fragment, useEffect, useRef } from 'react';
+import React, { Fragment, useEffect, useRef, useState } from 'react';
 import { MdOutlineAccountBalanceWallet, MdOutlineMail } from 'react-icons/md';
 import { toast } from 'sonner';
 
@@ -15,10 +22,17 @@ import {
   BreadcrumbList,
 } from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { KycComponent } from '@/components/ui/KycComponent';
 import { Tooltip } from '@/components/ui/tooltip';
 import { tokenList } from '@/constants/tokenList';
 import { useClipboard } from '@/hooks/use-clipboard';
+import { useDisclosure } from '@/hooks/use-disclosure';
 import type {
   MilestoneWithUser,
   SubmissionWithUser,
@@ -29,11 +43,14 @@ import { authOptions } from '@/pages/api/auth/[...nextauth]';
 import { getBountyUrl, getSubmissionUrl } from '@/utils/bounty-urls';
 import { cn } from '@/utils/cn';
 import { setupCommentLinking } from '@/utils/comment-highlighting';
-import { getSubmissionPaymentStatus } from '@/utils/milestone-helpers';
+import { getURLSanitized } from '@/utils/getURLSanitized';
 import { truncatePublicKey } from '@/utils/truncatePublicKey';
 import { truncateString } from '@/utils/truncateString';
 import { getURL } from '@/utils/validUrl';
 
+import PaymentDetailsModal, {
+  type ManualPaymentData,
+} from '@/features/listings/components/PaymentDetailsModal';
 import {
   LikeAndComment,
   selectedSubmissionAtom,
@@ -155,7 +172,8 @@ function Content({
     amount = bounty?.rewards?.[submission?.winnerPosition] ?? 0;
   }
 
-  const milestone = submission?.Milestones[0];
+  const milestone =
+    submission?.Milestones.length === 1 ? submission?.Milestones[0] : null;
 
   if (!submission) {
     return <div>Submission not found</div>;
@@ -296,13 +314,10 @@ function Content({
                 </div>
                 {submission?.isWinner &&
                   submission?.winnerPosition &&
-                  getSubmissionPaymentStatus({ ...submission, listing: bounty })
-                    .isPaid &&
                   bounty && (
-                    <DisplayPayment
-                      milestone={milestone as MilestoneWithUser}
+                    <DisplayPaymentsButton
+                      submission={submission}
                       listing={bounty}
-                      isSponsorView={false}
                     />
                   )}
               </div>
@@ -445,6 +460,128 @@ function Content({
     </>
   );
 }
+
+const DisplayPaymentsButton = ({
+  submission,
+  listing,
+}: {
+  submission: SubmissionWithUser;
+  listing: Listing;
+}) => {
+  const isSingleMilestone = submission.Milestones.length === 1;
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [selectedMilestone, setSelectedMilestone] =
+    useState<MilestoneWithUser | null>(null);
+
+  if (isSingleMilestone) {
+    const milestone = submission.Milestones[0]!;
+    return milestone.status === 'Paid' && milestone.paymentDetails ? (
+      <DisplayPayment
+        milestone={submission.Milestones[0]!}
+        listing={listing}
+        isSponsorView={false}
+      />
+    ) : null;
+  }
+
+  const milestones = submission.Milestones.filter(
+    (milestone) => milestone.status === 'Paid' && milestone.paymentDetails,
+  );
+  if (milestones.length === 0) {
+    return null;
+  }
+
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" className="px-2 py-1 text-slate-500">
+            <Eye className="mr-1 h-4 w-4" />
+            View Payments
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-[--radix-dropdown-trigger-width] p-2">
+          <p className="p-2 text-xs font-medium text-slate-400">PAYMENTS</p>
+          {milestones.map((milestone) => (
+            <MilestonePaymentDropdownItem
+              key={milestone.milestoneIndex}
+              milestone={milestone}
+              onManualPaymentClick={() => {
+                setSelectedMilestone(milestone);
+                onOpen();
+              }}
+            />
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+      {selectedMilestone && (
+        <PaymentDetailsModal
+          isOpen={isOpen}
+          onClose={onClose}
+          paymentData={
+            selectedMilestone?.paymentDetails?.manual as ManualPaymentData
+          }
+          submissionId={selectedMilestone?.submissionId ?? ''}
+          listing={listing}
+        />
+      )}
+    </>
+  );
+};
+
+const MilestonePaymentDropdownItem = ({
+  milestone,
+  onManualPaymentClick,
+}: {
+  milestone: MilestoneWithUser;
+  onManualPaymentClick: () => void;
+}) => {
+  if (milestone.paymentDetails?.treasury) {
+    return (
+      <DropdownMenuItem asChild>
+        <Link
+          href={getURLSanitized(milestone.paymentDetails?.treasury.link!)}
+          className="flex justify-start gap-2 p-2 font-medium text-slate-500"
+          target="_blank"
+        >
+          <img
+            src={'/assets/NEARTreasuryLogo.svg'}
+            className="mt-0.5 h-4 w-4"
+          />
+          <span className="">Paid via NEAR Treasury</span>
+        </Link>
+      </DropdownMenuItem>
+    );
+  } else if (milestone.paymentDetails?.manual?.amount) {
+    return (
+      <DropdownMenuItem asChild>
+        <Button
+          variant="ghost"
+          className="flex h-fit w-full justify-start gap-2 p-2 font-medium text-slate-500 hover:bg-transparent hover:text-slate-500 focus-visible:ring-0"
+          onClick={onManualPaymentClick}
+        >
+          <DollarSign className="-mt-0.5 h-4 w-4 text-slate-500" />
+          <span className="">Paid manually</span>
+        </Button>
+      </DropdownMenuItem>
+    );
+  } else if (milestone.paymentDetails?.link) {
+    return (
+      <DropdownMenuItem className="p-0">
+        <Link
+          href={getURLSanitized(milestone.paymentDetails?.link!)}
+          className="flex h-fit w-full justify-start gap-2 p-2 font-medium text-slate-500"
+          target="_blank"
+        >
+          <Link2 className="mt-0.5 h-4 w-4" />
+          <span className="">On-chain payment</span>
+        </Link>
+      </DropdownMenuItem>
+    );
+  } else {
+    return null;
+  }
+};
 
 function SubmissionPage({
   bounty,

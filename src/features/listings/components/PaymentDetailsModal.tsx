@@ -17,7 +17,7 @@ import { getURLSanitized } from '@/utils/getURLSanitized';
 
 import { type Listing } from '../types';
 
-interface ManualPaymentData {
+export interface ManualPaymentData {
   amount: number;
   token: string;
   paymentDate: string;

@@ -489,7 +489,7 @@ export const SubmissionTable = ({
                               </p>
                             </TableCell>
                             {visibleColumns.submission && (
-                              <TableCell className="min-w-[225px] pr-0">
+                              <TableCell className="min-w-[200px] pr-0">
                                 <Link
                                   className="flex items-center"
                                   href={`/t/${submission?.user?.username}`}
@@ -527,7 +527,7 @@ export const SubmissionTable = ({
                             )}
                             {visibleColumns.ask && (
                               <TableCell
-                                className="min-w-[225px] cursor-pointer font-medium text-slate-700"
+                                className="min-w-[200px] cursor-pointer font-medium text-slate-700"
                                 onClick={(e) => handleClick(e, submissionLink)}
                                 onAuxClick={(e) =>
                                   handleClick(e, submissionLink)
@@ -575,7 +575,7 @@ export const SubmissionTable = ({
                               >
                                 <span
                                   className={cn(
-                                    'inline-flex whitespace-nowrap rounded-full px-3 py-1 text-center text-[10px] capitalize',
+                                    'inline-flex items-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium',
                                     colorMap[
                                       submissionStatus as keyof typeof colorMap
                                     ].bg,
@@ -584,7 +584,9 @@ export const SubmissionTable = ({
                                     ].color,
                                   )}
                                 >
-                                  {submissionStatus}
+                                  {submissionStatus
+                                    .replace(/([A-Z])/g, ' $1')
+                                    .trim()}
                                 </span>
                               </TableCell>
                             )}
