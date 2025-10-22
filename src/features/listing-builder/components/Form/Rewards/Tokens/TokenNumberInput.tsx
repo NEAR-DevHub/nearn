@@ -110,7 +110,7 @@ export const TokenNumberInput = React.forwardRef<
         className={cn(
           'flex w-full items-center rounded-md bg-transparent font-medium transition-colors',
           !borderless &&
-          'border border-input focus-within:ring-1 focus-within:ring-primary',
+            'border border-input focus-within:ring-1 focus-within:ring-primary',
           disabled && 'cursor-not-allowed opacity-50',
           className,
         )}
