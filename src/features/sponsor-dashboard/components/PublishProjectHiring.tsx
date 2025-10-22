@@ -82,7 +82,7 @@ const successModalNextSteps: NextStep = {
   ],
 };
 
-const NextSteps = ({ nextSteps }: { nextSteps: NextStep }) => {
+export const NextSteps = ({ nextSteps }: { nextSteps: NextStep }) => {
   return (
     <div className="flex flex-col gap-1">
       <h3 className="font-semibold text-slate-600">{nextSteps.title}</h3>
