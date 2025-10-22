@@ -26,6 +26,16 @@ export async function milestoneDeadline75Percent(): Promise<CronJobResult> {
           not: null,
           gt: now.toISOString(),
         },
+        Notification: {
+          none: {
+            type: {
+              in: [
+                NotificationType.MILESTONE_DEADLINE_IS_COMING_UP,
+                NotificationType.SPONSOR_MILESTONE_DEADLINE_IS_COMING_UP,
+              ],
+            },
+          },
+        },
       },
       include: {
         submission: {
@@ -59,48 +69,34 @@ export async function milestoneDeadline75Percent(): Promise<CronJobResult> {
         const elapsedTime = now.diff(createdAt, 'millisecond');
         const percentageComplete = (elapsedTime / totalDuration) * 100;
 
-        if (percentageComplete >= 75 && percentageComplete < 80) {
-          const existingNotification = await prisma.notification.findFirst({
-            where: {
+        if (percentageComplete >= 75) {
+          await createNotification(
+            NotificationType.MILESTONE_DEADLINE_IS_COMING_UP,
+            NotificationRelationType.TALENT,
+            milestone.submission.userId,
+            {
+              sponsorId: milestone.submission.listing.sponsorId,
+              listingId: milestone.submission.listingId,
+              submissionId: milestone.submissionId,
               milestoneId: milestone.id,
-              type: {
-                in: [
-                  NotificationType.MILESTONE_DEADLINE_IS_COMING_UP,
-                  NotificationType.SPONSOR_MILESTONE_DEADLINE_IS_COMING_UP,
-                ],
-              },
             },
-          });
+          );
 
-          if (!existingNotification) {
-            await createNotification(
-              NotificationType.MILESTONE_DEADLINE_IS_COMING_UP,
-              NotificationRelationType.TALENT,
-              milestone.submission.userId,
-              {
-                sponsorId: milestone.submission.listing.sponsorId,
-                listingId: milestone.submission.listingId,
-                submissionId: milestone.submissionId,
-                milestoneId: milestone.id,
-              },
-            );
+          await createNotification(
+            NotificationType.SPONSOR_MILESTONE_DEADLINE_IS_COMING_UP,
+            NotificationRelationType.SPONSOR,
+            'SPONSOR',
+            {
+              sponsorId: milestone.submission.listing.sponsorId,
+              listingId: milestone.submission.listingId,
+              submissionId: milestone.submissionId,
+              milestoneId: milestone.id,
+            },
+          );
 
-            await createNotification(
-              NotificationType.SPONSOR_MILESTONE_DEADLINE_IS_COMING_UP,
-              NotificationRelationType.SPONSOR,
-              'SPONSOR',
-              {
-                sponsorId: milestone.submission.listing.sponsorId,
-                listingId: milestone.submission.listingId,
-                submissionId: milestone.submissionId,
-                milestoneId: milestone.id,
-              },
-            );
-
-            logger.info(
-              `Created milestone deadline notifications for milestone ${milestone.id} (${percentageComplete.toFixed(1)}% complete)`,
-            );
-          }
+          logger.info(
+            `Created milestone deadline notifications for milestone ${milestone.id} (${percentageComplete.toFixed(1)}% complete)`,
+          );
         }
       } catch (error) {
         const errorMsg = `Failed to process milestone ${milestone.id}: ${error instanceof Error ? error.message : String(error)}`;
