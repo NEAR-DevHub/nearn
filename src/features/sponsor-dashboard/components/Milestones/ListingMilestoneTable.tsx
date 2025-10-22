@@ -16,10 +16,16 @@ export default function MilestonePaymentsTable({
   submissions,
   sequentialId,
 }: Props) {
-  const multiMilestoneSubmissions = useMemo(
-    () => submissions.filter((submission) => submission.Milestones.length > 1),
-    [submissions],
-  );
+  const multiMilestoneSubmissions = useMemo(() => {
+    const filteredSubmissions = submissions.filter(
+      (submission) => submission.Milestones.length > 1,
+    );
+    filteredSubmissions.sort((a, _) =>
+      a.sequentialId === sequentialId ? -1 : 1,
+    );
+    return filteredSubmissions;
+  }, [submissions, sequentialId]);
+
   return (
     <div className="flex h-full flex-col gap-3">
       {multiMilestoneSubmissions.map((submission) => (

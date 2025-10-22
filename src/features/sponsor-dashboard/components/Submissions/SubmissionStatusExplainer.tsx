@@ -103,12 +103,11 @@ export default function SubmissionStatusExplanation({
             )}
             {explanation.milestones && (
               <>
-                {' '}
-                <li>The submission has active milestones.</li>
                 <li>
-                  The status will change once all submissions will be paid or
-                  cancelled.
+                  The submission has been approved and the talent has started
+                  working on it.
                 </li>
+                <li>The submission is now in progress and cannot be edited.</li>
               </>
             )}
             {explanation.approved ||
