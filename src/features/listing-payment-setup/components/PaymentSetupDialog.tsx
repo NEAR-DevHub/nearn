@@ -250,6 +250,7 @@ export function PaymentSetupDialog({
                             form.setValue('milestones', []);
                           } else {
                             handleAddMilestone();
+                            handleAddMilestone();
                           }
                         }}
                         className="mt-2 space-y-5"
@@ -290,7 +291,7 @@ export function PaymentSetupDialog({
                               tokenSymbol={tokenSymbol}
                               onDelete={() => remove(index)}
                               onDuplicate={() => duplicateMilestoneAt(index)}
-                              hideDeleteButton={fields.length === 1}
+                              hideDeleteButton={fields.length <= 2}
                             />
                           ))}
                         </div>

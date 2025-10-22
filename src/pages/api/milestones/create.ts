@@ -111,9 +111,10 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       });
       createdMilestones = [createdMilestones];
     } else {
-      if (!milestones || milestones.length === 0) {
+      if (!milestones || milestones.length < 2) {
         return res.status(400).json({
-          error: 'Milestones array is required when not using single milestone',
+          error:
+            '2 or more milestones are required when not using single milestone',
         });
       }
 

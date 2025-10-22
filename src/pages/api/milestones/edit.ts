@@ -88,6 +88,12 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       });
     }
 
+    if (milestones.length + approvedOrPaidMilestones.length < 2) {
+      return res.status(400).json({
+        error: 'At least 2 milestones are required after editing',
+      });
+    }
+
     // Calculate total: approved/paid + provided
     const approvedTotal = approvedOrPaidMilestones.reduce(
       (sum, m) => sum + m.reward,

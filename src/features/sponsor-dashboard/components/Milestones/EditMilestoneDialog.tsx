@@ -340,8 +340,7 @@ export function EditMilestoneDialog({
                               onDelete={() => !field.isLocked && remove(index)}
                               onDuplicate={() => duplicateMilestoneAt(index)}
                               hideDeleteButton={
-                                editableMilestones.length === 1 ||
-                                field.isLocked
+                                fields.length <= 2 || field.isLocked
                               }
                               disabled={field.isLocked}
                             />
