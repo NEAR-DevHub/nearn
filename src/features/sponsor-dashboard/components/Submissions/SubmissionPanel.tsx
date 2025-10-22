@@ -167,7 +167,7 @@ export function SubmissionMenu({
         <MilestoneCompletionLine submission={selectedSubmission} />
         <Button
           onClick={() => {
-            router.push(
+            router.replace(
               {
                 pathname: router.pathname,
                 query: { ...router.query, pageTab: 'milestones' },

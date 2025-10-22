@@ -282,7 +282,7 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
-    router.push(
+    router.replace(
       {
         pathname: router.pathname,
         query: { ...router.query, pageTab: value },

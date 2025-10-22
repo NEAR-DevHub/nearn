@@ -34,7 +34,7 @@ import { type MilestoneWithUser } from '@/interface/submission';
 
 import { PaymentMode } from '../constants';
 import { useCreateMilestones } from '../mutations/useCreateMilestones';
-import { allDeadlineShouldBeConsequitive } from '../schemas/milestone.schema';
+import { allDeadlineShouldBeConsecutive } from '../schemas/milestone.schema';
 import { MilestoneCard } from './MilestoneCard';
 import { PaymentSetupDialogFooter } from './PaymentSetupDialogFooter';
 import { ProjectAmountPanel } from './ProjectAmountPanel';
@@ -72,7 +72,7 @@ const paymentSetupFormSchema = z.object({
   mode: z.nativeEnum(PaymentMode),
   milestones: z
     .array(milestoneItemSchema)
-    .superRefine(allDeadlineShouldBeConsequitive),
+    .superRefine(allDeadlineShouldBeConsecutive),
 });
 
 interface PaymentSetupForm {
@@ -144,9 +144,9 @@ export function PaymentSetupDialog({
     }
   };
 
-  const handleAddMilestone = () => {
-    const nextId = String(fields.length + 1);
-    const nextMilestoneNumber = fields.length + 1;
+  const handleAddMilestone = (id?: number) => {
+    const nextMilestoneNumber = id ?? fields.length + 1;
+    const nextId = String(nextMilestoneNumber);
     append({
       id: nextId,
       submissionId: submissionId,
@@ -249,8 +249,8 @@ export function PaymentSetupDialog({
                           if (value === PaymentMode.FULL) {
                             form.setValue('milestones', []);
                           } else {
-                            handleAddMilestone();
-                            handleAddMilestone();
+                            handleAddMilestone(1);
+                            handleAddMilestone(2);
                           }
                         }}
                         className="mt-2 space-y-5"
@@ -323,7 +323,7 @@ export function PaymentSetupDialog({
                           variant="link"
                           size="sm"
                           className="flex w-fit px-0"
-                          onClick={handleAddMilestone}
+                          onClick={() => handleAddMilestone()}
                         >
                           <Plus /> Add Milestone
                         </Button>

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const allDeadlineShouldBeConsequitive = (
+export const allDeadlineShouldBeConsecutive = (
   val: { deadline: string | Date; milestoneIndex: number }[],
   ctx: z.RefinementCtx,
 ) => {
@@ -34,7 +34,7 @@ export const createMilestonesSchema = z.object({
   useSingleMilestone: z.boolean(),
   milestones: z
     .array(milestoneSchema)
-    .superRefine(allDeadlineShouldBeConsequitive)
+    .superRefine(allDeadlineShouldBeConsecutive)
     .optional(),
 });
 
@@ -43,7 +43,7 @@ export const editMilestonesSchema = z.object({
   milestones: z
     .array(milestoneSchema)
     .min(1)
-    .superRefine(allDeadlineShouldBeConsequitive),
+    .superRefine(allDeadlineShouldBeConsecutive),
 });
 
 export type MilestoneFormData = z.infer<typeof milestoneSchema>;

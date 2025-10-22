@@ -32,7 +32,7 @@ import { MilestoneCard } from '@/features/listing-payment-setup/components/Miles
 import { PaymentSetupDialogFooter } from '@/features/listing-payment-setup/components/PaymentSetupDialogFooter';
 import { ProjectAmountPanel } from '@/features/listing-payment-setup/components/ProjectAmountPanel';
 import { PaymentMode } from '@/features/listing-payment-setup/constants';
-import { allDeadlineShouldBeConsequitive } from '@/features/listing-payment-setup/schemas/milestone.schema';
+import { allDeadlineShouldBeConsecutive } from '@/features/listing-payment-setup/schemas/milestone.schema';
 import { type Listing } from '@/features/listings/types';
 
 import {
@@ -81,7 +81,7 @@ const milestoneItemSchema = z.object({
 const editMilestonesFormSchema = z.object({
   milestones: z
     .array(milestoneItemSchema)
-    .superRefine(allDeadlineShouldBeConsequitive),
+    .superRefine(allDeadlineShouldBeConsecutive),
 });
 
 interface EditMilestonesForm {
