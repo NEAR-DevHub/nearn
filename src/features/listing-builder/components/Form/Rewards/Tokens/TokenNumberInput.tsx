@@ -60,22 +60,27 @@ export const TokenNumberInput = React.forwardRef<
 
     const parseNumber = useCallback((str: string) => {
       if (!str) return null;
-      const cleanStr = str.replace(/[^\d.-]/g, '');
-      const parsed = parseFloat(cleanStr);
+      const normalized = str.replace(/,/g, '.');
+      const parsed = parseFloat(normalized);
       return isNaN(parsed) ? null : parsed;
     }, []);
 
     const handleInputChange = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
-        const inputValue = e.target.value;
-        setInputValue(inputValue);
-
-        const parsedValue = parseNumber(inputValue);
-        if (parsedValue !== null) {
-          const clampedValue = Math.min(Math.max(parsedValue, min), max);
-          onChange?.(clampedValue);
-        } else {
-          onChange?.(null);
+        const next = e.target.value;
+        const allowNegative = min < 0;
+        const pattern = allowNegative
+          ? /^-?\d*(?:[.,]\d*)?$/
+          : /^\d*(?:[.,]\d*)?$/;
+        if (next === '' || pattern.test(next)) {
+          setInputValue(next);
+          const parsedValue = parseNumber(next);
+          if (parsedValue !== null) {
+            const clampedValue = Math.min(Math.max(parsedValue, min), max);
+            onChange?.(clampedValue);
+          } else {
+            onChange?.(null);
+          }
         }
       },
       [parseNumber, onChange, min, max],
@@ -105,7 +110,7 @@ export const TokenNumberInput = React.forwardRef<
         className={cn(
           'flex w-full items-center rounded-md bg-transparent font-medium transition-colors',
           !borderless &&
-            'border border-input focus-within:ring-1 focus-within:ring-primary',
+          'border border-input focus-within:ring-1 focus-within:ring-primary',
           disabled && 'cursor-not-allowed opacity-50',
           className,
         )}
@@ -134,6 +139,8 @@ export const TokenNumberInput = React.forwardRef<
           onBlur={handleBlur}
           disabled={disabled}
           borderless={borderless}
+          inputMode="decimal"
+          pattern={min < 0 ? '^-?\\d*(?:[.,]\\d*)?$' : '^\\d*(?:[.,]\\d*)?$'}
           className={cn(
             'border-0 bg-transparent py-2 text-left focus-visible:ring-0 focus-visible:ring-offset-0',
             '[-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none',
