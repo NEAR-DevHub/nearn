@@ -49,6 +49,8 @@ const thClassName =
 type ColumnKey =
   | 'index'
   | 'dueDate'
+  | 'title'
+  | 'description'
   | 'amount'
   | 'status'
   | 'approvedDate'
@@ -58,6 +60,8 @@ type ColumnKey =
 const columnLabels: Record<ColumnKey, string> = {
   index: '#',
   dueDate: 'Due Date',
+  title: 'Title',
+  description: 'Description',
   amount: 'Amount',
   status: 'Status',
   approvedDate: 'Approved Date',
@@ -97,6 +101,8 @@ export default function MilestoneTable({
   const defaultVisibleColumns: Record<ColumnKey, boolean> = {
     index: true,
     dueDate: true,
+    title: true,
+    description: true,
     amount: true,
     status: true,
     paymentDate: false,
@@ -212,6 +218,12 @@ export default function MilestoneTable({
                   #
                 </SortableTH>
               )}
+              {visibleColumns.title && (
+                <TableHead className={cn(thClassName)}>Title</TableHead>
+              )}
+              {visibleColumns.description && (
+                <TableHead className={cn(thClassName)}>Description</TableHead>
+              )}
               {visibleColumns.dueDate && (
                 <SortableTH
                   column="dueDate"
@@ -289,6 +301,16 @@ export default function MilestoneTable({
                   {visibleColumns.index && (
                     <TableCell className="whitespace-nowrap text-sm font-medium text-slate-500">
                       {milestone.milestoneIndex}
+                    </TableCell>
+                  )}
+                  {visibleColumns.title && (
+                    <TableCell className="whitespace-nowrap text-sm font-medium text-slate-500">
+                      {milestone.title}
+                    </TableCell>
+                  )}
+                  {visibleColumns.description && (
+                    <TableCell className="whitespace-nowrap text-sm font-medium text-slate-500">
+                      {milestone.description}
                     </TableCell>
                   )}
                   {visibleColumns.dueDate && (
