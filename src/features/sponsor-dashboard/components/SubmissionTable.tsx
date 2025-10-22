@@ -916,6 +916,7 @@ export const SubmissionTable = ({
           isOpen={isManualPaymentModalOpen}
           onClose={onManualPaymentModalClose}
           milestone={selectedMilestone}
+          listingToken={interactedSubmission?.listing?.token}
           onSuccess={refetchSubmissions}
         />
       )}

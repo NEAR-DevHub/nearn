@@ -29,9 +29,9 @@ import { TokenInput } from '@/components/ui/token-input';
 import { Tooltip } from '@/components/ui/tooltip';
 import { type MilestoneWithUser } from '@/interface/submission';
 import { cn } from '@/utils/cn';
+import { fetchTokenUSDValue } from '@/utils/fetchTokenUSDValue';
 
 import { DEADLINE_FORMAT } from '@/features/listing-builder/components/Form/Deadline';
-import { fetchTokenUSDValue } from '@/utils/fetchTokenUSDValue';
 
 interface AddManualPaymentModalProps {
   isOpen: boolean;
@@ -44,6 +44,7 @@ interface AddManualPaymentModalProps {
     notes: string;
     isPublic: boolean;
   }) => void;
+  listingToken?: string;
 }
 
 type FormData = {
@@ -60,6 +61,7 @@ export default function AddManualPaymentModal({
   onClose,
   milestone,
   onSuccess,
+  listingToken,
 }: AddManualPaymentModalProps) {
   const form = useForm<FormData>({
     defaultValues: {
@@ -105,7 +107,7 @@ export default function AddManualPaymentModal({
   }, [milestone]);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || listingToken !== 'Any') return;
     const currentToken = form.getValues('token');
     const baseUsd = milestone?.reward || 0;
     if (!currentToken || !baseUsd || baseUsd <= 0) return;
@@ -127,9 +129,9 @@ export default function AddManualPaymentModal({
             shouldTouch: true,
           });
         }
-      } catch (_) { }
+      } catch (_) {}
     })();
-  }, [isOpen, token, milestone?.reward]);
+  }, [isOpen, token, milestone?.reward, listingToken]);
 
   const handleSubmit = async (data: FormData) => {
     try {

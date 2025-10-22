@@ -468,6 +468,7 @@ export default function MilestoneTable({
               setSelectedMilestone(null);
             }}
             milestone={selectedMilestone}
+            listingToken={listing.token}
             onSuccess={() => {
               queryClient.invalidateQueries({
                 queryKey: ['sponsor-submissions'],

@@ -83,6 +83,7 @@ export function DisplayPayment({
               isOpen={isPaymentDetailsModalOpen}
               onClose={() => setIsPaymentDetailsModalOpen(false)}
               milestone={milestone}
+              listingToken={listing.token}
               onSuccess={() => {
                 setIsPaymentDetailsModalOpen(false);
               }}
