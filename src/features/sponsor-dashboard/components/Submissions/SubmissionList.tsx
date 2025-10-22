@@ -127,7 +127,7 @@ export const SubmissionList = ({
   };
 
   return (
-    <div className="flex flex-col h-full w-full rounded-l-xl border border-slate-200 bg-white">
+    <div className="flex h-full w-full flex-col rounded-l-xl border border-slate-200 bg-white">
       <div className="flex cursor-pointer flex-col items-center justify-between gap-4 border-b border-slate-200 px-4 py-3">
         <div className="flex w-full items-center justify-between gap-4 py-[3px]">
           <div className="relative w-full">
@@ -245,100 +245,100 @@ export const SubmissionList = ({
         </div>
       </div>
       <div className="flex-1 overflow-y-auto">
-      {submissions.map((submission) => {
-        const { bg, color } =
-          colorMap[getSubmissionLabel(submission) as keyof typeof colorMap];
-        return (
-          <div
-            key={submission?.id}
-            className={cn(
-              'flex cursor-pointer items-center justify-between gap-4 border-b border-slate-200 px-4 py-2',
-              'hover:bg-slate-100',
-              selectedSubmission?.id === submission?.id
-                ? 'bg-slate-100'
-                : 'bg-transparent',
-            )}
-            onClick={() => {
-              setSelectedSubmission(submission);
-            }}
-          >
-            <div className="flex items-center gap-2">
-              <p className="w-6 shrink-0 text-xs text-slate-500">
-                {submission.sequentialId}
-              </p>
-              <EarnAvatar
-                className="h-8 w-8 shrink-0"
-                id={submission?.user?.id}
-                avatar={submission?.user?.photo || undefined}
-              />
-              <div className="w-28">
-                <div className="flex items-center gap-2">
-                  <p className="overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium text-slate-700">
-                    {submission?.user?.name}
-                  </p>
-                  <KycComponent
-                    address={submission?.user?.publicKey}
-                    imageOnly
-                    variant="xs"
-                    listingSponsorId={submission?.listing?.sponsorId}
-                  />
-                </div>
-                <p className="overflow-hidden text-ellipsis whitespace-nowrap text-xs font-medium text-slate-500">
-                  {submission?.user?.email}
+        {submissions.map((submission) => {
+          const { bg, color } =
+            colorMap[getSubmissionLabel(submission) as keyof typeof colorMap];
+          return (
+            <div
+              key={submission?.id}
+              className={cn(
+                'flex cursor-pointer items-center justify-between gap-4 border-b border-slate-200 px-4 py-2',
+                'hover:bg-slate-100',
+                selectedSubmission?.id === submission?.id
+                  ? 'bg-slate-100'
+                  : 'bg-transparent',
+              )}
+              onClick={() => {
+                setSelectedSubmission(submission);
+              }}
+            >
+              <div className="flex items-center gap-2">
+                <p className="w-6 shrink-0 text-xs text-slate-500">
+                  {submission.sequentialId}
                 </p>
+                <EarnAvatar
+                  className="h-8 w-8 shrink-0"
+                  id={submission?.user?.id}
+                  avatar={submission?.user?.photo || undefined}
+                />
+                <div className="w-28">
+                  <div className="flex items-center gap-2">
+                    <p className="overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium text-slate-700">
+                      {submission?.user?.name}
+                    </p>
+                    <KycComponent
+                      address={submission?.user?.publicKey}
+                      imageOnly
+                      variant="xs"
+                      listingSponsorId={submission?.listing?.sponsorId}
+                    />
+                  </div>
+                  <p className="overflow-hidden text-ellipsis whitespace-nowrap text-xs font-medium text-slate-500">
+                    {submission?.user?.email}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center">
+                <span
+                  className={cn(
+                    'inline-flex whitespace-nowrap rounded-full px-3 py-1 text-center text-[10px] capitalize',
+                    bg,
+                    color,
+                  )}
+                >
+                  {getSubmissionLabel(submission)
+                    .replace(/([A-Z])/g, ' $1')
+                    .trim()}
+                </span>
+                {isGodUser && (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={'ml-1 h-6 w-6 p-1 text-slate-500'}
+                      disabled={submission.isArchived}
+                      onClick={() => {
+                        setInteractedSubmission(submission);
+                        onEditModalOpen();
+                      }}
+                    >
+                      <Pencil className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={cn(
+                        'ml-1 h-6 w-6 p-1 text-slate-500 hover:text-destructive',
+                        submission.isArchived && 'hover:text-brand-green',
+                      )}
+                      onClick={() => {
+                        setInteractedSubmission(submission);
+                        onDeleteModalOpen();
+                      }}
+                    >
+                      {submission.isArchived || !submission.isActive ? (
+                        <RefreshCw className="h-3 w-3" />
+                      ) : (
+                        <Trash className="h-3 w-3" />
+                      )}
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
-
-            <div className="flex items-center">
-              <span
-                className={cn(
-                  'inline-flex whitespace-nowrap rounded-full px-3 py-1 text-center text-[10px] capitalize',
-                  bg,
-                  color,
-                )}
-              >
-                {getSubmissionLabel(submission)
-                  .replace(/([A-Z])/g, ' $1')
-                  .trim()}
-              </span>
-              {isGodUser && (
-                <>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className={'ml-1 h-6 w-6 p-1 text-slate-500'}
-                    disabled={submission.isArchived}
-                    onClick={() => {
-                      setInteractedSubmission(submission);
-                      onEditModalOpen();
-                    }}
-                  >
-                    <Pencil className="h-3 w-3" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className={cn(
-                      'ml-1 h-6 w-6 p-1 text-slate-500 hover:text-destructive',
-                      submission.isArchived && 'hover:text-brand-green',
-                    )}
-                    onClick={() => {
-                      setInteractedSubmission(submission);
-                      onDeleteModalOpen();
-                    }}
-                  >
-                    {submission.isArchived || !submission.isActive ? (
-                      <RefreshCw className="h-3 w-3" />
-                    ) : (
-                      <Trash className="h-3 w-3" />
-                    )}
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-        );
-      })}
+          );
+        })}
       </div>
 
       <EditSubmissionStatusModal
