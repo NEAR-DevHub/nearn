@@ -246,8 +246,9 @@ export const SubmissionList = ({
       </div>
       <div className="flex-1 overflow-y-auto">
         {submissions.map((submission) => {
+          const label = getSubmissionLabel(submission);
           const { bg, color } =
-            colorMap[getSubmissionLabel(submission) as keyof typeof colorMap];
+            colorMap[label as keyof typeof colorMap] ?? colorMap.winner;
           return (
             <div
               key={submission?.id}
@@ -297,9 +298,7 @@ export const SubmissionList = ({
                     color,
                   )}
                 >
-                  {getSubmissionLabel(submission)
-                    .replace(/([A-Z])/g, ' $1')
-                    .trim()}
+                  {label.replace(/([A-Z])/g, ' $1').trim()}
                 </span>
                 {isGodUser && (
                   <>
