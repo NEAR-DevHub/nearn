@@ -553,40 +553,54 @@ export const SubmissionPanel = ({
                   className="flex h-full w-full flex-col"
                 >
                   <TabsList className="grid h-auto w-full shrink-0 grid-cols-3 rounded-none">
-                    <TabsTrigger
-                      value="notes"
-                      className={cn(
-                        'flex h-auto items-center justify-center gap-1 rounded-none border-b-2 px-4 py-2 text-muted-foreground data-[state=active]:border-brand-green',
-                      )}
+                    <Tooltip
+                      content="Internal notes"
+                      triggerClassName="flex h-auto items-center justify-center gap-1 rounded-none text-muted-foreground"
+                      asChild
                     >
-                      <NotebookText className="size-4" />
-                      {notesData?.count !== undefined ? (
-                        notesData.count
-                      ) : (
-                        <Loader2 className="size-4 animate-spin" />
-                      )}
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="comments"
-                      className={cn(
-                        'flex h-auto items-center justify-center gap-1 rounded-none border-b-2 px-4 py-2 text-muted-foreground data-[state=active]:border-brand-green',
-                      )}
+                      <TabsTrigger
+                        value="notes"
+                        className={cn(
+                          'flex h-auto items-center justify-center rounded-none border-b-2 px-4 py-2 text-muted-foreground data-[state=active]:border-brand-green',
+                        )}
+                      >
+                        <NotebookText className="size-4" />
+                        {notesData?.count !== undefined ? (
+                          notesData.count
+                        ) : (
+                          <Loader2 className="size-4 animate-spin" />
+                        )}
+                      </TabsTrigger>
+                    </Tooltip>
+                    <Tooltip
+                      content="Public comments"
+                      triggerClassName="flex h-auto items-center justify-center gap-1 rounded-none text-muted-foreground"
+                      asChild
                     >
-                      <MessageSquare className="size-4" />
-                      {commentData?.count !== undefined ? (
-                        commentData.count
-                      ) : (
-                        <Loader2 className="size-4 animate-spin" />
-                      )}
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="activity"
-                      className={cn(
-                        'flex h-auto items-center justify-center gap-1 rounded-none border-b-2 px-4 py-2 text-muted-foreground data-[state=active]:border-brand-green',
-                      )}
-                    >
-                      <Clock2 className="size-4" />
-                    </TabsTrigger>
+                      <TabsTrigger
+                        value="comments"
+                        className={cn(
+                          'flex h-auto items-center justify-center rounded-none border-b-2 px-4 py-2 text-muted-foreground data-[state=active]:border-brand-green',
+                        )}
+                      >
+                        <MessageSquare className="size-4" />
+                        {commentData?.count !== undefined ? (
+                          commentData.count
+                        ) : (
+                          <Loader2 className="size-4 animate-spin" />
+                        )}
+                      </TabsTrigger>
+                    </Tooltip>
+                    <Tooltip content="Submission activity" asChild>
+                      <TabsTrigger
+                        value="activity"
+                        className={cn(
+                          'flex h-auto items-center justify-center gap-1 rounded-none border-b-2 px-4 py-2 text-muted-foreground data-[state=active]:border-brand-green',
+                        )}
+                      >
+                        <Clock2 className="size-4" />
+                      </TabsTrigger>
+                    </Tooltip>
                   </TabsList>
 
                   <TabsContent value="notes" className="p-0">

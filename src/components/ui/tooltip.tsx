@@ -11,6 +11,7 @@ interface TooltipProps extends TooltipPrimitive.TooltipProps {
   >;
   disabled?: boolean;
   triggerClassName?: string;
+  asChild?: boolean;
 }
 
 const TooltipContent = React.forwardRef<
@@ -33,7 +34,15 @@ TooltipContent.displayName = TooltipPrimitive.Content.displayName;
 
 const Tooltip = React.forwardRef<HTMLButtonElement, TooltipProps>(
   (
-    { children, content, contentProps, triggerClassName, disabled, ...props },
+    {
+      children,
+      content,
+      contentProps,
+      triggerClassName,
+      disabled,
+      asChild = false,
+      ...props
+    },
     ref,
   ) => {
     const [open, setOpen] = React.useState(false);
@@ -42,24 +51,31 @@ const Tooltip = React.forwardRef<HTMLButtonElement, TooltipProps>(
       return <>{children}</>;
     }
 
+    if (asChild) {
+      return (
+        <TooltipPrimitive.Provider delayDuration={0}>
+          <TooltipPrimitive.Root open={open} onOpenChange={setOpen} {...props}>
+            <TooltipPrimitive.Trigger
+              asChild
+              className={triggerClassName}
+              ref={ref}
+            >
+              {children}
+            </TooltipPrimitive.Trigger>
+            <TooltipContent {...contentProps}>{content}</TooltipContent>
+          </TooltipPrimitive.Root>
+        </TooltipPrimitive.Provider>
+      );
+    }
+
     return (
       <TooltipPrimitive.Provider delayDuration={0}>
-        <TooltipPrimitive.Root open={open} {...props}>
+        <TooltipPrimitive.Root open={open} onOpenChange={setOpen} {...props}>
           <TooltipPrimitive.Trigger asChild>
             <button
               ref={ref}
               type="button"
               className={cn('cursor-pointer', triggerClassName)}
-              onClick={() => setOpen(!open)}
-              onMouseEnter={() => setOpen(true)}
-              onMouseLeave={() => setOpen(false)}
-              onTouchStart={() => setOpen(open)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  setOpen(!open);
-                }
-              }}
             >
               {children}
             </button>
