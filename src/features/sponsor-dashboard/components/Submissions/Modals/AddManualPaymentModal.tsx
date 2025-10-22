@@ -121,14 +121,15 @@ export default function AddManualPaymentModal({
         const price = await fetchTokenUSDValue(currentToken);
         if (price && price > 0) {
           const converted = baseUsd / price;
-          form.setValue('amount', Number(Number(converted).toFixed(6)), {
+          const rounded = Math.round(converted * 1e6) / 1e6;
+          form.setValue('amount', rounded, {
             shouldDirty: true,
             shouldTouch: true,
           });
         }
       } catch (_) { }
     })();
-  }, [isOpen, token]);
+  }, [isOpen, token, milestone?.reward]);
 
   const handleSubmit = async (data: FormData) => {
     try {
