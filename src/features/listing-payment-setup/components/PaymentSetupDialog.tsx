@@ -34,6 +34,7 @@ import { type MilestoneWithUser } from '@/interface/submission';
 
 import { PaymentMode } from '../constants';
 import { useCreateMilestones } from '../mutations/useCreateMilestones';
+import { allDeadlineShouldBeConsequitive } from '../schemas/milestone.schema';
 import { MilestoneCard } from './MilestoneCard';
 import { PaymentSetupDialogFooter } from './PaymentSetupDialogFooter';
 import { ProjectAmountPanel } from './ProjectAmountPanel';
@@ -56,16 +57,22 @@ const milestoneItemSchema = z.object({
     .string()
     .min(1, 'Title is required')
     .max(100, 'Title must be less than 100 characters'),
-  description: z.string().optional().nullable(),
+  description: z
+    .string()
+    .max(300, 'Description must be less than 300 characters')
+    .optional()
+    .nullable(),
   deadline: z.date(),
-  reward: z.number().min(0, 'Amount must be greater than or equal to 0'),
+  reward: z.number().positive('Reward must be greater than 0'),
   milestoneIndex: z.number().int().positive(),
   token: z.string(),
 });
 
 const paymentSetupFormSchema = z.object({
   mode: z.nativeEnum(PaymentMode),
-  milestones: z.array(milestoneItemSchema),
+  milestones: z
+    .array(milestoneItemSchema)
+    .superRefine(allDeadlineShouldBeConsequitive),
 });
 
 interface PaymentSetupForm {

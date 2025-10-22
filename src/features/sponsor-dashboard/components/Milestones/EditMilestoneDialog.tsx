@@ -32,6 +32,7 @@ import { MilestoneCard } from '@/features/listing-payment-setup/components/Miles
 import { PaymentSetupDialogFooter } from '@/features/listing-payment-setup/components/PaymentSetupDialogFooter';
 import { ProjectAmountPanel } from '@/features/listing-payment-setup/components/ProjectAmountPanel';
 import { PaymentMode } from '@/features/listing-payment-setup/constants';
+import { allDeadlineShouldBeConsequitive } from '@/features/listing-payment-setup/schemas/milestone.schema';
 import { type Listing } from '@/features/listings/types';
 
 import {
@@ -62,16 +63,25 @@ const milestoneItemSchema = z.object({
     .string()
     .min(1, 'Title is required')
     .max(100, 'Title must be less than 100 characters'),
-  description: z.string().optional().nullable(),
+  description: z
+    .string()
+    .max(300, 'Description must be less than 300 characters')
+    .optional()
+    .nullable(),
   deadline: z.date(),
-  reward: z.number().min(0, 'Amount must be greater than or equal to 0'),
+  reward: z
+    .number()
+    .positive()
+    .min(0, 'Amount must be greater than or equal to 0'),
   milestoneIndex: z.number().int().positive(),
   token: z.string(),
   isLocked: z.boolean().optional(),
 });
 
 const editMilestonesFormSchema = z.object({
-  milestones: z.array(milestoneItemSchema),
+  milestones: z
+    .array(milestoneItemSchema)
+    .superRefine(allDeadlineShouldBeConsequitive),
 });
 
 interface EditMilestonesForm {
