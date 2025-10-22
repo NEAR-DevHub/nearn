@@ -567,6 +567,7 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
             isOpen={isAddManualPaymentModalOpen}
             onClose={onAddManualPaymentClose}
             milestone={selectedSubmission?.Milestones[0] as MilestoneWithUser}
+            listingToken={bounty?.token}
             onSuccess={(_) => {
               refetchSubmissions();
             }}

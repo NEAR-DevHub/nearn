@@ -29,6 +29,7 @@ import { TokenInput } from '@/components/ui/token-input';
 import { Tooltip } from '@/components/ui/tooltip';
 import { type MilestoneWithUser } from '@/interface/submission';
 import { cn } from '@/utils/cn';
+import { fetchTokenUSDValue } from '@/utils/fetchTokenUSDValue';
 
 import { DEADLINE_FORMAT } from '@/features/listing-builder/components/Form/Deadline';
 
@@ -43,6 +44,7 @@ interface AddManualPaymentModalProps {
     notes: string;
     isPublic: boolean;
   }) => void;
+  listingToken?: string;
 }
 
 type FormData = {
@@ -59,6 +61,7 @@ export default function AddManualPaymentModal({
   onClose,
   milestone,
   onSuccess,
+  listingToken,
 }: AddManualPaymentModalProps) {
   const form = useForm<FormData>({
     defaultValues: {
@@ -72,6 +75,7 @@ export default function AddManualPaymentModal({
 
   const fiatCurrency = form.watch('fiatCurrency');
   const token = form.watch('token');
+  const isUpdating = milestone && milestone.paymentDetails?.manual;
   useEffect(() => {
     if (token === 'Fiat' && !fiatCurrency) {
       form.setValue('fiatCurrency', 'USD');
@@ -79,8 +83,6 @@ export default function AddManualPaymentModal({
       form.setValue('fiatCurrency', undefined);
     }
   }, [token]);
-
-  const isUpdating = milestone && milestone.paymentDetails?.manual;
 
   useEffect(() => {
     if (isUpdating && milestone.paymentDetails?.manual) {
@@ -103,6 +105,33 @@ export default function AddManualPaymentModal({
       });
     }
   }, [milestone]);
+
+  useEffect(() => {
+    if (!isOpen || listingToken !== 'Any') return;
+    const currentToken = form.getValues('token');
+    const baseUsd = milestone?.reward || 0;
+    if (!currentToken || !baseUsd || baseUsd <= 0) return;
+    if (currentToken === 'Fiat' || currentToken === 'Other') {
+      form.setValue('amount', baseUsd, {
+        shouldDirty: true,
+        shouldTouch: true,
+      });
+      return;
+    }
+    (async () => {
+      try {
+        const price = await fetchTokenUSDValue(currentToken);
+        if (price && price > 0) {
+          const converted = baseUsd / price;
+          const rounded = Math.round(converted * 1e6) / 1e6;
+          form.setValue('amount', rounded, {
+            shouldDirty: true,
+            shouldTouch: true,
+          });
+        }
+      } catch (_) {}
+    })();
+  }, [isOpen, token, milestone?.reward, listingToken]);
 
   const handleSubmit = async (data: FormData) => {
     try {
