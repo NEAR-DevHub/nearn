@@ -101,8 +101,6 @@ export function PaymentSetupDialog({
     },
   });
 
-  console.log(form.getValues());
-
   const mode = form.watch('mode');
   const { fields, append, remove, insert, move } = useFieldArray({
     control: form.control,
@@ -185,11 +183,7 @@ export function PaymentSetupDialog({
           milestones: values.milestones.map((m, idx) => ({
             title: m.title || `Milestone ${idx + 1}`,
             description: m.description || '',
-            deadline: m.deadline
-              ? new Date(
-                  new Date(m.deadline).setHours(23, 59, 0, 0),
-                ).toISOString()
-              : undefined,
+            deadline: new Date(m.deadline!).toISOString(),
             reward: Number(m.reward || 0),
             milestoneIndex: idx + 1,
           })),
@@ -348,6 +342,7 @@ export function PaymentSetupDialog({
                 tokenSymbol={tokenSymbol}
                 tokenIconSrc={tokenIconSrc}
                 paymentMode={mode}
+                isUsdBased={isUsdBased}
                 isSubmitting={createMilestonesMutation.isPending}
                 errors={form.formState.errors}
               />

@@ -136,7 +136,15 @@ export const MilestoneCard = ({
                   <FormControl>
                     <DateTimePicker
                       value={field.value}
-                      onChange={field.onChange}
+                      onChange={(date) => {
+                        if (date) {
+                          const newDate = new Date(
+                            new Date(date).setHours(23, 59, 0, 0),
+                          );
+                          return field.onChange(newDate);
+                        }
+                        field.onChange(date);
+                      }}
                       hideTime
                       borderless
                       min={new Date()}

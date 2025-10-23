@@ -397,6 +397,7 @@ export function EditMilestoneDialog({
                 tokenIconSrc={tokenIconSrc}
                 paymentMode={PaymentMode.MILESTONE}
                 isSubmitting={editMilestonesMutation.isPending}
+                isUsdBased={listing.token === 'Any'}
                 errors={form.formState.errors}
               />
             </div>

@@ -3,6 +3,7 @@ import { type FieldErrors } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { LocalImage } from '@/components/ui/local-image';
 import { SheetFooter } from '@/components/ui/sheet';
+import { cn } from '@/utils/cn';
 
 import { PaymentMode } from '../constants';
 
@@ -12,6 +13,7 @@ interface PaymentSetupDialogFooterProps {
   tokenSymbol: string;
   tokenIconSrc: string;
   paymentMode: PaymentMode;
+  isUsdBased: boolean;
   isSubmitting?: boolean;
   errors?: FieldErrors;
 }
@@ -33,11 +35,13 @@ export function PaymentSetupDialogFooter({
   tokenSymbol,
   tokenIconSrc,
   paymentMode,
+  isUsdBased,
   isSubmitting = false,
   errors,
 }: PaymentSetupDialogFooterProps) {
   const isDisabled =
     paymentMode === PaymentMode.MILESTONE && currentAmount !== totalAmount;
+  const amount = getAmountText(totalAmount, currentAmount, paymentMode);
 
   return (
     <SheetFooter className="border-t p-6">
@@ -45,7 +49,7 @@ export function PaymentSetupDialogFooter({
         <div className="w-full space-y-1">
           <div className="flex w-full items-center justify-between">
             <span className="text-sm font-medium text-slate-500">
-              Total Prize
+              Total Payment
             </span>
             <div className="flex items-center gap-2">
               <LocalImage
@@ -53,10 +57,23 @@ export function PaymentSetupDialogFooter({
                 alt="Token icon"
                 src={tokenIconSrc}
               />
-              <span className="font-semibold text-slate-900">
-                {getAmountText(totalAmount, currentAmount, paymentMode)}{' '}
-                {tokenSymbol}
-              </span>
+              <div className="space-x-2 font-semibold text-slate-900">
+                <span className="ml-1 truncate text-sm">
+                  {isUsdBased && '$'}
+                  {amount ? amount.toLocaleString('en-US') : '0'}
+                  <span className="text-slate-500">
+                    {isUsdBased && ' to be paid in'}
+                  </span>
+                  <span
+                    className={cn(
+                      'ml-1',
+                      !isUsdBased && 'font-semibold text-slate-900',
+                    )}
+                  >
+                    {tokenSymbol}
+                  </span>
+                </span>
+              </div>
             </div>
           </div>
           {paymentMode === PaymentMode.MILESTONE && (

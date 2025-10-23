@@ -1,5 +1,4 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { Check } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 import {
@@ -7,7 +6,6 @@ import {
   useColumnVisibility,
 } from '@/components/shared/column-visibility-settings';
 import { SortableTH } from '@/components/shared/sortable-th';
-import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -28,14 +26,12 @@ import { type Listing } from '@/features/listings/types';
 import { ActivityHistoryMinified } from '@/features/logging/components/ActivityHistoryMinified';
 import { type SubmissionWithListingUser } from '@/features/sponsor-dashboard/queries/dashboard-submissions';
 
-import { useApproveMilestone } from '../../mutations/useApproveMilestone';
 import { colorMap } from '../../utils/statusColorMap';
 import { VerifyPaymentModal } from '../Modals/VerifyPayment';
-import { PaymentButton } from '../Shared/PaymentButton';
-import { DisplayPayment } from '../Submissions/DisplayPayment';
 import AddManualPaymentModal from '../Submissions/Modals/AddManualPaymentModal';
 import NearTreasuryPaymentModal from '../Submissions/Modals/NearTreasuryPaymentModal';
 import { DoneBy } from '../Submissions/SubmissionPanel';
+import MilestoneActionButton from './MilestoneActionButton';
 
 interface Props {
   listing: Listing;
@@ -413,31 +409,19 @@ export default function MilestoneTable({
                   )}
                   <TableCell className="pl-6">
                     <div className="flex items-center gap-2">
-                      {milestone.status === 'InReview' && (
-                        <ApproveButton milestone={milestone} />
-                      )}
-                      {milestone.status === 'Approved' && (
-                        <PaymentButton
-                          milestone={milestone}
-                          size="sm"
-                          onVerifyPayment={() =>
-                            handleOpenVerifyPaymentModal(milestone)
-                          }
-                          setIsNearTreasuryPaymentModalOpen={() =>
-                            handleOpenNearTreasuryModal(milestone)
-                          }
-                          onManualPaymentOpen={() =>
-                            handleOpenManualPaymentModal(milestone)
-                          }
-                        />
-                      )}
-                      {milestone.status === 'Paid' && (
-                        <DisplayPayment
-                          milestone={milestone}
-                          listing={listing}
-                          isSponsorView={true}
-                        />
-                      )}
+                      <MilestoneActionButton
+                        milestone={milestone}
+                        listing={submission.listing}
+                        handleOpenVerifyPaymentModal={() =>
+                          handleOpenVerifyPaymentModal(milestone)
+                        }
+                        handleOpenNearTreasuryModal={() =>
+                          handleOpenNearTreasuryModal(milestone)
+                        }
+                        handleOpenManualPaymentModal={() =>
+                          handleOpenManualPaymentModal(milestone)
+                        }
+                      />
                     </div>
                   </TableCell>
                 </TableRow>
@@ -519,27 +503,3 @@ export default function MilestoneTable({
     </>
   );
 }
-
-export const ApproveButton = ({
-  milestone,
-}: {
-  milestone: MilestoneWithUser;
-}) => {
-  const approveMilestone = useApproveMilestone();
-
-  return (
-    <Tooltip content="Approve this milestone to allow payment">
-      <Button
-        size="sm"
-        className="ph-no-capture min-w-[120px]"
-        onClick={() => {
-          approveMilestone.mutate(milestone.id);
-        }}
-        disabled={approveMilestone.isPending}
-      >
-        <Check className="mr-2 h-4 w-4" />
-        {approveMilestone.isPending ? 'Approving...' : 'Approve Milestone'}
-      </Button>
-    </Tooltip>
-  );
-};

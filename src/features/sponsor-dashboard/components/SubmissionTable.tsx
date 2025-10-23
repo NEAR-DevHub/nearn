@@ -68,11 +68,9 @@ import { type SubmissionWithListingUser } from '../queries/dashboard-submissions
 import { colorMap } from '../utils/statusColorMap';
 import { ListingTh } from './ListingTable';
 import MilestoneCompletionLine from './Milestones/CompletionLine';
-import { ApproveButton } from './Milestones/MilestoneTable';
+import MilestoneActionButton from './Milestones/MilestoneActionButton';
 import { VerifyPaymentModal } from './Modals/VerifyPayment';
-import { PaymentButton } from './Shared/PaymentButton';
 import { SubmissionNotesMinified } from './SubmissionNotesMinified';
-import { DisplayPayment } from './Submissions/DisplayPayment';
 import AddManualPaymentModal from './Submissions/Modals/AddManualPaymentModal';
 import { DeleteRestoreSubmissionModal } from './Submissions/Modals/DeleteRestoreSubmissionModal';
 import { EditSubmissionStatusModal } from './Submissions/Modals/EditSubmissionStatusModal';
@@ -862,31 +860,19 @@ export const SubmissionTable = ({
                               )}
                               <TableCell className="pl-6">
                                 <div className="flex items-center gap-2">
-                                  {milestone.status === 'InReview' && (
-                                    <ApproveButton milestone={milestone} />
-                                  )}
-                                  {milestone.status === 'Approved' && (
-                                    <PaymentButton
-                                      milestone={milestone}
-                                      size="sm"
-                                      onVerifyPayment={() =>
-                                        handleOpenVerifyPaymentModal(submission)
-                                      }
-                                      setIsNearTreasuryPaymentModalOpen={() =>
-                                        handleOpenNearTreasuryModal(milestone)
-                                      }
-                                      onManualPaymentOpen={() =>
-                                        handleOpenManualPaymentModal(milestone)
-                                      }
-                                    />
-                                  )}
-                                  {milestone.status === 'Paid' && (
-                                    <DisplayPayment
-                                      milestone={milestone}
-                                      listing={submission.listing}
-                                      isSponsorView={true}
-                                    />
-                                  )}
+                                  <MilestoneActionButton
+                                    milestone={milestone}
+                                    listing={submission.listing}
+                                    handleOpenVerifyPaymentModal={() =>
+                                      handleOpenVerifyPaymentModal(submission)
+                                    }
+                                    handleOpenNearTreasuryModal={() =>
+                                      handleOpenNearTreasuryModal(milestone)
+                                    }
+                                    handleOpenManualPaymentModal={() =>
+                                      handleOpenManualPaymentModal(milestone)
+                                    }
+                                  />
                                 </div>
                               </TableCell>
                               <TableCell colSpan={2} />

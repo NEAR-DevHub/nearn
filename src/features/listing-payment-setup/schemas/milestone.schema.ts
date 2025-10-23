@@ -8,7 +8,7 @@ export const allDeadlineShouldBeConsecutive = (
     .sort((a, b) => a.milestoneIndex - b.milestoneIndex)
     .map((milestone) => new Date(milestone.deadline!));
   for (let i = 1; i < deadlines.length; i++) {
-    if (deadlines[i]!.getDate() <= deadlines[i - 1]!.getDate()) {
+    if (deadlines[i]!.getTime() <= deadlines[i - 1]!.getTime()) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: [i, 'deadline'],
