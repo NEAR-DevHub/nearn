@@ -44,6 +44,7 @@ interface PaymentSetupDialogProps {
   onOpenChange: (open: boolean) => void;
   projectAmount: number;
   tokenSymbol: string;
+  isUsdBased: boolean;
   submissionId: string;
   onSave?: (milestones: MilestoneWithUser[]) => void;
 }
@@ -85,6 +86,7 @@ export function PaymentSetupDialog({
   onOpenChange,
   projectAmount,
   tokenSymbol,
+  isUsdBased,
   submissionId,
   onSave,
 }: PaymentSetupDialogProps) {
@@ -235,6 +237,7 @@ export function PaymentSetupDialog({
                   projectAmount={projectAmount}
                   tokenSymbol={tokenSymbol}
                   tokenIconSrc={tokenIconSrc}
+                  isUsdBased={isUsdBased}
                 />
 
                 <div className="space-y-6">
@@ -292,6 +295,7 @@ export function PaymentSetupDialog({
                               onDelete={() => remove(index)}
                               onDuplicate={() => duplicateMilestoneAt(index)}
                               hideDeleteButton={fields.length <= 2}
+                              isUsdBased={isUsdBased}
                             />
                           ))}
                         </div>
@@ -311,6 +315,7 @@ export function PaymentSetupDialog({
                                     duplicateMilestoneAt(index)
                                   }
                                   hideDeleteButton={fields.length === 1}
+                                  isUsdBased={isUsdBased}
                                 />
                               ) : null,
                             )}

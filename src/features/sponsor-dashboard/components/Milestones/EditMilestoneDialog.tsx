@@ -292,6 +292,7 @@ export function EditMilestoneDialog({
                   projectAmount={projectAmount}
                   tokenSymbol={tokenSymbol}
                   tokenIconSrc={tokenIconSrc}
+                  isUsdBased={listing.token === 'Any'}
                 />
 
                 {lockedAmount > 0 && (
@@ -343,6 +344,7 @@ export function EditMilestoneDialog({
                                 fields.length <= 2 || field.isLocked
                               }
                               disabled={field.isLocked}
+                              isUsdBased={listing.token === 'Any'}
                             />
                           </div>
                         ))}
@@ -363,6 +365,7 @@ export function EditMilestoneDialog({
                                 hideDeleteButton={
                                   editableMilestones.length === 1
                                 }
+                                isUsdBased={listing.token === 'Any'}
                               />
                             ) : null,
                           )}

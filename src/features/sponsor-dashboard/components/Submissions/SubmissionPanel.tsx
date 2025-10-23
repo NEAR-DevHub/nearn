@@ -289,6 +289,7 @@ export function SubmissionMenu({
                   ? selectedSubmission?.token!
                   : bounty?.token!
               }
+              isUsdBased={bounty?.token === 'Any'}
               submissionId={selectedSubmission?.id}
               onSave={(milestones: MilestoneWithUser[]) => {
                 setSelectedSubmission((prev) =>

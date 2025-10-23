@@ -26,6 +26,7 @@ interface MilestoneCardProps {
   onDelete: () => void;
   hideDeleteButton?: boolean;
   disabled?: boolean;
+  isUsdBased: boolean;
 }
 
 export const MilestoneCard = ({
@@ -36,6 +37,7 @@ export const MilestoneCard = ({
   onDelete,
   hideDeleteButton = false,
   disabled = false,
+  isUsdBased,
 }: MilestoneCardProps) => {
   const { control } = useFormContext();
   const {
@@ -148,7 +150,7 @@ export const MilestoneCard = ({
           </div>
           <div className="flex w-full flex-col sm:min-w-[180px]">
             <Label className="text-xs font-medium uppercase tracking-wide text-slate-400">
-              Amount
+              Amount{isUsdBased ? ' in USD' : ` in ${tokenSymbol}`}
             </Label>
             <FormField
               control={control}
