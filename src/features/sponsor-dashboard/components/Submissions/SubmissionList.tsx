@@ -18,6 +18,7 @@ import { cn } from '@/utils/cn';
 import { nthLabelGenerator } from '@/utils/rank';
 
 import { SubmissionDrawer } from '@/features/listings/components/Submission/SubmissionDrawer';
+import { sponsorshipSubmissionStatus } from '@/features/listings/components/SubmissionsPage/SubmissionTable';
 import { type Listing } from '@/features/listings/types';
 import { EarnAvatar } from '@/features/talent/components/EarnAvatar';
 
@@ -98,22 +99,7 @@ export const SubmissionList = ({
     }
     if (submission?.isWinner && submission?.winnerPosition) {
       if (type === 'project' || type === 'sponsorship') {
-        if (
-          submission.Milestones &&
-          submission.Milestones.length > 0 &&
-          submission.Milestones.every(
-            (milestone) => milestone.status === 'Paid',
-          )
-        )
-          return 'Paid';
-        else if (
-          submission.Milestones.some(
-            (milestone) => milestone.status === 'Cancelled',
-          )
-        )
-          return 'Cancelled';
-        if (submission.Milestones.length > 1) return 'InProgress';
-        return 'Approved';
+        return sponsorshipSubmissionStatus(submission);
       } else {
         return nthLabelGenerator(submission.winnerPosition, false);
       }

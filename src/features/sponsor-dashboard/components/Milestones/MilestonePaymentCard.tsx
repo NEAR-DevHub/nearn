@@ -67,7 +67,7 @@ export default function MilestonePaymentCard({
   return (
     <>
       <Collapsible
-        defaultOpen={isExpanded}
+        defaultOpen={isExpanded || singleSubmission}
         className={cn(
           'rounded-lg border bg-white',
           singleSubmission && 'h-full min-h-fit',

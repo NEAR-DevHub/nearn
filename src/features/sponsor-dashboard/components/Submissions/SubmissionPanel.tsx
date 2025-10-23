@@ -203,10 +203,9 @@ export function SubmissionMenu({
             />
           )}
 
-        {selectedSubmission?.status === 'Pending' &&
-          milestone?.status !== 'Paid' && (
-            <SelectLabel listingSlug={bounty?.slug!} />
-          )}
+        {selectedSubmission?.status === 'Pending' && (
+          <SelectLabel listingSlug={bounty?.slug!} />
+        )}
 
         {!bounty?.isWinnersAnnounced &&
           selectedSubmission?.status === 'Pending' && (

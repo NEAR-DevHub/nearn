@@ -80,7 +80,9 @@ export const getListingStatus = (
         return 'In Progress';
       if (
         listing?.isWinnersAnnounced &&
-        listing?.BountyCounts?.totalWinnersSelected === 0 &&
+        (listing?.BountyCounts?.totalWinnersSelected === 0 ||
+          listing?.BountyCounts?.totalPaymentsMade !==
+            listing?.BountyCounts?.totalWinnersSelected) &&
         listing.type === 'project'
       )
         return 'Work in Progress';

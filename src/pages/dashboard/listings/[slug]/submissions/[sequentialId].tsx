@@ -357,11 +357,7 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
                   )}
                   {submissions?.some(
                     (submission) => submission.Milestones.length > 1,
-                  ) && (
-                    <TabsTrigger value="milestones">
-                      Milestone Payments
-                    </TabsTrigger>
-                  )}
+                  ) && <TabsTrigger value="milestones">Milestones</TabsTrigger>}
                 </TabsList>
                 <div className="h-[1.5px] w-full bg-slate-200/70" />
               </>
