@@ -562,7 +562,7 @@ export const SubmissionPanel = ({
                       <TabsTrigger
                         value="notes"
                         className={cn(
-                          'flex h-auto items-center justify-center rounded-none border-b-2 px-4 py-2 text-muted-foreground data-[state=active]:border-brand-green',
+                          'flex h-auto items-center justify-center rounded-none border-b-2 px-4 py-2 text-muted-foreground aria-[selected=true]:border-brand-green',
                         )}
                       >
                         <NotebookText className="size-4" />
@@ -581,7 +581,7 @@ export const SubmissionPanel = ({
                       <TabsTrigger
                         value="comments"
                         className={cn(
-                          'flex h-auto items-center justify-center rounded-none border-b-2 px-4 py-2 text-muted-foreground data-[state=active]:border-brand-green',
+                          'flex h-auto items-center justify-center rounded-none border-b-2 px-4 py-2 text-muted-foreground aria-[selected=true]:border-brand-green',
                         )}
                       >
                         <MessageSquare className="size-4" />
@@ -596,7 +596,7 @@ export const SubmissionPanel = ({
                       <TabsTrigger
                         value="activity"
                         className={cn(
-                          'flex h-auto items-center justify-center gap-1 rounded-none border-b-2 px-4 py-2 text-muted-foreground data-[state=active]:border-brand-green',
+                          'flex h-auto items-center justify-center gap-1 rounded-none border-b-2 px-4 py-2 text-muted-foreground aria-[selected=true]:border-brand-green',
                         )}
                       >
                         <Clock2 className="size-4" />
