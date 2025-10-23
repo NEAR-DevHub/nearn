@@ -101,6 +101,8 @@ export function PaymentSetupDialog({
     },
   });
 
+  console.log(form.getValues());
+
   const mode = form.watch('mode');
   const { fields, append, remove, insert, move } = useFieldArray({
     control: form.control,
