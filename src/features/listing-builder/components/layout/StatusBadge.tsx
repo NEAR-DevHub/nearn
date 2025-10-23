@@ -36,6 +36,10 @@ export function StatusBadge({ className }: StatusBadgeProps) {
       label: 'Payment Pending',
       className: 'bg-yellow-50 text-yellow-600 hover:bg-yellow-50',
     },
+    'work in progress': {
+      label: 'Work in Progress',
+      className: 'bg-blue-100 text-blue-600 hover:bg-blue-100',
+    },
     completed: {
       label: 'Completed',
       className: 'bg-green-50 text-green-600 hover:bg-green-50',

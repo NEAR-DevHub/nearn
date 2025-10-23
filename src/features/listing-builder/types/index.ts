@@ -11,6 +11,7 @@ export type ListingStatus =
   | 'unpublished'
   | 'verifying'
   | 'payment pending'
-  | 'completed';
+  | 'completed'
+  | 'work in progress';
 
 export type ValidationFields = Partial<Record<keyof ListingFormData, true>>;
