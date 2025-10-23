@@ -237,7 +237,11 @@ export const SubmissionTable = ({
     router.push(href);
   }
 
-  const handleOpenManualPaymentModal = (milestone: MilestoneWithUser) => {
+  const handleOpenManualPaymentModal = (
+    submission: SubmissionWithListingUser,
+    milestone: MilestoneWithUser,
+  ) => {
+    setInteractedSubmission(submission);
     setSelectedMilestone(milestone);
     onManualPaymentModalOpen();
   };
@@ -870,7 +874,10 @@ export const SubmissionTable = ({
                                       handleOpenNearTreasuryModal(milestone)
                                     }
                                     handleOpenManualPaymentModal={() =>
-                                      handleOpenManualPaymentModal(milestone)
+                                      handleOpenManualPaymentModal(
+                                        submission,
+                                        milestone,
+                                      )
                                     }
                                   />
                                 </div>
