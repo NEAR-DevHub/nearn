@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip } from '@/components/ui/tooltip';
 import { type MilestoneWithUser } from '@/interface/submission';
+import { cn } from '@/utils/cn';
 import { getURLSanitized } from '@/utils/getURLSanitized';
 
 import PaymentDetailsModal from '@/features/listings/components/PaymentDetailsModal';
@@ -45,9 +46,13 @@ export function DisplayPayment({
   switch (paymentType) {
     case 'external':
       return (
-        <Tooltip content="On-chain payment" contentProps={{ side: 'top' }}>
+        <Tooltip
+          content="On-chain payment"
+          contentProps={{ side: 'top' }}
+          asChild
+        >
           <Button
-            className={className || 'text-slate-500'}
+            className={cn('text-slate-500', className)}
             onClick={() => {
               window.open(
                 getURLSanitized(milestone.paymentDetails?.link ?? ''),
@@ -66,9 +71,13 @@ export function DisplayPayment({
     case 'manual':
       return (
         <>
-          <Tooltip content="Paid manually" contentProps={{ side: 'top' }}>
+          <Tooltip
+            content="Paid manually"
+            contentProps={{ side: 'top' }}
+            asChild
+          >
             <Button
-              className={className || 'text-slate-500'}
+              className={cn('text-slate-500', className)}
               onClick={() => setIsPaymentDetailsModalOpen(true)}
               size={size}
               variant="outline"
@@ -105,9 +114,10 @@ export function DisplayPayment({
         <Tooltip
           content="Paid via NEAR Treasury"
           contentProps={{ side: 'top' }}
+          asChild
         >
           <Button
-            className={className || 'text-slate-500'}
+            className={cn('text-slate-500', className)}
             onClick={() => {
               window.open(
                 getURLSanitized(milestone.paymentDetails?.treasury?.link ?? ''),
@@ -137,7 +147,7 @@ export function DisplayPayment({
           contentProps={{ side: 'top' }}
         >
           <Button
-            className={className || 'gap-2 text-slate-500'}
+            className={cn('gap-2 text-slate-500', className)}
             disabled
             size={size}
             variant="outline"

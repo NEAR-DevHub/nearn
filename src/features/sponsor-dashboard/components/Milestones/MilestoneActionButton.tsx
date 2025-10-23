@@ -24,7 +24,10 @@ export default function MilestoneActionButton({
   return (
     <>
       {milestone.status === 'InReview' && (
-        <ApproveMilestoneButton milestoneId={milestone.id} />
+        <ApproveMilestoneButton
+          milestoneId={milestone.id}
+          className="w-[170px]"
+        />
       )}
       {milestone.status === 'Approved' && (
         <PaymentButton
@@ -33,12 +36,15 @@ export default function MilestoneActionButton({
           onVerifyPayment={handleOpenVerifyPaymentModal}
           setIsNearTreasuryPaymentModalOpen={handleOpenNearTreasuryModal}
           onManualPaymentOpen={handleOpenManualPaymentModal}
+          className="w-[170px]"
         />
       )}
       {milestone.status === 'Paid' && (
         <DisplayPayment
           milestone={milestone}
           listing={listing}
+          size="sm"
+          className="w-[170px]"
           isSponsorView={true}
         />
       )}

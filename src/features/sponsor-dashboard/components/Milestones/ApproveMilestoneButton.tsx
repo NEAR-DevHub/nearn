@@ -13,14 +13,19 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Tooltip } from '@/components/ui/tooltip';
+import { cn } from '@/utils/cn';
 
 import { useApproveMilestone } from '../../mutations/useApproveMilestone';
 
 interface Props {
   milestoneId: string;
+  className?: string;
 }
 
-export default function ApproveMilestoneButton({ milestoneId }: Props) {
+export default function ApproveMilestoneButton({
+  milestoneId,
+  className,
+}: Props) {
   const [isOpen, setOpen] = useState(false);
   const approveMilestone = useApproveMilestone();
 
@@ -30,7 +35,7 @@ export default function ApproveMilestoneButton({ milestoneId }: Props) {
         <DialogTrigger asChild>
           <Button
             size="sm"
-            className="ph-no-capture min-w-[120px]"
+            className={cn('ph-no-capture min-w-[120px]', className)}
             disabled={approveMilestone.isPending}
           >
             <Check className="mr-2 h-4 w-4" />

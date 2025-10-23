@@ -11,6 +11,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { type MilestoneWithUser } from '@/interface/submission';
+import { cn } from '@/utils/cn';
 import { getURLSanitized } from '@/utils/getURLSanitized';
 
 import { treasuryProposalStatusQuery } from '@/features/treasury/queries/treasuryProposalStatus';
@@ -18,6 +19,7 @@ import { treasuryProposalStatusQuery } from '@/features/treasury/queries/treasur
 interface PaymentButtonProps {
   milestone: MilestoneWithUser;
   size?: 'sm' | 'default';
+  className?: string;
   onVerifyPayment: () => void;
   setIsNearTreasuryPaymentModalOpen: Dispatch<SetStateAction<boolean>>;
   onManualPaymentOpen: () => void;
@@ -29,6 +31,7 @@ export const PaymentButton = ({
   setIsNearTreasuryPaymentModalOpen,
   onManualPaymentOpen,
   size = 'default',
+  className,
 }: PaymentButtonProps) => {
   const treasury = milestone?.paymentDetails?.treasury;
   const { data: proposalStatus, isLoading: isLoadingProposalStatus } = useQuery(
@@ -92,9 +95,12 @@ export const PaymentButton = ({
 
   return (
     <Popover>
-      <PopoverTrigger>
+      <PopoverTrigger asChild>
         <Button
-          className="ph-no-capture min-w-[120px] disabled:cursor-not-allowed"
+          className={cn(
+            'ph-no-capture min-w-[120px] disabled:cursor-not-allowed',
+            className,
+          )}
           size={size}
         >
           <DollarSign className="mr-2 h-4 w-4" />
