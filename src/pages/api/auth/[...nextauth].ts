@@ -21,6 +21,9 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_ID as string,
       clientSecret: process.env.GOOGLE_SECRET as string,
+      authorization: {
+        params: { prompt: 'select_account' },
+      },
       allowDangerousEmailAccountLinking: true,
       profile(profile) {
         return {
