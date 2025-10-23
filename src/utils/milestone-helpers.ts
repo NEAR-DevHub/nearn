@@ -86,7 +86,9 @@ export function getNextPayableMilestone(
 ): MilestoneWithUser | undefined {
   const milestones = submission.Milestones || [];
   // Return the first approved but unpaid milestone
-  return milestones
-    .sort((a, b) => a.milestoneIndex - b.milestoneIndex)
-    .find((m) => m.status === 'Approved');
+  return milestones.length > 1
+    ? milestones
+        .sort((a, b) => a.milestoneIndex - b.milestoneIndex)
+        .find((m) => m.status === 'Approved')
+    : milestones[0];
 }
