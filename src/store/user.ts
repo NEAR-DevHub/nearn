@@ -79,8 +79,11 @@ export const useLogout = () => {
     queryClient.setQueryData(['user'], null);
     setUser(null);
     localStorage.removeItem('user-storage');
-    const callbackUrl = router.asPath;
+    const callbackUrl =
+      typeof window !== 'undefined' ? window.location.href : '/';
     const result = await signOut({ redirect: false, callbackUrl });
-    router.push(result.url ?? '/');
+    if (typeof window !== 'undefined') {
+      window.location.assign(result.url);
+    }
   };
 };
