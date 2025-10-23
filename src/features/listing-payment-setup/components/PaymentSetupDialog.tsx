@@ -26,6 +26,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
@@ -225,7 +226,12 @@ export function PaymentSetupDialog({
           >
             <div className="flex h-full flex-col gap-6 overflow-y-auto p-6 pb-0">
               <SheetHeader className="shrink-0">
-                <SheetTitle>Payment Setup</SheetTitle>
+                <SheetTitle>Set Up Payment</SheetTitle>
+                <SheetDescription>
+                  You can use this option if you’re collaborating with a talent
+                  on this submission. This will indicate that work on this
+                  submission has started.
+                </SheetDescription>
               </SheetHeader>
 
               <div className="space-y-6">
