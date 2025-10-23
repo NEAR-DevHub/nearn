@@ -73,7 +73,6 @@ export const useUpdateUser = () => {
 export const useLogout = () => {
   const queryClient = useQueryClient();
   const setUser = useUserStore((state) => state.setUser);
-  const router = useRouter();
 
   return async () => {
     queryClient.setQueryData(['user'], null);
