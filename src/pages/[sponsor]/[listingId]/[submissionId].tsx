@@ -29,6 +29,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { KycComponent } from '@/components/ui/KycComponent';
+import { LocalImage } from '@/components/ui/local-image';
 import { Tooltip } from '@/components/ui/tooltip';
 import { tokenList } from '@/constants/tokenList';
 import { useClipboard } from '@/hooks/use-clipboard';
@@ -544,8 +545,9 @@ const MilestonePaymentDropdownItem = ({
           className="flex justify-start gap-2 p-2 font-medium text-slate-500"
           target="_blank"
         >
-          <img
+          <LocalImage
             src={'/assets/NEARTreasuryLogo.svg'}
+            alt="NEAR Treasury Logo"
             className="mt-0.5 h-4 w-4"
           />
           <span className="">Paid via NEAR Treasury</span>
