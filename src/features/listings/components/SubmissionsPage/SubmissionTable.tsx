@@ -84,7 +84,11 @@ export const sponsorshipSubmissionStatus = (submission: SubmissionWithUser) => {
     submission.Milestones.some((milestone) => milestone.status === 'Cancelled')
   )
     return 'Cancelled';
-  if (submission.status === 'Approved' && submission.Milestones.length > 1)
+  if (
+    submission.status === 'Approved' &&
+    withMilestones &&
+    submission.listing?.type !== 'bounty'
+  )
     return 'InProgress';
   if (submission.status !== 'Pending') return submission.status;
   return submission.label;

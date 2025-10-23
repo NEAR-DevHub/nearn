@@ -28,6 +28,11 @@ export const ListingStatusModal = ({
       description: 'The listing is published and accepting submissions.',
     },
     {
+      status: 'Work in Progress',
+      description:
+        'The sponsor selected the talent, and they have started working on the project',
+    },
+    {
       status: 'In Review',
       description:
         'The submission deadline has passed, and the sponsor is reviewing submissions.',
