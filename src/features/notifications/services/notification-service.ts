@@ -515,6 +515,10 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
       NotificationRelationType.TALENT,
       event.submission?.userId!,
       getEntities(event),
+      {
+        reason: (event.data as EventDataMap[EventType.SUBMISSION_CANCELLED])
+          .reason,
+      },
     );
   },
 
