@@ -51,6 +51,7 @@ export default function SubmissionApproveRejectCancelled(props: LogProperties) {
       </span>
       {reason && reason.length > 0 && (
         <>
+          {' '}
           with a reason:
           <div className="whitespace-pre-wrap break-all rounded-md bg-slate-50 px-2 py-1 text-slate-600">
             {reason}

@@ -296,10 +296,13 @@ export function getNotificationAction(
         link: `/${notification?.sponsor?.slug}/${notification?.listing?.sequentialId}/${notification?.submission?.sequentialId}`,
       };
     case NotificationType.SUBMISSION_CANCELLED:
+      const eventDataCancelled =
+        notification.data as NotificationDataMap['SUBMISSION_CANCELLED'];
       return {
         actor: 'sponsor',
         message: `has cancelled remaining milestones`,
         link: `/${notification?.sponsor?.slug}/${notification?.listing?.sequentialId}/${notification?.submission?.sequentialId}`,
+        subtitle: eventDataCancelled.reason,
       };
     case NotificationType.SPONSOR_MILESTONE_DEADLINE_IS_COMING_UP:
     case NotificationType.MILESTONE_DEADLINE_IS_COMING_UP:
