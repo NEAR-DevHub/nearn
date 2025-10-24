@@ -26,7 +26,7 @@ export const SubmissionCancelledTemplate = <T extends NotificationType>({
 
   const reason = (
     notification.data as NotificationDataMap['SUBMISSION_CANCELLED']
-  ).reason;
+  )?.reason;
 
   return (
     <Email userName={notification.receiver.name}>
