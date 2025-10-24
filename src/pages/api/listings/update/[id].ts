@@ -42,7 +42,6 @@ const allowedFields = [
   'rewardAmount',
   'rewards',
   'maxBonusSpots',
-  'token',
   'compensationType',
   'minRewardAsk',
   'maxRewardAsk',
@@ -149,7 +148,6 @@ async function listing(req: NextApiRequestWithSponsor, res: NextApiResponse) {
     const {
       rewards: rewardsData,
       rewardAmount,
-      token,
       maxRewardAsk,
       minRewardAsk,
       compensationType,
@@ -280,7 +278,6 @@ async function listing(req: NextApiRequestWithSponsor, res: NextApiResponse) {
         isPublished,
         publishedAt: listing.publishedAt,
         isVerifying,
-        token,
         compensationType,
       });
       try {
@@ -290,14 +287,14 @@ async function listing(req: NextApiRequestWithSponsor, res: NextApiResponse) {
         } else if (compensationType === 'range') {
           amount = ((minRewardAsk || 0) + (maxRewardAsk || 0)) / 2;
         }
-        if (token && amount) {
+        if (listing.token && amount) {
           const tokenUsdValue = await fetchTokenUSDValue(
-            token,
+            listing.token,
             listing.publishedAt,
           );
           usdValue = tokenUsdValue * amount;
           logger.info('Token USD value fetched', {
-            token,
+            token: listing.token,
             publishedAt: listing.publishedAt,
             tokenUsdValue,
             calculatedListingUSDValue: usdValue,
