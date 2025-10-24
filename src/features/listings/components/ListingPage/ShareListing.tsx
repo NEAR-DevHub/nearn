@@ -57,8 +57,6 @@ export function ShareListing({
 } & SourceType) {
   const [open, setOpen] = React.useState(false);
   const posthog = usePostHog();
-  const isDisabled =
-    typeof window !== 'undefined' && window.location.href.includes('nsb=1');
   function setShareOpen(o: boolean) {
     if (o) posthog.capture('open_share listing');
     else posthog.capture('close_share listing');
@@ -73,7 +71,6 @@ export function ShareListing({
           <Button
             variant="ghost"
             className={cn('font-medium text-slate-500', className)}
-            disabled={isDisabled}
           >
             <IoMdShareAlt className="text-slate-500" />
             SHARE
@@ -104,7 +101,6 @@ export function ShareListing({
         <Button
           variant="ghost"
           className={cn('font-medium text-slate-500', className)}
-          disabled={isDisabled}
         >
           <IoMdShareAlt className="text-slate-500" />
           SHARE

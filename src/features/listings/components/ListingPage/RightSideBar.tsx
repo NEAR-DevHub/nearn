@@ -117,8 +117,6 @@ export function RightSideBar({
     widthOfPrize = '90%';
   }
 
-  const isPreviewMode = router.asPath.includes('nsb=1');
-
   return (
     <div className="h-full w-full md:w-auto">
       <div className="flex w-full flex-col gap-2 pt-4">
@@ -260,12 +258,7 @@ export function RightSideBar({
           </div>
 
           <div className="w-full">
-            {!isPreviewMode && (
-              <SubmissionActionButton
-                listing={listing}
-                isTemplate={isTemplate}
-              />
-            )}
+            <SubmissionActionButton listing={listing} isTemplate={isTemplate} />
             {isProject && deadline && dayjs(deadline).isAfter(new Date()) && (
               <div className="-mt-1 mb-4 flex w-full gap-2 bg-[#62F6FF10] p-3">
                 <TriangleAlert color="#1A7F86" />
