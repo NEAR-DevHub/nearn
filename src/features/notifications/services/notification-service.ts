@@ -482,11 +482,15 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
     );
   },
   [EventType.MILESTONE_CREATED]: async (event) => {
+    const eventData = event.data as EventDataMap[EventType.MILESTONE_CREATED];
     await createNotification(
       NotificationType.MILESTONE_CREATED,
       NotificationRelationType.TALENT,
       event.submission?.userId!,
       getEntities(event),
+      {
+        useSingleMilestone: eventData.useSingleMilestone,
+      },
     );
   },
   [EventType.MILESTONE_APPROVED]: async (event) => {

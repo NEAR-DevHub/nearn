@@ -278,9 +278,15 @@ export function getNotificationAction(
         link: `/${notification?.sponsor?.slug}/${notification?.listing?.sequentialId}/${notification?.submission?.sequentialId}`,
       };
     case NotificationType.MILESTONE_CREATED:
+      const eventDataMilestone =
+        notification.data as NotificationDataMap['MILESTONE_CREATED'];
       return {
         actor: 'sponsor',
-        message: `created milestones`,
+        message: `set payment type: ${
+          eventDataMilestone.useSingleMilestone
+            ? 'Full payment'
+            : 'Milestone-based'
+        }`,
         link: `/${notification?.sponsor?.slug}/${notification?.listing?.sequentialId}/${notification?.submission?.sequentialId}`,
       };
     case NotificationType.MILESTONE_APPROVED:

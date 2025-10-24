@@ -61,6 +61,7 @@ export type NotificationDataMap = {
     | 'SUBMISSION_PAID'
     | 'WEEKLY_ROUNDUP'
     | 'SUBMISSION_CANCELLED'
+    | 'MILESTONE_CREATED'
   >]: undefined;
 } & {
   [EventType.SUBMISSION_APPROVED]: {
@@ -89,6 +90,9 @@ export type NotificationDataMap = {
   };
   [NotificationType.SUBMISSION_CANCELLED]: {
     reason: string;
+  };
+  [NotificationType.MILESTONE_CREATED]: {
+    useSingleMilestone: boolean;
   };
 };
 
