@@ -8,12 +8,14 @@ import { getColorStyles } from '@/features/listings/utils/getColorStyles';
 
 interface ListingStatusModalProps {
   isOpen: boolean;
+  type?: 'bounty' | 'project' | 'sponsorship' | 'hackathon';
   onClose: () => void;
 }
 
 export const ListingStatusModal = ({
   isOpen,
   onClose,
+  type,
 }: ListingStatusModalProps) => {
   const { data: session } = useSession();
   const isGod = session?.user?.role === 'GOD';
@@ -26,11 +28,6 @@ export const ListingStatusModal = ({
     {
       status: 'In Progress',
       description: 'The listing is published and accepting submissions.',
-    },
-    {
-      status: 'Work in Progress',
-      description:
-        'The sponsor selected the talent, and they have started working on the project',
     },
     {
       status: 'In Review',
@@ -52,6 +49,13 @@ export const ListingStatusModal = ({
     statusGuide.push({
       status: 'Deleted',
       description: 'The listing has been hidden from the platform.',
+    });
+  }
+  if (!type || type !== 'bounty') {
+    statusGuide.splice(2, 0, {
+      status: 'Work in Progress',
+      description:
+        'The sponsor selected the talent, and they have started working on the project',
     });
   }
 
