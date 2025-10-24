@@ -8,6 +8,7 @@ interface MilestoneCompletionLineProps {
 
 const colorMap = {
   Paid: 'bg-emerald-700',
+  Cancelled: 'bg-red-600',
 };
 
 export default function MilestoneCompletionLine({

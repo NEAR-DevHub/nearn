@@ -46,5 +46,13 @@ export const editMilestonesSchema = z.object({
     .superRefine(allDeadlineShouldBeConsecutive),
 });
 
+export const rejectSchema = z.object({
+  submissionId: z.string().uuid(),
+  reason: z
+    .string()
+    .min(1, 'Reason is required')
+    .max(500, 'Reason must be less than 500 characters'),
+});
+
 export type MilestoneFormData = z.infer<typeof milestoneSchema>;
 export type CreateMilestonesData = z.infer<typeof createMilestonesSchema>;

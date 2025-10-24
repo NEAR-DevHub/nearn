@@ -1,3 +1,4 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
   ChevronDownIcon,
   MoreVertical,
@@ -6,7 +7,8 @@ import {
   X,
 } from 'lucide-react';
 import posthog from 'posthog-js';
-import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { type z } from 'zod';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -28,10 +30,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Form } from '@/components/ui/form';
+import { FormFieldWrapper } from '@/components/ui/form-field-wrapper';
 import { Textarea } from '@/components/ui/textarea';
 import { useDisclosure } from '@/hooks/use-disclosure';
 import { cn } from '@/utils/cn';
 
+import { rejectSchema } from '@/features/listing-payment-setup/schemas/milestone.schema';
 import { type Listing } from '@/features/listings/types';
 import { type SubmissionWithListingUser } from '@/features/sponsor-dashboard/queries/dashboard-submissions';
 
@@ -138,9 +143,17 @@ interface DropdownProps {
 }
 
 function SubmissionDropdown({ submission, onEditClick }: DropdownProps) {
+  const form = useForm<z.infer<typeof rejectSchema>>({
+    resolver: zodResolver(rejectSchema),
+    mode: 'onChange',
+    defaultValues: {
+      submissionId: submission.id,
+      reason: '',
+    },
+  });
+
   const cancelCollaboration = useCancelCollaboration();
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [reason, setReason] = useState('');
   const allMilestonesFinalized = submission.Milestones.every(
     (milestone) =>
       milestone.status === 'Paid' ||
@@ -148,19 +161,22 @@ function SubmissionDropdown({ submission, onEditClick }: DropdownProps) {
       milestone.status === 'Approved',
   );
 
-  const handleCancelCollaboration = () => {
-    cancelCollaboration.mutate(
-      {
-        submissionId: submission.id,
-        reason,
+  const handleCancelCollaboration = (data: z.infer<typeof rejectSchema>) => {
+    cancelCollaboration.mutate(data, {
+      onSuccess: () => {
+        onClose();
       },
-      {
-        onSuccess: () => {
-          onClose();
-        },
-      },
-    );
+    });
   };
+
+  const clickCancelCollaboration = () => {
+    posthog.capture('cancel_collaboration_sponsor');
+    onOpen();
+  };
+
+  const isAnyApproved = submission.Milestones.some(
+    (milestone) => milestone.status === 'Approved',
+  );
 
   return (
     <>
@@ -180,7 +196,7 @@ function SubmissionDropdown({ submission, onEditClick }: DropdownProps) {
           </DropdownMenuItem>
           <DropdownMenuItem
             className="cursor-pointer text-sm font-medium text-red-600 hover:text-red-700"
-            onClick={onOpen}
+            onClick={clickCancelCollaboration}
             disabled={cancelCollaboration.isPending}
           >
             <X className="mr-2 h-4 w-4" />
@@ -190,53 +206,84 @@ function SubmissionDropdown({ submission, onEditClick }: DropdownProps) {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="gap-4 p-6">
-          <DialogHeader>
-            <DialogTitle>Cancel Collaboration</DialogTitle>
-            <DialogDescription>
-              This will end your work with the selected talent.
+      {isAnyApproved ? (
+        <Dialog open={isOpen} onOpenChange={onOpen}>
+          <DialogContent>
+            <DialogTitle>Warning: Approved Milestones Not Paid</DialogTitle>
+            <DialogDescription className="text-sm">
+              You cannot cancel this submission because not all approved
+              milestones have been paid.
             </DialogDescription>
-          </DialogHeader>
-          <NextSteps nextSteps={cancelCollaborationResults} />
-          <div className="flex flex-col gap-2">
-            <p className="text-sm font-medium text-slate-600">
-              Reason for cancellation
-            </p>
-            <Textarea
-              placeholder="Explain the reason for cancellation so the talent can understand."
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              className="min-h-[150px]"
-            />
-          </div>
-          <DialogFooter className="flex gap-4">
-            <Button
-              onClick={onClose}
-              variant="outline"
-              className="text-slate-600"
-            >
-              Cancel
-            </Button>
-            <Button
-              className="ph-no-capture"
-              onClick={() => {
-                posthog.capture('cancel_collaboration');
-                handleCancelCollaboration();
-              }}
-            >
-              {cancelCollaboration.isPending ? (
-                <>
-                  <span className="loading loading-spinner" />
-                  Cancelling...
-                </>
-              ) : (
-                'Confirm Cancellation'
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <DialogDescription>
+              To cancel this collaboration, you must first provide payment for
+              all approved milestones.
+            </DialogDescription>
+            <DialogFooter>
+              <Button variant="default" onClick={onClose}>
+                Back and Complete Payments
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      ) : (
+        <Dialog open={isOpen} onOpenChange={onClose}>
+          <Form {...form}>
+            <DialogContent>
+              <form
+                onSubmit={form.handleSubmit(handleCancelCollaboration)}
+                className="flex flex-col gap-4"
+              >
+                <DialogHeader>
+                  <DialogTitle>Cancel Collaboration</DialogTitle>
+                  <DialogDescription>
+                    This will end your work with the selected talent.
+                  </DialogDescription>
+                </DialogHeader>
+                <NextSteps nextSteps={cancelCollaborationResults} />
+                <div className="flex flex-col gap-2">
+                  <FormFieldWrapper
+                    control={form.control}
+                    name="reason"
+                    isRequired
+                    label="Reason for cancellation"
+                  >
+                    <Textarea
+                      placeholder="Explain the reason for cancellation so the talent can understand."
+                      className="min-h-[150px]"
+                    />
+                  </FormFieldWrapper>
+                </div>
+                <DialogFooter className="flex gap-4">
+                  <Button
+                    onClick={onClose}
+                    variant="outline"
+                    className="text-slate-600"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={
+                      cancelCollaboration.isPending ||
+                      form.formState.isSubmitting ||
+                      !form.formState.isValid
+                    }
+                  >
+                    {cancelCollaboration.isPending ? (
+                      <>
+                        <span className="loading loading-spinner" />
+                        Cancelling...
+                      </>
+                    ) : (
+                      'Confirm Cancellation'
+                    )}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Form>
+        </Dialog>
+      )}
     </>
   );
 }
