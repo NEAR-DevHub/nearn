@@ -207,8 +207,8 @@ function SubmissionDropdown({ submission, onEditClick }: DropdownProps) {
         </DropdownMenuContent>
       </DropdownMenu>
       {isAnyApproved ? (
-        <Dialog open={isOpen} onOpenChange={onOpen}>
-          <DialogContent>
+        <Dialog open={isOpen} onOpenChange={onClose}>
+          <DialogContent hideCloseIcon>
             <DialogTitle>Warning: Approved Milestones Not Paid</DialogTitle>
             <DialogDescription className="text-sm">
               You cannot cancel this submission because not all approved
