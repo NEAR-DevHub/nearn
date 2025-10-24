@@ -278,8 +278,6 @@ export function ListingHeader({
     );
   };
 
-  const isPreviewMode = router.asPath.includes('nsb=1');
-
   return (
     <div className="flex flex-col gap-1 bg-white">
       <div className="mx-auto flex w-full max-w-7xl justify-between gap-5 py-4 md:py-10">
@@ -301,7 +299,7 @@ export function ListingHeader({
             </div>
           </div>
         </div>
-        {listing.id && !isPreviewMode && (
+        {listing.id && (
           <div className="flex items-center gap-2">
             <SubscribeListing isTemplate={isTemplate} id={listing.id} />
             <AuthWrapper sponsorId={listing.sponsorId}>
