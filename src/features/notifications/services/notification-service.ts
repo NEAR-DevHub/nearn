@@ -489,7 +489,7 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
       event.submission?.userId!,
       getEntities(event),
       {
-        useSingleMilestone: eventData.useSingleMilestone,
+        useSingleMilestone: eventData?.useSingleMilestone,
       },
     );
   },

@@ -283,7 +283,7 @@ export function getNotificationAction(
       return {
         actor: 'sponsor',
         message: `set payment type: ${
-          eventDataMilestone.useSingleMilestone
+          eventDataMilestone?.useSingleMilestone
             ? 'Full payment'
             : 'Milestone-based'
         }`,

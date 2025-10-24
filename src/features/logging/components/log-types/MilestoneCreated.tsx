@@ -11,7 +11,7 @@ export default function MilestoneCreated(props: LogProperties) {
 
   return (
     <p className="text-slate-500">
-      {data.useSingleMilestone ? (
+      {data?.useSingleMilestone ? (
         'Set payment type: Full payment'
       ) : (
         <>

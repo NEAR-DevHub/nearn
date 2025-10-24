@@ -309,14 +309,14 @@ const emailHandlers: {
   [NotificationType.MILESTONE_CREATED]: (notification) => {
     const eventDataMilestone =
       notification.data as NotificationDataMap['MILESTONE_CREATED'];
-    const subject = eventDataMilestone.useSingleMilestone
+    const subject = eventDataMilestone?.useSingleMilestone
       ? `Full payment set for your winning submission for ${notification.listing?.title}`
       : `Milestone-based payment set for your winning submission for ${notification.listing?.title}`;
     return {
       component: (
         <MilestoneCreatedTemplate
           notification={notification}
-          isSingleMilestone={eventDataMilestone.useSingleMilestone}
+          isSingleMilestone={eventDataMilestone?.useSingleMilestone ?? false}
         />
       ),
       subject,
