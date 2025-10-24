@@ -15,21 +15,31 @@ import { type Listing } from '@/features/listings/types';
 interface BountyDetailsProps {
   bounty: Listing | null;
   submissions: SubmissionWithUser[];
+  isPreview?: boolean;
 }
 
-function BountyDetails({ bounty: bounty, submissions }: BountyDetailsProps) {
+function BountyDetails({
+  bounty: bounty,
+  submissions,
+  isPreview,
+}: BountyDetailsProps) {
   return (
-    <ListingPageLayout bounty={bounty} submissions={submissions}>
-      <ListingPop listing={bounty} />
-      {bounty?.isWinnersAnnounced && (
-        <div className="mt-6 hidden w-full md:block">
-          <ListingWinners bounty={bounty} />
+    <>
+      <ListingPageLayout bounty={bounty} submissions={submissions}>
+        <ListingPop listing={bounty} />
+        {bounty?.isWinnersAnnounced && (
+          <div className="mt-6 hidden w-full md:block">
+            <ListingWinners bounty={bounty} />
+          </div>
+        )}
+        <div className="max-w-4xl">
+          <DescriptionUI description={bounty?.description} />
         </div>
+      </ListingPageLayout>
+      {isPreview && (
+        <div className="fixed left-0 top-0 z-[99999] h-full w-full bg-transparent" />
       )}
-      <div className="max-w-4xl">
-        <DescriptionUI description={bounty?.description} />
-      </div>
-    </ListingPageLayout>
+    </>
   );
 }
 
@@ -75,6 +85,10 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     props: {
       bounty: bountyData,
       submissions,
+      isPreview:
+        (Array.isArray(context.query.preview)
+          ? context.query.preview[0]
+          : context.query.preview) === '1',
     },
   };
 };

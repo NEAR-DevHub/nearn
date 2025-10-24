@@ -8,7 +8,7 @@ import { getBountyUrl } from '@/utils/bounty-urls';
 import { getURL } from '@/utils/validUrl';
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  const { slug } = context.query;
+  const { slug, preview } = context.query;
   const session = await getServerSession(context.req, context.res, authOptions);
   let bountyData;
   try {
@@ -33,9 +33,14 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     };
   }
 
+  const baseDestination = getBountyUrl(bountyData);
+  const hasPreview = Array.isArray(preview) ? preview[0] : preview;
+  const destination = hasPreview
+    ? `${baseDestination}?preview=1`
+    : baseDestination;
   return {
     redirect: {
-      destination: getBountyUrl(bountyData),
+      destination,
       permanent: true,
     },
   };
