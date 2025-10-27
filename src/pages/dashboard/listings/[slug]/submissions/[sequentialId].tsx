@@ -548,7 +548,7 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
               ) && (
                 <TabsContent
                   value="milestones"
-                  className="h-[calc(100vh-400px)] min-h-[500px] px-0"
+                  className="h-full min-h-[500px] w-full overflow-y-auto px-0"
                 >
                   <ListingMilestoneTable
                     listing={bounty}

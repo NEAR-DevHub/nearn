@@ -603,103 +603,105 @@ export const SubmissionPanel = ({
                     </Tooltip>
                   </TabsList>
 
-                  <TabsContent value="notes" className="p-0">
-                    <div className="max-h-[30rem] overflow-y-auto px-4 py-4 scrollbar-thin scrollbar-track-slate-100 scrollbar-thumb-slate-300">
-                      <div className="flex items-center gap-2 text-slate-500">
-                        <span className="font-semibold">Internal Notes</span>
-                        <Tooltip content="Only visible to your sponsor team. Use this space to leave internal feedback, evaluation notes, or reminders.">
-                          <Info className="size-4 text-slate-300 hover:text-slate-400" />
-                        </Tooltip>
-                      </div>
-                      <div className="mb-6 mt-4" />
-                      <Comments
-                        key={selectedSubmission?.id ?? ''}
-                        hideCount
-                        isAnnounced={false}
-                        listingSlug={bounty?.slug ?? ''}
-                        listingType={bounty?.type ?? ''}
-                        poc={bounty?.poc as User}
-                        sponsorId={bounty?.sponsorId}
-                        isVerified={bounty?.sponsor?.isVerified}
-                        submissionAuthor={selectedSubmission?.user as User}
-                        refId={selectedSubmission?.id ?? ''}
-                        refType={'SUBMISSION'}
-                        type="INTERNAL_SUBMISSION_NOTES"
-                        count={notesData?.count ?? 0}
-                        setCount={() => {
-                          refetchNotes();
-                        }}
-                        take={2}
-                      />
-                    </div>
-                  </TabsContent>
-                  <TabsContent value="comments" className="p-0">
-                    <div className="max-h-[30rem] overflow-y-auto px-4 py-4 scrollbar-thin scrollbar-track-slate-100 scrollbar-thumb-slate-300">
-                      <div className="flex items-center gap-2 text-slate-500">
-                        <span className="font-semibold">Public Comments</span>
-                        <Tooltip content="Comments visible to the contributor and other users. Great for leaving public feedback, asking questions, or acknowledging work.">
-                          <Info className="size-4 text-slate-300 hover:text-slate-400" />
-                        </Tooltip>
-                      </div>
-
-                      <div className="mt-4 flex items-center gap-2 rounded-md bg-amber-50 p-2 text-amber-600">
-                        <Info className="size-4 shrink-0" />
-                        <p className="text-sm">
-                          Visible to all contributors.
-                          <br />
-                          Keep it submission-related.
-                        </p>
-                      </div>
-
-                      <div className="mb-6 mt-4" />
-                      <Comments
-                        key={selectedSubmission?.id ?? ''}
-                        hideCount
-                        isAnnounced={false}
-                        listingSlug={bounty?.slug ?? ''}
-                        listingType={bounty?.type ?? ''}
-                        poc={bounty?.poc as User}
-                        sponsorId={bounty?.sponsorId}
-                        isVerified={bounty?.sponsor?.isVerified}
-                        submissionAuthor={selectedSubmission?.user as User}
-                        refId={selectedSubmission?.id ?? ''}
-                        refType={'SUBMISSION'}
-                        count={commentData?.count ?? 0}
-                        setCount={() => {
-                          refetchCommentCount();
-                        }}
-                        take={2}
-                      />
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent
-                    value="activity"
-                    className="min-h-0 w-full flex-1 overflow-hidden p-0"
-                  >
-                    <div className="flex h-full flex-col gap-4 overflow-y-auto px-4 py-4 scrollbar-thin scrollbar-track-slate-100 scrollbar-thumb-slate-300">
-                      <div className="flex items-center gap-2 font-semibold text-slate-500">
-                        Activity
-                        <Tooltip content="A contributor can only see their own changes to a submission. Changes made by other contributor are not visible.">
-                          <Info className="size-4 text-slate-400" />
-                        </Tooltip>
-                      </div>
-                      <LogsTimeline
-                        logs={logs?.pages.flatMap((page) => page.logs) ?? []}
-                      />
-                      {hasNextPage && (
-                        <div className="flex justify-center">
-                          <Button
-                            variant="outline"
-                            onClick={() => fetchNextPage()}
-                            disabled={isFetchingNextPage}
-                          >
-                            {isFetchingNextPage ? 'Loading...' : 'Load more'}
-                          </Button>
+                  <div className="h-[calc(100vh-400px)] overflow-y-auto scrollbar-thin scrollbar-track-slate-100 scrollbar-thumb-slate-300">
+                    <TabsContent value="notes" className="p-0">
+                      <div className="overflow-y-auto px-4 py-4 scrollbar-thin scrollbar-track-slate-100 scrollbar-thumb-slate-300">
+                        <div className="flex items-center gap-2 text-slate-500">
+                          <span className="font-semibold">Internal Notes</span>
+                          <Tooltip content="Only visible to your sponsor team. Use this space to leave internal feedback, evaluation notes, or reminders.">
+                            <Info className="size-4 text-slate-300 hover:text-slate-400" />
+                          </Tooltip>
                         </div>
-                      )}
-                    </div>
-                  </TabsContent>
+                        <div className="mb-6 mt-4" />
+                        <Comments
+                          key={selectedSubmission?.id ?? ''}
+                          hideCount
+                          isAnnounced={false}
+                          listingSlug={bounty?.slug ?? ''}
+                          listingType={bounty?.type ?? ''}
+                          poc={bounty?.poc as User}
+                          sponsorId={bounty?.sponsorId}
+                          isVerified={bounty?.sponsor?.isVerified}
+                          submissionAuthor={selectedSubmission?.user as User}
+                          refId={selectedSubmission?.id ?? ''}
+                          refType={'SUBMISSION'}
+                          type="INTERNAL_SUBMISSION_NOTES"
+                          count={notesData?.count ?? 0}
+                          setCount={() => {
+                            refetchNotes();
+                          }}
+                          take={2}
+                        />
+                      </div>
+                    </TabsContent>
+                    <TabsContent value="comments" className="p-0">
+                      <div className="px-4 py-4 scrollbar-thin scrollbar-track-slate-100 scrollbar-thumb-slate-300">
+                        <div className="flex items-center gap-2 text-slate-500">
+                          <span className="font-semibold">Public Comments</span>
+                          <Tooltip content="Comments visible to the contributor and other users. Great for leaving public feedback, asking questions, or acknowledging work.">
+                            <Info className="size-4 text-slate-300 hover:text-slate-400" />
+                          </Tooltip>
+                        </div>
+
+                        <div className="mt-4 flex items-center gap-2 rounded-md bg-amber-50 p-2 text-amber-600">
+                          <Info className="size-4 shrink-0" />
+                          <p className="text-sm">
+                            Visible to all contributors.
+                            <br />
+                            Keep it submission-related.
+                          </p>
+                        </div>
+
+                        <div className="mb-6 mt-4" />
+                        <Comments
+                          key={selectedSubmission?.id ?? ''}
+                          hideCount
+                          isAnnounced={false}
+                          listingSlug={bounty?.slug ?? ''}
+                          listingType={bounty?.type ?? ''}
+                          poc={bounty?.poc as User}
+                          sponsorId={bounty?.sponsorId}
+                          isVerified={bounty?.sponsor?.isVerified}
+                          submissionAuthor={selectedSubmission?.user as User}
+                          refId={selectedSubmission?.id ?? ''}
+                          refType={'SUBMISSION'}
+                          count={commentData?.count ?? 0}
+                          setCount={() => {
+                            refetchCommentCount();
+                          }}
+                          take={2}
+                        />
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent
+                      value="activity"
+                      className="min-h-0 w-full flex-1 overflow-hidden p-0"
+                    >
+                      <div className="flex h-full flex-col gap-4 overflow-y-auto px-4 py-4 scrollbar-thin scrollbar-track-slate-100 scrollbar-thumb-slate-300">
+                        <div className="flex items-center gap-2 font-semibold text-slate-500">
+                          Activity
+                          <Tooltip content="A contributor can only see their own changes to a submission. Changes made by other contributor are not visible.">
+                            <Info className="size-4 text-slate-400" />
+                          </Tooltip>
+                        </div>
+                        <LogsTimeline
+                          logs={logs?.pages.flatMap((page) => page.logs) ?? []}
+                        />
+                        {hasNextPage && (
+                          <div className="flex justify-center">
+                            <Button
+                              variant="outline"
+                              onClick={() => fetchNextPage()}
+                              disabled={isFetchingNextPage}
+                            >
+                              {isFetchingNextPage ? 'Loading...' : 'Load more'}
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </TabsContent>
+                  </div>
                 </Tabs>
               </div>
             </div>

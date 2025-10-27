@@ -38,7 +38,7 @@ export const SubmissionNotesMinified = ({
 
   return (
     <div className={cn('max-w-xs', className)}>
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={open} onOpenChange={setOpen} modal>
         <PopoverTrigger asChild>
           {lastComment && (
             <div className="group cursor-pointer">
@@ -65,7 +65,7 @@ export const SubmissionNotesMinified = ({
           )}
         </PopoverTrigger>
         <PopoverContent
-          className="w-96"
+          className="z-[20] w-96"
           side="left"
           align="start"
           sideOffset={5}
@@ -73,7 +73,10 @@ export const SubmissionNotesMinified = ({
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-slate-500">
               <span className="font-semibold">Internal Notes</span>
-              <Tooltip content="Only visible to your sponsor team. Use this space to leave internal feedback, evaluation notes, or reminders.">
+              <Tooltip
+                asChild
+                content="Only visible to your sponsor team. Use this space to leave internal feedback, evaluation notes, or reminders."
+              >
                 <Info className="size-4 text-slate-300 hover:text-slate-400" />
               </Tooltip>
             </div>
