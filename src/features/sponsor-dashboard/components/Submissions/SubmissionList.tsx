@@ -22,7 +22,6 @@ import { sponsorshipSubmissionStatus } from '@/features/listings/components/Subm
 import { type Listing } from '@/features/listings/types';
 import { EarnAvatar } from '@/features/talent/components/EarnAvatar';
 
-import { labelMenuOptions } from '../../constants';
 import { type SubmissionWithListingUser } from '../../queries/dashboard-submissions';
 import { colorMap } from '../../utils/statusColorMap';
 import { DeleteRestoreSubmissionModal } from './Modals/DeleteRestoreSubmissionModal';
@@ -97,20 +96,28 @@ export const SubmissionList = ({
     if (submission.isArchived) {
       return 'Deleted';
     }
-    if (submission?.isWinner && submission?.winnerPosition) {
-      if (type === 'project' || type === 'sponsorship') {
-        return sponsorshipSubmissionStatus(submission);
-      } else {
-        return nthLabelGenerator(submission.winnerPosition, false);
-      }
-    } else if (submission.status === 'Rejected') {
-      return 'Rejected';
-    } else if (submission?.label) {
-      return submission.label;
+    if (
+      submission?.isWinner &&
+      submission?.winnerPosition &&
+      type === 'bounty'
+    ) {
+      return nthLabelGenerator(submission.winnerPosition, false);
     } else {
-      return '';
+      return sponsorshipSubmissionStatus(submission);
     }
   };
+
+  const filters = [
+    'Approved',
+    'InProgress',
+    'Paid',
+    'New',
+    'Reviewed',
+    'Shortlisted',
+    'Rejected',
+    'Cancelled',
+    'Spam',
+  ] as const;
 
   return (
     <div className="flex h-full w-full flex-col rounded-l-xl border border-slate-200 bg-white">
@@ -142,7 +149,9 @@ export const SubmissionList = ({
                     color,
                   )}
                 >
-                  {filterLabel || 'Select Option'}
+                  {filterLabel
+                    ? filterLabel.replace(/([A-Z])/g, ' $1').trim()
+                    : 'Select Option'}
                 </span>
                 <ChevronDown className="ml-2 h-4 w-4" />
               </Button>
@@ -160,69 +169,20 @@ export const SubmissionList = ({
                 </span>
               </DropdownMenuItem>
 
-              <DropdownMenuItem
-                className="focus:bg-slate-100"
-                onClick={() => setFilterLabel('Approved')}
-              >
-                <span
-                  className={cn(
-                    'inline-flex whitespace-nowrap rounded-full px-3 text-center text-[10px] capitalize',
-                    colorMap['Approved'].bg,
-                    colorMap['Approved'].color,
-                  )}
-                >
-                  Approved
-                </span>
-              </DropdownMenuItem>
-
-              <DropdownMenuItem
-                className="focus:bg-slate-100"
-                onClick={() => setFilterLabel('Paid')}
-              >
-                <span
-                  className={cn(
-                    'inline-flex whitespace-nowrap rounded-full px-3 text-center text-[10px] capitalize',
-                    colorMap['Paid'].bg,
-                    colorMap['Paid'].color,
-                  )}
-                >
-                  Paid
-                </span>
-              </DropdownMenuItem>
-
-              {listing?.type === 'project' && (
+              {filters.map((filter) => (
                 <DropdownMenuItem
+                  key={filter}
                   className="focus:bg-slate-100"
-                  onClick={() => setFilterLabel('Rejected')}
+                  onClick={() => setFilterLabel(filter as SubmissionLabels)}
                 >
                   <span
                     className={cn(
-                      'inline-flex whitespace-nowrap rounded-full px-3 text-center text-[10px] capitalize',
-                      colorMap['Rejected'].bg,
-                      colorMap['Rejected'].color,
+                      'inline-flex whitespace-nowrap rounded-full bg-slate-100 px-3 text-center text-[10px] capitalize',
+                      colorMap[filter as keyof typeof colorMap].bg,
+                      colorMap[filter as keyof typeof colorMap].color,
                     )}
                   >
-                    Rejected
-                  </span>
-                </DropdownMenuItem>
-              )}
-
-              {labelMenuOptions.map((option) => (
-                <DropdownMenuItem
-                  key={option.value}
-                  className="focus:bg-slate-100"
-                  onClick={() =>
-                    setFilterLabel(option.value as SubmissionLabels)
-                  }
-                >
-                  <span
-                    className={cn(
-                      'inline-flex whitespace-nowrap rounded-full px-3 text-center text-[10px] capitalize',
-                      colorMap[option.value as keyof typeof colorMap].bg,
-                      colorMap[option.value as keyof typeof colorMap].color,
-                    )}
-                  >
-                    {option.label}
+                    {filter.replace(/([A-Z])/g, ' $1').trim()}
                   </span>
                 </DropdownMenuItem>
               ))}

@@ -21,6 +21,7 @@ import { getSubmissionPaymentStatus } from '@/utils/milestone-helpers';
 import { cleanRewards } from '@/utils/rank';
 
 import { BONUS_REWARD_POSITION } from '@/features/listing-builder/constants';
+import { sponsorshipSubmissionStatus } from '@/features/listings/components/SubmissionsPage/SubmissionTable';
 import {
   selectedSubmissionAtom,
   selectedSubmissionIdsAtom,
@@ -182,25 +183,12 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
         );
 
       let matchesLabel = false;
-      const paymentStatus = getSubmissionPaymentStatus({
-        ...submission,
-        listing: bounty,
-      });
 
       if (filterLabel === 'All') {
         matchesLabel = true;
-      } else if (filterLabel === 'Paid') {
-        matchesLabel = paymentStatus.isPaid;
-      } else if (filterLabel === 'Approved') {
-        matchesLabel =
-          submission.status === 'Approved' && !paymentStatus.isPaid;
-      } else if (filterLabel === 'Rejected') {
-        matchesLabel = submission.status === 'Rejected';
       } else {
-        matchesLabel =
-          submission.label === filterLabel && submission.status === 'Pending';
+        matchesLabel = filterLabel === sponsorshipSubmissionStatus(submission);
       }
-
       return matchesSearch && matchesLabel;
     });
   }, [submissions, searchText, filterLabel]);

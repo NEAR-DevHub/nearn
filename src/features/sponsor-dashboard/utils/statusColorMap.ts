@@ -1,6 +1,6 @@
 export const colorMap = {
   Spam: { bg: 'bg-red-100', color: 'text-red-600' },
-  Reviewed: { bg: 'bg-blue-100', color: 'text-blue-600' },
+  Reviewed: { bg: 'bg-sky-100', color: 'text-sky-700' },
   InProgress: { bg: 'bg-blue-100', color: 'text-blue-600' },
   Overdue: { bg: 'bg-orange-100', color: 'text-orange-700' },
   NotStarted: { bg: 'bg-slate-100', color: 'text-slate-500' },
