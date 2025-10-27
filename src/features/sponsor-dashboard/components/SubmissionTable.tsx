@@ -534,7 +534,7 @@ export const SubmissionTable = ({
                       )}
                       {visibleColumns.ask && (
                         <TableCell
-                          className="min-w-[225px] cursor-pointer font-medium text-slate-700"
+                          className="min-w-[250px] cursor-pointer pr-10 font-medium text-slate-700"
                           onClick={(e) => handleClick(e, listingSubmissionLink)}
                           onAuxClick={(e) =>
                             handleClick(e, listingSubmissionLink)
