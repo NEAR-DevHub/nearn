@@ -37,10 +37,12 @@ import { useDisclosure } from '@/hooks/use-disclosure';
 import { cn } from '@/utils/cn';
 
 import { rejectSchema } from '@/features/listing-payment-setup/schemas/milestone.schema';
+import { sponsorshipSubmissionStatus } from '@/features/listings/components/SubmissionsPage/SubmissionTable';
 import { type Listing } from '@/features/listings/types';
 import { type SubmissionWithListingUser } from '@/features/sponsor-dashboard/queries/dashboard-submissions';
 
 import { useCancelCollaboration } from '../../mutations/useCancelCollaboration';
+import { colorMap } from '../../utils/statusColorMap';
 import { NextSteps } from '../PublishProjectHiring';
 import {
   SubmissionSocialRow,
@@ -69,6 +71,9 @@ export default function MilestonePaymentCard({
     onClose: onEditMilestoneClose,
   } = useDisclosure();
 
+  const status = sponsorshipSubmissionStatus(submission);
+  const statusStyle = colorMap[status];
+
   return (
     <>
       <Collapsible
@@ -80,7 +85,18 @@ export default function MilestonePaymentCard({
       >
         <div className="flex w-full flex-col gap-4 p-4">
           <div className="flex items-center justify-between">
-            <SubmissionTalent submission={submission} bounty={bounty} />
+            <div className="flex gap-2">
+              <SubmissionTalent submission={submission} bounty={bounty} />
+              <p
+                className={cn(
+                  'inline-flex h-6 items-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium',
+                  statusStyle?.color,
+                  statusStyle?.bg,
+                )}
+              >
+                {status.replace(/([A-Z])/g, ' $1').trim()}
+              </p>
+            </div>
             <div className="flex items-center gap-2">
               <MilestoneCompletionLine submission={submission} />
               <SubmissionDropdown
