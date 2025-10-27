@@ -66,14 +66,13 @@ export async function POST(request: Request) {
         );
       }
 
-      if (!submission?.Milestones || submission.Milestones.length === 0) {
+      if (!submission.Milestones || submission.Milestones.length === 0) {
         // Milestones not configured yet. Pre-create full payment
-        const totalReward =
-          submission?.winnerPosition !== null
-            ? submissionId.listing[
-                submission?.winnerPosition as keyof Rewards
-              ] || 0
-            : 0;
+
+        const rewards: Rewards = (submission.listing.rewards || {}) as Rewards;
+        const reward = submission.winnerPosition
+          ? rewards?.[submission.winnerPosition]
+          : 0;
         const token =
           submission?.listing.token === 'Any'
             ? submission.token || submission.listing.token
@@ -84,7 +83,7 @@ export async function POST(request: Request) {
             milestoneIndex: 1,
             title: 'Full Payment',
             description: 'Single milestone for full payment',
-            reward: totalReward,
+            reward: reward ?? 0,
             token: token!,
             status: 'Approved',
           },
