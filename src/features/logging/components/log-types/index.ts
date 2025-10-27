@@ -11,7 +11,7 @@ import MilestoneApprove from './MilestoneApproveReject';
 import MilestoneCreated from './MilestoneCreated';
 import MilestonesEdited from './MilestonesEdited';
 import MilestoneStatusChanged from './MilestoneStatusChanged';
-import Paid from './Paid';
+import Paid, { MarkedAsPaid } from './Paid';
 import PaymentDateEdited from './PaymentDateEdited';
 import PlatformAdminSubmissionStatusEdited from './PlatformAdminSubmissionStatusEdited';
 import ArchivedOrUnarchived from './PlatformArchivedOrUnarchived';
@@ -68,8 +68,7 @@ const LOG_IMPLEMENTATION_MAPPING: Record<
   [EventType.SUBMISSION_TREASURY_CREATED]: TreasuryProposal,
   [EventType.SUBMISSION_PAYMENT_DATE_EDITED]: PaymentDateEdited,
   [EventType.SUBMISSION_PAID]: Paid,
-  [EventType.SUBMISSION_MANUAL_PAYMENT_ADDED]: () =>
-    SimpleLogMessage({ message: 'Marked as paid manually' }),
+  [EventType.SUBMISSION_MANUAL_PAYMENT_ADDED]: MarkedAsPaid,
   [EventType.SUBMISSION_MANUAL_PAYMENT_UPDATED]: SubmissionManualPaymentUpdated,
   [EventType.COMMENT_ADDED]: Comment,
   [EventType.COMMENT_DELETED]: Comment,

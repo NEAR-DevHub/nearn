@@ -1,6 +1,7 @@
 import { ExternalLink } from 'lucide-react';
 
 import { getURLSanitized } from '@/utils/getURLSanitized';
+import { nthLabelGenerator } from '@/utils/rank';
 
 import { type EventDataMap, EventType } from '../../types/event-data';
 import { type LogProperties } from '.';
@@ -43,8 +44,11 @@ export default function TreasuryProposal(props: LogProperties) {
             Created payment request via NEAR Treasury for{' '}
             {isMilestonePayment && milestone ? (
               <>
-                Milestone {milestone.milestoneIndex} -{' '}
-                <span className="text-slate-900">{milestone.title}</span>
+                <span className="text-slate-900">
+                  {milestone?.milestoneIndex &&
+                    nthLabelGenerator(milestone?.milestoneIndex, false)}
+                </span>{' '}
+                milestone
               </>
             ) : (
               <>
@@ -80,8 +84,11 @@ export default function TreasuryProposal(props: LogProperties) {
             Payment request for{' '}
             {isMilestonePayment && milestone ? (
               <>
-                Milestone {milestone.milestoneIndex} -{' '}
-                <span className="text-slate-900">{milestone.title}</span> of{' '}
+                <span className="text-slate-900">
+                  {milestone?.milestoneIndex &&
+                    nthLabelGenerator(milestone?.milestoneIndex, false)}
+                </span>{' '}
+                milestone of{' '}
               </>
             ) : null}
             {username && (
@@ -118,8 +125,11 @@ export default function TreasuryProposal(props: LogProperties) {
           Payment proposal for{' '}
           {isMilestonePayment && milestone ? (
             <>
-              Milestone {milestone.milestoneIndex} -{' '}
-              <span className="text-slate-900">{milestone.title}</span> of{' '}
+              <span className="text-slate-900">
+                {milestone?.milestoneIndex &&
+                  nthLabelGenerator(milestone?.milestoneIndex, false)}
+              </span>{' '}
+              milestone of{' '}
             </>
           ) : null}
           {username && (

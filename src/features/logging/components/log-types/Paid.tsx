@@ -7,6 +7,24 @@ import { nthLabelGenerator } from '@/utils/rank';
 import { type EventDataMap, type EventType } from '../../types/event-data';
 import { type LogProperties } from '.';
 
+export function MarkedAsPaid({ event }: LogProperties) {
+  const milestone = event.milestone;
+
+  const isMilestonePayment = Boolean(milestone);
+
+  return isMilestonePayment ? (
+    <p className="text-slate-500">
+      <span className="text-slate-900">
+        {milestone?.milestoneIndex &&
+          nthLabelGenerator(milestone?.milestoneIndex, false)}
+      </span>{' '}
+      milestone marked as paid
+    </p>
+  ) : (
+    'Marked as paid'
+  );
+}
+
 export default function Paid({ event, onSubmissionClick }: LogProperties) {
   const { link } = event.data as EventDataMap[EventType.SUBMISSION_PAID];
   const username = event.submission?.user.username;
