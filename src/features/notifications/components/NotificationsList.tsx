@@ -20,12 +20,14 @@ import { Notification as NotificationComponent } from './Notification';
 interface NotificationsListProps {
   sponsorIds?: string[];
   showTalent?: boolean;
+  className?: string;
   onSettingsOpen?: () => void;
 }
 
 export function NotificationsListWithFilters({
   sponsorIds,
   showTalent,
+  className,
   onSettingsOpen,
 }: NotificationsListProps) {
   const [activeTab, setActiveTab] = useState<'Unread' | 'Read' | null>(null);
@@ -172,7 +174,7 @@ export function NotificationsListWithFilters({
           </TabsList>
         </div>
         <TabsContent value={activeTab} className="mt-0 pt-0">
-          <ScrollArea className="h-[400px] pt-0">
+          <ScrollArea className={cn('h-[400px] pt-0', className)}>
             {notifications.length === 0 && (
               <div className="flex h-[400px] flex-col justify-center text-center">
                 <ExternalImage
