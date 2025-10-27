@@ -2,8 +2,10 @@ import { type MilestoneStatus } from '@prisma/client';
 import type { NextApiResponse } from 'next';
 import { z } from 'zod';
 
+import { type MilestoneWithUser } from '@/interface/submission';
 import logger from '@/lib/logger';
 import { prisma } from '@/prisma';
+import { getMilestoneStatus } from '@/utils/milestone-helpers';
 import { safeStringify } from '@/utils/safeStringify';
 
 import { type NextApiRequestWithPotentialSponsor } from '@/features/auth/types';
@@ -103,7 +105,9 @@ async function handler(
         type: actorType,
       },
       data: {
-        previousStatus: currentStatus,
+        previousStatus: getMilestoneStatus(
+          milestone as unknown as MilestoneWithUser,
+        ),
         newStatus: status,
       },
       entities: {
