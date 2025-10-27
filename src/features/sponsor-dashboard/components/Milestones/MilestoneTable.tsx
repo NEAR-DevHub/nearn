@@ -1,4 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
+import { ChevronDown } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 import {
@@ -6,6 +7,12 @@ import {
   useColumnVisibility,
 } from '@/components/shared/column-visibility-settings';
 import { SortableTH } from '@/components/shared/sortable-th';
+import { Button } from '@/components/ui/button';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import {
   Table,
   TableBody,
@@ -44,24 +51,20 @@ const thClassName =
 
 type ColumnKey =
   | 'index'
-  | 'dueDate'
   | 'title'
   | 'description'
   | 'amount'
   | 'status'
-  | 'approvedDate'
-  | 'paymentDate'
+  | 'dates'
   | 'activity';
 
 const columnLabels: Record<ColumnKey, string> = {
   index: '#',
-  dueDate: 'Due Date',
   title: 'Title',
   description: 'Description',
   amount: 'Amount',
   status: 'Status',
-  approvedDate: 'Approved Date',
-  paymentDate: 'Payment Date',
+  dates: 'Dates',
   activity: 'Activity History',
 };
 
@@ -96,13 +99,11 @@ export default function MilestoneTable({
 
   const defaultVisibleColumns: Record<ColumnKey, boolean> = {
     index: true,
-    dueDate: true,
     title: true,
     description: true,
     amount: true,
     status: true,
-    paymentDate: false,
-    approvedDate: false,
+    dates: true,
     activity: false,
   };
 
@@ -220,16 +221,6 @@ export default function MilestoneTable({
               {visibleColumns.description && (
                 <TableHead className={cn(thClassName)}>Description</TableHead>
               )}
-              {visibleColumns.dueDate && (
-                <SortableTH
-                  column="dueDate"
-                  currentSort={currentSort}
-                  setSort={handleSort}
-                  className={cn(thClassName)}
-                >
-                  Due Date
-                </SortableTH>
-              )}
               {visibleColumns.amount && (
                 <SortableTH
                   column="amount"
@@ -250,25 +241,84 @@ export default function MilestoneTable({
                   Status
                 </SortableTH>
               )}
-              {visibleColumns.approvedDate && (
-                <SortableTH
-                  column="approvedDate"
-                  currentSort={currentSort}
-                  setSort={handleSort}
-                  className={cn(thClassName)}
-                >
-                  Approved Date
-                </SortableTH>
-              )}
-              {visibleColumns.paymentDate && (
-                <SortableTH
-                  column="paymentDate"
-                  currentSort={currentSort}
-                  setSort={handleSort}
-                  className={cn(thClassName)}
-                >
-                  Payment Date
-                </SortableTH>
+              {visibleColumns.dates && (
+                <TableHead className={thClassName}>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="h-auto p-0 font-medium hover:bg-transparent"
+                      >
+                        Dates
+                        <ChevronDown className="ml-1 h-3 w-3" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-48 p-2" align="start">
+                      <div className="flex flex-col gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="justify-start text-sm font-medium"
+                          onClick={() => {
+                            const newDirection =
+                              currentSort.column === 'dueDate' &&
+                              currentSort.direction === 'asc'
+                                ? 'desc'
+                                : 'asc';
+                            handleSort('dueDate', newDirection);
+                          }}
+                        >
+                          Sort by Deadline
+                          {currentSort.column === 'dueDate' && (
+                            <span className="ml-auto">
+                              {currentSort.direction === 'asc' ? '↑' : '↓'}
+                            </span>
+                          )}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="justify-start text-sm font-medium"
+                          onClick={() => {
+                            const newDirection =
+                              currentSort.column === 'approvedDate' &&
+                              currentSort.direction === 'asc'
+                                ? 'desc'
+                                : 'asc';
+                            handleSort('approvedDate', newDirection);
+                          }}
+                        >
+                          Sort by Approved
+                          {currentSort.column === 'approvedDate' && (
+                            <span className="ml-auto">
+                              {currentSort.direction === 'asc' ? '↑' : '↓'}
+                            </span>
+                          )}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="justify-start text-sm font-medium"
+                          onClick={() => {
+                            const newDirection =
+                              currentSort.column === 'paymentDate' &&
+                              currentSort.direction === 'asc'
+                                ? 'desc'
+                                : 'asc';
+                            handleSort('paymentDate', newDirection);
+                          }}
+                        >
+                          Sort by Paid
+                          {currentSort.column === 'paymentDate' && (
+                            <span className="ml-auto">
+                              {currentSort.direction === 'asc' ? '↑' : '↓'}
+                            </span>
+                          )}
+                        </Button>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </TableHead>
               )}
               {visibleColumns.activity && (
                 <TableHead className={cn(thClassName)}>Activity</TableHead>
@@ -307,13 +357,6 @@ export default function MilestoneTable({
                   {visibleColumns.description && (
                     <TableCell className="whitespace-nowrap text-sm font-medium text-slate-500">
                       {milestone.description}
-                    </TableCell>
-                  )}
-                  {visibleColumns.dueDate && (
-                    <TableCell className="whitespace-nowrap text-sm font-medium text-slate-500">
-                      {milestone.deadline
-                        ? dayjs(milestone.deadline).format("DD MMM'YY")
-                        : '-'}
                     </TableCell>
                   )}
                   {visibleColumns.amount && (
@@ -358,44 +401,54 @@ export default function MilestoneTable({
                       </p>
                     </TableCell>
                   )}
-                  {visibleColumns.approvedDate && (
+                  {visibleColumns.dates && (
                     <TableCell>
-                      <Tooltip
-                        disabled={!milestone.approvedByUser}
-                        content={
-                          <DoneBy
-                            doneBy={
-                              milestone.approvedByUser as User | undefined
+                      <div className="flex flex-col items-start gap-0.5 text-xs font-medium">
+                        {milestone.deadline && (
+                          <p className="whitespace-nowrap text-slate-500">
+                            <span className="text-slate-400">Deadline:</span>{' '}
+                            {dayjs(milestone.deadline).format("DD MMM'YY")}
+                          </p>
+                        )}
+                        {milestone.approvedDate && (
+                          <Tooltip
+                            disabled={!milestone.approvedByUser}
+                            content={
+                              <DoneBy
+                                doneBy={
+                                  milestone.approvedByUser as User | undefined
+                                }
+                                doneByType="approved"
+                              />
                             }
-                            doneByType="approved"
-                          />
-                        }
-                      >
-                        <p className="whitespace-nowrap text-sm font-medium text-slate-500">
-                          {milestone.approvedDate
-                            ? dayjs(milestone.approvedDate).format("DD MMM'YY")
-                            : '-'}
-                        </p>
-                      </Tooltip>
-                    </TableCell>
-                  )}
-                  {visibleColumns.paymentDate && (
-                    <TableCell>
-                      <Tooltip
-                        disabled={!milestone.paidByUser}
-                        content={
-                          <DoneBy
-                            doneBy={milestone.paidByUser as User | undefined}
-                            doneByType="paid"
-                          />
-                        }
-                      >
-                        <p className="whitespace-nowrap text-sm font-medium text-slate-500">
-                          {milestone.paidDate
-                            ? dayjs(milestone.paidDate).format("DD MMM'YY")
-                            : '-'}
-                        </p>
-                      </Tooltip>
+                          >
+                            <p className="whitespace-nowrap text-slate-500">
+                              <span className="text-slate-400">Approved:</span>{' '}
+                              {dayjs(milestone.approvedDate).format(
+                                "DD MMM'YY",
+                              )}
+                            </p>
+                          </Tooltip>
+                        )}
+                        {milestone.paidDate && (
+                          <Tooltip
+                            disabled={!milestone.paidByUser}
+                            content={
+                              <DoneBy
+                                doneBy={
+                                  milestone.paidByUser as User | undefined
+                                }
+                                doneByType="paid"
+                              />
+                            }
+                          >
+                            <p className="whitespace-nowrap text-slate-500">
+                              <span className="text-slate-400">Paid:</span>{' '}
+                              {dayjs(milestone.paidDate).format("DD MMM'YY")}
+                            </p>
+                          </Tooltip>
+                        )}
+                      </div>
                     </TableCell>
                   )}
 
