@@ -13,7 +13,7 @@ import { EventType } from '@/features/logging/types/event-data';
 
 const updateStatusSchema = z.object({
   milestoneId: z.string().uuid(),
-  status: z.enum(['InReview', 'NotStarted']),
+  status: z.enum(['InProgress', 'NotStarted']),
 });
 
 async function handler(

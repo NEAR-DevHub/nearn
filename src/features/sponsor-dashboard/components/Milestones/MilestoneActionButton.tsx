@@ -23,7 +23,7 @@ export default function MilestoneActionButton({
 }: Props) {
   return (
     <>
-      {milestone.status === 'InReview' && (
+      {milestone.status === 'InProgress' && (
         <ApproveMilestoneButton
           milestoneId={milestone.id}
           className="w-[170px]"

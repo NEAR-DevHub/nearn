@@ -44,41 +44,9 @@ export function getSubmissionPaymentStatus(
       total: milestones.length,
       paid: milestones.filter((m) => m.status === 'Paid').length,
       approved: milestones.filter((m) => m.status === 'Approved').length,
-      pending: milestones.filter((m) => m.status === 'InReview').length,
+      pending: milestones.filter((m) => m.status === 'InProgress').length,
     },
   };
-}
-
-export function getNextMilestoneIndex(submission: SubmissionWithUser): number {
-  const milestones = submission.Milestones || [];
-  if (milestones.length === 0) return 0;
-
-  const maxIndex = Math.max(...milestones.map((m) => m.milestoneIndex || 0));
-  return maxIndex + 1;
-}
-
-export function createDefaultMilestone(
-  submissionId: string,
-  reward: number,
-  token: string,
-  index: number = 0,
-) {
-  return {
-    submissionId,
-    milestoneIndex: index,
-    title: index === 0 ? 'Payment for submission' : `Milestone ${index + 1}`,
-    description: 'Default milestone for submission payment',
-    deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
-    reward,
-    token,
-    status: 'Approved' as const,
-  };
-}
-
-export function getUnpaidMilestones(
-  submission: SubmissionWithUser,
-): MilestoneWithUser[] {
-  return (submission.Milestones || []).filter((m) => m.status !== 'Paid');
 }
 
 export function getNextPayableMilestone(
@@ -91,4 +59,15 @@ export function getNextPayableMilestone(
         .sort((a, b) => a.milestoneIndex - b.milestoneIndex)
         .find((m) => m.status === 'Approved')
     : milestones[0];
+}
+
+export function getMilestoneStatus(milestone: MilestoneWithUser) {
+  if (
+    ['NotStarted', 'InProgress'].includes(milestone.status) &&
+    milestone.deadline &&
+    new Date(milestone.deadline) < new Date()
+  ) {
+    return 'Overdue';
+  }
+  return milestone.status;
 }

@@ -16,6 +16,7 @@ import {
 import { tokenList } from '@/constants/tokenList';
 import { cn } from '@/utils/cn';
 import { dayjs } from '@/utils/dayjs';
+import { getMilestoneStatus } from '@/utils/milestone-helpers';
 
 import { type Listing } from '@/features/listings/types';
 import { DisplayPayment } from '@/features/sponsor-dashboard/components/Submissions/DisplayPayment';
@@ -106,8 +107,8 @@ export default function MilestoneTable({
           bVal = b.reward;
           break;
         case 'status':
-          aVal = a.status;
-          bVal = b.status;
+          aVal = getMilestoneStatus(a);
+          bVal = getMilestoneStatus(b);
           break;
         default:
           return 0;
@@ -202,8 +203,9 @@ export default function MilestoneTable({
             const tokenObject = tokenList.find(
               (t) => t.tokenSymbol === milestone.token,
             );
+            const milestoneStatus = getMilestoneStatus(milestone);
             const statusStyle =
-              colorMap[milestone.status as keyof typeof colorMap] ||
+              colorMap[milestoneStatus as keyof typeof colorMap] ||
               colorMap.NotStarted;
 
             return (
@@ -268,14 +270,14 @@ export default function MilestoneTable({
                         statusStyle?.bg,
                       )}
                     >
-                      {milestone.status.replace(/([A-Z])/g, ' $1').trim()}
+                      {milestoneStatus.replace(/([A-Z])/g, ' $1').trim()}
                     </p>
                   </TableCell>
                 )}
 
                 <TableCell className="pl-6">
                   <div className="flex items-center gap-2">
-                    {milestone.status === 'Paid' && (
+                    {milestoneStatus === 'Paid' && (
                       <DisplayPayment
                         milestone={milestone}
                         listing={listing}

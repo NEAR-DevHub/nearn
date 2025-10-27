@@ -133,7 +133,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
         deadline: milestone.deadline ? new Date(milestone.deadline) : null,
         reward: milestone.reward,
         token: token!,
-        status: index === 0 ? ('InReview' as const) : ('NotStarted' as const),
+        status: index === 0 ? ('InProgress' as const) : ('NotStarted' as const),
       }));
 
       await tx.milestone.createMany({

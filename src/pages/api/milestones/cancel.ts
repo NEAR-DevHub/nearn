@@ -63,7 +63,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
         where: {
           submissionId: submissionId,
           status: {
-            in: ['InReview', 'NotStarted'],
+            in: ['InProgress', 'NotStarted'],
           },
         },
         data: {

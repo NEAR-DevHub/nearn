@@ -107,7 +107,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
     if (nextMilestone) {
       await prisma.milestone.update({
         where: { id: nextMilestone.id },
-        data: { status: 'InReview' },
+        data: { status: 'InProgress' },
       });
 
       await eventLogger.log({
@@ -117,7 +117,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
         },
         data: {
           previousStatus: 'NotStarted',
-          newStatus: 'InReview',
+          newStatus: 'InProgress',
         },
         entities: {
           listingId: milestone.submission.listingId,

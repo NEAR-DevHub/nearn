@@ -28,6 +28,7 @@ import { type MilestoneWithUser } from '@/interface/submission';
 import type { User } from '@/interface/user';
 import { cn } from '@/utils/cn';
 import { dayjs } from '@/utils/dayjs';
+import { getMilestoneStatus } from '@/utils/milestone-helpers';
 
 import { type Listing } from '@/features/listings/types';
 import { ActivityHistoryMinified } from '@/features/logging/components/ActivityHistoryMinified';
@@ -146,8 +147,8 @@ export default function MilestoneTable({
           bVal = b.reward;
           break;
         case 'status':
-          aVal = a.status;
-          bVal = b.status;
+          aVal = getMilestoneStatus(a);
+          bVal = getMilestoneStatus(b);
           break;
         case 'paymentDate':
           aVal = a.paidDate ? new Date(a.paidDate).getTime() : 0;
@@ -338,8 +339,9 @@ export default function MilestoneTable({
               const tokenObject = tokenList.find(
                 (t) => t.tokenSymbol === milestone.token,
               );
+              const milestoneStatus = getMilestoneStatus(milestone);
               const statusStyle =
-                colorMap[milestone.status as keyof typeof colorMap] ||
+                colorMap[milestoneStatus as keyof typeof colorMap] ||
                 colorMap.NotStarted;
 
               return (
@@ -397,7 +399,7 @@ export default function MilestoneTable({
                           statusStyle?.bg,
                         )}
                       >
-                        {milestone.status.replace(/([A-Z])/g, ' $1').trim()}
+                        {milestoneStatus.replace(/([A-Z])/g, ' $1').trim()}
                       </p>
                     </TableCell>
                   )}

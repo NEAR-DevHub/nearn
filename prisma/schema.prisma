@@ -954,7 +954,7 @@ enum MultipleSubmissionRule {
 
 enum MilestoneStatus {
   NotStarted
-  InReview
+  InProgress
   Approved
   Paid
   Cancelled

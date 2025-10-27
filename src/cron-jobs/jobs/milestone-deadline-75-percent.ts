@@ -20,7 +20,7 @@ export async function milestoneDeadline75Percent(): Promise<CronJobResult> {
     const milestones = await prisma.milestone.findMany({
       where: {
         status: {
-          in: [MilestoneStatus.NotStarted, MilestoneStatus.InReview],
+          in: [MilestoneStatus.NotStarted, MilestoneStatus.InProgress],
         },
         deadline: {
           not: null,

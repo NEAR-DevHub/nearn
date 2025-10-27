@@ -53,6 +53,7 @@ import { useUser } from '@/store/user';
 import { getSubmissionUrl } from '@/utils/bounty-urls';
 import { cn } from '@/utils/cn';
 import { dayjs } from '@/utils/dayjs';
+import { getMilestoneStatus } from '@/utils/milestone-helpers';
 
 import {
   parseHtml,
@@ -696,9 +697,11 @@ export const SubmissionTable = ({
                             <>
                               {submission.Milestones &&
                                 submission.Milestones.map((milestone) => {
+                                  const milestoneStatus =
+                                    getMilestoneStatus(milestone);
                                   const statusStyle =
                                     colorMap[
-                                      milestone.status as keyof typeof colorMap
+                                      milestoneStatus as keyof typeof colorMap
                                     ] || colorMap.NotStarted;
 
                                   return (
@@ -759,7 +762,7 @@ export const SubmissionTable = ({
                                               statusStyle?.bg,
                                             )}
                                           >
-                                            {milestone.status
+                                            {milestoneStatus
                                               .replace(/([A-Z])/g, ' $1')
                                               .trim()}
                                           </p>

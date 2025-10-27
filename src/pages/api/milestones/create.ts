@@ -106,7 +106,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
           description: 'Single milestone for full payment',
           reward: totalReward,
           token: token!,
-          status: 'InReview',
+          status: 'InProgress',
         },
       });
       createdMilestones = [createdMilestones];
@@ -142,7 +142,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
             status:
               index !== 0
                 ? MilestoneStatus.NotStarted
-                : MilestoneStatus.InReview,
+                : MilestoneStatus.InProgress,
           }) as Prisma.MilestoneCreateManyInput,
       );
 
