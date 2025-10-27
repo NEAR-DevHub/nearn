@@ -34,6 +34,8 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
 
   const { submissionId, milestones } = validationResult.data;
 
+  milestones.sort((a, b) => a.milestoneIndex - b.milestoneIndex);
+
   try {
     // Get submission with all milestones
     const submission = await prisma.submission.findUnique({
@@ -146,18 +148,15 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
         },
       });
 
-      const milestoneData = milestones.map((milestone) => ({
+      const milestoneData = milestones.map((milestone, index) => ({
         submissionId,
-        milestoneIndex: milestone.milestoneIndex,
+        milestoneIndex: maxApprovedOrPaidMilestoneIndex + 1 + index,
         title: milestone.title,
         description: milestone.description || null,
         deadline: milestone.deadline ? new Date(milestone.deadline) : null,
         reward: milestone.reward,
         token: token!,
-        status:
-          milestone.milestoneIndex === maxApprovedOrPaidMilestoneIndex + 1
-            ? ('InReview' as const)
-            : ('NotStarted' as const),
+        status: index === 0 ? ('InReview' as const) : ('NotStarted' as const),
       }));
 
       await tx.milestone.createMany({
