@@ -6,7 +6,6 @@ import { toast } from 'sonner';
 import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -21,7 +20,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -30,39 +28,20 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import type { SubmissionWithUser } from '@/interface/submission';
-import { getSubmissionPaymentStatus } from '@/utils/milestone-helpers';
 import { cleanRewards, nthLabelGenerator, sortRank } from '@/utils/rank';
 
 const formSchema = z
   .object({
     status: z.enum(['Pending', 'Approved', 'Rejected', 'Deleted']),
     label: z.enum(['New', 'Reviewed', 'Shortlisted', 'Spam'] as const),
-    isPaid: z.boolean().default(false),
-    paymentLink: z.string().optional(),
     winnerPosition: z.coerce.number().int().optional(),
   })
   .superRefine((data, ctx) => {
-    if (data.isPaid && !data.paymentLink) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Payment link is required when marked as paid',
-        path: ['paymentLink'],
-      });
-    }
-
     if (data.status === 'Approved' && data.label !== 'Reviewed') {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'Label must be Reviewed if status is Approved',
         path: ['label'],
-      });
-    }
-
-    if (data.isPaid && data.status !== 'Approved') {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Status must be Approved if payment is marked as paid',
-        path: ['isPaid'],
       });
     }
   });
@@ -84,17 +63,11 @@ export const EditSubmissionStatusModal = ({
   onSuccess,
   onEditFullSubmission,
 }: EditSubmissionStatusModalProps) => {
-  const paymentStatus = submission
-    ? getSubmissionPaymentStatus(submission)
-    : null;
-
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       status: submission?.status || 'Pending',
       label: submission?.label || 'New',
-      isPaid: paymentStatus?.isPaid || false,
-      paymentLink: paymentStatus?.lastPaymentDetails?.link,
       winnerPosition:
         (submission?.winnerPosition as unknown as number) || undefined,
     },
@@ -102,7 +75,6 @@ export const EditSubmissionStatusModal = ({
 
   const { watch, setValue } = form;
   const status = watch('status');
-  const isPaid = watch('isPaid');
 
   const rewardPositions = useMemo(() => {
     return sortRank(cleanRewards(submission?.listing?.rewards));
@@ -112,9 +84,6 @@ export const EditSubmissionStatusModal = ({
     if (submission) {
       setValue('status', submission.status || 'Pending');
       setValue('label', submission.label || 'New');
-      const submissionPaymentStatus = getSubmissionPaymentStatus(submission);
-      setValue('isPaid', submissionPaymentStatus.isPaid || false);
-      setValue('paymentLink', submissionPaymentStatus.lastPaymentDetails?.link);
       setValue(
         'winnerPosition',
         (submission.winnerPosition as unknown as number) || undefined,
@@ -125,10 +94,6 @@ export const EditSubmissionStatusModal = ({
   useEffect(() => {
     if (status !== 'Pending') {
       setValue('label', 'Reviewed');
-    }
-    if (status !== 'Approved') {
-      setValue('isPaid', false);
-      setValue('paymentLink', undefined);
     }
   }, [status, setValue]);
 
@@ -162,8 +127,6 @@ export const EditSubmissionStatusModal = ({
             id: submission.id,
             status: values.status,
             label: values.label,
-            isPaid: values.isPaid,
-            paymentLink: values.paymentLink,
             winnerPosition: requiresWinnerPosition
               ? values.winnerPosition
               : undefined,
@@ -291,49 +254,6 @@ export const EditSubmissionStatusModal = ({
                   )}
                 />
               )}
-
-            {status === 'Approved' && (
-              <FormField
-                control={form.control}
-                name="isPaid"
-                render={({ field }) => (
-                  <FormItem className="flex space-x-2">
-                    <FormControl>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id="isPaid"
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                        <FormLabel>Mark as paid</FormLabel>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-
-            {isPaid && (
-              <FormField
-                control={form.control}
-                name="paymentLink"
-                render={({ field }) => (
-                  <FormItem className="grid gap-2">
-                    <FormLabel>Payment Link</FormLabel>
-                    <FormControl>
-                      <Input
-                        id="paymentLink"
-                        {...field}
-                        value={field.value || ''}
-                        placeholder="Enter payment details"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
 
             <div className="flex flex-col gap-2">
               {onEditFullSubmission && submission && (
