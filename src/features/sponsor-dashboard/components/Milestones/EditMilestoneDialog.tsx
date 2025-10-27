@@ -73,7 +73,6 @@ const milestoneItemSchema = z.object({
     .number()
     .positive()
     .min(0, 'Amount must be greater than or equal to 0'),
-  milestoneIndex: z.number().int().positive(),
   token: z.string(),
   isLocked: z.boolean().optional(),
 });
@@ -113,7 +112,6 @@ export function EditMilestoneDialog({
       description: milestone.description || '',
       reward: milestone.reward,
       deadline: milestone.deadline ? new Date(milestone.deadline) : undefined,
-      milestoneIndex: milestone.milestoneIndex,
       token: milestone.token,
       isLocked: ['Approved', 'Paid'].includes(milestone.status),
     }));
@@ -191,9 +189,6 @@ export function EditMilestoneDialog({
         !fields[newIndex]?.isLocked
       ) {
         move(oldIndex, newIndex);
-        fields.forEach((_, index) => {
-          form.setValue(`milestones.${index}.milestoneIndex`, index + 1);
-        });
       }
     }
   };
@@ -208,7 +203,6 @@ export function EditMilestoneDialog({
       description: '',
       reward: 0,
       deadline: undefined,
-      milestoneIndex: nextMilestoneNumber,
       token: tokenSymbol,
       isLocked: false,
     });
@@ -233,7 +227,6 @@ export function EditMilestoneDialog({
           ? new Date(new Date(m.deadline).setHours(23, 59, 0, 0)).toISOString()
           : undefined,
         reward: Number(m.reward || 0),
-        milestoneIndex: m.milestoneIndex,
       }));
 
     editMilestonesMutation.mutate(
@@ -261,7 +254,6 @@ export function EditMilestoneDialog({
         description: sourceMilestone?.description,
         reward: Number(sourceMilestone?.reward || 0),
         deadline: sourceMilestone?.deadline,
-        milestoneIndex: fields.length + 1,
         token: tokenSymbol,
         isLocked: false,
       });

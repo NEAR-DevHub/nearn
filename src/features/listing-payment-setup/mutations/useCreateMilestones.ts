@@ -12,7 +12,6 @@ interface CreateMilestonesPayload {
     description?: string;
     deadline?: string;
     reward: number;
-    milestoneIndex: number;
   }>;
 }
 

@@ -1,12 +1,10 @@
 import { z } from 'zod';
 
 export const allDeadlineShouldBeConsecutive = (
-  val: { deadline: string | Date; milestoneIndex: number }[],
+  val: { deadline: string | Date }[],
   ctx: z.RefinementCtx,
 ) => {
-  const deadlines = val
-    .sort((a, b) => a.milestoneIndex - b.milestoneIndex)
-    .map((milestone) => new Date(milestone.deadline!));
+  const deadlines = val.map((milestone) => new Date(milestone.deadline!));
   for (let i = 1; i < deadlines.length; i++) {
     if (deadlines[i]!.getTime() <= deadlines[i - 1]!.getTime()) {
       ctx.addIssue({
@@ -26,7 +24,6 @@ export const milestoneSchema = z.object({
   description: z.string().optional(),
   deadline: z.string().datetime(),
   reward: z.number().positive('Reward must be greater than 0'),
-  milestoneIndex: z.number().int().positive(),
 });
 
 export const createMilestonesSchema = z.object({

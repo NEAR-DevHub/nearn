@@ -7,7 +7,6 @@ export interface MilestoneEditData {
   description?: string;
   deadline?: string;
   reward: number;
-  milestoneIndex: number;
 }
 
 export interface EditMilestonesPayload {

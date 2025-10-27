@@ -130,17 +130,17 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
 
       // Create multiple milestones
       const milestoneData = milestones.map(
-        (milestone) =>
+        (milestone, index) =>
           ({
             submissionId,
-            milestoneIndex: milestone.milestoneIndex,
+            milestoneIndex: index + 1,
             title: milestone.title,
             description: milestone.description || null,
             deadline: milestone.deadline ? new Date(milestone.deadline) : null,
             reward: milestone.reward,
             token: token!,
             status:
-              milestone.milestoneIndex !== 1
+              index !== 0
                 ? MilestoneStatus.NotStarted
                 : MilestoneStatus.InReview,
           }) as Prisma.MilestoneCreateManyInput,

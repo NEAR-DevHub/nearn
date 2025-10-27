@@ -50,7 +50,10 @@ interface PaymentSetupDialogProps {
   onSave?: (milestones: MilestoneWithUser[]) => void;
 }
 
-type MilestonePayloadItem = Prisma.MilestoneCreateManyInput & { id: string };
+type MilestonePayloadItem = Omit<
+  Prisma.MilestoneCreateManyInput,
+  'milestoneIndex'
+> & { id: string };
 
 const milestoneItemSchema = z.object({
   id: z.string(),
@@ -66,7 +69,6 @@ const milestoneItemSchema = z.object({
     .nullable(),
   deadline: z.date(),
   reward: z.number().positive('Reward must be greater than 0'),
-  milestoneIndex: z.number().int().positive(),
   token: z.string(),
 });
 
@@ -140,9 +142,6 @@ export function PaymentSetupDialog({
       const newIndex = fields.findIndex((f) => f.key === over.id);
       if (oldIndex !== -1 && newIndex !== -1) {
         move(oldIndex, newIndex);
-        fields.forEach((_, index) => {
-          form.setValue(`milestones.${index}.milestoneIndex`, index + 1);
-        });
       }
     }
   };
@@ -157,7 +156,6 @@ export function PaymentSetupDialog({
       description: '',
       reward: 0,
       deadline: undefined,
-      milestoneIndex: nextMilestoneNumber,
       token: tokenSymbol,
     });
   };
@@ -186,7 +184,6 @@ export function PaymentSetupDialog({
             description: m.description || '',
             deadline: new Date(m.deadline!).toISOString(),
             reward: Number(m.reward || 0),
-            milestoneIndex: idx + 1,
           })),
         };
 
@@ -207,7 +204,6 @@ export function PaymentSetupDialog({
       description: values.milestones[index]?.description || '',
       reward: Number(values.milestones[index]?.reward || 0),
       deadline: values.milestones[index]?.deadline,
-      milestoneIndex: fields.length + 1,
       token: tokenSymbol,
     });
   };

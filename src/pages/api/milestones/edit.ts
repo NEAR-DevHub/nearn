@@ -34,8 +34,6 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
 
   const { submissionId, milestones } = validationResult.data;
 
-  milestones.sort((a, b) => a.milestoneIndex - b.milestoneIndex);
-
   try {
     // Get submission with all milestones
     const submission = await prisma.submission.findUnique({
@@ -68,27 +66,6 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
     const approvedOrPaidMilestones = submission.Milestones.filter((m) =>
       ['Approved', 'Paid'].includes(m.status),
     );
-
-    const conflictingIndexes = milestones
-      .map((m) => m.milestoneIndex)
-      .filter((idx) =>
-        approvedOrPaidMilestones.some((m) => m.milestoneIndex === idx),
-      );
-    if (conflictingIndexes.length > 0) {
-      logger.warn(
-        `Milestone indexes conflict with approved/paid milestones: ${conflictingIndexes.join(', ')}`,
-      );
-      return res.status(400).json({
-        error:
-          'Milestone indexes conflict with existing approved/paid milestones',
-        conflictingIndexes: conflictingIndexes,
-        approvedMilestones: approvedOrPaidMilestones.map((m) => ({
-          milestoneIndex: m.milestoneIndex,
-          title: m.title,
-          status: m.status,
-        })),
-      });
-    }
 
     if (milestones.length + approvedOrPaidMilestones.length < 2) {
       return res.status(400).json({
