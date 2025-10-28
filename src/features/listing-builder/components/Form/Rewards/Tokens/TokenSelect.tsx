@@ -1,3 +1,4 @@
+import { useAtomValue } from 'jotai';
 import { Check, ChevronDown } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -25,11 +26,15 @@ import {
 import { tokenList } from '@/constants/tokenList';
 import { cn } from '@/utils/cn';
 
+import { isEditingAtom } from '@/features/listing-builder/atoms';
+
 import { useListingForm } from '../../../../hooks';
 import { TokenLabel } from './TokenLabel';
 
 export function TokenSelect({ disableAny }: { disableAny: boolean }) {
   const form = useListingForm();
+
+  const isEditing = useAtomValue(isEditingAtom);
   return (
     <FormField
       name="token"
@@ -38,7 +43,7 @@ export function TokenSelect({ disableAny }: { disableAny: boolean }) {
         <FormItem className="gap-2">
           <FormLabel>Payment</FormLabel>
           <Popover>
-            <PopoverTrigger asChild>
+            <PopoverTrigger asChild disabled={isEditing}>
               <FormControl>
                 <Button
                   variant="outline"

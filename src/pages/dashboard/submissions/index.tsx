@@ -152,6 +152,8 @@ export default function SponsorListings() {
     if (currentSort.direction && currentSort.column) {
       return [...filtered].sort((a, b) => {
         const factor = currentSort.direction === 'desc' ? 1 : -1;
+        const milestoneA = a.Milestones[0];
+        const milestoneB = b.Milestones[0];
 
         switch (currentSort.column) {
           case 'id':
@@ -193,11 +195,11 @@ export default function SponsorListings() {
             return (approvedAtB - approvedAtA) * factor;
 
           case 'paidAt':
-            const paidAtA = a.paymentDate
-              ? new Date(a.paymentDate).getTime()
+            const paidAtA = milestoneA?.paidDate
+              ? new Date(milestoneA.paidDate).getTime()
               : 0;
-            const paidAtB = b.paymentDate
-              ? new Date(b.paymentDate).getTime()
+            const paidAtB = milestoneB?.paidDate
+              ? new Date(milestoneB.paidDate).getTime()
               : 0;
             return (paidAtB - paidAtA) * factor;
 
@@ -260,10 +262,12 @@ export default function SponsorListings() {
     const filters = [
       'Spam',
       'Rejected',
+      'Cancelled',
       'New',
       'Shortlisted',
       'Reviewed',
       'Approved',
+      'InProgress',
       'Paid',
     ];
     if (session?.user.role === 'GOD') {
@@ -329,7 +333,8 @@ export default function SponsorListings() {
                       getColorStyles(selectedStatus).bg,
                     )}
                   >
-                    {selectedStatus || 'Everything'}
+                    {selectedStatus?.replace(/([A-Z])/g, ' $1').trim() ||
+                      'Everything'}
                   </span>
                   <ChevronDown className="ml-2 h-4 w-4" />
                 </Button>
@@ -364,7 +369,7 @@ export default function SponsorListings() {
                         getColorStyles(status).bg,
                       )}
                     >
-                      {status}
+                      {status.replace(/([A-Z])/g, ' $1').trim()}
                     </span>
                   </DropdownMenuItem>
                 ))}

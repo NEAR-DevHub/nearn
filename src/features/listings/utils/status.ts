@@ -78,6 +78,14 @@ export const getListingStatus = (
     case 'PUBLISHED':
       if (!hasDeadlinePassed && !listing?.isWinnersAnnounced)
         return 'In Progress';
+      if (
+        listing?.isWinnersAnnounced &&
+        (listing?.BountyCounts?.totalWinnersSelected === 0 ||
+          listing?.BountyCounts?.totalPaymentsMade !==
+            listing?.BountyCounts?.totalWinnersSelected) &&
+        listing.type === 'project'
+      )
+        return 'Work in Progress';
       if (!listing?.isWinnersAnnounced) return 'In Review';
       if (
         listing?.isWinnersAnnounced &&

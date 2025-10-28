@@ -378,7 +378,9 @@ export const SubmissionDrawer = ({
                                 ].color,
                               )}
                             >
-                              {submissionStatus}
+                              {submissionStatus
+                                .replace(/([A-Z])/g, ' $1')
+                                .trim()}
                             </span>
                           </TableCell>
                           <TableCell className="w-full items-center justify-center py-2">

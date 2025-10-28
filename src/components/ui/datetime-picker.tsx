@@ -1,6 +1,5 @@
 'use client';
 
-import { CalendarIcon } from '@radix-ui/react-icons';
 import {
   addHours,
   addMonths,
@@ -28,6 +27,7 @@ import {
   subMonths,
 } from 'date-fns';
 import {
+  Calendar,
   CheckIcon,
   ChevronDownIcon,
   ChevronLeftIcon,
@@ -110,6 +110,16 @@ export type DateTimePickerProps = {
    */
   clearable?: boolean;
   /**
+   * Whether to use borderless styling.
+   * @default false
+   */
+  borderless?: boolean;
+  /**
+   * Placeholder text to show when no date is selected.
+   * @default "Pick a date"
+   */
+  placeholder?: string;
+  /**
    * Custom class names for the component.
    */
   classNames?: {
@@ -159,6 +169,8 @@ export function DateTimePicker({
   use12HourFormat,
   disabled,
   clearable,
+  borderless,
+  placeholder = 'Pick a date',
   classNames,
   timePicker,
   hideSeconds,
@@ -245,12 +257,12 @@ export function DateTimePicker({
   const displayValue = value;
 
   const dislayFormat = useMemo(() => {
-    if (!displayValue) return 'Pick a date';
+    if (!displayValue) return placeholder;
     return format(
       displayValue,
       `${!hideTime ? 'MMM' : 'MMMM'} d, yyyy${!hideTime ? (use12HourFormat ? ' hh:mm a' : ' HH:mm:ss') : ''}`,
     );
-  }, [displayValue, hideTime, use12HourFormat]);
+  }, [displayValue, hideTime, use12HourFormat, placeholder]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -267,7 +279,9 @@ export function DateTimePicker({
         ) : (
           <div
             className={cn(
-              'flex h-9 w-full cursor-pointer items-center rounded-md border border-input pe-1 ps-3 text-sm font-normal shadow-sm',
+              'flex h-9 w-full cursor-pointer items-center rounded-md pe-1 text-sm font-normal',
+              !borderless && 'border border-input ps-3 shadow-sm',
+              borderless && 'ps-0',
               !displayValue && 'text-muted-foreground',
               (!clearable || !value) && 'pe-3',
               disabled && 'pointer-events-none cursor-not-allowed opacity-50',
@@ -276,8 +290,8 @@ export function DateTimePicker({
             tabIndex={0}
           >
             <div className="flex flex-grow items-center">
-              <CalendarIcon className="mr-2 size-4" />
-              {dislayFormat}
+              <Calendar className="mr-2 size-4 text-slate-400" />
+              <span className="font-medium text-slate-600">{dislayFormat}</span>
             </div>
             {clearable && value && (
               <Button

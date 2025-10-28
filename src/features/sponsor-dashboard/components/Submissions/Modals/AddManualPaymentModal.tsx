@@ -27,15 +27,16 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { TokenInput } from '@/components/ui/token-input';
 import { Tooltip } from '@/components/ui/tooltip';
+import { type MilestoneWithUser } from '@/interface/submission';
 import { cn } from '@/utils/cn';
+import { fetchTokenUSDValue } from '@/utils/fetchTokenUSDValue';
 
 import { DEADLINE_FORMAT } from '@/features/listing-builder/components/Form/Deadline';
-import { type SubmissionWithListingUser } from '@/features/sponsor-dashboard/queries/dashboard-submissions';
 
 interface AddManualPaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  submission: SubmissionWithListingUser;
+  milestone: MilestoneWithUser;
   onSuccess: (paymentData: {
     amount: number;
     token: string;
@@ -43,6 +44,7 @@ interface AddManualPaymentModalProps {
     notes: string;
     isPublic: boolean;
   }) => void;
+  listingToken?: string;
 }
 
 type FormData = {
@@ -57,8 +59,9 @@ type FormData = {
 export default function AddManualPaymentModal({
   isOpen,
   onClose,
-  submission,
+  milestone,
   onSuccess,
+  listingToken,
 }: AddManualPaymentModalProps) {
   const form = useForm<FormData>({
     defaultValues: {
@@ -72,6 +75,7 @@ export default function AddManualPaymentModal({
 
   const fiatCurrency = form.watch('fiatCurrency');
   const token = form.watch('token');
+  const isUpdating = milestone && milestone.paymentDetails?.manual;
   useEffect(() => {
     if (token === 'Fiat' && !fiatCurrency) {
       form.setValue('fiatCurrency', 'USD');
@@ -80,32 +84,54 @@ export default function AddManualPaymentModal({
     }
   }, [token]);
 
-  const isUpdating = submission && submission.paymentDetails?.manual;
-
   useEffect(() => {
-    if (isUpdating && submission.paymentDetails?.manual) {
+    if (isUpdating && milestone.paymentDetails?.manual) {
+      const manualPayment = milestone.paymentDetails.manual;
       form.reset({
-        paymentDate: submission.paymentDetails.manual.paymentDate,
-        token: submission.paymentDetails.manual.token,
-        fiatCurrency: submission.paymentDetails.manual.fiatCurrency,
-        amount: submission.paymentDetails.manual.amount,
-        notes: submission.paymentDetails.manual.notes,
-        isPrivate: !submission.paymentDetails.manual.isPublic,
+        paymentDate: manualPayment.paymentDate,
+        token: manualPayment.token,
+        fiatCurrency: manualPayment.fiatCurrency,
+        amount: manualPayment.amount,
+        notes: manualPayment.notes,
+        isPrivate: !manualPayment.isPublic,
       });
-    } else {
-      const isAny = submission.listing.token === 'Any';
-      const amount = submission.winnerPosition
-        ? submission.listing.rewards?.[submission.winnerPosition] || 0
-        : 0;
+    } else if (milestone) {
       form.reset({
         paymentDate: new Date().toISOString().split('T')[0],
-        token: isAny ? submission.token : submission.listing.token,
-        amount: amount,
+        token: milestone.token,
+        amount: milestone.reward,
         notes: '',
         isPrivate: false,
       });
     }
-  }, [submission]);
+  }, [milestone]);
+
+  useEffect(() => {
+    if (!isOpen || listingToken !== 'Any') return;
+    const currentToken = form.getValues('token');
+    const baseUsd = milestone?.reward || 0;
+    if (!currentToken || !baseUsd || baseUsd <= 0) return;
+    if (currentToken === 'Fiat' || currentToken === 'Other') {
+      form.setValue('amount', baseUsd, {
+        shouldDirty: true,
+        shouldTouch: true,
+      });
+      return;
+    }
+    (async () => {
+      try {
+        const price = await fetchTokenUSDValue(currentToken);
+        if (price && price > 0) {
+          const converted = baseUsd / price;
+          const rounded = Math.round(converted * 1e6) / 1e6;
+          form.setValue('amount', rounded, {
+            shouldDirty: true,
+            shouldTouch: true,
+          });
+        }
+      } catch (_) {}
+    })();
+  }, [isOpen, token, milestone?.reward, listingToken]);
 
   const handleSubmit = async (data: FormData) => {
     try {
@@ -117,7 +143,7 @@ export default function AddManualPaymentModal({
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            id: submission.id,
+            id: milestone.id,
             amount: data.amount,
             token: data.token,
             fiatCurrency: data.fiatCurrency,

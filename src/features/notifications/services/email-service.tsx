@@ -8,6 +8,11 @@ import { ListingEditedTemplate } from '@/email-templates/Listing/listingEditedTe
 import { NewListingTemplate } from '@/email-templates/Listing/newListingTemplate';
 import { ScoutInviteTemplate } from '@/email-templates/Listing/scoutInviteTemplate';
 import { WeeklyRoundupTemplate } from '@/email-templates/Listing/weeklyRoundupTemplate';
+import { MilestoneApprovedTemplate } from '@/email-templates/Milestones/milestoneApprovedTemplate';
+import { MilestoneCreatedTemplate } from '@/email-templates/Milestones/milestoneCreatedTemplate';
+import { MilestoneDeadlineComingUpTemplate } from '@/email-templates/Milestones/milestoneDeadlineComingUpTemplate';
+import { MilestonesEditedTemplate } from '@/email-templates/Milestones/milestonesEditedTemplate';
+import { SubmissionCancelledTemplate } from '@/email-templates/Milestones/submissionCancelledTemplate';
 import { SponsorMemberAcceptedTemplate } from '@/email-templates/Sponsor/sponsorMemberAcceptedTemplate';
 import { SubmissionCreatedTemplate } from '@/email-templates/Submission/submissionCreatedTemplate';
 import { SubmissionEditedTemplate } from '@/email-templates/Submission/submissionEditedTemplate';
@@ -294,6 +299,57 @@ const emailHandlers: {
       />
     ),
     subject: `Deadline exceeded by week for ${notification.listing?.title}`,
+  }),
+
+  [NotificationType.MILESTONES_EDITED]: (notification) => ({
+    component: <MilestonesEditedTemplate notification={notification} />,
+    subject: `Milestones updated for ${notification.listing?.title}`,
+  }),
+
+  [NotificationType.MILESTONE_CREATED]: (notification) => {
+    const eventDataMilestone =
+      notification.data as NotificationDataMap['MILESTONE_CREATED'];
+    const subject = eventDataMilestone?.useSingleMilestone
+      ? `Full payment set for your winning submission for ${notification.listing?.title}`
+      : `Milestone-based payment set for your winning submission for ${notification.listing?.title}`;
+    return {
+      component: (
+        <MilestoneCreatedTemplate
+          notification={notification}
+          isSingleMilestone={eventDataMilestone?.useSingleMilestone ?? false}
+        />
+      ),
+      subject,
+    };
+  },
+
+  [NotificationType.MILESTONE_APPROVED]: (notification) => ({
+    component: <MilestoneApprovedTemplate notification={notification} />,
+    subject: `Milestone approved for ${notification.listing?.title}`,
+  }),
+
+  [NotificationType.SUBMISSION_CANCELLED]: (notification) => ({
+    component: <SubmissionCancelledTemplate notification={notification} />,
+    subject: `Milestones cancelled for ${notification.listing?.title}`,
+  }),
+
+  [NotificationType.MILESTONE_DEADLINE_IS_COMING_UP]: (notification) => ({
+    component: (
+      <MilestoneDeadlineComingUpTemplate notification={notification} />
+    ),
+    subject: `Milestone deadline reminder for ${notification.listing?.title}`,
+  }),
+
+  [NotificationType.SPONSOR_MILESTONE_DEADLINE_IS_COMING_UP]: (
+    notification,
+  ) => ({
+    component: (
+      <MilestoneDeadlineComingUpTemplate
+        notification={notification}
+        isSponsor={true}
+      />
+    ),
+    subject: `Milestone deadline reminder for ${notification.listing?.title}`,
   }),
 };
 

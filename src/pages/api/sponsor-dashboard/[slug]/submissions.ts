@@ -40,6 +40,15 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
         ...filter,
       },
       include: {
+        Milestones: {
+          include: {
+            paidByUser: true,
+            approvedByUser: true,
+          },
+          orderBy: {
+            milestoneIndex: 'asc',
+          },
+        },
         user: {
           select: {
             id: true,
@@ -83,7 +92,6 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
         },
         listing: true,
         approvedByUser: true,
-        paidByUser: true,
       },
       orderBy: { createdAt: 'asc' },
     });

@@ -4,52 +4,62 @@ import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Tooltip } from '@/components/ui/tooltip';
+import { type MilestoneWithUser } from '@/interface/submission';
+import { cn } from '@/utils/cn';
 import { getURLSanitized } from '@/utils/getURLSanitized';
 
 import PaymentDetailsModal from '@/features/listings/components/PaymentDetailsModal';
+import { type Listing } from '@/features/listings/types';
 
-import type { SubmissionWithListingUser } from '../../queries/dashboard-submissions';
 import AddManualPaymentModal from './Modals/AddManualPaymentModal';
 
 interface DisplayPaymentProps {
-  submission: SubmissionWithListingUser;
+  milestone: MilestoneWithUser;
+  listing: Listing;
+  size?: 'default' | 'sm';
   className?: string;
   isSponsorView: boolean;
 }
 
 export function DisplayPayment({
-  submission,
+  milestone,
+  listing,
+  size = 'default',
   className,
   isSponsorView,
 }: DisplayPaymentProps) {
   const [isPaymentDetailsModalOpen, setIsPaymentDetailsModalOpen] =
     useState(false);
 
-  if (!submission.isPaid) {
+  if (milestone.status !== 'Paid') {
     return null;
   }
 
-  const paymentType = submission.paymentDetails?.link
+  const paymentType = milestone.paymentDetails?.link
     ? 'external'
-    : submission.paymentDetails?.manual
+    : milestone.paymentDetails?.manual
       ? 'manual'
-      : submission.paymentDetails?.treasury?.link
+      : milestone.paymentDetails?.treasury?.link
         ? 'treasury'
         : 'marked';
 
   switch (paymentType) {
     case 'external':
       return (
-        <Tooltip content="On-chain payment" contentProps={{ side: 'top' }}>
+        <Tooltip
+          content="On-chain payment"
+          contentProps={{ side: 'top' }}
+          asChild
+        >
           <Button
-            className={className || 'text-slate-500'}
+            className={cn('text-slate-500', className)}
             onClick={() => {
               window.open(
-                getURLSanitized(submission.paymentDetails?.link ?? ''),
+                getURLSanitized(milestone.paymentDetails?.link ?? ''),
                 '_blank',
               );
             }}
-            size="default"
+            size={size}
             variant="outline"
           >
             <Link2 className="mr-2 h-4 w-4" />
@@ -61,11 +71,15 @@ export function DisplayPayment({
     case 'manual':
       return (
         <>
-          <Tooltip content="Paid manually" contentProps={{ side: 'top' }}>
+          <Tooltip
+            content="Paid manually"
+            contentProps={{ side: 'top' }}
+            asChild
+          >
             <Button
-              className={className || 'text-slate-500'}
+              className={cn('text-slate-500', className)}
               onClick={() => setIsPaymentDetailsModalOpen(true)}
-              size="default"
+              size={size}
               variant="outline"
             >
               <DollarSign className="mr-2 h-4 w-4" />
@@ -77,7 +91,8 @@ export function DisplayPayment({
             <AddManualPaymentModal
               isOpen={isPaymentDetailsModalOpen}
               onClose={() => setIsPaymentDetailsModalOpen(false)}
-              submission={submission}
+              milestone={milestone}
+              listingToken={listing.token}
               onSuccess={() => {
                 setIsPaymentDetailsModalOpen(false);
               }}
@@ -86,9 +101,9 @@ export function DisplayPayment({
             <PaymentDetailsModal
               isOpen={isPaymentDetailsModalOpen}
               onClose={() => setIsPaymentDetailsModalOpen(false)}
-              paymentData={submission.paymentDetails?.manual as any}
-              submissionId={submission.id}
-              listing={submission.listing}
+              paymentData={milestone.paymentDetails?.manual as any}
+              submissionId={milestone.submissionId}
+              listing={listing}
             />
           )}
         </>
@@ -99,18 +114,17 @@ export function DisplayPayment({
         <Tooltip
           content="Paid via NEAR Treasury"
           contentProps={{ side: 'top' }}
+          asChild
         >
           <Button
-            className={className || 'text-slate-500'}
+            className={cn('text-slate-500', className)}
             onClick={() => {
               window.open(
-                getURLSanitized(
-                  submission.paymentDetails?.treasury?.link ?? '',
-                ),
+                getURLSanitized(milestone.paymentDetails?.treasury?.link ?? ''),
                 '_blank',
               );
             }}
-            size="default"
+            size={size}
             variant="outline"
           >
             <Image
@@ -133,9 +147,9 @@ export function DisplayPayment({
           contentProps={{ side: 'top' }}
         >
           <Button
-            className={className || 'gap-2 text-slate-500'}
+            className={cn('gap-2 text-slate-500', className)}
             disabled
-            size="default"
+            size={size}
             variant="outline"
           >
             <DollarSign className="h-4 w-4" />

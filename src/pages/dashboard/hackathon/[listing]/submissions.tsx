@@ -18,11 +18,12 @@ import { SponsorLayout } from '@/layouts/Sponsor';
 import { useUser } from '@/store/user';
 import { cn } from '@/utils/cn';
 import { dayjs } from '@/utils/dayjs';
+import { getSubmissionPaymentStatus } from '@/utils/milestone-helpers';
 import { cleanRewards } from '@/utils/rank';
 
 import { BONUS_REWARD_POSITION } from '@/features/listing-builder/constants';
 import { selectedSubmissionAtom } from '@/features/sponsor-dashboard/atoms';
-import { PublishResults } from '@/features/sponsor-dashboard/components/PublishResults';
+import { PublishModal } from '@/features/sponsor-dashboard/components/PublishModal';
 import { SubmissionHeader } from '@/features/sponsor-dashboard/components/Submissions/SubmissionHeader';
 import { SubmissionList } from '@/features/sponsor-dashboard/components/Submissions/SubmissionList';
 import { SubmissionPanel } from '@/features/sponsor-dashboard/components/Submissions/SubmissionPanel';
@@ -95,7 +96,8 @@ export default function BountySubmissions({ listing }: Props) {
       const matchesLabel =
         !filterLabel ||
         (filterLabel === 'Paid'
-          ? submission.isPaid
+          ? getSubmissionPaymentStatus({ ...submission, listing: bounty })
+              .isPaid
           : filterLabel === 'Approved'
             ? submission.status === 'Approved'
             : submission.label === filterLabel);
@@ -154,7 +156,9 @@ export default function BountySubmissions({ listing }: Props) {
     .filter((key: number) => !isNaN(key));
 
   const totalWinners = submissions?.filter((sub) => sub.isWinner).length;
-  const totalPaymentsMade = submissions?.filter((sub) => sub.isPaid).length;
+  const totalPaymentsMade = submissions?.filter(
+    (sub) => getSubmissionPaymentStatus(sub).isPaid,
+  ).length;
 
   const isExpired = dayjs(bounty?.deadline).isBefore(dayjs());
 
@@ -167,7 +171,7 @@ export default function BountySubmissions({ listing }: Props) {
       ) : (
         <>
           {isOpen && (
-            <PublishResults
+            <PublishModal
               remainings={remainings}
               isOpen={isOpen}
               onClose={onClose}
@@ -191,10 +195,13 @@ export default function BountySubmissions({ listing }: Props) {
               }
             }}
             allTransactionsVerified={
-              submissions?.every(
-                (submission) =>
-                  submission.status !== 'Approved' || submission.isPaid,
-              ) ?? true
+              submissions?.every((submission) => {
+                const paymentStatus = getSubmissionPaymentStatus({
+                  ...submission,
+                  listing: bounty,
+                });
+                return submission.status !== 'Approved' || paymentStatus.isPaid;
+              }) ?? true
             }
             onVerifyPayments={() => {
               alert('TODO');

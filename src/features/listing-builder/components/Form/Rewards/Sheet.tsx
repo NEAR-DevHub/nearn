@@ -42,7 +42,6 @@ export function RewardsSheet() {
     control: form.control,
     name: 'token',
   });
-
   useEffect(() => {
     if (token === 'Any') {
       form.setValue('compensationType', 'variable');

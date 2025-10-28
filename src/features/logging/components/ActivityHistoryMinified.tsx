@@ -8,19 +8,19 @@ import {
 } from '@/components/ui/popover';
 import { cn } from '@/utils/cn';
 
-import { type SubmissionWithListingUser } from '@/features/sponsor-dashboard/queries/dashboard-submissions';
-
 import { useGetLogsInfinite } from '../queries';
 import Log from './Log';
 import LogsTimeline from './LogsTimeline';
 
 interface ActivityHistoryMinifiedProps {
-  submission: SubmissionWithListingUser;
+  id: string;
+  refType: 'submission' | 'milestone';
   className?: string;
 }
 
 export const ActivityHistoryMinified = ({
-  submission,
+  id,
+  refType,
   className,
 }: ActivityHistoryMinifiedProps) => {
   const [open, setOpen] = useState(false);
@@ -32,8 +32,8 @@ export const ActivityHistoryMinified = ({
     isFetchingNextPage,
     isLoading,
   } = useGetLogsInfinite({
-    refType: 'submission',
-    refId: submission?.id,
+    refType,
+    refId: id,
   });
 
   const lastActivity = useMemo(() => {

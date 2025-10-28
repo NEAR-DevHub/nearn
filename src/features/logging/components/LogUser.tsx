@@ -22,6 +22,7 @@ export default function LogUser({
   hideActorRole = false,
   onListingClick,
   onSubmissionClick,
+  onMilestoneClick,
 }: Properties) {
   const now = dayjs();
   const eventTime = dayjs(event.eventTime);
@@ -124,7 +125,22 @@ export default function LogUser({
         </>
       )}
 
-      <Tooltip contentProps={{ className: 'z-[1000]' }} content={fullDate}>
+      {event.milestoneId && onMilestoneClick && (
+        <>
+          <button
+            onClick={() => onMilestoneClick(event)}
+            className="text-sm font-medium text-slate-900"
+          >
+            (M{event.milestoneId})
+          </button>
+        </>
+      )}
+
+      <Tooltip
+        contentProps={{ className: 'z-[1000]' }}
+        content={fullDate}
+        asChild
+      >
         <span className="text-sm font-medium text-slate-400">{date}</span>
       </Tooltip>
     </div>

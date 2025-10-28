@@ -35,6 +35,12 @@ async function handler(req: NextApiRequestWithUser, res: NextApiResponse) {
       },
       include: {
         user: true,
+        Milestones: {
+          include: {
+            paidByUser: true,
+            approvedByUser: true,
+          },
+        },
       },
       orderBy: {
         createdAt: 'desc',

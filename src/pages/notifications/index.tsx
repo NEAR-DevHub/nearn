@@ -33,6 +33,7 @@ export default function NotificationsPage() {
           <div className="mx-auto max-w-6xl md:pt-8">
             <div className="relative mb-[72px] md:mb-[88px]">
               <NotificationsListWithFilters
+                className="h-full"
                 sponsorIds={[]}
                 onSettingsOpen={() => {
                   router.push('/notifications/settings');

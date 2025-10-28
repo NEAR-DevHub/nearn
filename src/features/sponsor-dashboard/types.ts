@@ -35,7 +35,7 @@ export const verifyPaymentsSchema = z.object({
     .array(
       z
         .object({
-          submissionId: z.string(),
+          milestoneId: z.string(),
           link: z.string().optional(),
           isVerified: z.boolean(),
         })
@@ -69,6 +69,7 @@ export const verifyPaymentsSchema = z.object({
 export type VerifyPaymentsFormData = z.infer<typeof verifyPaymentsSchema>;
 
 export type ValidatePaymentResult = {
+  milestoneId: string;
   submissionId: string;
   txId: string;
   link: string;

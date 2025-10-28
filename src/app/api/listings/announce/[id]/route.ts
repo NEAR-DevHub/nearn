@@ -74,10 +74,18 @@ export async function POST(
       ...Array(listing?.maxBonusSpots ?? 0).map(() => BONUS_REWARD_POSITION),
     ].length;
 
+    const totalWinnersSelected = await prisma.submission.count({
+      where: {
+        listingId: id,
+        isWinner: true,
+        isActive: true,
+        isArchived: false,
+      },
+    });
     if (
       !!totalRewards &&
       !isSponsorship &&
-      listing?.BountyCounts.totalWinnersSelected !== totalRewards
+      totalWinnersSelected !== totalRewards
     ) {
       logger.warn(
         'All winners have not been selected before publishing the results',
@@ -130,19 +138,10 @@ export async function POST(
         amount = Math.ceil(rewards[winnerPosition as keyof Rewards] ?? 0);
       }
 
-      console.log({
-        token: listing.token,
-        amount,
-        usdValue: listing.usdValue,
-        rewardAmount: listing.rewardAmount,
-      });
-
       const rewardInUSD =
         listing.token === 'Any'
           ? amount
           : (listing.usdValue! / listing.rewardAmount!) * amount;
-
-      console.log({ rewardInUSD });
 
       promises.push(
         prisma.submission.update({
@@ -175,6 +174,29 @@ export async function POST(
         }
       }
 
+      // For bounties, pre-create auto-approved dummy milestone
+      // For sponsorships, milestone creation is handled separately by sponsor
+      if (listing.type === 'bounty') {
+        promises.push(
+          prisma.milestone.create({
+            data: {
+              milestoneIndex: 1,
+              reward: rewards[winnerPosition as keyof Rewards] ?? 0,
+              token:
+                listing.token === 'Any'
+                  ? winners[currentIndex]?.token!
+                  : listing.token!,
+              title: 'Full Payment',
+              description: 'Auto-created milestone for bounty payment',
+              status: 'Approved',
+              submissionId: winners[currentIndex]?.id!,
+              approvedDate: new Date(),
+              approvedBy: userId,
+            },
+          }),
+        );
+      }
+
       promises.push(
         eventLogger.log({
           eventType: EventType.SUBMISSION_APPROVED,
@@ -196,6 +218,24 @@ export async function POST(
     }
 
     await Promise.all(promises);
+
+    // Reject all submissions that are not approved
+    if (listing.type === 'project') {
+      await prisma.submission.updateMany({
+        where: {
+          listingId: id,
+          isActive: true,
+          isArchived: false,
+          NOT: {
+            status: 'Approved',
+          },
+        },
+        data: {
+          status: 'Rejected',
+        },
+      });
+    }
+
     if (listing.type !== 'sponsorship') {
       await eventLogger.log({
         eventType: EventType.LISTING_WINNERS_ANNOUNCED,
@@ -223,7 +263,8 @@ export async function POST(
           oldStatus: !isDeadlineOver(listing.deadline ?? undefined)
             ? 'In Progress'
             : 'In Review',
-          newStatus: 'Payment Pending',
+          newStatus:
+            listing.type === 'project' ? 'Work in Progress' : 'Payment Pending',
         },
         entities: {
           listingId: id,

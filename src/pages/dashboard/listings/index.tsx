@@ -142,6 +142,7 @@ export default function SponsorListings() {
               'Ongoing',
               'In Progress',
               'In Review',
+              'Work in Progress',
               'Payment Pending',
               'Completed',
             ];
@@ -202,6 +203,7 @@ export default function SponsorListings() {
       'Draft',
       'In Progress',
       'In Review',
+      'Work in Progress',
       'Payment Pending',
       'Completed',
     ];

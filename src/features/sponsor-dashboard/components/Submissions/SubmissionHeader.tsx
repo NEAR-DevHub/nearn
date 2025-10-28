@@ -143,6 +143,9 @@ ${socialListingLink('twitter')}
       <ListingStatusModal
         isOpen={statusModalOpen}
         onClose={statusModalOnClose}
+        type={
+          bounty?.type as 'bounty' | 'project' | 'hackathon' | 'sponsorship'
+        }
       />
       {isOpen && (
         <CompleteSponsorshipModal

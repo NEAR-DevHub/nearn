@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { type Prisma } from '@prisma/client';
 import type { NextApiResponse } from 'next';
 
 import { type SubmissionWithUser } from '@/interface/submission';
@@ -29,7 +29,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
   }
 
   logger.debug(`Request body: ${JSON.stringify(req.body)}`);
-  const { id, status, label, isPaid, paymentLink } = req.body;
+  const { id, status, label } = req.body;
   const winnerPositionFromBody = req.body?.winnerPosition;
 
   if (!id) {
@@ -39,7 +39,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
   try {
     const currentSubmission = await prisma.submission.findUnique({
       where: { id },
-      include: { listing: true, user: true },
+      include: { listing: true, user: true, Milestones: true },
     });
 
     if (!currentSubmission) {
@@ -59,40 +59,12 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       updateData.label = label;
     }
 
-    if (currentSubmission.isPaid !== isPaid) {
-      updateData.isPaid = isPaid;
-
-      if (isPaid && paymentLink) {
-        updateData.paymentDetails = {
-          link: paymentLink,
-        };
-        updateData.paymentDate = new Date();
-        updateData.paidByUser = {
-          connect: {
-            id: userId,
-          },
-        };
-      } else {
-        updateData.paymentDetails = Prisma.JsonNull;
-        updateData.paymentDate = null;
-        updateData.paidByUser = {
-          disconnect: true,
-        };
-      }
-    }
-
     const isRevertingFromApproved =
       currentSubmission.status === 'Approved' &&
       updateData.status &&
       updateData.status !== 'Approved';
 
     if (isRevertingFromApproved) {
-      updateData.isPaid = false;
-      updateData.paymentDetails = Prisma.JsonNull;
-      updateData.paymentDate = null;
-      updateData.paidByUser = {
-        disconnect: true,
-      };
       updateData.approvedByUser = {
         disconnect: true,
       };
@@ -146,7 +118,7 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
         ...updateData,
         updatedAt: new Date(),
       },
-      include: { listing: true, user: true },
+      include: { listing: true, user: true, Milestones: true },
     });
 
     const oldRewards = currentSubmission.listing.rewards as Record<
@@ -211,6 +183,12 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
           ]);
         }
       }
+
+      prisma.milestone.deleteMany({
+        where: {
+          submissionId: id,
+        },
+      });
     } else if (isApproving) {
       if (currentSubmission.listing.compensationType !== 'fixed') {
         logger.debug('Fetching token USD value for variable compensation');
@@ -267,14 +245,6 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
         field: 'status',
         oldValue: statusBefore,
         newValue: statusAfter,
-      });
-    }
-
-    if (currentSubmission.paymentDetails !== result.paymentDetails) {
-      changes.push({
-        field: 'paymentDetails',
-        oldValue: currentSubmission.paymentDetails,
-        newValue: result.paymentDetails,
       });
     }
 

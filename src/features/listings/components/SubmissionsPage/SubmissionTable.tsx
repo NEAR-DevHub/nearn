@@ -1,6 +1,13 @@
 import axios from 'axios';
 import { atom } from 'jotai';
-import { Copy, Eye, Heart, MessageCircle, MoreVertical } from 'lucide-react';
+import {
+  ChevronDown,
+  Copy,
+  Eye,
+  Heart,
+  MessageCircle,
+  MoreVertical,
+} from 'lucide-react';
 import Link from 'next/link';
 import router from 'next/router';
 import React, {
@@ -19,6 +26,11 @@ import {
 import { SortableTH } from '@/components/shared/sortable-th';
 import { Button } from '@/components/ui/button';
 import { ExternalImage } from '@/components/ui/cloudinary-image';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,12 +53,15 @@ import { useUser } from '@/store/user';
 import { getSubmissionUrl } from '@/utils/bounty-urls';
 import { cn } from '@/utils/cn';
 import { dayjs } from '@/utils/dayjs';
+import { getMilestoneStatus } from '@/utils/milestone-helpers';
 
 import {
   parseHtml,
   tableOptions,
 } from '@/features/sponsor-dashboard/components/InfoBox';
 import { ListingTh } from '@/features/sponsor-dashboard/components/ListingTable';
+import MilestoneCompletionLine from '@/features/sponsor-dashboard/components/Milestones/CompletionLine';
+import { DisplayPayment } from '@/features/sponsor-dashboard/components/Submissions/DisplayPayment';
 import { colorMap } from '@/features/sponsor-dashboard/utils/statusColorMap';
 import { EarnAvatar } from '@/features/talent/components/EarnAvatar';
 
@@ -58,7 +73,24 @@ export const selectedSubmissionAtom = atom<SubmissionWithUser | undefined>(
 
 export const sponsorshipSubmissionStatus = (submission: SubmissionWithUser) => {
   if (submission.isArchived || submission.listing?.isArchived) return 'Deleted';
-  if (submission.isPaid) return 'Paid';
+  const withMilestones =
+    submission.Milestones && submission.Milestones.length > 0;
+  if (
+    submission.status === 'Approved' &&
+    withMilestones &&
+    submission.Milestones.every((milestone) => milestone.status === 'Paid')
+  )
+    return 'Paid';
+  if (
+    submission.Milestones.some((milestone) => milestone.status === 'Cancelled')
+  )
+    return 'Cancelled';
+  if (
+    submission.status === 'Approved' &&
+    withMilestones &&
+    submission.listing?.type !== 'bounty'
+  )
+    return 'InProgress';
   if (submission.status !== 'Pending') return submission.status;
   return submission.label;
 };
@@ -419,6 +451,7 @@ export const SubmissionTable = ({
                   )}
                   {visibleColumns.community && <ListingTh>Community</ListingTh>}
                   <ListingTh>Actions</ListingTh>
+                  <ListingTh />
                   <ListingTh className="sticky right-0 z-50 flex items-center bg-slate-100 group-hover:bg-muted">
                     <ColumnVisibilitySettings
                       columns={columnDefinitions}
@@ -448,183 +481,319 @@ export const SubmissionTable = ({
                     }
 
                     return (
-                      <TableRow key={submission.id}>
-                        <TableCell
-                          className="cursor-pointer"
-                          onClick={(e) => handleClick(e, submissionLink)}
-                          onAuxClick={(e) => handleClick(e, submissionLink)}
-                        >
-                          <p className="whitespace-nowrap text-sm font-medium text-slate-500">
-                            {submission.sequentialId}
-                          </p>
-                        </TableCell>
-                        {visibleColumns.submission && (
-                          <TableCell className="min-w-[225px] pr-0">
-                            <Link
-                              className="flex items-center"
-                              href={`/t/${submission?.user?.username}`}
-                            >
-                              <EarnAvatar
-                                id={submission?.user?.id}
-                                avatar={submission?.user?.photo || undefined}
-                              />
-                              <div className="ml-2 min-w-0">
-                                <div className="flex items-center gap-2">
-                                  <p className="truncate whitespace-nowrap text-sm font-medium text-slate-700">
-                                    {submission?.user?.private
-                                      ? submission?.user?.username
-                                      : submission?.user?.name}
-                                  </p>
-                                  {submission?.user?.publicKey && (
-                                    <KycComponent
-                                      address={submission.user.publicKey}
-                                      imageOnly
-                                      variant="xs"
-                                      listingSponsorId={bounty?.sponsorId}
-                                    />
-                                  )}
-                                </div>
-                                <p className="truncate text-xs font-medium text-slate-500">
-                                  {dayjs(submission.createdAt).format(
-                                    "D MMM' YY h:mm A",
-                                  )}
-                                </p>
-                              </div>
-                            </Link>
-                          </TableCell>
-                        )}
-                        {visibleColumns.ask && (
-                          <TableCell
-                            className="min-w-[225px] cursor-pointer font-medium text-slate-700"
-                            onClick={(e) => handleClick(e, submissionLink)}
-                            onAuxClick={(e) => handleClick(e, submissionLink)}
-                          >
-                            <div className="flex w-full items-center overflow-visible">
-                              <img
-                                src={tokenObject?.icon}
-                                alt={tokenObject?.tokenSymbol}
-                                className="h-4 w-4 rounded-full"
-                              />
-                              <span className="ml-1 truncate text-sm">
-                                {isUsdBased && '$'}
-                                {ask ? ask.toLocaleString('en-US') : '0'}
-                                <span className="text-slate-400">
-                                  {isUsdBased && ' to be paid in'}
-                                </span>
-                                <span
-                                  className={cn(
-                                    'ml-1',
-                                    !isUsdBased &&
-                                      'font-semibold text-slate-400',
-                                  )}
-                                >
-                                  {token}
-                                </span>
-                              </span>
-                            </div>
-                          </TableCell>
-                        )}
-                        {visibleColumns.status && (
-                          <TableCell
-                            className="cursor-pointer py-2"
-                            onClick={(e) => handleClick(e, submissionLink)}
-                            onAuxClick={(e) => handleClick(e, submissionLink)}
-                          >
-                            <span
-                              className={cn(
-                                'inline-flex whitespace-nowrap rounded-full px-3 py-1 text-center text-[10px] capitalize',
-                                colorMap[
-                                  submissionStatus as keyof typeof colorMap
-                                ].bg,
-                                colorMap[
-                                  submissionStatus as keyof typeof colorMap
-                                ].color,
-                              )}
-                            >
-                              {submissionStatus}
-                            </span>
-                          </TableCell>
-                        )}
-                        {eligibilityColumnKeys.map((colKey, colIndex) => {
-                          if (!visibleColumns[colKey]) return null;
-
-                          const answer = answers.get(
-                            `${submission.id}-${eligibilityQuestions[colIndex]?.question ?? ''}`,
-                          );
-
-                          return (
+                      <Collapsible asChild key={submission.id}>
+                        <>
+                          <TableRow>
                             <TableCell
-                              key={`${submission.id}-${colKey}`}
-                              className="cursor-pointer py-2"
+                              className="cursor-pointer"
                               onClick={(e) => handleClick(e, submissionLink)}
                               onAuxClick={(e) => handleClick(e, submissionLink)}
                             >
-                              <Tooltip
-                                content={answer}
-                                triggerClassName="flex max-w-[12rem]"
-                              >
-                                <div className="line-clamp-2 text-left text-sm text-slate-700">
-                                  {answer}
-                                </div>
-                              </Tooltip>
+                              <p className="whitespace-nowrap text-sm font-medium text-slate-500">
+                                {submission.sequentialId}
+                              </p>
                             </TableCell>
-                          );
-                        })}
-                        {visibleColumns.community && (
-                          <TableCell className="items-center py-2">
-                            <LikeAndComment
-                              id={submission.id}
-                              bounty={bounty}
-                              submission={submission}
-                              setUpdate={setUpdate}
-                            />
-                          </TableCell>
-                        )}
-                        <TableCell className="px-0 py-2">
-                          <div className="flex items-center justify-between">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="ph-no-capture text-[13px] font-medium text-black"
-                            >
-                              <Link
-                                href={submissionLink}
-                                className="flex items-center gap-2"
+                            {visibleColumns.submission && (
+                              <TableCell className="min-w-[200px] pr-0">
+                                <Link
+                                  className="flex items-center"
+                                  href={`/t/${submission?.user?.username}`}
+                                >
+                                  <EarnAvatar
+                                    id={submission?.user?.id}
+                                    avatar={
+                                      submission?.user?.photo || undefined
+                                    }
+                                  />
+                                  <div className="ml-2 min-w-0">
+                                    <div className="flex items-center gap-2">
+                                      <p className="truncate whitespace-nowrap text-sm font-medium text-slate-700">
+                                        {submission?.user?.private
+                                          ? submission?.user?.username
+                                          : submission?.user?.name}
+                                      </p>
+                                      {submission?.user?.publicKey && (
+                                        <KycComponent
+                                          address={submission.user.publicKey}
+                                          imageOnly
+                                          variant="xs"
+                                          listingSponsorId={bounty?.sponsorId}
+                                        />
+                                      )}
+                                    </div>
+                                    <p className="truncate text-xs font-medium text-slate-500">
+                                      {dayjs(submission.createdAt).format(
+                                        "D MMM' YY h:mm A",
+                                      )}
+                                    </p>
+                                  </div>
+                                </Link>
+                              </TableCell>
+                            )}
+                            {visibleColumns.ask && (
+                              <TableCell
+                                className="min-w-[200px] cursor-pointer font-medium text-slate-700"
+                                onClick={(e) => handleClick(e, submissionLink)}
+                                onAuxClick={(e) =>
+                                  handleClick(e, submissionLink)
+                                }
                               >
-                                <Eye className="h-4 w-4" />
-                                View Submission
-                              </Link>
-                            </Button>
-                          </div>
-                        </TableCell>
-                        <TableCell className="px-0 py-2">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                className="hover:bg-slate-100"
-                                size="icon"
-                                variant="ghost"
+                                <div className="flex w-full items-center overflow-visible">
+                                  <img
+                                    src={tokenObject?.icon}
+                                    alt={tokenObject?.tokenSymbol}
+                                    className="h-4 w-4 rounded-full"
+                                  />
+                                  <span className="ml-1 truncate text-sm">
+                                    {isUsdBased && '$'}
+                                    {ask ? ask.toLocaleString('en-US') : '0'}
+                                    <span className="text-slate-400">
+                                      {isUsdBased && ' to be paid in'}
+                                    </span>
+                                    <span
+                                      className={cn(
+                                        'ml-1',
+                                        !isUsdBased &&
+                                          'font-semibold text-slate-400',
+                                      )}
+                                    >
+                                      {token}
+                                    </span>
+                                  </span>
+                                </div>
+                                {submission.Milestones &&
+                                  submission.Milestones.length > 1 && (
+                                    <MilestoneCompletionLine
+                                      submission={submission}
+                                      hideText={true}
+                                    />
+                                  )}
+                              </TableCell>
+                            )}
+                            {visibleColumns.status && (
+                              <TableCell
+                                className="cursor-pointer py-2"
+                                onClick={(e) => handleClick(e, submissionLink)}
+                                onAuxClick={(e) =>
+                                  handleClick(e, submissionLink)
+                                }
                               >
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent
-                              align="end"
-                              className="max-w-60"
-                            >
-                              <DropdownMenuItem
-                                className="cursor-pointer text-sm font-medium text-slate-500"
-                                onClick={() => {
-                                  handleCopySubmissionLink(submissionLink);
-                                }}
-                              >
-                                <Copy className="mr-1 h-4 w-4" />
-                                Copy Link
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
+                                <span
+                                  className={cn(
+                                    'inline-flex items-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium',
+                                    colorMap[
+                                      submissionStatus as keyof typeof colorMap
+                                    ].bg,
+                                    colorMap[
+                                      submissionStatus as keyof typeof colorMap
+                                    ].color,
+                                  )}
+                                >
+                                  {submissionStatus
+                                    .replace(/([A-Z])/g, ' $1')
+                                    .trim()}
+                                </span>
+                              </TableCell>
+                            )}
+                            {eligibilityColumnKeys.map((colKey, colIndex) => {
+                              if (!visibleColumns[colKey]) return null;
+
+                              const answer = answers.get(
+                                `${submission.id}-${eligibilityQuestions[colIndex]?.question ?? ''}`,
+                              );
+
+                              return (
+                                <TableCell
+                                  key={`${submission.id}-${colKey}`}
+                                  className="cursor-pointer py-2"
+                                  onClick={(e) =>
+                                    handleClick(e, submissionLink)
+                                  }
+                                  onAuxClick={(e) =>
+                                    handleClick(e, submissionLink)
+                                  }
+                                >
+                                  <Tooltip
+                                    content={answer}
+                                    triggerClassName="flex max-w-[12rem]"
+                                  >
+                                    <div className="line-clamp-2 text-left text-sm text-slate-700">
+                                      {answer}
+                                    </div>
+                                  </Tooltip>
+                                </TableCell>
+                              );
+                            })}
+                            {visibleColumns.community && (
+                              <TableCell className="items-center py-2">
+                                <LikeAndComment
+                                  id={submission.id}
+                                  bounty={bounty}
+                                  submission={submission}
+                                  setUpdate={setUpdate}
+                                />
+                              </TableCell>
+                            )}
+                            <TableCell className="px-0 py-2">
+                              <div className="flex items-center justify-between">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="ph-no-capture text-[13px] font-medium text-black"
+                                >
+                                  <Link
+                                    href={submissionLink}
+                                    className="flex items-center gap-2"
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                    View Submission
+                                  </Link>
+                                </Button>
+                              </div>
+                            </TableCell>
+                            <TableCell className="px-0 py-2">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    className="hover:bg-slate-100"
+                                    size="icon"
+                                    variant="ghost"
+                                  >
+                                    <MoreVertical className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent
+                                  align="end"
+                                  className="max-w-60"
+                                >
+                                  <DropdownMenuItem
+                                    className="cursor-pointer text-sm font-medium text-slate-500"
+                                    onClick={() => {
+                                      handleCopySubmissionLink(submissionLink);
+                                    }}
+                                  >
+                                    <Copy className="mr-1 h-4 w-4" />
+                                    Copy Link
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                            <TableCell className="m-0 p-0">
+                              {submission.Milestones &&
+                                submission.Milestones.length > 1 && (
+                                  <CollapsibleTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="ph-no-capture flex justify-start text-[13px] font-medium text-black aria-expanded:rotate-180"
+                                    >
+                                      <ChevronDown className={cn('h-4 w-4')} />
+                                    </Button>
+                                  </CollapsibleTrigger>
+                                )}
+                            </TableCell>
+                          </TableRow>
+                          <CollapsibleContent className="w-full" asChild>
+                            <>
+                              {submission.Milestones &&
+                                submission.Milestones.map((milestone) => {
+                                  const milestoneStatus =
+                                    getMilestoneStatus(milestone);
+                                  const statusStyle =
+                                    colorMap[
+                                      milestoneStatus as keyof typeof colorMap
+                                    ] || colorMap.NotStarted;
+
+                                  return (
+                                    <TableRow
+                                      key={milestone.id}
+                                      className="bg-slate-50"
+                                    >
+                                      <TableCell className="py-2">
+                                        <p className="whitespace-nowrap text-sm font-medium text-slate-500">
+                                          {milestone.milestoneIndex}
+                                        </p>
+                                      </TableCell>
+                                      {visibleColumns.submission && (
+                                        <TableCell>
+                                          <p className="whitespace-nowrap text-sm font-medium text-slate-500">
+                                            {milestone.title ||
+                                              `Milestone ${milestone.milestoneIndex}`}
+                                          </p>
+                                        </TableCell>
+                                      )}
+                                      {visibleColumns.ask && (
+                                        <TableCell>
+                                          <div className="flex w-full items-center overflow-visible">
+                                            <img
+                                              src={tokenObject?.icon}
+                                              alt={tokenObject?.tokenSymbol}
+                                              className="h-4 w-4 rounded-full"
+                                            />
+                                            <span className="ml-1 truncate text-sm">
+                                              {isUsdBased && '$'}
+                                              {milestone.reward
+                                                ? milestone.reward.toLocaleString(
+                                                    'en-US',
+                                                  )
+                                                : '0'}
+                                              <span className="text-slate-400">
+                                                {isUsdBased && ' to be paid in'}
+                                              </span>
+                                              <span
+                                                className={cn(
+                                                  'ml-1',
+                                                  !isUsdBased &&
+                                                    'font-semibold text-slate-400',
+                                                )}
+                                              >
+                                                {milestone.token || token}
+                                              </span>
+                                            </span>
+                                          </div>
+                                        </TableCell>
+                                      )}
+                                      {visibleColumns.status && (
+                                        <TableCell>
+                                          <p
+                                            className={cn(
+                                              'inline-flex items-center whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium',
+                                              statusStyle?.color,
+                                              statusStyle?.bg,
+                                            )}
+                                          >
+                                            {milestoneStatus
+                                              .replace(/([A-Z])/g, ' $1')
+                                              .trim()}
+                                          </p>
+                                        </TableCell>
+                                      )}
+                                      {eligibilityColumnKeys.map((colKey) =>
+                                        visibleColumns[colKey] ? (
+                                          <TableCell key={colKey} />
+                                        ) : null,
+                                      )}
+                                      {visibleColumns.community && (
+                                        <TableCell />
+                                      )}
+                                      <TableCell>
+                                        {milestone.paymentDetails && (
+                                          <DisplayPayment
+                                            size="sm"
+                                            milestone={milestone}
+                                            listing={bounty}
+                                            isSponsorView={false}
+                                          />
+                                        )}
+                                      </TableCell>
+                                      <TableCell colSpan={2} />
+                                    </TableRow>
+                                  );
+                                })}
+                            </>
+                          </CollapsibleContent>
+                        </>
+                      </Collapsible>
                     );
                   })}
                 </TableBody>

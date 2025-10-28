@@ -7,7 +7,11 @@ import { type Log } from '../../queries/logs';
 import Comment, { CommentPinnedUnpinned } from './Comment';
 import CreateListing from './ListingCreated';
 import ListingEdit from './ListingEdit';
-import Paid from './Paid';
+import MilestoneApprove from './MilestoneApproveReject';
+import MilestoneCreated from './MilestoneCreated';
+import MilestonesEdited from './MilestonesEdited';
+import MilestoneStatusChanged from './MilestoneStatusChanged';
+import Paid, { MarkedAsPaid } from './Paid';
 import PaymentDateEdited from './PaymentDateEdited';
 import PlatformAdminSubmissionStatusEdited from './PlatformAdminSubmissionStatusEdited';
 import ArchivedOrUnarchived from './PlatformArchivedOrUnarchived';
@@ -16,7 +20,7 @@ import SimpleLogMessage from './SimpleLogMessage';
 import SponsorEdit from './SponsorEdit';
 import SponsorMember from './SponsorMember';
 import SponsorTreasury from './SponsorTreasury';
-import SubmissionApproveReject from './SubmissionApproveReject';
+import SubmissionApproveRejectCancelled from './SubmissionApproveReject';
 import SubmissionCreated from './SubmissionCreated';
 import SubmissionEdit from './SubmissionEdit';
 import SubmissionLabelChange from './SubmissionLabelChange';
@@ -30,6 +34,7 @@ export interface LogProperties {
   event: Log;
   onSubmissionClick?: (event: Log) => void;
   onListingClick?: (event: Log) => void;
+  onMilestoneClick?: (event: Log) => void;
 }
 
 const LOG_IMPLEMENTATION_MAPPING: Record<
@@ -50,7 +55,6 @@ const LOG_IMPLEMENTATION_MAPPING: Record<
     SimpleLogMessage({ message: 'Marked listing as Completed' }),
   [EventType.LISTING_UNPUBLISHED]: () =>
     SimpleLogMessage({ message: 'Unpublished listing' }),
-  // TODO: this component should have winners data (userIds, we need to display those usernames)
   [EventType.LISTING_WINNERS_ANNOUNCED]: () =>
     SimpleLogMessage({ message: 'Announced winners' }),
   [EventType.SUBMISSION_CREATED]: SubmissionCreated,
@@ -58,13 +62,13 @@ const LOG_IMPLEMENTATION_MAPPING: Record<
   [EventType.SUBMISSION_NOTE_CHANGED]: SubmissionNoteChanged,
   [EventType.SUBMISSION_LABEL_CHANGED]: SubmissionLabelChange,
   [EventType.SUBMISSION_TOGGLED_WINNER]: SubmissionToggledWinner,
-  [EventType.SUBMISSION_APPROVED]: SubmissionApproveReject,
-  [EventType.SUBMISSION_REJECTED]: SubmissionApproveReject,
+  [EventType.SUBMISSION_APPROVED]: SubmissionApproveRejectCancelled,
+  [EventType.SUBMISSION_REJECTED]: SubmissionApproveRejectCancelled,
+  [EventType.SUBMISSION_CANCELLED]: SubmissionApproveRejectCancelled,
   [EventType.SUBMISSION_TREASURY_CREATED]: TreasuryProposal,
   [EventType.SUBMISSION_PAYMENT_DATE_EDITED]: PaymentDateEdited,
   [EventType.SUBMISSION_PAID]: Paid,
-  [EventType.SUBMISSION_MANUAL_PAYMENT_ADDED]: () =>
-    SimpleLogMessage({ message: 'Marked as paid manually' }),
+  [EventType.SUBMISSION_MANUAL_PAYMENT_ADDED]: MarkedAsPaid,
   [EventType.SUBMISSION_MANUAL_PAYMENT_UPDATED]: SubmissionManualPaymentUpdated,
   [EventType.COMMENT_ADDED]: Comment,
   [EventType.COMMENT_DELETED]: Comment,
@@ -84,6 +88,10 @@ const LOG_IMPLEMENTATION_MAPPING: Record<
     const data = props.event.data as EventDataMap[EventType.AUTOMATION_LOG];
     return SimpleLogMessage({ message: data.message });
   },
+  [EventType.MILESTONE_CREATED]: MilestoneCreated,
+  [EventType.MILESTONE_STATUS_UPDATED]: MilestoneStatusChanged,
+  [EventType.MILESTONE_APPROVED]: MilestoneApprove,
+  [EventType.MILESTONES_EDITED]: MilestonesEdited,
 };
 
 export default LOG_IMPLEMENTATION_MAPPING;

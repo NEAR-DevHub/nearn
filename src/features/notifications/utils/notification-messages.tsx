@@ -1,6 +1,8 @@
 import { CommentType } from '@prisma/client';
 import dayjs from 'dayjs';
 
+import { nthLabelGenerator } from '@/utils/rank';
+
 import { WinnerFeedImage } from '@/features/feed/components/WinnerFeedImage';
 
 import { type Notification } from '../queries/useNotifications';
@@ -268,6 +270,46 @@ export function getNotificationAction(
         actor: 'platform',
         message: 'New product updates and news email has been sent to you',
         link: '/',
+      };
+    case NotificationType.MILESTONES_EDITED:
+      return {
+        actor: 'sponsor',
+        message: `updated milestones`,
+        link: `/${notification?.sponsor?.slug}/${notification?.listing?.sequentialId}/${notification?.submission?.sequentialId}`,
+      };
+    case NotificationType.MILESTONE_CREATED:
+      const eventDataMilestone =
+        notification.data as NotificationDataMap['MILESTONE_CREATED'];
+      return {
+        actor: 'sponsor',
+        message: `set payment type: ${
+          eventDataMilestone?.useSingleMilestone
+            ? 'Full payment'
+            : 'Milestone-based'
+        }`,
+        link: `/${notification?.sponsor?.slug}/${notification?.listing?.sequentialId}/${notification?.submission?.sequentialId}`,
+      };
+    case NotificationType.MILESTONE_APPROVED:
+      return {
+        actor: 'sponsor',
+        message: `approved ${nthLabelGenerator(notification.milestone?.milestoneIndex || 1)} milestone`,
+        link: `/${notification?.sponsor?.slug}/${notification?.listing?.sequentialId}/${notification?.submission?.sequentialId}`,
+      };
+    case NotificationType.SUBMISSION_CANCELLED:
+      const eventDataCancelled =
+        notification.data as NotificationDataMap['SUBMISSION_CANCELLED'];
+      return {
+        actor: 'sponsor',
+        message: `has cancelled remaining milestones`,
+        link: `/${notification?.sponsor?.slug}/${notification?.listing?.sequentialId}/${notification?.submission?.sequentialId}`,
+        subtitle: eventDataCancelled?.reason,
+      };
+    case NotificationType.SPONSOR_MILESTONE_DEADLINE_IS_COMING_UP:
+    case NotificationType.MILESTONE_DEADLINE_IS_COMING_UP:
+      return {
+        actor: 'platform',
+        message: `Reminder! ${notification?.milestone?.milestoneIndex} milestone deadline is coming up`,
+        link: `/${notification?.sponsor?.slug}/${notification?.listing?.sequentialId}/${notification?.submission?.sequentialId}`,
       };
   }
 }

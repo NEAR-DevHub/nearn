@@ -60,7 +60,7 @@ export function TokenLabel({
         <img
           src={token.icon}
           alt={token.tokenSymbol}
-          className={cn('mr-1 block h-4 w-4', classNames?.icon)}
+          className={cn('mr-1 block h-4 w-4 rounded-full', classNames?.icon)}
         />
       )}
       {typeof amount === 'number' && !isNaN(amount) && (

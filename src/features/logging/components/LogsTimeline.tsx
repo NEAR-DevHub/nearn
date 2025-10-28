@@ -88,6 +88,11 @@ const eventIcons: Record<EventType, React.ReactNode> = {
   ),
   [EventType.AUTOMATION_LOG]: <RefreshCcw className="h-4 w-4" />,
   [EventType.SCOUT_INVITE]: <UserCog className="h-4 w-4" />,
+  [EventType.MILESTONE_CREATED]: <Plus className="h-4 w-4" />,
+  [EventType.MILESTONE_STATUS_UPDATED]: <Pencil className="h-4 w-4" />,
+  [EventType.MILESTONE_APPROVED]: <Check className="h-4 w-4" />,
+  [EventType.SUBMISSION_CANCELLED]: <X className="h-4 w-4" />,
+  [EventType.MILESTONES_EDITED]: <Pencil className="h-4 w-4" />,
 };
 
 export default function LogsTimeline({
@@ -125,7 +130,12 @@ export default function LogsTimeline({
             return false;
           } else if (
             log.eventType === EventType.SUBMISSION_APPROVED &&
-            log.listing?.type !== 'sponsorship'
+            log.listing?.type === 'bounty'
+          ) {
+            return false;
+          } else if (
+            log.eventType === EventType.LISTING_WINNERS_ANNOUNCED &&
+            log.listing?.type === 'project'
           ) {
             return false;
           }

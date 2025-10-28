@@ -5,6 +5,14 @@ export const listingToStatus = (listing: ListingFormData): ListingStatus => {
     if (listing.isPublished) {
       if (listing.isWinnersAnnounced) {
         if (
+          listing?.isWinnersAnnounced &&
+          (listing.totalWinnersSelected === 0 ||
+            listing.totalWinnersSelected !== listing.totalPaymentsMade) &&
+          listing.type === 'project'
+        )
+          return 'work in progress';
+
+        if (
           listing.totalWinnersSelected &&
           listing.totalWinnersSelected !== listing.totalPaymentsMade
         ) {

@@ -45,6 +45,7 @@ export async function createNotification<T extends NotificationType>(
   entities: {
     actorId?: string | null;
     listingId?: string | null;
+    milestoneId?: string | null;
     submissionId?: string | null;
     commentId?: string | null;
     powId?: string | null;
@@ -147,6 +148,7 @@ const getEntities = (event: Log) => {
     commentId: event.commentId,
     powId: event.powId,
     actorId: event.actorId,
+    milestoneId: event.milestoneId,
   };
 };
 
@@ -479,7 +481,49 @@ const mapping: Record<EventType, ((event: Log) => Promise<void>) | null> = {
       getEntities(event),
     );
   },
+  [EventType.MILESTONE_CREATED]: async (event) => {
+    const eventData = event.data as EventDataMap[EventType.MILESTONE_CREATED];
+    await createNotification(
+      NotificationType.MILESTONE_CREATED,
+      NotificationRelationType.TALENT,
+      event.submission?.userId!,
+      getEntities(event),
+      {
+        useSingleMilestone: eventData?.useSingleMilestone,
+      },
+    );
+  },
+  [EventType.MILESTONE_APPROVED]: async (event) => {
+    await createNotification(
+      NotificationType.MILESTONE_APPROVED,
+      NotificationRelationType.TALENT,
+      event.submission?.userId!,
+      getEntities(event),
+    );
+  },
+  [EventType.MILESTONES_EDITED]: async (event) => {
+    await createNotification(
+      NotificationType.MILESTONES_EDITED,
+      NotificationRelationType.TALENT,
+      event.submission?.userId!,
+      getEntities(event),
+    );
+  },
+  [EventType.SUBMISSION_CANCELLED]: async (event) => {
+    await createNotification(
+      NotificationType.SUBMISSION_CANCELLED,
+      NotificationRelationType.TALENT,
+      event.submission?.userId!,
+      getEntities(event),
+      {
+        reason: (event.data as EventDataMap[EventType.SUBMISSION_CANCELLED])
+          .reason,
+      },
+    );
+  },
+
   // We don't need to send notifications for these events
+  [EventType.MILESTONE_STATUS_UPDATED]: noNotification,
   [EventType.SPONSOR_TREASURY_ADDED]: noNotification,
   [EventType.SPONSOR_TREASURY_REMOVED]: noNotification,
   [EventType.SPONSOR_MEMBER_REMOVED]: noNotification,

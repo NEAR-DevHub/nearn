@@ -24,10 +24,8 @@ export const TokenInput = React.forwardRef<
       return;
     }
 
-    const numericValue = inputValue.replace(/[^0-9]/g, '');
-    const finalValue = numericValue ? Number(numericValue) : null;
-
-    onChange?.(finalValue);
+    const numeric = Number(inputValue);
+    onChange?.(Number.isNaN(numeric) ? null : numeric);
   };
 
   const isFiat = token === 'Fiat';
@@ -62,17 +60,10 @@ export const TokenInput = React.forwardRef<
         ref={ref}
         onChange={handleInputChange}
         type="number"
-        inputMode="numeric"
-        pattern="[0-9]*"
+        inputMode="decimal"
+        step="any"
         value={value ?? ''}
         min="0"
-        onKeyDown={(e) => {
-          if (
-            !/[0-9]|\Backspace|\Tab|\Delete|\ArrowLeft|\ArrowRight/.test(e.key)
-          ) {
-            e.preventDefault();
-          }
-        }}
         {...props}
       />
     </div>

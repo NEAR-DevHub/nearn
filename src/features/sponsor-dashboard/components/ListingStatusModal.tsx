@@ -8,12 +8,14 @@ import { getColorStyles } from '@/features/listings/utils/getColorStyles';
 
 interface ListingStatusModalProps {
   isOpen: boolean;
+  type?: 'bounty' | 'project' | 'sponsorship' | 'hackathon';
   onClose: () => void;
 }
 
 export const ListingStatusModal = ({
   isOpen,
   onClose,
+  type,
 }: ListingStatusModalProps) => {
   const { data: session } = useSession();
   const isGod = session?.user?.role === 'GOD';
@@ -32,11 +34,7 @@ export const ListingStatusModal = ({
       description:
         'The submission deadline has passed, and the sponsor is reviewing submissions.',
     },
-    {
-      status: 'Payment Pending',
-      description:
-        'The sponsor has selected recipient(s), but payment or verification is pending.',
-    },
+
     {
       status: 'Completed',
       description:
@@ -47,6 +45,20 @@ export const ListingStatusModal = ({
     statusGuide.push({
       status: 'Deleted',
       description: 'The listing has been hidden from the platform.',
+    });
+  }
+  if (!type || type === 'bounty') {
+    statusGuide.splice(3, 0, {
+      status: 'Payment Pending',
+      description:
+        'The sponsor has selected recipient(s), but payment or verification is pending.',
+    });
+  }
+  if (!type || type !== 'bounty') {
+    statusGuide.splice(3, 0, {
+      status: 'Work in Progress',
+      description:
+        'The sponsor selected the talent, and they have started working on the project',
     });
   }
 

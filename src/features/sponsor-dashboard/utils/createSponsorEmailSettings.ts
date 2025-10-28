@@ -40,6 +40,7 @@ export async function createSponsorEmailSettings(
   const categories = new Set([
     'SUBMISSION_CREATED',
     'SUBMISSION_EDITED',
+    'SPONSOR_MILESTONE_DEADLINE_IS_COMING_UP',
     'LISTING_COMMENT',
     'DEADLINE_EXCEEDED_BY_WEEK',
     'NOTE_CREATED',

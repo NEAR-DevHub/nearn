@@ -1,0 +1,55 @@
+import { z } from 'zod';
+
+export const allDeadlineShouldBeConsecutive = (
+  val: { deadline: string | Date }[],
+  ctx: z.RefinementCtx,
+) => {
+  const deadlines = val.map((milestone) => new Date(milestone.deadline!));
+  for (let i = 1; i < deadlines.length; i++) {
+    if (deadlines[i]!.getTime() <= deadlines[i - 1]!.getTime()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: [i, 'deadline'],
+        message: 'Due date must be after the previous date',
+      });
+    }
+  }
+};
+
+export const milestoneSchema = z.object({
+  title: z
+    .string()
+    .min(1, 'Title is required')
+    .max(100, 'Title must be less than 100 characters'),
+  description: z.string().optional(),
+  deadline: z.string().datetime(),
+  reward: z.number().positive('Reward must be greater than 0'),
+});
+
+export const createMilestonesSchema = z.object({
+  submissionId: z.string().uuid(),
+  useSingleMilestone: z.boolean(),
+  milestones: z
+    .array(milestoneSchema)
+    .superRefine(allDeadlineShouldBeConsecutive)
+    .optional(),
+});
+
+export const editMilestonesSchema = z.object({
+  submissionId: z.string().uuid(),
+  milestones: z
+    .array(milestoneSchema)
+    .min(1)
+    .superRefine(allDeadlineShouldBeConsecutive),
+});
+
+export const rejectSchema = z.object({
+  submissionId: z.string().uuid(),
+  reason: z
+    .string()
+    .min(1, 'Reason is required')
+    .max(500, 'Reason must be less than 500 characters'),
+});
+
+export type MilestoneFormData = z.infer<typeof milestoneSchema>;
+export type CreateMilestonesData = z.infer<typeof createMilestonesSchema>;

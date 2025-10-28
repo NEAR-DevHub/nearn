@@ -1,68 +1,44 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@radix-ui/react-tabs';
-import { useQuery } from '@tanstack/react-query';
 import { useAtom } from 'jotai';
 import {
-  ArrowRight,
-  Copy,
-  DollarSign,
-  ExternalLink,
+  Clock2,
   Info,
-  Link2,
   Loader2,
+  MessageSquare,
+  NotebookText,
   Pencil,
 } from 'lucide-react';
-import Image from 'next/image';
-import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import router from 'next/router';
 import React, {
   type Dispatch,
-  Fragment,
   type SetStateAction,
   useEffect,
   useRef,
   useState,
 } from 'react';
-import { MdOutlineAccountBalanceWallet, MdOutlineMail } from 'react-icons/md';
-import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
-import { KycComponent } from '@/components/ui/KycComponent';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
 import { Tooltip } from '@/components/ui/tooltip';
-import { tokenList } from '@/constants/tokenList';
-import { useClipboard } from '@/hooks/use-clipboard';
+import { type MilestoneWithUser } from '@/interface/submission';
 import type { User } from '@/interface/user';
-import { getSubmissionUrl } from '@/utils/bounty-urls';
 import { cn } from '@/utils/cn';
 import { setupCommentLinking } from '@/utils/comment-highlighting';
 import { dayjs } from '@/utils/dayjs';
-import { getURLSanitized } from '@/utils/getURLSanitized';
-import { truncatePublicKey } from '@/utils/truncatePublicKey';
-import { truncateString } from '@/utils/truncateString';
+import { getSubmissionPaymentStatus } from '@/utils/milestone-helpers';
 
 import { Comments } from '@/features/comments/components/Comments';
 import { useCommentCount } from '@/features/comments/queries/comment-count';
+import { PaymentSetupDialog } from '@/features/listing-payment-setup/components/PaymentSetupDialog';
 import type { Listing } from '@/features/listings/types';
 import LogsTimeline from '@/features/logging/components/LogsTimeline';
 import { useGetLogsInfinite } from '@/features/logging/queries';
-import {
-  Discord,
-  GitHub,
-  Linkedin,
-  Telegram,
-  Twitter,
-  Website,
-} from '@/features/social/components/SocialIcons';
-import { EarnAvatar } from '@/features/talent/components/EarnAvatar';
 import TreasuryStatus from '@/features/treasury/components/TreasuryStatus';
 
-import { treasuryProposalStatusQuery } from '../../../treasury/queries/treasuryProposalStatus';
 import { selectedSubmissionAtom } from '../../atoms';
 import { type SubmissionWithListingUser } from '../../queries/dashboard-submissions';
+import MilestoneCompletionLine from '../Milestones/CompletionLine';
+import { PaymentButton } from '../Shared/PaymentButton';
 import { Details } from './Details';
 import { DisplayPayment } from './DisplayPayment';
 import NearTreasuryPaymentModal from './Modals/NearTreasuryPaymentModal';
@@ -70,6 +46,7 @@ import { SelectWinnersGuide } from './Modals/SelectWinnersGuide';
 import { UpdatePaymentDateModal } from './Modals/UpdateDateModal';
 import { SelectLabel } from './SelectLabel';
 import { SelectWinner } from './SelectWinner';
+import { SubmissionSocialRow, SubmissionTalent } from './SubmissionTalent';
 
 interface Props {
   bounty: Listing | undefined;
@@ -86,115 +63,251 @@ interface Props {
   onVerifyPayment: () => void;
 }
 
-interface PaymentButtonProps {
-  treasury?: {
-    link?: string;
-    proposalId?: number;
-    dao?: string;
-  };
-  proposalStatus?: string;
-  isLoadingProposalStatus: boolean;
+interface SubmissionMenuProps {
+  submissions: SubmissionWithListingUser[];
+  bounty: Listing | undefined;
+  usedPositions: number[];
+  isHackathonPage: boolean;
+  onWinnersAnnounceOpen: () => void;
+  remainings: { podiums: number; bonus: number } | null;
+  setRemainings: Dispatch<
+    SetStateAction<{ podiums: number; bonus: number } | null>
+  >;
+  isMultiSelectOn: boolean;
   onVerifyPayment: () => void;
-  setIsNearTreasuryPaymentModalOpen: Dispatch<SetStateAction<boolean>>;
   onManualPaymentOpen: () => void;
 }
 
-export const PaymentButton = ({
-  treasury,
-  proposalStatus,
-  isLoadingProposalStatus,
+export function SubmissionMenu({
+  submissions,
+  bounty,
+  usedPositions,
+  isHackathonPage,
+  onWinnersAnnounceOpen,
+  remainings,
+  setRemainings,
+  isMultiSelectOn,
   onVerifyPayment,
-  setIsNearTreasuryPaymentModalOpen,
   onManualPaymentOpen,
-}: PaymentButtonProps) => {
-  if (isLoadingProposalStatus) {
-    return <></>;
+}: SubmissionMenuProps) {
+  const [isNearTreasuryPaymentModalOpen, setIsNearTreasuryPaymentModalOpen] =
+    useState(false);
+  const [selectedSubmission, setSelectedSubmission] = useAtom(
+    selectedSubmissionAtom,
+  );
+  const [isPaymentSetupDialogOpen, setIsPaymentSetupDialogOpen] =
+    useState(false);
+
+  const afterAnnounceDate =
+    bounty?.type === 'hackathon'
+      ? dayjs().isAfter(bounty?.Hackathon?.announceDate)
+      : true;
+
+  const isProject = bounty?.type === 'project';
+  const isSponsorship = bounty?.type === 'sponsorship';
+
+  const milestones = selectedSubmission?.Milestones || [];
+  const milestone = milestones[0];
+  const paymentStatus = selectedSubmission
+    ? getSubmissionPaymentStatus(selectedSubmission)
+    : null;
+
+  let announceWinnerText =
+    'All winners have been selected. Click the button to announce them and move to the payment stage';
+  if (bounty?.isWinnersAnnounced) {
+    announceWinnerText =
+      'You cannot change the winners once the results are published!';
   }
 
-  if (proposalStatus === 'InProgress' || proposalStatus === 'Approved') {
-    return (
-      <Link
-        href={getURLSanitized(treasury?.link || '')}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
+  if (remainings?.podiums !== 0 || remainings?.bonus !== 0) {
+    announceWinnerText =
+      'Allocate the whole prize pool or edit the listing to shrink it before you can continue';
+  }
+
+  const renderPaymentSection = () => {
+    if (
+      !selectedSubmission?.isWinner ||
+      !selectedSubmission?.winnerPosition ||
+      (paymentStatus?.isPaid && milestones.length === 1)
+    ) {
+      return null;
+    }
+
+    if (!(bounty?.isWinnersAnnounced || isSponsorship)) {
+      return null;
+    }
+
+    // Case 1: No milestones -> Show PaymentSetupDialog
+    if (milestones.length === 0) {
+      return (
         <Button
-          variant="outline"
-          className="ph-no-capture min-w-[120px] text-slate-500"
+          onClick={() => setIsPaymentSetupDialogOpen(true)}
+          className="ph-no-capture min-w-[150px]"
         >
-          View Pending Request
-          <ExternalLink className="ml-2 h-4 w-4" />
+          Payment Setup
         </Button>
-      </Link>
-    );
-  }
+      );
+    }
 
-  const paymentTypes = [
-    {
-      label: 'Add Payment Link',
-      description:
-        'Pay the contributor using your preferred method, then paste the transaction link here.',
-      icon: <Link2 className="mx-0.5 mt-0.5 h-4 w-4 shrink-0 text-slate-500" />,
-      onClick: () => onVerifyPayment(),
-    },
-    {
-      label: 'Add Manual Payment',
-      description:
-        'Make the payment via your preferred channel, then enter the transaction manually.',
-      icon: (
-        <DollarSign className="mx-0.5 mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
-      ),
-      onClick: () => onManualPaymentOpen(),
-    },
-    {
-      label: 'Pay with NEAR Treasury',
-      description:
-        'Create a payment request through NEAR Treasury and approve it on-chain.',
-      icon: (
-        <Image
-          src="/assets/NEARTreasuryLogo.svg"
-          alt="NEAR Treasury Logo"
-          width={20}
-          height={20}
+    // Case 2: 1 Milestone -> Use existing logic
+    if (milestones.length === 1) {
+      return (
+        <PaymentButton
+          milestone={milestone as MilestoneWithUser}
+          onVerifyPayment={onVerifyPayment}
+          setIsNearTreasuryPaymentModalOpen={setIsNearTreasuryPaymentModalOpen}
+          onManualPaymentOpen={onManualPaymentOpen}
         />
-      ),
-      onClick: () => setIsNearTreasuryPaymentModalOpen(true),
-    },
-  ];
+      );
+    }
+
+    // Case 3: >1 Milestone -> Show "View Milestones" button with status
+    return (
+      <div className="flex items-center gap-2">
+        <MilestoneCompletionLine submission={selectedSubmission} />
+        <Button
+          onClick={() => {
+            router.replace(
+              {
+                pathname: router.pathname,
+                query: { ...router.query, pageTab: 'milestones' },
+              },
+              undefined,
+              { shallow: true },
+            );
+          }}
+          className="ph-no-capture w-full min-w-[120px]"
+          variant="default"
+        >
+          Manage Milestones
+        </Button>
+      </div>
+    );
+  };
 
   return (
-    <Popover>
-      <PopoverTrigger>
-        <Button className="ph-no-capture min-w-[120px] disabled:cursor-not-allowed">
-          <DollarSign className="mr-2 h-4 w-4" />
-          Complete Payment
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent
-        side="bottom"
-        align="end"
-        className="flex w-full max-w-[376px] flex-col gap-2 p-2"
+    <>
+      <div
+        className={'ph-no-capture flex w-full items-center justify-end gap-2'}
       >
-        {paymentTypes.map((paymentType) => (
-          <Button
-            key={paymentType.label}
-            onClick={paymentType.onClick}
-            variant="ghost"
-            className="flex h-full w-full items-start gap-2 rounded-sm p-2"
-          >
-            {paymentType.icon}
-            <div className="flex flex-col text-left">
-              <p className="font-medium text-slate-500">{paymentType.label}</p>
-              <p className="text-wrap text-sm text-slate-400">
-                {paymentType.description}
-              </p>
-            </div>
-          </Button>
-        ))}
-      </PopoverContent>
-    </Popover>
+        {renderPaymentSection()}
+
+        {selectedSubmission?.isWinner &&
+          selectedSubmission?.winnerPosition &&
+          paymentStatus?.isPaid &&
+          milestones.length === 1 && (
+            <DisplayPayment
+              milestone={milestone as MilestoneWithUser}
+              listing={bounty as Listing}
+              isSponsorView={true}
+            />
+          )}
+
+        {selectedSubmission?.status === 'Pending' && (
+          <SelectLabel listingSlug={bounty?.slug!} />
+        )}
+
+        {!bounty?.isWinnersAnnounced &&
+          selectedSubmission?.status === 'Pending' && (
+            <>
+              <SelectWinner
+                onWinnersAnnounceOpen={onWinnersAnnounceOpen}
+                isMultiSelectOn={!!isMultiSelectOn}
+                bounty={bounty}
+                usedPositions={usedPositions}
+                setRemainings={setRemainings}
+                submissions={submissions}
+                isHackathonPage={isHackathonPage}
+              />
+              {!isProject && !isSponsorship && (
+                <div className="flex items-center gap-2">
+                  <Tooltip
+                    content={announceWinnerText}
+                    contentProps={{
+                      side: 'bottom',
+                      align: 'center',
+                      className: 'w-[97%]',
+                    }}
+                  >
+                    <Button
+                      className={cn(
+                        'bg-slate-900 hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-gray-500 disabled:hover:bg-gray-500',
+                      )}
+                      disabled={
+                        !afterAnnounceDate ||
+                        isHackathonPage ||
+                        remainings?.podiums !== 0 ||
+                        remainings?.bonus !== 0
+                      }
+                      onClick={onWinnersAnnounceOpen}
+                      variant="default"
+                    >
+                      Announce Winners
+                    </Button>
+                  </Tooltip>
+                  <SelectWinnersGuide />
+                </div>
+              )}
+            </>
+          )}
+      </div>
+
+      {selectedSubmission && (
+        <>
+          <NearTreasuryPaymentModal
+            isOpen={isNearTreasuryPaymentModalOpen}
+            onClose={() => setIsNearTreasuryPaymentModalOpen(false)}
+            milestoneId={milestone?.id || ''}
+            onSuccess={(
+              treasuryLink: string,
+              proposalId: number,
+              dao: string,
+            ) => {
+              setSelectedSubmission((prev) =>
+                prev && prev.id === selectedSubmission?.id
+                  ? {
+                      ...prev,
+                      paymentDetails: {
+                        treasury: { link: treasuryLink, proposalId, dao },
+                      },
+                    }
+                  : prev,
+              );
+            }}
+          />
+
+          {milestones.length === 0 && selectedSubmission?.winnerPosition && (
+            <PaymentSetupDialog
+              open={isPaymentSetupDialogOpen}
+              onOpenChange={setIsPaymentSetupDialogOpen}
+              projectAmount={
+                bounty?.rewards?.[selectedSubmission?.winnerPosition] ?? 0
+              }
+              tokenSymbol={
+                bounty?.token === 'Any'
+                  ? selectedSubmission?.token!
+                  : bounty?.token!
+              }
+              isUsdBased={bounty?.token === 'Any'}
+              submissionId={selectedSubmission?.id}
+              onSave={(milestones: MilestoneWithUser[]) => {
+                setSelectedSubmission((prev) =>
+                  prev && prev.id === selectedSubmission?.id
+                    ? {
+                        ...prev,
+                        Milestones: milestones,
+                      }
+                    : prev,
+                );
+                setIsPaymentSetupDialogOpen(false);
+              }}
+            />
+          )}
+        </>
+      )}
+    </>
   );
-};
+}
 
 export const DoneBy = ({
   doneBy,
@@ -224,16 +337,10 @@ export const SubmissionPanel = ({
   onVerifyPayment,
   onManualPaymentOpen,
 }: Props) => {
-  const afterAnnounceDate =
-    bounty?.type === 'hackathon'
-      ? dayjs().isAfter(bounty?.Hackathon?.announceDate)
-      : true;
-
-  const isProject = bounty?.type === 'project';
-  const isSponsorship = bounty?.type === 'sponsorship';
   const [selectedSubmission, setSelectedSubmission] = useAtom(
     selectedSubmissionAtom,
   );
+
   const { data: commentData, refetch: refetchCommentCount } = useCommentCount(
     selectedSubmission?.id,
   );
@@ -275,389 +382,98 @@ export const SubmissionPanel = ({
     refId: selectedSubmission?.id,
   });
 
-  const { onCopy: onCopyEmail } = useClipboard(
-    selectedSubmission?.user?.email || '',
-  );
-
-  const { onCopy: onCopyPublicKey } = useClipboard(
-    selectedSubmission?.user?.publicKey || '',
-  );
-
-  const { onCopy: onCopySubmissionLink } = useClipboard(
-    getSubmissionUrl(selectedSubmission, bounty),
-  );
-
-  const [isNearTreasuryPaymentModalOpen, setIsNearTreasuryPaymentModalOpen] =
-    useState(false);
-
-  const handleCopySubmissionLink = () => {
-    if (selectedSubmission?.id) {
-      onCopySubmissionLink();
-      toast.success('Submission link copied', {
-        duration: 1500,
-      });
-    }
-  };
-  const handleCopyEmail = () => {
-    if (selectedSubmission?.user?.email) {
-      onCopyEmail();
-      toast.success('Email copied', {
-        duration: 1500,
-      });
-    }
-  };
-
-  const handleCopyPublicKey = () => {
-    if (selectedSubmission?.user?.publicKey) {
-      onCopyPublicKey();
-      toast.success('Wallet address copied', {
-        duration: 1500,
-      });
-    }
-  };
   const [isUpdateDateModalOpen, setIsUpdateDateModalOpen] = useState(false);
 
   const handleUpdatePaymentDate = () => {
     setIsUpdateDateModalOpen(true);
   };
 
-  const treasury = selectedSubmission?.paymentDetails?.treasury;
-
-  const { data: proposalStatus, isLoading: isLoadingProposalStatus } = useQuery(
-    treasuryProposalStatusQuery(treasury?.dao, treasury?.proposalId ?? 0),
-  );
-
-  const socials = [
-    {
-      icon: (
-        <Telegram
-          key="telegram"
-          className="h-[0.9rem] w-[0.9rem] text-slate-600"
-          link={selectedSubmission?.user?.telegram || ''}
-        />
-      ),
-      isVisible: !!selectedSubmission?.user?.telegram,
-    },
-    {
-      icon: (
-        <Twitter
-          key="twitter"
-          className="h-[0.9rem] w-[0.9rem] text-slate-600"
-          link={selectedSubmission?.user?.twitter || ''}
-        />
-      ),
-      isVisible: !!selectedSubmission?.user?.twitter,
-    },
-    {
-      icon: (
-        <Discord
-          key="discord"
-          className="h-[0.9rem] w-[0.9rem] text-slate-600"
-          link={selectedSubmission?.user?.discord || ''}
-        />
-      ),
-      isVisible: !!selectedSubmission?.user?.discord,
-    },
-    {
-      icon: (
-        <Linkedin
-          key="linkedin"
-          className="h-[0.9rem] w-[0.9rem] text-slate-600"
-          link={selectedSubmission?.user?.linkedin || ''}
-        />
-      ),
-      isVisible: !!selectedSubmission?.user?.linkedin,
-    },
-    {
-      icon: (
-        <GitHub
-          key="github"
-          className="h-[0.9rem] w-[0.9rem] text-slate-600"
-          link={selectedSubmission?.user?.github || ''}
-        />
-      ),
-      isVisible: !!selectedSubmission?.user?.github,
-    },
-    {
-      icon: (
-        <Website
-          key="website"
-          className="h-[0.9rem] w-[0.9rem] text-slate-600"
-          link={selectedSubmission?.user?.website || ''}
-        />
-      ),
-      isVisible: !!selectedSubmission?.user?.website,
-    },
-  ];
-
-  const isUsdBased = bounty?.token === 'Any';
-  const tokenName = isUsdBased ? selectedSubmission?.token : bounty?.token;
-  const token = tokenList.find((s) => s.tokenSymbol === tokenName);
-
-  let amount =
-    bounty?.compensationType === 'fixed' ? 0 : selectedSubmission?.ask;
-  if (selectedSubmission?.isWinner && selectedSubmission?.winnerPosition) {
-    amount = bounty?.rewards?.[selectedSubmission?.winnerPosition] ?? 0;
-  }
-
-  let announceWinnerText =
-    'All winners have been selected. Click the button to announce them and move to the payment stage';
-  if (bounty?.isWinnersAnnounced) {
-    announceWinnerText =
-      'You cannot change the winners once the results are published!';
-  }
-
-  if (remainings?.podiums !== 0 || remainings?.bonus !== 0) {
-    announceWinnerText =
-      'Allocate the whole prize pool or edit the listing to shrink it before you can continue';
-  }
+  const milestone =
+    selectedSubmission?.Milestones && selectedSubmission?.Milestones.length > 0
+      ? selectedSubmission?.Milestones[0]
+      : null;
 
   return (
     <>
-      <div className="sticky top-[3rem] w-full">
+      <div className="sticky top-[3rem] flex h-full w-full flex-col">
         {submissions.length ? (
           <>
             <div className="rounded-t-xl border-b border-slate-200 bg-white py-1">
               <div className="flex w-full items-center justify-between px-4 pt-3">
-                <div className="flex w-full items-center gap-2">
-                  <EarnAvatar
-                    className="h-10 w-10"
-                    id={selectedSubmission?.user?.id}
-                    avatar={selectedSubmission?.user?.photo || undefined}
-                  />
-                  <div>
-                    <p className="flex w-full items-center whitespace-nowrap font-medium text-slate-900">
-                      {selectedSubmission?.user?.name}
-                      <span className="text-slate-500">
-                        {`'s Submission #${selectedSubmission?.sequentialId}`}
-                      </span>
-                      <Button
-                        variant="ghost"
-                        className="mb-1 ml-2 h-4 w-4 p-0 text-slate-500 hover:text-slate-500"
-                        onClick={handleCopySubmissionLink}
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                      <Link
-                        href={getURLSanitized(
-                          getSubmissionUrl(selectedSubmission, bounty),
-                        )}
-                        target="_blank"
-                      >
-                        <ExternalLink className="mb-1 ml-2 h-4 w-4 text-slate-500" />
-                      </Link>
-                    </p>
-                    <Link
-                      className="flex w-full items-center whitespace-nowrap text-xs font-medium text-slate-500"
-                      href={`/t/${selectedSubmission?.user?.username}`}
-                    >
-                      View Profile{' '}
-                      <ArrowRight className="inline-block h-3 w-3" />
-                    </Link>
-                  </div>
-                </div>
-                <div
-                  className={
-                    'ph-no-capture flex w-full items-center justify-end gap-2'
-                  }
-                >
-                  {selectedSubmission?.isWinner &&
-                    selectedSubmission?.winnerPosition &&
-                    !selectedSubmission?.isPaid &&
-                    (bounty?.isWinnersAnnounced || isSponsorship) && (
-                      <PaymentButton
-                        treasury={treasury}
-                        proposalStatus={proposalStatus}
-                        isLoadingProposalStatus={isLoadingProposalStatus}
-                        onVerifyPayment={onVerifyPayment}
-                        setIsNearTreasuryPaymentModalOpen={
-                          setIsNearTreasuryPaymentModalOpen
-                        }
-                        onManualPaymentOpen={onManualPaymentOpen}
-                      />
-                    )}
-                  {selectedSubmission?.isWinner &&
-                    selectedSubmission?.winnerPosition &&
-                    selectedSubmission?.isPaid && (
-                      <DisplayPayment
-                        submission={selectedSubmission}
-                        isSponsorView={true}
-                      />
-                    )}
-                  {selectedSubmission?.status === 'Pending' &&
-                    !selectedSubmission?.isPaid && (
-                      <SelectLabel listingSlug={bounty?.slug!} />
-                    )}
+                <SubmissionTalent
+                  submission={selectedSubmission}
+                  bounty={bounty}
+                />
 
-                  {!bounty?.isWinnersAnnounced &&
-                    selectedSubmission?.status === 'Pending' && (
-                      <>
-                        <SelectWinner
-                          onWinnersAnnounceOpen={onWinnersAnnounceOpen}
-                          isMultiSelectOn={!!isMultiSelectOn}
-                          bounty={bounty}
-                          usedPositions={usedPositions}
-                          setRemainings={setRemainings}
-                          submissions={submissions}
-                          isHackathonPage={isHackathonPage}
-                        />
-                        {!isProject && !isSponsorship && (
-                          <div className="flex items-center gap-2">
-                            <Tooltip
-                              content={announceWinnerText}
-                              contentProps={{
-                                side: 'bottom',
-                                align: 'center',
-                                className: 'w-[97%]',
-                              }}
-                            >
-                              <Button
-                                className={cn(
-                                  'bg-slate-900 hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-gray-500 disabled:hover:bg-gray-500',
-                                )}
-                                disabled={
-                                  !afterAnnounceDate ||
-                                  isHackathonPage ||
-                                  remainings?.podiums !== 0 ||
-                                  remainings?.bonus !== 0
-                                }
-                                onClick={onWinnersAnnounceOpen}
-                                variant="default"
-                              >
-                                Announce Winners
-                              </Button>
-                            </Tooltip>
-                            <SelectWinnersGuide />
-                          </div>
-                        )}
-                      </>
-                    )}
-                </div>
-              </div>
-              <div className="ml-auto flex w-fit px-4 py-1 text-xs">
-                <TreasuryStatus
-                  treasury={treasury}
-                  submissionId={selectedSubmission?.id ?? ''}
-                  submissionIsPaid={selectedSubmission?.isPaid ?? false}
-                  updateSubmission={(status) => {
-                    setSelectedSubmission((prev) =>
-                      prev && prev.id === selectedSubmission?.id
-                        ? {
-                            ...prev,
-                            isPaid: true,
-                            paymentDetails: {
-                              ...(status === 'Approved'
-                                ? {
-                                    link: prev.paymentDetails?.treasury?.link,
-                                  }
-                                : {
-                                    treasury: {
-                                      ...prev.paymentDetails?.treasury,
-                                      synced: true,
-                                    },
-                                  }),
-                            },
-                          }
-                        : prev,
-                    );
-                  }}
+                <SubmissionMenu
+                  submissions={submissions}
+                  bounty={bounty}
+                  isMultiSelectOn={isMultiSelectOn ?? false}
+                  usedPositions={usedPositions}
+                  isHackathonPage={isHackathonPage ?? false}
+                  onWinnersAnnounceOpen={onWinnersAnnounceOpen}
+                  remainings={remainings}
+                  setRemainings={setRemainings}
+                  onVerifyPayment={onVerifyPayment}
+                  onManualPaymentOpen={onManualPaymentOpen}
                 />
               </div>
-
-              <div className="flex items-center justify-between px-4 py-2">
-                <div className="flex gap-5">
-                  {!!amount && amount > 0 && (
-                    <div className="flex items-start text-sm font-medium text-slate-950">
-                      <img
-                        src={token?.icon}
-                        alt={token?.tokenSymbol}
-                        className="h-4 w-4 rounded-full"
-                      />
-                      <span className="ml-1">
-                        {isUsdBased && '$'}
-                        {amount.toLocaleString('en-us')}
-                        <span className="text-slate-400">
-                          {isUsdBased && ' to be paid in'}
-                        </span>
-                        <span
-                          className={cn(
-                            'ml-1',
-                            !isUsdBased && 'font-semibold text-slate-400',
-                          )}
-                        >
-                          {token?.tokenSymbol}
-                        </span>
-                      </span>
-                    </div>
-                  )}
-
-                  {selectedSubmission?.user?.publicKey && (
-                    <div className="flex items-center gap-1">
-                      <Tooltip
-                        content={'Click to copy'}
-                        contentProps={{ side: 'right' }}
-                        triggerClassName="flex items-center hover:underline underline-offset-1"
-                      >
-                        <div
-                          className="flex cursor-pointer items-center justify-start gap-1 whitespace-nowrap text-sm text-slate-400 hover:text-slate-500"
-                          onClick={handleCopyPublicKey}
-                          role="button"
-                          tabIndex={0}
-                          aria-label={`Copy public key: ${truncatePublicKey(selectedSubmission.user.publicKey, 20)}`}
-                        >
-                          <MdOutlineAccountBalanceWallet />
-                          <p>
-                            {truncatePublicKey(
-                              selectedSubmission.user.publicKey,
-                              20,
-                            )}
-                          </p>
-                        </div>
-                      </Tooltip>
-                      <div className="mb-0.5">
-                        <KycComponent
-                          address={selectedSubmission?.user?.publicKey}
-                          imageOnly
-                          listingSponsorId={bounty?.sponsorId}
-                        />
-                      </div>
-                    </div>
-                  )}
+              {milestone && (
+                <div className="ml-auto flex w-fit px-4 py-1 text-xs">
+                  <TreasuryStatus
+                    treasury={milestone?.paymentDetails?.treasury}
+                    milestoneId={milestone?.id ?? ''}
+                    milestoneIsPaid={milestone?.status === 'Paid'}
+                    updateSubmission={(status) => {
+                      setSelectedSubmission((prev) =>
+                        prev && prev.id === selectedSubmission?.id
+                          ? {
+                              ...prev,
+                              Milestones:
+                                prev.Milestones?.map((m) => {
+                                  if (m.id === milestone?.id) {
+                                    if (status === 'Approved') {
+                                      return {
+                                        ...m,
+                                        status: 'Paid',
+                                        paidDate: new Date(),
+                                        paymentDetails: {
+                                          ...m.paymentDetails,
+                                          link: m.paymentDetails?.treasury
+                                            ?.link,
+                                        },
+                                      };
+                                    } else {
+                                      return {
+                                        ...m,
+                                        paymentDetails: {
+                                          ...m.paymentDetails,
+                                          treasury: {
+                                            ...m.paymentDetails?.treasury,
+                                            synced: true,
+                                          },
+                                        },
+                                      };
+                                    }
+                                  }
+                                  return m;
+                                }) || [],
+                            }
+                          : prev,
+                      );
+                    }}
+                  />
                 </div>
-
-                <div className="flex items-start gap-5">
-                  {selectedSubmission?.user?.email && (
-                    <Tooltip
-                      content={'Click to copy'}
-                      contentProps={{ side: 'right' }}
-                      triggerClassName="flex items-center hover:underline underline-offset-1"
-                    >
-                      <div
-                        className="flex cursor-pointer items-center justify-start gap-1 text-sm text-slate-400 hover:text-slate-500"
-                        onClick={handleCopyEmail}
-                        role="button"
-                        tabIndex={0}
-                        aria-label={`Copy email: ${selectedSubmission.user.email}`}
-                      >
-                        <MdOutlineMail />
-                        {truncateString(selectedSubmission.user.email, 36)}
-                      </div>
-                    </Tooltip>
-                  )}
-
-                  <div className="flex gap-2">
-                    {socials
-                      .filter((social) => social.isVisible)
-                      .map((social) => (
-                        <Fragment key={social.icon.key}>{social.icon}</Fragment>
-                      ))}
-                  </div>
-                </div>
+              )}
+              <div className="px-4">
+                <SubmissionSocialRow
+                  submission={selectedSubmission}
+                  bounty={bounty}
+                />
               </div>
             </div>
-
-            <div className="flex w-full">
-              <div className="w-2/3">
+            <div className="flex h-full min-h-0 w-full">
+              <div className="flex min-h-0 w-2/3 flex-col">
                 <div className="flex gap-4 px-4 pt-4">
                   <div className="flex items-center">
                     <p className="text-sm text-slate-400">
@@ -693,178 +509,199 @@ export const SubmissionPanel = ({
                         </Tooltip>
                       </div>
                     )}
-                  {selectedSubmission?.isPaid &&
-                    selectedSubmission?.paymentDate && (
-                      <div className="flex items-center">
-                        <Tooltip
-                          content={
-                            <DoneBy
-                              doneBy={
-                                selectedSubmission?.paidByUser as
-                                  | User
-                                  | undefined
-                              }
-                              doneByType="paid"
-                            />
-                          }
-                          contentProps={{ side: 'top' }}
-                          disabled={!selectedSubmission?.paidByUser}
-                        >
-                          <p className="text-sm text-slate-400">
-                            Paid on:{' '}
-                            {dayjs(selectedSubmission.paymentDate).format(
-                              'MMM D, YYYY',
-                            )}
-                          </p>
-                        </Tooltip>
-                        <Button
-                          variant="ghost"
-                          className="h-4 w-4 p-0 hover:bg-transparent"
-                          onClick={handleUpdatePaymentDate}
-                        >
-                          <Pencil className="ml-3 h-4 w-4 text-slate-400" />
-                        </Button>
-                      </div>
-                    )}
+                  {milestone?.status === 'Paid' && (
+                    <div className="flex items-center">
+                      <Tooltip
+                        content={
+                          <DoneBy
+                            doneBy={
+                              selectedSubmission?.Milestones[0]?.paidByUser as
+                                | User
+                                | undefined
+                            }
+                            doneByType="paid"
+                          />
+                        }
+                        contentProps={{ side: 'top' }}
+                        disabled={
+                          !selectedSubmission?.Milestones[0]?.paidByUser
+                        }
+                      >
+                        <p className="text-sm text-slate-400">
+                          Paid on:{' '}
+                          {dayjs(milestone?.paidDate).format('MMM D, YYYY')}
+                        </p>
+                      </Tooltip>
+                      <Button
+                        variant="ghost"
+                        className="h-4 w-4 p-0 hover:bg-transparent"
+                        onClick={handleUpdatePaymentDate}
+                      >
+                        <Pencil className="ml-3 h-4 w-4 text-slate-400" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
                 <Details
                   bounty={bounty}
                   selectedSubmission={selectedSubmission}
                 />
               </div>
-              <div className="w-1/3 border-l">
-                <Tabs defaultValue={activeTab} className="w-full">
-                  <TabsList className="grid h-auto w-full grid-cols-3 rounded-none">
-                    <TabsTrigger
-                      value="notes"
-                      className={cn(
-                        'h-auto rounded-none border-b-2 px-4 py-2 text-muted-foreground data-[state=active]:border-brand-green',
-                      )}
+              <div className="flex h-full min-h-0 w-1/3 flex-col border-l">
+                <Tabs
+                  defaultValue={activeTab}
+                  className="flex h-full w-full flex-col"
+                >
+                  <TabsList className="grid h-auto w-full shrink-0 grid-cols-3 rounded-none">
+                    <Tooltip
+                      content="Internal notes"
+                      triggerClassName="flex h-auto items-center justify-center gap-1 rounded-none text-muted-foreground"
+                      asChild
                     >
-                      Notes:{' '}
-                      {notesData?.count !== undefined ? (
-                        notesData.count
-                      ) : (
-                        <Loader2 className="size-4 animate-spin" />
-                      )}
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="comments"
-                      className={cn(
-                        'flex h-auto items-center justify-center gap-2 rounded-none border-b-2 px-4 py-2 text-muted-foreground data-[state=active]:border-brand-green',
-                      )}
+                      <TabsTrigger
+                        value="notes"
+                        className={cn(
+                          'flex h-auto items-center justify-center rounded-none border-b-2 px-4 py-2 text-muted-foreground aria-[selected=true]:border-brand-green',
+                        )}
+                      >
+                        <NotebookText className="size-4" />
+                        {notesData?.count !== undefined ? (
+                          notesData.count
+                        ) : (
+                          <Loader2 className="size-4 animate-spin" />
+                        )}
+                      </TabsTrigger>
+                    </Tooltip>
+                    <Tooltip
+                      content="Public comments"
+                      triggerClassName="flex h-auto items-center justify-center gap-1 rounded-none text-muted-foreground"
+                      asChild
                     >
-                      Comments:{' '}
-                      {commentData?.count !== undefined ? (
-                        commentData.count
-                      ) : (
-                        <Loader2 className="size-4 animate-spin" />
-                      )}
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="activity"
-                      className={cn(
-                        'h-auto rounded-none border-b-2 px-4 py-2 text-muted-foreground data-[state=active]:border-brand-green',
-                      )}
-                    >
-                      Activity
-                    </TabsTrigger>
+                      <TabsTrigger
+                        value="comments"
+                        className={cn(
+                          'flex h-auto items-center justify-center rounded-none border-b-2 px-4 py-2 text-muted-foreground aria-[selected=true]:border-brand-green',
+                        )}
+                      >
+                        <MessageSquare className="size-4" />
+                        {commentData?.count !== undefined ? (
+                          commentData.count
+                        ) : (
+                          <Loader2 className="size-4 animate-spin" />
+                        )}
+                      </TabsTrigger>
+                    </Tooltip>
+                    <Tooltip content="Submission activity" asChild>
+                      <TabsTrigger
+                        value="activity"
+                        className={cn(
+                          'flex h-auto items-center justify-center gap-1 rounded-none border-b-2 px-4 py-2 text-muted-foreground aria-[selected=true]:border-brand-green',
+                        )}
+                      >
+                        <Clock2 className="size-4" />
+                      </TabsTrigger>
+                    </Tooltip>
                   </TabsList>
 
-                  <TabsContent value="notes" className="p-0">
-                    <div className="max-h-[30rem] overflow-y-auto px-4 py-4 scrollbar-thin scrollbar-track-slate-100 scrollbar-thumb-slate-300">
-                      <div className="flex items-center gap-2 text-slate-500">
-                        <span className="font-semibold">Internal Notes</span>
-                        <Tooltip content="Only visible to your sponsor team. Use this space to leave internal feedback, evaluation notes, or reminders.">
-                          <Info className="size-4 text-slate-300 hover:text-slate-400" />
-                        </Tooltip>
-                      </div>
-                      <div className="mb-6 mt-4" />
-                      <Comments
-                        key={selectedSubmission?.id ?? ''}
-                        hideCount
-                        isAnnounced={false}
-                        listingSlug={bounty?.slug ?? ''}
-                        listingType={bounty?.type ?? ''}
-                        poc={bounty?.poc as User}
-                        sponsorId={bounty?.sponsorId}
-                        isVerified={bounty?.sponsor?.isVerified}
-                        submissionAuthor={selectedSubmission?.user as User}
-                        refId={selectedSubmission?.id ?? ''}
-                        refType={'SUBMISSION'}
-                        type="INTERNAL_SUBMISSION_NOTES"
-                        count={notesData?.count ?? 0}
-                        setCount={() => {
-                          refetchNotes();
-                        }}
-                        take={2}
-                      />
-                    </div>
-                  </TabsContent>
-                  <TabsContent value="comments" className="p-0">
-                    <div className="max-h-[30rem] overflow-y-auto px-4 py-4 scrollbar-thin scrollbar-track-slate-100 scrollbar-thumb-slate-300">
-                      <div className="flex items-center gap-2 text-slate-500">
-                        <span className="font-semibold">Public Comments</span>
-                        <Tooltip content="Comments visible to the contributor and other users. Great for leaving public feedback, asking questions, or acknowledging work.">
-                          <Info className="size-4 text-slate-300 hover:text-slate-400" />
-                        </Tooltip>
-                      </div>
-
-                      <div className="mt-4 flex items-center gap-2 rounded-md bg-amber-50 p-2 text-amber-600">
-                        <Info className="size-4 shrink-0" />
-                        <p className="text-sm">
-                          Visible to all contributors.
-                          <br />
-                          Keep it submission-related.
-                        </p>
-                      </div>
-
-                      <div className="mb-6 mt-4" />
-                      <Comments
-                        key={selectedSubmission?.id ?? ''}
-                        hideCount
-                        isAnnounced={false}
-                        listingSlug={bounty?.slug ?? ''}
-                        listingType={bounty?.type ?? ''}
-                        poc={bounty?.poc as User}
-                        sponsorId={bounty?.sponsorId}
-                        isVerified={bounty?.sponsor?.isVerified}
-                        submissionAuthor={selectedSubmission?.user as User}
-                        refId={selectedSubmission?.id ?? ''}
-                        refType={'SUBMISSION'}
-                        count={commentData?.count ?? 0}
-                        setCount={() => {
-                          refetchCommentCount();
-                        }}
-                        take={2}
-                      />
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="activity" className="p-0">
-                    <div className="flex max-h-[30rem] flex-col gap-4 overflow-y-auto px-4 py-4 scrollbar-thin scrollbar-track-slate-100 scrollbar-thumb-slate-300">
-                      <div className="flex items-center gap-2 font-semibold text-slate-500">
-                        Activity
-                        <Tooltip content="A contributor can only see their own changes to a submission. Changes made by other contributor are not visible.">
-                          <Info className="size-4 text-slate-400" />
-                        </Tooltip>
-                      </div>
-                      <LogsTimeline
-                        logs={logs?.pages.flatMap((page) => page.logs) ?? []}
-                      />
-                      {hasNextPage && (
-                        <div className="flex justify-center">
-                          <Button
-                            variant="outline"
-                            onClick={() => fetchNextPage()}
-                            disabled={isFetchingNextPage}
-                          >
-                            {isFetchingNextPage ? 'Loading...' : 'Load more'}
-                          </Button>
+                  <div className="h-[calc(100vh-400px)] overflow-y-auto scrollbar-thin scrollbar-track-slate-100 scrollbar-thumb-slate-300">
+                    <TabsContent value="notes" className="p-0">
+                      <div className="overflow-y-auto px-4 py-4 scrollbar-thin scrollbar-track-slate-100 scrollbar-thumb-slate-300">
+                        <div className="flex items-center gap-2 text-slate-500">
+                          <span className="font-semibold">Internal Notes</span>
+                          <Tooltip content="Only visible to your sponsor team. Use this space to leave internal feedback, evaluation notes, or reminders.">
+                            <Info className="size-4 text-slate-300 hover:text-slate-400" />
+                          </Tooltip>
                         </div>
-                      )}
-                    </div>
-                  </TabsContent>
+                        <div className="mb-6 mt-4" />
+                        <Comments
+                          key={selectedSubmission?.id ?? ''}
+                          hideCount
+                          isAnnounced={false}
+                          listingSlug={bounty?.slug ?? ''}
+                          listingType={bounty?.type ?? ''}
+                          poc={bounty?.poc as User}
+                          sponsorId={bounty?.sponsorId}
+                          isVerified={bounty?.sponsor?.isVerified}
+                          submissionAuthor={selectedSubmission?.user as User}
+                          refId={selectedSubmission?.id ?? ''}
+                          refType={'SUBMISSION'}
+                          type="INTERNAL_SUBMISSION_NOTES"
+                          count={notesData?.count ?? 0}
+                          setCount={() => {
+                            refetchNotes();
+                          }}
+                          take={2}
+                        />
+                      </div>
+                    </TabsContent>
+                    <TabsContent value="comments" className="p-0">
+                      <div className="px-4 py-4 scrollbar-thin scrollbar-track-slate-100 scrollbar-thumb-slate-300">
+                        <div className="flex items-center gap-2 text-slate-500">
+                          <span className="font-semibold">Public Comments</span>
+                          <Tooltip content="Comments visible to the contributor and other users. Great for leaving public feedback, asking questions, or acknowledging work.">
+                            <Info className="size-4 text-slate-300 hover:text-slate-400" />
+                          </Tooltip>
+                        </div>
+
+                        <div className="mt-4 flex items-center gap-2 rounded-md bg-amber-50 p-2 text-amber-600">
+                          <Info className="size-4 shrink-0" />
+                          <p className="text-sm">
+                            Visible to all contributors.
+                            <br />
+                            Keep it submission-related.
+                          </p>
+                        </div>
+
+                        <div className="mb-6 mt-4" />
+                        <Comments
+                          key={selectedSubmission?.id ?? ''}
+                          hideCount
+                          isAnnounced={false}
+                          listingSlug={bounty?.slug ?? ''}
+                          listingType={bounty?.type ?? ''}
+                          poc={bounty?.poc as User}
+                          sponsorId={bounty?.sponsorId}
+                          isVerified={bounty?.sponsor?.isVerified}
+                          submissionAuthor={selectedSubmission?.user as User}
+                          refId={selectedSubmission?.id ?? ''}
+                          refType={'SUBMISSION'}
+                          count={commentData?.count ?? 0}
+                          setCount={() => {
+                            refetchCommentCount();
+                          }}
+                          take={2}
+                        />
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent
+                      value="activity"
+                      className="min-h-0 w-full flex-1 overflow-hidden p-0"
+                    >
+                      <div className="flex h-full flex-col gap-4 overflow-y-auto px-4 py-4 scrollbar-thin scrollbar-track-slate-100 scrollbar-thumb-slate-300">
+                        <div className="flex items-center gap-2 font-semibold text-slate-500">
+                          Activity
+                          <Tooltip content="A contributor can only see their own changes to a submission. Changes made by other contributor are not visible.">
+                            <Info className="size-4 text-slate-400" />
+                          </Tooltip>
+                        </div>
+                        <LogsTimeline
+                          logs={logs?.pages.flatMap((page) => page.logs) ?? []}
+                        />
+                        {hasNextPage && (
+                          <div className="flex justify-center">
+                            <Button
+                              variant="outline"
+                              onClick={() => fetchNextPage()}
+                              disabled={isFetchingNextPage}
+                            >
+                              {isFetchingNextPage ? 'Loading...' : 'Load more'}
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </TabsContent>
+                  </div>
                 </Tabs>
               </div>
             </div>
@@ -883,9 +720,9 @@ export const SubmissionPanel = ({
       <UpdatePaymentDateModal
         isOpen={isUpdateDateModalOpen}
         onClose={() => setIsUpdateDateModalOpen(false)}
-        submissionId={selectedSubmission?.id || ''}
+        milestoneId={milestone?.id || ''}
         listingId={bounty?.id || ''}
-        currentDate={selectedSubmission?.paymentDate}
+        currentDate={dayjs(milestone?.paidDate).format('YYYY-MM-DD')}
         onSuccess={(date: string) => {
           setSelectedSubmission((prev) =>
             prev && prev.id === selectedSubmission?.id
@@ -894,30 +731,6 @@ export const SubmissionPanel = ({
           );
         }}
       />
-
-      {selectedSubmission && (
-        <NearTreasuryPaymentModal
-          isOpen={isNearTreasuryPaymentModalOpen}
-          onClose={() => setIsNearTreasuryPaymentModalOpen(false)}
-          submissionId={selectedSubmission?.id || ''}
-          onSuccess={(
-            treasuryLink: string,
-            proposalId: number,
-            dao: string,
-          ) => {
-            setSelectedSubmission((prev) =>
-              prev && prev.id === selectedSubmission?.id
-                ? {
-                    ...prev,
-                    paymentDetails: {
-                      treasury: { link: treasuryLink, proposalId, dao },
-                    },
-                  }
-                : prev,
-            );
-          }}
-        />
-      )}
     </>
   );
 };

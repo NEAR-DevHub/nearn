@@ -74,10 +74,15 @@ export const useLogout = () => {
   const queryClient = useQueryClient();
   const setUser = useUserStore((state) => state.setUser);
 
-  return () => {
+  return async () => {
     queryClient.setQueryData(['user'], null);
     setUser(null);
     localStorage.removeItem('user-storage');
-    signOut();
+    const callbackUrl =
+      typeof window !== 'undefined' ? window.location.href : '/';
+    const result = await signOut({ redirect: false, callbackUrl });
+    if (typeof window !== 'undefined') {
+      window.location.assign(result.url);
+    }
   };
 };

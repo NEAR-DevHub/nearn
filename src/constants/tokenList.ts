@@ -66,7 +66,7 @@ export const tokenList: Token[] = [
     mintAddress: 'aaaaaa20d9e0e2461697782ef11675f668207961.factory.bridge.near',
     icon: 'https://s2.coinmarketcap.com/static/img/coins/64x64/14803.png',
     decimals: 18,
-    coingeckoSymbol: 'aurora',
+    coingeckoSymbol: 'aurora-near',
   },
   {
     tokenName: 'JAMBO',

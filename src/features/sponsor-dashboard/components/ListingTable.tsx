@@ -419,7 +419,7 @@ export const ListingTable = ({
                     </TableCell>
                   )}
                   {visibleColumns.prize && (
-                    <TableCell className="mt-0">
+                    <TableCell className="mt-0 min-w-[150px]">
                       <SponsorPrize bounty={listing} smallView={true} />
                     </TableCell>
                   )}
