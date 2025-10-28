@@ -16,7 +16,8 @@ export async function POST(request: Request) {
   try {
     const requestBody = await request.json();
 
-    const { message, submissionId, sponsorId, listingId, type } = requestBody;
+    const { message, milestoneId, submissionId, sponsorId, listingId, type } =
+      requestBody;
 
     await eventLogger.log({
       eventType: EventType.AUTOMATION_LOG,
@@ -25,6 +26,7 @@ export async function POST(request: Request) {
       },
       subType: type,
       entities: {
+        milestoneId,
         submissionId,
         sponsorId,
         listingId,
