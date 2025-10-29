@@ -75,7 +75,7 @@ export const useLogout = () => {
   const setUser = useUserStore((state) => state.setUser);
 
   return () => {
-    queryClient.setQueryData(['user'], null);
+    queryClient.clear();
     setUser(null);
     localStorage.removeItem('user-storage');
     signOut();
