@@ -78,6 +78,6 @@ export const useLogout = () => {
     queryClient.clear();
     setUser(null);
     localStorage.removeItem('user-storage');
-    signOut();
+    signOut({ callbackUrl: '/' });
   };
 };
