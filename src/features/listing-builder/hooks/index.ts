@@ -11,7 +11,6 @@ import { dayjs } from '@/utils/dayjs';
 
 import {
   descriptionKeyAtom,
-  draftQueueAtom,
   hackathonsAtom,
   hideAutoSaveAtom,
   isDraftSavingAtom,
@@ -29,6 +28,13 @@ import {
   createListingRefinements,
 } from '../types/schema';
 import { getListingDefaults, refineReadyListing } from '../utils/form';
+
+const formatDraftData = (data: Partial<ListingFormData>) => {
+  if (data.deadline) {
+    if (!data.deadline.endsWith('Z')) data.deadline += dayjs().format('Z');
+  }
+  return data;
+};
 
 interface UseListingFormReturn extends UseFormReturn<ListingFormData> {
   saveDraft: () => void;
@@ -87,62 +93,22 @@ export const useListingForm = (
   const saveDraftMutation = useAtomValue(saveDraftMutationAtom);
   const submitListingMutation = useAtomValue(submitListingMutationAtom);
   const [, setDraftSaving] = useAtom(isDraftSavingAtom);
-
-  const [queueRef, setQueueRef] = useAtom(draftQueueAtom);
-
   const [, setHideAutoSave] = useAtom(hideAutoSaveAtom);
-  const queueRefRef = useRef(queueRef);
 
-  useEffect(() => {
-    queueRefRef.current = queueRef;
-  }, [queueRef]);
-
-  // queue ensures eeach call for auto save is sent synchronously
-  const processSaveQueue = useCallback(async () => {
+  const saveDraft = useCallback(async () => {
     if (isEditing) return;
     setDraftSaving(true);
-    if (queueRefRef.current.isProcessing) {
-      setQueueRef((q) => ({
-        ...q,
-        shouldProcessNext: true,
-      }));
-      return;
-    }
-
-    setQueueRef((q) => ({
-      ...q,
-      shouldProcessNext: false,
-      isProcessing: true,
-    }));
     try {
-      const dataToSave = getValues();
-
-      if (dataToSave.deadline) {
-        if (!dataToSave.deadline.endsWith('Z'))
-          dataToSave.deadline += dayjs().format('Z');
-      }
+      const listingData = getValues();
+      const dataToSave = formatDraftData(listingData);
       const data = await saveDraftMutation.mutateAsync(dataToSave);
       setHideAutoSave(false);
       formMethods.setValue('id', data.id);
       if (!dataToSave.slug) formMethods.setValue('slug', data.slug);
-      setQueueRef((q) => ({
-        ...q,
-      }));
     } catch (error) {
-      console.log('Error processSaveQueue', error);
+      console.log('Error saving draft', error);
     } finally {
       setDraftSaving(false);
-      setQueueRef((q) => ({
-        ...q,
-        isProcessing: false,
-      }));
-      // Check if we need to process another save
-      if (queueRefRef.current.shouldProcessNext) {
-        // Use setTimeout to break the call stack and ensure queue state is updated
-        setTimeout(() => {
-          void processSaveQueue();
-        }, 0);
-      }
     }
   }, [
     getValues,
@@ -153,19 +119,21 @@ export const useListingForm = (
     isEditing,
   ]);
 
-  const debouncedSaveRef = useRef<ReturnType<typeof debounce>>(undefined);
-
+  const latestSaveDraftRef = useRef<() => void>(saveDraft);
   useEffect(() => {
-    debouncedSaveRef.current = debounce(() => {
-      void processSaveQueue();
-    }, 1000);
-  }, [processSaveQueue]);
+    latestSaveDraftRef.current = saveDraft;
+  }, [saveDraft]);
+
+  const debouncedRef = useRef<ReturnType<typeof debounce> | null>(null);
+  useEffect(() => {
+    debouncedRef.current = debounce(latestSaveDraftRef.current, 1000);
+    return () => debouncedRef.current?.cancel();
+  }, []);
 
   const onChange = useCallback(() => {
     setHideAutoSave(true);
     if (!isEditing) {
-      debouncedSaveRef.current?.cancel();
-      debouncedSaveRef.current?.();
+      debouncedRef.current?.();
     }
   }, [isEditing]);
 
