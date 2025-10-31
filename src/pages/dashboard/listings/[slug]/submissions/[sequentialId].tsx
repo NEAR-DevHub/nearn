@@ -46,6 +46,17 @@ interface Props {
 }
 
 const submissionsPerPage = 10;
+const statusOrder: Record<string, number> = {
+  New: 0,
+  Approved: 1,
+  InProgress: 2,
+  Paid: 3,
+  Shortlisted: 4,
+  Reviewed: 5,
+  Cancelled: 6,
+  Rejected: 7,
+  Spam: 8,
+};
 
 export default function BountySubmissions({ slug, sequentialId }: Props) {
   const router = useRouter();
@@ -158,38 +169,51 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
 
   const filteredSubmissions = useMemo(() => {
     if (!submissions) return [];
-    return submissions.filter((submission: SubmissionWithListingUser) => {
-      const name = submission.user.name?.toLowerCase() || '';
-      const email = submission.user.email?.toLowerCase() || '';
-      const username = submission.user.username?.toLowerCase() || '';
-      const twitter = submission.user.twitter?.toLowerCase() || '';
-      const discord = submission.user.discord?.toLowerCase() || '';
-      const link = submission.link?.toLowerCase() || '';
-      const publicKey = submission.user.publicKey?.toLowerCase() || '';
-      const searchLower = searchText?.toLowerCase() || '';
 
-      const matchesSearch =
-        searchText === '' ||
-        submission.sequentialId?.toString().includes(searchLower) ||
-        name.includes(searchLower) ||
-        email.includes(searchLower) ||
-        username.includes(searchLower) ||
-        publicKey.includes(searchLower) ||
-        twitter.includes(searchLower) ||
-        discord.includes(searchLower) ||
-        link.includes(searchLower) ||
-        (submission.internalNotes ?? []).some((note) =>
-          note.message?.toLowerCase().includes(searchLower),
-        );
+    const filtered = submissions.filter(
+      (submission: SubmissionWithListingUser) => {
+        const name = submission.user.name?.toLowerCase() || '';
+        const email = submission.user.email?.toLowerCase() || '';
+        const username = submission.user.username?.toLowerCase() || '';
+        const twitter = submission.user.twitter?.toLowerCase() || '';
+        const discord = submission.user.discord?.toLowerCase() || '';
+        const link = submission.link?.toLowerCase() || '';
+        const publicKey = submission.user.publicKey?.toLowerCase() || '';
+        const searchLower = searchText?.toLowerCase() || '';
 
-      let matchesLabel = false;
+        const matchesSearch =
+          searchText === '' ||
+          submission.sequentialId?.toString().includes(searchLower) ||
+          name.includes(searchLower) ||
+          email.includes(searchLower) ||
+          username.includes(searchLower) ||
+          publicKey.includes(searchLower) ||
+          twitter.includes(searchLower) ||
+          discord.includes(searchLower) ||
+          link.includes(searchLower) ||
+          (submission.internalNotes ?? []).some((note) =>
+            note.message?.toLowerCase().includes(searchLower),
+          );
 
-      if (filterLabel === 'All') {
-        matchesLabel = true;
-      } else {
-        matchesLabel = filterLabel === sponsorshipSubmissionStatus(submission);
-      }
-      return matchesSearch && matchesLabel;
+        let matchesLabel = false;
+
+        if (filterLabel === 'All') {
+          matchesLabel = true;
+        } else {
+          matchesLabel =
+            filterLabel === sponsorshipSubmissionStatus(submission);
+        }
+        return matchesSearch && matchesLabel;
+      },
+    );
+
+    // Sort by status order
+    return filtered.sort((a, b) => {
+      const statusA = sponsorshipSubmissionStatus(a);
+      const statusB = sponsorshipSubmissionStatus(b);
+      const orderA = statusOrder[statusA] ?? 999; // Put unknown statuses at the end
+      const orderB = statusOrder[statusB] ?? 999;
+      return orderA - orderB;
     });
   }, [submissions, searchText, filterLabel]);
 

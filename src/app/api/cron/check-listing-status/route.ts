@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { checkListingStatus } from '@/cron-jobs/jobs/check-listing-status';
+import { checkMilestoneStatus } from '@/cron-jobs/jobs/check-milestone-status';
 import { verifyCronSecret } from '@/cron-jobs/lib/auth';
 
 export async function GET(request: Request) {
@@ -11,8 +12,15 @@ export async function GET(request: Request) {
   }
 
   try {
-    const result = await checkListingStatus();
-    return NextResponse.json(result, { status: result.success ? 200 : 500 });
+    const [listingStatus, milestoneStatus] = await Promise.all([
+      checkListingStatus(),
+      checkMilestoneStatus(),
+    ]);
+
+    return NextResponse.json(
+      { listingStatus, milestoneStatus },
+      { status: listingStatus.success && milestoneStatus.success ? 200 : 500 },
+    );
   } catch (error) {
     console.error('Cron job error:', error);
     return NextResponse.json(

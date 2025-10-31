@@ -108,14 +108,14 @@ export const SubmissionList = ({
   };
 
   const filters = [
+    'New',
     'Approved',
     'InProgress',
     'Paid',
-    'New',
-    'Reviewed',
     'Shortlisted',
-    'Rejected',
+    'Reviewed',
     'Cancelled',
+    'Rejected',
     'Spam',
   ] as const;
 
@@ -144,7 +144,7 @@ export const SubmissionList = ({
               >
                 <span
                   className={cn(
-                    'inline-flex w-full whitespace-nowrap rounded-full px-3 text-center text-[10px] capitalize',
+                    'mr-auto inline-flex w-fit whitespace-nowrap rounded-full px-3 text-center text-[10px] capitalize',
                     bg,
                     color,
                   )}
