@@ -4,6 +4,7 @@ import parse, {
 } from 'html-react-parser';
 
 import { LinkTextParser } from '@/components/shared/LinkTextParser';
+import { domPurify } from '@/lib/domPurify';
 import { cn } from '@/utils/cn';
 
 const options: HTMLReactParserOptions = {
@@ -36,7 +37,7 @@ export function parseHtml(
   content: string,
   parseOptions: HTMLReactParserOptions = options,
 ) {
-  return parse(content || '', parseOptions);
+  return parse(domPurify(content) || '', parseOptions);
 }
 
 export const InfoBox = ({

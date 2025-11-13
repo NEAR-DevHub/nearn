@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import { domPurify } from '@/lib/domPurify';
 import { cn } from '@/utils/cn';
 
 interface Props {
@@ -88,9 +89,11 @@ export function DescriptionUI({ description, showMoreHeight }: Props) {
           <div className="minimal-tiptap-editor tiptap ProseMirror h-full w-full overflow-visible !px-0 pb-7">
             <div className="tiptap ProseMirror listing-description !mt-0 !px-0">
               {parse(
-                description?.startsWith('"')
-                  ? JSON.parse(description || '')
-                  : (description ?? ''),
+                domPurify(
+                  description?.startsWith('"')
+                    ? JSON.parse(description || '')
+                    : (description ?? ''),
+                ),
                 options,
               )}
             </div>

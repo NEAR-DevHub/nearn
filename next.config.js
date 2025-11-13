@@ -43,6 +43,7 @@ const nextConfig = {
       'zod',
     ],
   },
+  serverExternalPackages: ['isomorphic-dompurify', 'jsdom', 'parse5'],
   async headers() {
     const headers = [];
 
