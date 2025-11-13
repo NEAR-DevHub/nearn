@@ -5,6 +5,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { HELP_URL, PROJECT_NAME } from '@/constants/project';
+import { domPurify } from '@/lib/domPurify';
 import { cn } from '@/utils/cn';
 
 import { maxW } from '../utils/styles';
@@ -72,7 +73,9 @@ export function FAQs() {
                 <span className="flex-1 text-left">{faq.question}</span>
               </AccordionTrigger>
               <AccordionContent className="px-3 pb-4 pt-2 text-base">
-                <div dangerouslySetInnerHTML={{ __html: faq.answer }} />
+                <div
+                  dangerouslySetInnerHTML={{ __html: domPurify(faq.answer) }}
+                />
               </AccordionContent>
             </AccordionItem>
           ))}
