@@ -161,7 +161,9 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
       amount,
     );
 
-    const treasuryLink = `${nearTreasury.frontend}/?page=payments&id=${proposalId}`;
+    const treasuryLink = nearTreasury.frontend.includes('app.neartreasury.com/')
+      ? `${nearTreasury.frontend}/payments?id=${proposalId}`
+      : `${nearTreasury.frontend}/?page=payments&id=${proposalId}`;
     logger.debug(`Updating milestone with ID: ${id}`);
     await prisma.milestone.update({
       where: { id },

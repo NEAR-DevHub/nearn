@@ -13,6 +13,7 @@ const corsMiddleware = cors({
     /\.near\.page$/,
     'https://near.social',
     'https://dev.near.org',
+    'https://app.neartreasury.com',
   ],
   methods: ['GET'],
 });

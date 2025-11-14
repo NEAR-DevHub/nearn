@@ -107,6 +107,13 @@ export default function NearTreasuryIntegration({
     }
   };
 
+  const isApp = sponsorData.nearTreasury?.frontend?.includes(
+    'app.neartreasury.com/',
+  );
+  const settingsUrl = isApp
+    ? `${sponsorData.nearTreasury?.frontend}/settings?`
+    : `${sponsorData.nearTreasury?.frontend}/?page=settings&`;
+
   const showForm =
     !sponsorData.nearTreasury?.frontend ||
     sponsorData.nearTreasury?.frontend === '';
@@ -267,7 +274,10 @@ export default function NearTreasuryIntegration({
             <p className="text-sm text-gray-600">
               Connected with{' '}
               <Link
-                href={`https://${sponsorData.nearTreasury?.frontend}`}
+                href={getURLSanitized(
+                  sponsorData.nearTreasury?.frontend ||
+                    'https://neartreasury.com',
+                )}
                 className="underline underline-offset-[3px]"
                 target="_blank"
               >
@@ -303,7 +313,7 @@ export default function NearTreasuryIntegration({
             was removed from your Treasury, so NEARN can no longer submit
             payment proposals. To fix this, go to{' '}
             <Link
-              href={`${getURLSanitized(sponsorData.nearTreasury?.frontend + '/?page=settings&tab=members&member=nearn-io.near&permissions=requestor') ?? 'https://neartreasury.com'}`}
+              href={`${getURLSanitized(settingsUrl + 'tab=members&member=nearn-io.near&permissions=requestor') ?? 'https://neartreasury.com'}`}
               className="underline underline-offset-[3px]"
               target="_blank"
             >
