@@ -64,7 +64,7 @@ export const InfoBox = ({
         id="reset-des"
         className={cn('h-full w-full overflow-visible', contentClassName)}
       >
-        {parse(content || '', options)}
+        {parseHtml(content || '', options)}
       </div>
     ) : (
       <LinkTextParser text={content || ''} />
