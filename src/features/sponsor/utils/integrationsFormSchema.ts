@@ -10,10 +10,29 @@ import { getURL } from '@/utils/validUrl';
 
 export const NEARN_NO_REQUESTOR_RIGHTS = 'NEARN_NO_REQUESTOR_RIGHTS';
 
+const dataFromBosFrontend = async (treasuryFrontendLink: string) => {
+  let accountId;
+  if (treasuryFrontendLink?.startsWith('near.social/')) {
+    accountId = treasuryFrontendLink?.slice(12).split('/')[0];
+  } else if (treasuryFrontendLink?.startsWith('dev.near.org/')) {
+    accountId = treasuryFrontendLink?.slice(13).split('/')[0];
+  } else {
+    accountId = treasuryFrontendLink?.split('.page')[0];
+  }
+
+  const dao = await extractDaoFromTreasury(accountId!);
+
+  return {
+    nearTreasuryDao: dao,
+    nearTreasuryFrontend: 'https://app.neartreasury.com/' + dao,
+  };
+};
+
 export const nearTreasuryFormSchema = z
   .object({
     nearTreasuryFrontend: z
       .string()
+      .url()
       .nullable()
       .refine(
         (value) =>
@@ -22,31 +41,35 @@ export const nearTreasuryFormSchema = z
           value.startsWith('https://near.social/') ||
           value.startsWith('near.social/') ||
           value.startsWith('https://dev.near.org/') ||
-          value.startsWith('dev.near.org/'),
+          value.startsWith('dev.near.org/') ||
+          value.startsWith('https://app.neartreasury.com/') ||
+          value.startsWith('app.neartreasury.com/'),
         {
           message:
-            'Please provide a valid NEAR Treasury Link. (near.page, near.social, dev.near.org)',
+            'Please provide a valid NEAR Treasury Link. (app.neartreasury.com, near.page, near.social, dev.near.org)',
         },
       )
-      .transform((value) => value?.replace('https://', '') ?? null),
+      .transform((value) => value?.replaceAll('https://', '') ?? null),
   })
   .transform(async (data) => {
-    let accountId;
-    if (data.nearTreasuryFrontend?.startsWith('near.social/')) {
-      accountId = data.nearTreasuryFrontend?.slice(12).split('/')[0];
-    } else if (data.nearTreasuryFrontend?.startsWith('dev.near.org/')) {
-      accountId = data.nearTreasuryFrontend?.slice(13).split('/')[0];
+    const isApp = data.nearTreasuryFrontend?.startsWith(
+      'app.neartreasury.com/',
+    );
+
+    if (isApp && data.nearTreasuryFrontend) {
+      const dao = data.nearTreasuryFrontend?.split('/')[1];
+      return {
+        nearTreasuryFrontend: 'https://app.neartreasury.com/' + dao,
+        nearTreasuryDao: dao,
+      };
+    } else if (data.nearTreasuryFrontend) {
+      return await dataFromBosFrontend(data.nearTreasuryFrontend);
     } else {
-      accountId = data.nearTreasuryFrontend?.split('.page')[0];
+      return {
+        nearTreasuryFrontend: null,
+        nearTreasuryDao: null,
+      };
     }
-    return {
-      nearTreasuryFrontend: data.nearTreasuryFrontend
-        ? accountId + '.page'
-        : null,
-      nearTreasuryDao: data.nearTreasuryFrontend
-        ? await extractDaoFromTreasury(accountId!)
-        : null,
-    };
   })
   .superRefine(async (data, ctx) => {
     if (!!data.nearTreasuryFrontend && !data.nearTreasuryDao) {
