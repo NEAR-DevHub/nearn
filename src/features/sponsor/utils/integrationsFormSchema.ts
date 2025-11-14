@@ -49,7 +49,7 @@ export const nearTreasuryFormSchema = z
             'Please provide a valid NEAR Treasury Link. (app.neartreasury.com, near.page, near.social, dev.near.org)',
         },
       )
-      .transform((value) => value?.replaceAll('https://', '') ?? null),
+      .transform((value) => value?.replace('https://', '') ?? null),
   })
   .transform(async (data) => {
     const isApp = data.nearTreasuryFrontend?.startsWith(
