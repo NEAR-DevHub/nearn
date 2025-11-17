@@ -100,6 +100,7 @@ type ColumnKey =
   | 'contributor'
   | 'title'
   | 'ask'
+  | 'milestones'
   | 'status'
   | 'dates'
   | 'notes'
@@ -109,6 +110,7 @@ const columnLabels: Record<ColumnKey, string> = {
   contributor: 'Contributor',
   title: 'Listing Name',
   ask: 'Ask',
+  milestones: 'Milestones',
   status: 'Status',
   dates: 'Dates',
   notes: 'Notes',
@@ -188,6 +190,7 @@ export const SubmissionTable = ({
     contributor: true,
     title: true,
     ask: true,
+    milestones: true,
     status: true,
     dates: true,
     notes: false,
@@ -298,6 +301,9 @@ export const SubmissionTable = ({
                 </>
               )}
               {visibleColumns.ask && <SubmissionTh>Ask</SubmissionTh>}
+              {visibleColumns.milestones && (
+                <SubmissionTh>Milestones</SubmissionTh>
+              )}
               {visibleColumns.status && (
                 <SortableTH
                   column="status"
@@ -535,7 +541,7 @@ export const SubmissionTable = ({
                       )}
                       {visibleColumns.ask && (
                         <TableCell
-                          className="min-w-[250px] cursor-pointer pr-10 font-medium text-slate-700"
+                          className="cursor-pointer font-medium text-slate-700"
                           onClick={(e) => handleClick(e, listingSubmissionLink)}
                           onAuxClick={(e) =>
                             handleClick(e, listingSubmissionLink)
@@ -563,11 +569,37 @@ export const SubmissionTable = ({
                               </span>
                             </span>
                           </div>
-                          {submission.Milestones.length > 1 && (
-                            <MilestoneCompletionLine
-                              submission={submission}
-                              hideText={true}
-                            />
+                        </TableCell>
+                      )}
+                      {visibleColumns.milestones && (
+                        <TableCell
+                          className="min-w-[180px] cursor-pointer py-2 font-medium text-slate-700"
+                          onClick={(e) => handleClick(e, listingSubmissionLink)}
+                          onAuxClick={(e) =>
+                            handleClick(e, listingSubmissionLink)
+                          }
+                        >
+                          {submission.Milestones.length > 0 ? (
+                            <div className="flex flex-col gap-1">
+                              <p className="text-xs font-semibold text-slate-600">
+                                {
+                                  submission.Milestones.filter(
+                                    (m) =>
+                                      m.status === 'Paid' ||
+                                      m.status === 'Cancelled',
+                                  ).length
+                                }
+                                /{submission.Milestones.length} milestones
+                              </p>
+                              <MilestoneCompletionLine
+                                submission={submission}
+                                hideText={true}
+                              />
+                            </div>
+                          ) : (
+                            <span className="text-xs text-slate-400">
+                              No milestones
+                            </span>
                           )}
                         </TableCell>
                       )}
@@ -858,6 +890,7 @@ export const SubmissionTable = ({
                                   </div>
                                 </TableCell>
                               )}
+                              {visibleColumns.milestones && <TableCell />}
                               {visibleColumns.status && (
                                 <TableCell>
                                   <p
