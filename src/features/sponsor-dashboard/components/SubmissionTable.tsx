@@ -335,7 +335,7 @@ export const SubmissionTable = ({
                           onClick={() => {
                             const newDirection =
                               currentSort.column === 'createdAt' &&
-                              currentSort.direction === 'asc'
+                                currentSort.direction === 'asc'
                                 ? 'desc'
                                 : 'asc';
                             onSort('createdAt', newDirection);
@@ -355,7 +355,7 @@ export const SubmissionTable = ({
                           onClick={() => {
                             const newDirection =
                               currentSort.column === 'approvedAt' &&
-                              currentSort.direction === 'asc'
+                                currentSort.direction === 'asc'
                                 ? 'desc'
                                 : 'asc';
                             onSort('approvedAt', newDirection);
@@ -375,7 +375,7 @@ export const SubmissionTable = ({
                           onClick={() => {
                             const newDirection =
                               currentSort.column === 'paidAt' &&
-                              currentSort.direction === 'asc'
+                                currentSort.direction === 'asc'
                                 ? 'desc'
                                 : 'asc';
                             onSort('paidAt', newDirection);
@@ -642,8 +642,8 @@ export const SubmissionTable = ({
                                   <DoneBy
                                     doneBy={
                                       submission?.approvedByUser as
-                                        | User
-                                        | undefined
+                                      | User
+                                      | undefined
                                     }
                                     doneByType="approved"
                                   />
@@ -745,45 +745,45 @@ export const SubmissionTable = ({
                             {(submission?.listing?.type === 'sponsorship' ||
                               (submission?.listing?.type === 'bounty' &&
                                 submission?.listing?.isWinnersAnnounced)) && (
-                              <>
-                                <DropdownMenuItem
-                                  className="cursor-pointer text-sm font-medium text-slate-500"
-                                  onClick={() => {
-                                    posthog.capture(
-                                      'sponsor_public_submission_view',
-                                    );
-                                    router.push(submissionLink);
-                                  }}
-                                >
-                                  <ExternalLink className="mr-2 h-4 w-4" />
-                                  View Public Submission
-                                </DropdownMenuItem>
+                                <>
+                                  <DropdownMenuItem
+                                    className="cursor-pointer text-sm font-medium text-slate-500"
+                                    onClick={() => {
+                                      posthog.capture(
+                                        'sponsor_public_submission_view',
+                                      );
+                                      router.push(submissionLink);
+                                    }}
+                                  >
+                                    <ExternalLink className="mr-2 h-4 w-4" />
+                                    View Public Submission
+                                  </DropdownMenuItem>
 
-                                <DropdownMenuItem
-                                  className="cursor-pointer text-sm font-medium text-slate-500"
-                                  onClick={() => {
-                                    copyToClipboard(submissionLink);
-                                  }}
-                                >
-                                  <Copy className="mr-2 h-4 w-4" />
-                                  Copy Link
-                                </DropdownMenuItem>
-                                {milestone?.status === 'Paid' &&
-                                  milestone?.paymentDetails?.link && (
-                                    <DropdownMenuItem
-                                      className="cursor-pointer text-sm font-medium text-slate-500"
-                                      onClick={() => {
-                                        copyToClipboard(
-                                          milestone?.paymentDetails?.link || '',
-                                        );
-                                      }}
-                                    >
-                                      <Copy className="mr-2 h-4 w-4" />
-                                      Copy Payment Link
-                                    </DropdownMenuItem>
-                                  )}
-                              </>
-                            )}
+                                  <DropdownMenuItem
+                                    className="cursor-pointer text-sm font-medium text-slate-500"
+                                    onClick={() => {
+                                      copyToClipboard(submissionLink);
+                                    }}
+                                  >
+                                    <Copy className="mr-2 h-4 w-4" />
+                                    Copy Link
+                                  </DropdownMenuItem>
+                                  {milestone?.status === 'Paid' &&
+                                    milestone?.paymentDetails?.link && (
+                                      <DropdownMenuItem
+                                        className="cursor-pointer text-sm font-medium text-slate-500"
+                                        onClick={() => {
+                                          copyToClipboard(
+                                            milestone?.paymentDetails?.link || '',
+                                          );
+                                        }}
+                                      >
+                                        <Copy className="mr-2 h-4 w-4" />
+                                        Copy Payment Link
+                                      </DropdownMenuItem>
+                                    )}
+                                </>
+                              )}
                             {isGodUser && submission.listing.isActive && (
                               <>
                                 {!submission.isArchived && (
@@ -811,7 +811,7 @@ export const SubmissionTable = ({
                                   }}
                                 >
                                   {submission.isArchived ||
-                                  !submission.isActive ? (
+                                    !submission.isActive ? (
                                     <>
                                       <RefreshCw className="mr-2 h-4 w-4" />
                                       Restore Submission
@@ -835,7 +835,7 @@ export const SubmissionTable = ({
                           const milestoneStatus = getMilestoneStatus(milestone);
                           const statusStyle =
                             colorMap[
-                              milestoneStatus as keyof typeof colorMap
+                            milestoneStatus as keyof typeof colorMap
                             ] || colorMap.NotStarted;
 
                           return (
@@ -871,8 +871,8 @@ export const SubmissionTable = ({
                                       {isUsdBased && '$'}
                                       {milestone.reward
                                         ? milestone.reward.toLocaleString(
-                                            'en-us',
-                                          )
+                                          'en-us',
+                                        )
                                         : '0'}
                                       <span className="text-slate-400">
                                         {isUsdBased && ' to be paid in'}
@@ -881,7 +881,7 @@ export const SubmissionTable = ({
                                         className={cn(
                                           'ml-1',
                                           !isUsdBased &&
-                                            'font-semibold text-slate-400',
+                                          'font-semibold text-slate-400',
                                         )}
                                       >
                                         {milestone.token}
@@ -1048,8 +1048,8 @@ export const SubmissionTable = ({
           editMode={true}
           listing={interactedSubmission.listing}
           isGodMode={isGodUser}
-          showEasterEgg={() => {}}
-          onSurveyOpen={() => {}}
+          showEasterEgg={() => { }}
+          onSurveyOpen={() => { }}
         />
       )}
     </>
