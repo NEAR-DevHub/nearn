@@ -32,6 +32,17 @@ import {
   nearTreasuryFormSchema,
   type NearTreasuryFormValues,
 } from '../utils/integrationsFormSchema';
+
+const formHelpfulUrl = (frontendUrl: string) => {
+  let url;
+  if (frontendUrl.includes('app.neartreasury.com')) {
+    url = `${frontendUrl}/settings?tab=members&member=nearn-io.near&permissions=requestor`;
+  } else {
+    url = `${frontendUrl}/?page=settings&tab=members&member=nearn-io.near&permissions=requestor`;
+  }
+  return getURLSanitized(url);
+};
+
 interface Props {
   sponsorData: SponsorType;
   refetchUser: () => void;
@@ -106,13 +117,6 @@ export default function NearTreasuryIntegration({
       setIsLoading(false);
     }
   };
-
-  const isApp = sponsorData.nearTreasury?.frontend?.includes(
-    'app.neartreasury.com/',
-  );
-  const settingsUrl = isApp
-    ? `${sponsorData.nearTreasury?.frontend}/settings?`
-    : `${sponsorData.nearTreasury?.frontend}/?page=settings&`;
 
   const showForm =
     !sponsorData.nearTreasury?.frontend ||
@@ -217,7 +221,7 @@ export default function NearTreasuryIntegration({
                     is not a requestor in your Treasury, so NEARN cannot submit
                     payment proposals. To fix this, go to{' '}
                     <Link
-                      href={`${getURLSanitized(frontendLinkTransformedError + '/?page=settings&tab=members&member=nearn-io.near&permissions=requestor') ?? 'https://neartreasury.com'}`}
+                      href={formHelpfulUrl(frontendLinkTransformedError)}
                       className="underline underline-offset-[3px]"
                       target="_blank"
                     >
@@ -313,7 +317,10 @@ export default function NearTreasuryIntegration({
             was removed from your Treasury, so NEARN can no longer submit
             payment proposals. To fix this, go to{' '}
             <Link
-              href={`${getURLSanitized(settingsUrl + 'tab=members&member=nearn-io.near&permissions=requestor') ?? 'https://neartreasury.com'}`}
+              href={formHelpfulUrl(
+                sponsorData.nearTreasury?.frontend ||
+                  'https://neartreasury.com',
+              )}
               className="underline underline-offset-[3px]"
               target="_blank"
             >
