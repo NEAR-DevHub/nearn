@@ -23,6 +23,11 @@ interface Props {
   bounty: Listing;
 }
 
+type SubmissionWithReward = SubmissionWithUser & {
+  totalReward?: number;
+  count?: number;
+};
+
 const getOrRemoveBonuses = (
   submissions: SubmissionWithUser[],
   removeBonus: boolean,
@@ -39,6 +44,7 @@ const getOrRemoveBonuses = (
 
 export function ListingWinners({ bounty }: Props) {
   const isProject = bounty?.type === 'project';
+  const isSponsorship = bounty?.type === 'sponsorship';
   const isUSDbased = bounty?.token === 'Any';
 
   const posthog = usePostHog();
@@ -56,7 +62,7 @@ export function ListingWinners({ bounty }: Props) {
     if (!path) return;
     path += 'winner/';
 
-    return tweetEmbedLink(tweetTemplate(path));
+    return tweetEmbedLink(tweetTemplate(path, bounty?.type));
   };
 
   const sliceValue = useMemo(() => {
@@ -67,13 +73,33 @@ export function ListingWinners({ bounty }: Props) {
     return 3;
   }, [isMD, isSM, isLG, isXL]);
 
-  const bonusSubmissions = useMemo(
-    () => [
+  const consolidatedSubmissions = useMemo(() => {
+    if (!isSponsorship) return getOrRemoveBonuses(submissions, true);
+
+    const map = new Map<string, SubmissionWithReward>();
+
+    submissions.forEach((s) => {
+      if (!s.user?.id) return;
+      const reward = bounty?.rewards?.[s.winnerPosition as keyof Rewards] ?? 0;
+      const existing = map.get(s.user.id);
+      if (existing) {
+        existing.totalReward = (existing.totalReward ?? 0) + reward;
+        existing.count = (existing.count ?? 1) + 1;
+      } else {
+        map.set(s.user.id, { ...s, totalReward: reward, count: 1 });
+      }
+    });
+
+    return Array.from(map.values());
+  }, [submissions, isSponsorship, bounty]);
+
+  const bonusSubmissions = useMemo(() => {
+    if (isSponsorship) return [];
+    return [
       ...getOrRemoveBonuses(submissions, true).slice(3),
       ...getOrRemoveBonuses(submissions, false),
-    ],
-    [submissions],
-  );
+    ];
+  }, [submissions, isSponsorship]);
   const extraBonusSubmissions = useMemo(
     () => bonusSubmissions.length - sliceValue,
     [bonusSubmissions, sliceValue],
@@ -87,7 +113,11 @@ export function ListingWinners({ bounty }: Props) {
     <div className="relative mx-auto w-full max-w-7xl rounded-lg bg-slate-50 px-4 pt-4">
       <div className="flex justify-between gap-2">
         <p className="mx-3 font-semibold text-slate-500 md:text-xl">
-          🎉 Winners
+          {isProject
+            ? '🤝 Hired Talent'
+            : isSponsorship
+              ? '🌟 Selected Submissions'
+              : '🎉 Winners'}
         </p>
         <Link href={openWinnerLink() ?? '#'} target="_blank">
           <Button
@@ -122,8 +152,8 @@ export function ListingWinners({ bounty }: Props) {
       <div className="mx-0 mt-2 md:mt-0">
         <div className="w-full rounded-md py-4 md:px-4">
           <div className="flex flex-wrap items-center justify-center gap-10">
-            {getOrRemoveBonuses(submissions, true)
-              .slice(0, 3)
+            {consolidatedSubmissions
+              .slice(0, isSponsorship ? undefined : 3)
               .map((submission) => (
                 <Link
                   key={submission.id}
@@ -136,7 +166,7 @@ export function ListingWinners({ bounty }: Props) {
                   className="flex cursor-pointer flex-col items-center justify-center"
                 >
                   <div className="relative">
-                    {!isProject && (
+                    {!isProject && !isSponsorship && (
                       <div
                         className={cn(
                           'absolute bottom-[-12px] left-1/2 -translate-x-1/2',
@@ -150,20 +180,32 @@ export function ListingWinners({ bounty }: Props) {
                       </div>
                     )}
                     <EarnAvatar
-                      className="h-14 w-14 md:h-16 md:w-16"
+                      className={cn(
+                        isSponsorship
+                          ? 'h-10 w-10 md:h-12 md:w-12'
+                          : 'h-14 w-14 md:h-16 md:w-16',
+                      )}
                       id={submission?.user?.id}
                       avatar={submission?.user?.photo as string}
                     />
                   </div>
                   <p className="w-16 truncate pt-4 text-center text-xs font-semibold text-slate-700 md:text-sm lg:w-min">{`${submission?.user?.name}`}</p>
                   <p className="text-center text-xs font-normal text-slate-500 opacity-60">
+                    {(submission as SubmissionWithReward).count &&
+                      (submission as SubmissionWithReward).count! > 1 && (
+                        <span className="block text-[10px] text-slate-400">
+                          {(submission as SubmissionWithReward).count}{' '}
+                          submissions
+                        </span>
+                      )}
                     {isUSDbased ? '$' : ''}
-                    {bounty?.rewards &&
-                      formatTotalPrize(
-                        bounty?.rewards[
+                    {formatTotalPrize(
+                      (submission as SubmissionWithReward).totalReward ??
+                        bounty?.rewards?.[
                           Number(submission?.winnerPosition) as keyof Rewards
-                        ] ?? 0,
-                      )}{' '}
+                        ] ??
+                        0,
+                    )}{' '}
                     {isUSDbased ? `in ${submission.token}` : bounty?.token}
                   </p>
                 </Link>
