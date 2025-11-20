@@ -338,7 +338,7 @@ export default function BountySubmissions({ slug, sequentialId }: Props) {
                   ...submission,
                   listing: bounty,
                 });
-                return submission.status === 'Approved' && paymentStatus.isPaid;
+                return submission.status !== 'Approved' || paymentStatus.isPaid;
               }) ?? true
             }
             onVerifyPayments={onVerifyPayments}
