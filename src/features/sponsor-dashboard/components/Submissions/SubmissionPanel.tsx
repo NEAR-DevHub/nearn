@@ -19,6 +19,7 @@ import React, {
 } from 'react';
 
 import { Button } from '@/components/ui/button';
+import { INFRA_COMMITTEE_ID } from '@/components/ui/KycComponent';
 import { Tooltip } from '@/components/ui/tooltip';
 import { type MilestoneWithUser } from '@/interface/submission';
 import type { User } from '@/interface/user';
@@ -37,6 +38,7 @@ import TreasuryStatus from '@/features/treasury/components/TreasuryStatus';
 
 import { selectedSubmissionAtom } from '../../atoms';
 import { type SubmissionWithListingUser } from '../../queries/dashboard-submissions';
+import ApproveMilestoneButton from '../Milestones/ApproveMilestoneButton';
 import MilestoneCompletionLine from '../Milestones/CompletionLine';
 import { PaymentButton } from '../Shared/PaymentButton';
 import { Details } from './Details';
@@ -151,6 +153,14 @@ export function SubmissionMenu({
 
     // Case 2: 1 Milestone -> Use existing logic
     if (milestones.length === 1) {
+      // We need to approve the milestone for the INFRA_COMMITTEE_ID to automation kick in
+      if (
+        milestone?.status === 'InProgress' &&
+        bounty?.sponsorId === INFRA_COMMITTEE_ID
+      ) {
+        return <ApproveMilestoneButton milestoneId={milestone.id!} />;
+      }
+
       return (
         <PaymentButton
           milestone={milestone as MilestoneWithUser}
