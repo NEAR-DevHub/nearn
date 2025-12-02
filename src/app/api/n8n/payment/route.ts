@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
 
+import { tokenList } from '@/constants/tokenList';
 import { verifyCronSecret } from '@/cron-jobs/lib/auth';
 import { prisma } from '@/prisma';
+import { isLink } from '@/utils/isLink';
 
 import { type Rewards } from '@/features/listings/types';
 import { eventLogger } from '@/features/logging/services/event-logger';
@@ -23,6 +25,8 @@ export async function POST(request: Request) {
       paymentLink,
       paymentDate,
       submissionId,
+      paymentAmount,
+      paymentToken,
     } = requestBody;
     let milestoneId = milestoneIdInput;
 
@@ -125,35 +129,95 @@ export async function POST(request: Request) {
       );
     }
 
-    await prisma.milestone.update({
-      where: {
-        id: milestoneId,
-      },
-      data: {
-        status: 'Paid',
-        paidDate: date,
-        paymentDetails: {
+    if (isLink(paymentLink)) {
+      await prisma.milestone.update({
+        where: {
+          id: milestoneId,
+        },
+        data: {
+          status: 'Paid',
+          paidDate: date,
+          paymentDetails: {
+            link: paymentLink,
+          },
+        },
+      });
+
+      await eventLogger.log({
+        eventType: EventType.SUBMISSION_PAID,
+        actor: {
+          type: 'SYSTEM',
+        },
+        entities: {
+          submissionId: milestone.submissionId,
+          sponsorId: milestone.submission.listing.sponsorId,
+          listingId: milestone.submission.listing.id,
+          milestoneId:
+            milestone.submission.Milestones.length > 1
+              ? milestone.id
+              : undefined,
+        },
+        data: {
           link: paymentLink,
         },
-      },
-    });
+      });
+    } else {
+      const isUSDBased = milestone.submission.listing.token === 'Any';
 
-    await eventLogger.log({
-      eventType: EventType.SUBMISSION_PAID,
-      actor: {
-        type: 'SYSTEM',
-      },
-      entities: {
-        submissionId: milestone.submissionId,
-        sponsorId: milestone.submission.listing.sponsorId,
-        listingId: milestone.submission.listing.id,
-        milestoneId:
-          milestone.submission.Milestones.length > 1 ? milestone.id : undefined,
-      },
-      data: {
-        link: paymentLink,
-      },
-    });
+      let manualPaymentDetails = {};
+      if (paymentAmount && paymentToken) {
+        const isFiat =
+          paymentToken &&
+          !tokenList.find((t) => t.tokenSymbol === paymentToken);
+        manualPaymentDetails = {
+          amount: Number(paymentAmount),
+          token: isFiat ? 'Fiat' : paymentToken,
+          paymentDate,
+          notes: paymentLink,
+          fiatCurrency: isFiat ? paymentToken : undefined,
+          isPublic: true,
+        };
+      } else {
+        manualPaymentDetails = {
+          amount: milestone.reward,
+          token: isUSDBased ? 'Fiat' : milestone.token,
+          paymentDate,
+          notes: paymentLink,
+          fiatCurrency: isUSDBased ? 'USD' : undefined,
+          isPublic: true,
+        };
+      }
+
+      await prisma.milestone.update({
+        where: {
+          id: milestoneId,
+        },
+        data: {
+          status: 'Paid',
+          paidDate: date,
+          paymentDetails: {
+            manual: manualPaymentDetails,
+          },
+        },
+      });
+
+      await eventLogger.log({
+        eventType: EventType.SUBMISSION_MANUAL_PAYMENT_ADDED,
+        actor: {
+          type: 'SYSTEM',
+        },
+        entities: {
+          submissionId: milestone.submissionId,
+          sponsorId: milestone.submission.listing.sponsorId,
+          listingId: milestone.submission.listing.id,
+          milestoneId:
+            milestone.submission.Milestones.length > 1
+              ? milestone.id
+              : undefined,
+        },
+        data: {},
+      });
+    }
 
     const bounty = await prisma.bounties.findUnique({
       where: {

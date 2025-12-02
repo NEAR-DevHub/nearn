@@ -1,8 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { CircleHelp, TriangleAlert } from 'lucide-react';
+import Link from 'next/link';
 import { useEffect } from 'react';
 
 import { cn } from '@/utils/cn';
+import { getURLSanitized } from '@/utils/getURLSanitized';
 
 import { useSyncTreasuryStatus } from '@/features/sponsor-dashboard/mutations/useSyncTreasuryStatus';
 import { treasuryProposalStatusQuery } from '@/features/treasury/queries/treasuryProposalStatus';
@@ -12,6 +14,7 @@ interface TreasuryStatusProps {
     dao?: string;
     proposalId?: number;
     synced?: boolean;
+    link?: string;
   };
   milestoneIsPaid: boolean;
   milestoneId: string;
@@ -91,9 +94,14 @@ export default function TreasuryStatus({
   }
 
   return (
-    <p className={cn('flex items-center rounded-md px-3 py-1', className)}>
+    <Link
+      href={getURLSanitized(treasury?.link || '')}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={cn('flex items-center rounded-md px-3 py-1', className)}
+    >
       {image}
       {text}
-    </p>
+    </Link>
   );
 }

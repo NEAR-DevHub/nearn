@@ -1,16 +1,8 @@
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@radix-ui/react-tooltip';
 import { useQuery } from '@tanstack/react-query';
-import { Copy, ExternalLink, Info, Loader, TriangleAlert } from 'lucide-react';
+import { Loader, TriangleAlert } from 'lucide-react';
 import Image from 'next/image';
-import Link from 'next/link';
-import { toast } from 'sonner';
 
-import { KYB_LINK, KYC_LINK, KYC_SPONSOR_WHITELIST } from '@/constants/kyc';
+import { KYC_SPONSOR_WHITELIST } from '@/constants/kyc';
 import { cn } from '@/utils/cn';
 
 import {
@@ -19,8 +11,6 @@ import {
 } from '@/features/listings/queries/check-kyc';
 
 import { VerifiedBadge } from '../shared/VerifiedBadge';
-import { Button } from './button';
-import { Popover, PopoverContent, PopoverTrigger } from './popover';
 import { Tooltip as TooltipUI } from './tooltip';
 
 export const FIREHOSE_ID = '68ef6576-d931-4405-82c4-6a8574ee0b3f';
@@ -47,7 +37,6 @@ function styleKycStatus(kycData?: KycResponse) {
       className: 'text-gray-500',
       text: 'KYC / KYB Status loading...',
       image: <Loader className="h-4 w-4 animate-spin" />,
-      shouldShowLink: false,
     };
   switch (kycData.kyc_status) {
     case 'APPROVED':
@@ -55,7 +44,6 @@ function styleKycStatus(kycData?: KycResponse) {
         className: 'text-green-600',
         text: 'KYC / KYB Verified',
         image: <VerifiedBadge className={cn('fill-green-600')} />,
-        shouldShowLink: false,
       };
     case 'PENDING':
       return {
@@ -70,7 +58,6 @@ function styleKycStatus(kycData?: KycResponse) {
             className={'h-4 w-4 fill-yellow-500'}
           />
         ),
-        shouldShowLink: false,
       };
     case 'NOT_SUBMITTED':
       return {
@@ -85,7 +72,6 @@ function styleKycStatus(kycData?: KycResponse) {
             className={'h-4 w-4 fill-red-500'}
           />
         ),
-        shouldShowLink: true,
       };
     case 'REJECTED':
       return {
@@ -100,7 +86,6 @@ function styleKycStatus(kycData?: KycResponse) {
             className={'h-4 w-4 fill-red-500'}
           />
         ),
-        shouldShowLink: true,
       };
     case 'EXPIRED':
       return {
@@ -115,7 +100,6 @@ function styleKycStatus(kycData?: KycResponse) {
             className={'h-4 w-4 fill-gray-500'}
           />
         ),
-        shouldShowLink: true,
       };
     default:
       return {
@@ -130,7 +114,6 @@ function styleKycStatus(kycData?: KycResponse) {
             className={'h-4 w-4 fill-gray-500'}
           />
         ),
-        shouldShowLink: true,
       };
   }
 }
@@ -157,7 +140,7 @@ export function KycComponent({
     return null;
   }
 
-  const { className, text, image, shouldShowLink } = styleKycStatus(kycData);
+  const { className, text, image } = styleKycStatus(kycData);
   const isCustom =
     listingSponsorId &&
     !!CUSTOM_KYC_TEXT[listingSponsorId as keyof typeof CUSTOM_KYC_TEXT];
@@ -167,106 +150,17 @@ export function KycComponent({
   }
 
   if (variant === 'extended') {
-    if (isCustom) {
-      return (
-        <div className="pl-2 text-[0.85rem] text-red-700">
-          <div className="flex items-center gap-2 font-bold">
-            <TriangleAlert className="h-4 w-4" />
-            Important Note:
-          </div>
-          <p className="ml-6">
-            {CUSTOM_KYC_TEXT[listingSponsorId as keyof typeof CUSTOM_KYC_TEXT]}
-          </p>
-        </div>
-      );
-    }
-
-    const tooltipText =
-      kycData?.kyc_status === 'APPROVED' ? (
-        "Your identity has been successfully verified. This helps keep your account secure, builds trust with others, and ensures you're fully compliant with legal requirements"
-      ) : (
-        <div>
-          To keep your account secure and meet legal requirements, we need to
-          verify your identity (KYC) or your business (KYB). This helps prevent
-          fraud, ensures trust between users. If you are a business or corporate
-          entity, please note that KYB verification is a manual process and may
-          take up to 24 hours to complete. For KYC/KYB related questions, please
-          contact{' '}
-          <span
-            className="inline-flex cursor-pointer items-center gap-1 rounded py-0.5 font-bold hover:bg-slate-100"
-            onClick={() => {
-              navigator.clipboard.writeText('kyc@near.foundation');
-              toast.success('Copied to clipboard!');
-            }}
-          >
-            kyc@near.foundation <Copy className="h-4 w-4" />
-          </span>
-        </div>
-      );
     return (
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex flex-col gap-2">
-          <h1 className="flex items-center gap-1 text-[0.85rem] font-medium text-slate-600 sm:text-[0.9rem]">
-            Recipient Verification Status
-            <TooltipProvider delayDuration={0}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Info className="h-4 w-4 hover:cursor-pointer" />
-                </TooltipTrigger>
-                <TooltipContent className="z-[1000] max-w-md overflow-hidden rounded-sm border bg-gray-50 px-3 py-1.5 text-xs text-slate-500 animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2">
-                  {tooltipText}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </h1>
-          <div className="flex items-center justify-between gap-2">
-            <div className={cn('flex items-center gap-2', className)}>
-              {image}
-              <p className={cn('text-sm font-medium')}>{text}</p>
-            </div>
-          </div>
+      <div className="pl-2 text-[0.85rem] text-red-700">
+        <div className="flex items-center gap-2 font-bold">
+          <TriangleAlert className="h-4 w-4" />
+          Important Note:
         </div>
-        {shouldShowLink && (
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className="flex h-7 items-center gap-2 px-2 py-1 text-slate-500"
-              >
-                Get Verified
-                <ExternalLink className="my-auto h-4 w-4" strokeWidth={2} />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent align="end" side="top" className="w-[350px] p-2">
-              <div className="w-full rounded-md px-4 py-2 hover:bg-slate-100">
-                <Link
-                  href={KYC_LINK}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full text-sm text-slate-500"
-                >
-                  <p className="font-medium">KYC Verification</p>
-                  <p className="text-xs text-slate-500">
-                    Choose this if you are an individual
-                  </p>
-                </Link>
-              </div>
-              <div className="w-full rounded-md px-4 py-2 hover:bg-slate-100">
-                <Link
-                  href={KYB_LINK}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full text-sm text-slate-500"
-                >
-                  <p className="font-medium text-slate-500">KYB Verification</p>
-                  <p className="text-xs text-slate-500">
-                    Choose this if you are a business or corporate entity
-                  </p>
-                </Link>
-              </div>
-            </PopoverContent>
-          </Popover>
-        )}
+        <p className="ml-6">
+          If your submission is approved, you&apos;ll need to complete identity
+          verification (KYC/KYB) before any award can be issued. Our team will
+          contact approved recipients via email with instructions.
+        </p>
       </div>
     );
   }
