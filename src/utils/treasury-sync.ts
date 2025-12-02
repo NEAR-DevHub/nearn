@@ -164,6 +164,7 @@ export async function syncSubmissionTreasuryStatus(
         data: {
           paymentDetails: {
             treasury: {
+              link: paymentDetails.treasury.link,
               proposalId: paymentDetails.treasury.proposalId,
               dao: paymentDetails.treasury.dao,
               synced: true,

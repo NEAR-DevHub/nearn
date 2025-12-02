@@ -93,9 +93,9 @@ export default function TreasuryStatus({
       break;
   }
 
-  return (
+  return treasury?.link ? (
     <Link
-      href={getURLSanitized(treasury?.link || '')}
+      href={getURLSanitized(treasury?.link ?? '')}
       target="_blank"
       rel="noopener noreferrer"
       className={cn('flex items-center rounded-md px-3 py-1', className)}
@@ -103,5 +103,10 @@ export default function TreasuryStatus({
       {image}
       {text}
     </Link>
+  ) : (
+    <div className={cn('flex items-center rounded-md px-3 py-1', className)}>
+      {image}
+      {text}
+    </div>
   );
 }
