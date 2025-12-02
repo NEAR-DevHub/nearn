@@ -1,4 +1,5 @@
 import { ExternalLink } from 'lucide-react';
+import Link from 'next/link';
 
 import { getURLSanitized } from '@/utils/getURLSanitized';
 import { nthLabelGenerator } from '@/utils/rank';
@@ -122,7 +123,16 @@ export default function TreasuryProposal(props: LogProperties) {
     case EventType.TREASURY_PROPOSAL_REJECTED:
       return (
         <p className="gap-1 text-slate-500">
-          Payment proposal for{' '}
+          Payment{' '}
+          <Link
+            href={getURLSanitized(proposalLink ?? '')}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-slate-600 hover:text-slate-800"
+          >
+            proposal
+          </Link>{' '}
+          for{' '}
           {isMilestonePayment && milestone ? (
             <>
               <span className="text-slate-900">
