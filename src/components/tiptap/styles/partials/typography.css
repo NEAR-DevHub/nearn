@@ -26,7 +26,8 @@
     color: #475569 !important;
   }
 
-  b, strong {
+  b,
+  strong {
     font-weight: bold !important;
   }
 }

@@ -1,5 +1,5 @@
 .minimal-tiptap-editor .ProseMirror .table-node {
-  @apply w-full border-collapse my-2.5 border border-slate-200 rounded-sm;
+  @apply my-2.5 w-full border-collapse rounded-sm border border-slate-200;
   @apply max-w-full;
   @apply table-fixed;
 }
@@ -9,7 +9,7 @@
 }
 
 .minimal-tiptap-editor .ProseMirror .table-header-node {
-  @apply bg-slate-100 font-medium p-2 text-left border-b border-slate-200;
+  @apply border-b border-slate-200 bg-slate-100 p-2 text-left font-medium;
 }
 
 .minimal-tiptap-editor .ProseMirror .table-cell-node {

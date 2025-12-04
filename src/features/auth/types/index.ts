@@ -11,8 +11,7 @@ export interface NextApiRequestWithSponsor extends NextApiRequest {
   hackathonId?: string;
 }
 
-export interface NextApiRequestWithPotentialSponsor
-  extends NextApiRequestWithSponsor {
+export interface NextApiRequestWithPotentialSponsor extends NextApiRequestWithSponsor {
   authorized?: boolean;
   sponsorIds?: string[];
 }

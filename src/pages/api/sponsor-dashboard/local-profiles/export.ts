@@ -1,3 +1,4 @@
+import { type UploadApiResponse } from 'cloudinary';
 import type { NextApiResponse } from 'next';
 import Papa from 'papaparse';
 
@@ -153,7 +154,10 @@ async function handler(req: NextApiRequestWithSponsor, res: NextApiResponse) {
 
     logger.info(`CSV export successful for region: ${region}`);
     return res.status(200).json({
-      url: cloudinaryDetails?.secure_url || cloudinaryDetails?.url,
+      url:
+        (cloudinaryDetails as UploadApiResponse)?.secure_url ??
+        (cloudinaryDetails as UploadApiResponse)?.url ??
+        '',
     });
   } catch (error: any) {
     logger.error(

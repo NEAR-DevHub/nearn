@@ -30,210 +30,208 @@ export async function GET(request: Request) {
     ]);
 
     return new ImageResponse(
-      (
+      <div
+        style={{
+          backgroundImage: `url(${ASSET_URL}/og/talent/bg.png)`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          height: '100%',
+          width: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          padding: '50px 50px',
+        }}
+      >
         <div
           style={{
-            backgroundImage: `url(${ASSET_URL}/og/talent/bg.png)`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-            height: '100%',
-            width: '100%',
             display: 'flex',
             flexDirection: 'column',
-            padding: '50px 50px',
+            justifyContent: 'space-between',
+            backgroundColor: 'white',
+            height: '100%',
+            borderRadius: '15px',
+            padding: '45px 60px 25px',
           }}
         >
           <div
             style={{
               display: 'flex',
-              flexDirection: 'column',
               justifyContent: 'space-between',
-              backgroundColor: 'white',
-              height: '100%',
-              borderRadius: '15px',
-              padding: '45px 60px 25px',
             }}
           >
             <div
               style={{
                 display: 'flex',
-                justifyContent: 'space-between',
+                gap: '24px',
               }}
             >
+              <img
+                style={{
+                  width: '120px',
+                  height: '120px',
+                  objectFit: 'contain',
+                  borderRadius: '120px',
+                }}
+                alt="pfp"
+                src={photo as string}
+              />
               <div
                 style={{
                   display: 'flex',
-                  gap: '24px',
+                  flexDirection: 'column',
                 }}
               >
-                <img
+                <div
                   style={{
-                    width: '120px',
-                    height: '120px',
-                    objectFit: 'contain',
-                    borderRadius: '120px',
+                    fontSize: 46,
+                    fontStyle: 'normal',
+                    color: 'black',
+                    lineHeight: 1.4,
+                    whiteSpace: 'pre-wrap',
+                    fontFamily: '"Bold"',
                   }}
-                  alt="pfp"
-                  src={photo as string}
-                />
+                >
+                  {name}
+                </div>
                 <div
                   style={{
                     display: 'flex',
-                    flexDirection: 'column',
+                    fontSize: 34,
+                    fontStyle: 'normal',
+                    color: '#64748B',
+                    lineHeight: 1.4,
+                    whiteSpace: 'pre-wrap',
+                    fontFamily: '"SemiBold"',
+                    marginTop: '-8px',
                   }}
                 >
-                  <div
-                    style={{
-                      fontSize: 46,
-                      fontStyle: 'normal',
-                      color: 'black',
-                      lineHeight: 1.4,
-                      whiteSpace: 'pre-wrap',
-                      fontFamily: '"Bold"',
-                    }}
-                  >
-                    {name}
-                  </div>
-                  <div
-                    style={{
-                      display: 'flex',
-                      fontSize: 34,
-                      fontStyle: 'normal',
-                      color: '#64748B',
-                      lineHeight: 1.4,
-                      whiteSpace: 'pre-wrap',
-                      fontFamily: '"SemiBold"',
-                      marginTop: '-8px',
-                    }}
-                  >
-                    @{username}
-                  </div>
+                  @{username}
                 </div>
               </div>
-
-              <img
-                src={`${getURL()}assets/logo.svg`}
-                alt="nearn logo"
-                style={{
-                  width: '125px',
-                  height: '32px',
-                  objectFit: 'contain',
-                }}
-              />
             </div>
-            <div
+
+            <img
+              src={`${getURL()}assets/logo.svg`}
+              alt="nearn logo"
               style={{
-                display: 'flex',
-                flexDirection: 'column',
-                marginLeft: '150px',
+                width: '125px',
+                height: '32px',
+                objectFit: 'contain',
+              }}
+            />
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              marginLeft: '150px',
+            }}
+          >
+            <p
+              style={{
+                color: '#64748B',
+                fontFamily: 'Medium',
+                fontSize: '26px',
               }}
             >
-              <p
-                style={{
-                  color: '#64748B',
-                  fontFamily: 'Medium',
-                  fontSize: '26px',
-                }}
-              >
-                Skills
-              </p>
-              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                {skills?.map((skill: { skills: string }) => (
-                  <p
-                    key={skills.skills}
-                    style={{
-                      color: '#475569',
-                      fontFamily: 'Medium',
-                      fontSize: '22px',
-                      backgroundColor: '#F1F5F9',
-                      padding: '10px 12px',
-                      borderRadius: '8px',
-                      margin: '0px',
-                    }}
-                  >
-                    {skill.skills}
-                  </p>
-                ))}
+              Skills
+            </p>
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              {skills?.map((skill: { skills: string }) => (
+                <p
+                  key={skills.skills}
+                  style={{
+                    color: '#475569',
+                    fontFamily: 'Medium',
+                    fontSize: '22px',
+                    backgroundColor: '#F1F5F9',
+                    padding: '10px 12px',
+                    borderRadius: '8px',
+                    margin: '0px',
+                  }}
+                >
+                  {skill.skills}
+                </p>
+              ))}
+            </div>
+            <hr
+              style={{
+                width: '100%',
+                borderColor: '#CBD5E1',
+                borderWidth: '1px',
+                marginTop: '24px',
+                marginBottom: '24px',
+              }}
+            />
+            <div style={{ display: 'flex', gap: '60px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <p
+                  style={{
+                    color: 'Black',
+                    fontFamily: 'Medium',
+                    fontSize: '28px',
+                  }}
+                >
+                  ${totalEarned}
+                </p>
+                <p
+                  style={{
+                    color: '#64748B',
+                    fontFamily: 'Medium',
+                    fontSize: '28px',
+                    marginTop: '-12px',
+                  }}
+                >
+                  Total Earned
+                </p>
               </div>
-              <hr
-                style={{
-                  width: '100%',
-                  borderColor: '#CBD5E1',
-                  borderWidth: '1px',
-                  marginTop: '24px',
-                  marginBottom: '24px',
-                }}
-              />
-              <div style={{ display: 'flex', gap: '60px' }}>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <p
-                    style={{
-                      color: 'Black',
-                      fontFamily: 'Medium',
-                      fontSize: '28px',
-                    }}
-                  >
-                    ${totalEarned}
-                  </p>
-                  <p
-                    style={{
-                      color: '#64748B',
-                      fontFamily: 'Medium',
-                      fontSize: '28px',
-                      marginTop: '-12px',
-                    }}
-                  >
-                    Total Earned
-                  </p>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <p
-                    style={{
-                      color: 'Black',
-                      fontFamily: 'Medium',
-                      fontSize: '28px',
-                    }}
-                  >
-                    {submissionCount}
-                  </p>
-                  <p
-                    style={{
-                      color: '#64748B',
-                      fontFamily: 'Medium',
-                      fontSize: '28px',
-                      marginTop: '-12px',
-                    }}
-                  >
-                    Participated
-                  </p>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <p
-                    style={{
-                      color: 'Black',
-                      fontFamily: 'Medium',
-                      fontSize: '28px',
-                    }}
-                  >
-                    {winnerCount}
-                  </p>
-                  <p
-                    style={{
-                      color: '#64748B',
-                      fontFamily: 'Medium',
-                      fontSize: '28px',
-                      marginTop: '-12px',
-                    }}
-                  >
-                    Won
-                  </p>
-                </div>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <p
+                  style={{
+                    color: 'Black',
+                    fontFamily: 'Medium',
+                    fontSize: '28px',
+                  }}
+                >
+                  {submissionCount}
+                </p>
+                <p
+                  style={{
+                    color: '#64748B',
+                    fontFamily: 'Medium',
+                    fontSize: '28px',
+                    marginTop: '-12px',
+                  }}
+                >
+                  Participated
+                </p>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <p
+                  style={{
+                    color: 'Black',
+                    fontFamily: 'Medium',
+                    fontSize: '28px',
+                  }}
+                >
+                  {winnerCount}
+                </p>
+                <p
+                  style={{
+                    color: '#64748B',
+                    fontFamily: 'Medium',
+                    fontSize: '28px',
+                    marginTop: '-12px',
+                  }}
+                >
+                  Won
+                </p>
               </div>
             </div>
           </div>
         </div>
-      ),
+      </div>,
       {
         width: 1200,
         height: 630,

@@ -144,7 +144,7 @@
 }
 
 .minimal-tiptap-editor .ProseMirror blockquote {
-  @apply relative pl-3.5 py-1;
+  @apply relative py-1 pl-3.5;
 }
 
 .minimal-tiptap-editor .ProseMirror blockquote::before,
