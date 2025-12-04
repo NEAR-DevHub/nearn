@@ -297,10 +297,10 @@ importers:
         specifier: ^1.301.1
         version: 1.301.1
       prosemirror-model:
-        specifier: ^1.25.4
+        specifier: ^1.19.0
         version: 1.25.4
       prosemirror-state:
-        specifier: ^1.4.4
+        specifier: ^1.3.3
         version: 1.4.4
       prosemirror-view:
         specifier: ^1.41.4
