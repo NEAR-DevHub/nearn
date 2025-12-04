@@ -280,10 +280,10 @@ export default function EligibilityQuestion({
                     className="mt-1 h-5 p-0 text-slate-500 hover:bg-transparent hover:text-slate-600"
                     onClick={() =>
                       handleDuplicateQuestion(
-                        question,
-                        questionType,
+                        question ?? '',
+                        questionType ?? 'text',
                         description ?? '',
-                        optional,
+                        optional ?? false,
                         variants ?? null,
                         index,
                       )
