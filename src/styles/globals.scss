@@ -3,17 +3,21 @@
 @tailwind utilities;
 
 @font-face {
-  font-family: "Mona Sans";
-  src: url("../../public/fonts/Mona-Sans.woff2") format("woff2 supports variations"),
-    url("../../public/fonts/Mona-Sans.woff2") format("woff2-variations");
+  font-family: 'Mona Sans';
+  src:
+    url('../../public/fonts/Mona-Sans.woff2')
+      format('woff2 supports variations'),
+    url('../../public/fonts/Mona-Sans.woff2') format('woff2-variations');
   font-weight: 200 900;
   font-stretch: 75% 125%;
 }
 
 @font-face {
-  font-family: "FK Grotesk";
-  src: url("../../public/fonts/FKGrotesk.woff2") format("woff2 supports variations"),
-    url("../../public/fonts/FKGrotesk.woff2") format("woff2-variations");
+  font-family: 'FK Grotesk';
+  src:
+    url('../../public/fonts/FKGrotesk.woff2')
+      format('woff2 supports variations'),
+    url('../../public/fonts/FKGrotesk.woff2') format('woff2-variations');
   font-weight: 200 900;
   font-stretch: 75% 125%;
 }
@@ -91,7 +95,6 @@
 * {
   font-synthesis: none !important;
 }
-
 
 .wallet-adapter-button.wallet-adapter-button-trigger {
   width: 100% !important;
@@ -191,7 +194,6 @@
 }
 
 #reset-des {
-
   h1,
   h2,
   h3,
@@ -250,13 +252,12 @@
 }
 
 .listing-description {
-  >*:first-child {
+  > *:first-child {
     margin-top: 1rem !important; // Adjusts top padding for the first paragraph
   }
 }
 
 #reset-des {
-
   a,
   a * {
     color: #000000 !important;
@@ -299,8 +300,8 @@ pre {
   padding: 1rem 2rem;
 
   &::-moz-focus-inner {
-    border: "none";
-    outline: "none !important";
+    border: 'none';
+    outline: 'none !important';
   }
 }
 
@@ -387,7 +388,13 @@ pre {
 .banner-wrapper {
   width: 100%;
   overflow: hidden;
-  mask-image: linear-gradient(to right, transparent 0, black 40px, black calc(100% - 40px), transparent 100%);
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    black 40px,
+    black calc(100% - 40px),
+    transparent 100%
+  );
 }
 
 .banner-wrapper .wrapper {
@@ -431,44 +438,44 @@ pre {
 }
 
 h1.tiptap-heading {
-	@apply mb-6 mt-8 text-4xl font-bold;
+  @apply mb-6 mt-8 text-4xl font-bold;
 }
- 
+
 h2.tiptap-heading {
-	@apply mb-4 mt-6 text-3xl font-bold;
+  @apply mb-4 mt-6 text-3xl font-bold;
 }
- 
+
 h3.tiptap-heading {
-	@apply mb-3 mt-4 text-xl font-bold;
+  @apply mb-3 mt-4 text-xl font-bold;
 }
- 
+
 h1.tiptap-heading:first-child,
 h2.tiptap-heading:first-child,
 h3.tiptap-heading:first-child {
-	margin-top: 0;
+  margin-top: 0;
 }
- 
+
 h1.tiptap-heading + h2.tiptap-heading,
 h1.tiptap-heading + h3.tiptap-heading,
 h2.tiptap-heading + h1.tiptap-heading,
 h2.tiptap-heading + h3.tiptap-heading,
 h3.tiptap-heading + h1.tiptap-heading,
 h3.tiptap-heading + h2.tiptap-heading {
-	margin-top: 0;
+  margin-top: 0;
 }
- 
+
 .tiptap p.is-editor-empty:first-child::before {
-	@apply pointer-events-none float-left h-0 text-accent-foreground;
-	content: attr(data-placeholder);
+  @apply pointer-events-none float-left h-0 text-accent-foreground;
+  content: attr(data-placeholder);
 }
- 
+
 .tiptap ul,
 .tiptap ol {
-	padding: 0 1rem;
+  padding: 0 1rem;
 }
- 
+
 .tiptap blockquote {
-	border-left: 3px solid gray;
-	margin: 1.5rem 0;
-	padding-left: 1rem;
+  border-left: 3px solid gray;
+  margin: 1.5rem 0;
+  padding-left: 1rem;
 }

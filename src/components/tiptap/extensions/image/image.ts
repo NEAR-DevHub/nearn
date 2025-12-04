@@ -37,8 +37,7 @@ export type UploadReturnType =
     };
 
 interface CustomImageOptions
-  extends ImageOptions,
-    Omit<FileValidationOptions, 'allowBase64'> {
+  extends ImageOptions, Omit<FileValidationOptions, 'allowBase64'> {
   uploadFn?: (file: File, editor: Editor) => Promise<UploadReturnType>;
   onImageRemoved?: (props: ImageInfo) => void;
   onActionSuccess?: (props: ImageActionProps) => void;

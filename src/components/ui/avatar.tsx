@@ -61,7 +61,8 @@ const avatarBadgeVariants = cva(
 );
 
 export interface AvatarBadgeProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof avatarBadgeVariants> {
   children?:
     | React.ReactElement<any, string | React.JSXElementConstructor<any>>
@@ -139,8 +140,7 @@ const AvatarGroupList = ({ children }: { children?: React.ReactNode }) => {
   );
 };
 
-export interface AvatarOverflowIndicatorProps
-  extends React.HTMLAttributes<HTMLSpanElement> {}
+export interface AvatarOverflowIndicatorProps extends React.HTMLAttributes<HTMLSpanElement> {}
 
 const AvatarOverflowIndicator = React.forwardRef<
   HTMLSpanElement,

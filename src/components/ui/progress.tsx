@@ -3,8 +3,9 @@ import * as React from 'react';
 
 import { cn } from '@/utils/cn';
 
-interface ProgressProps
-  extends React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root> {
+interface ProgressProps extends React.ComponentPropsWithoutRef<
+  typeof ProgressPrimitive.Root
+> {
   indicatorClassName?: string;
 }
 

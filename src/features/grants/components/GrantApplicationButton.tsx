@@ -102,7 +102,7 @@ export const GrantApplicationButton = ({
       buttonBG = 'bg-brand-green';
       isBtnDisabled = Boolean(
         !grant.isPublished ||
-          (user?.id && user?.isTalentFilled && !isUserEligibleByRegion),
+        (user?.id && user?.isTalentFilled && !isUserEligibleByRegion),
       );
       btnLoadingText = 'Checking Application..';
       break;

@@ -221,11 +221,11 @@ export const SubmissionActionButton = ({
       buttonBG = 'bg-black';
       isBtnDisabled = Boolean(
         isDeadlineOver(listing.deadline ?? undefined) ||
-          (user?.id &&
-            user?.isTalentFilled &&
-            ((bountyDraftStatus !== 'PUBLISHED' && !query['preview']) ||
-              !hasHackathonStarted ||
-              !isUserEligibleByRegion)),
+        (user?.id &&
+          user?.isTalentFilled &&
+          ((bountyDraftStatus !== 'PUBLISHED' && !query['preview']) ||
+            !hasHackathonStarted ||
+            !isUserEligibleByRegion)),
       );
       btnLoadingText = 'Checking Submission..';
   }
