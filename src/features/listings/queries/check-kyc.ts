@@ -9,7 +9,7 @@ export type KycResponse = {
 
 export const fetchKyc = async (address: string): Promise<KycResponse> => {
   const { data } = await api.get(
-    'https://neardevhub-kyc-proxy-gvbr.shuttle.app/kyc/' + address,
+    'https://neardevhub-kyc-proxy.nearn.io/kyc/' + address,
   );
   return data;
 };
