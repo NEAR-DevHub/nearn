@@ -849,6 +849,7 @@ export const SubmissionTable = ({
                                   </TableCell>
                                 </>
                               )}
+                              {visibleColumns.submissionTitle && <TableCell />}
                               {visibleColumns.ask && (
                                 <TableCell>
                                   <div className="flex w-full items-center overflow-visible">

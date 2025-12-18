@@ -298,6 +298,11 @@ export const SubmissionTable = ({
             const statusB = sponsorshipSubmissionStatus(b);
             return statusA.localeCompare(statusB) * factor;
 
+          case 'submissionTitle':
+            const submissionTitleA = submissionTitle(a) || '';
+            const submissionTitleB = submissionTitle(b) || '';
+            return submissionTitleA.localeCompare(submissionTitleB) * factor;
+
           default:
             return 0;
         }
@@ -768,6 +773,9 @@ export const SubmissionTable = ({
                                               `Milestone ${milestone.milestoneIndex}`}
                                           </p>
                                         </TableCell>
+                                      )}
+                                      {visibleColumns.submissionTitle && (
+                                        <TableCell />
                                       )}
                                       {visibleColumns.ask && (
                                         <TableCell>
