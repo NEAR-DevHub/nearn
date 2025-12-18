@@ -243,13 +243,13 @@ export function EligibilityQuestionsForm({
                     <FormLabel isRequired>Title</FormLabel>
                     <FormDescription>
                       Enter your team or submitter name, followed by a short
-                      project title (e.g. &quot;Team Horizon — ZK Vault&quot;).
+                      project title.
                     </FormDescription>
                     <FormControl>
                       <Input
                         {...field}
                         required
-                        placeholder="Add a title"
+                        placeholder="Team Horizon – ZK Vault"
                         maxLength={255}
                       />
                     </FormControl>
