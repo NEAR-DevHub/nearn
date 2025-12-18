@@ -75,6 +75,7 @@ import { EarnAvatar } from '@/features/talent/components/EarnAvatar';
 
 import { type SubmissionWithListingUser } from '../queries/dashboard-submissions';
 import { colorMap } from '../utils/statusColorMap';
+import { parseHtml, tableOptions } from './InfoBox';
 import { ListingTh } from './ListingTable';
 import MilestoneCompletionLine from './Milestones/CompletionLine';
 import MilestoneActionButton from './Milestones/MilestoneActionButton';
@@ -552,7 +553,9 @@ export const SubmissionTable = ({
                       )}
                       {visibleColumns.submissionTitle && (
                         <TableCell className="h-full max-w-80 whitespace-normal break-words py-2 font-medium text-slate-700">
-                          <p className="h-full w-full">{submissionTitleText}</p>
+                          <p className="h-full w-full">
+                            {parseHtml(submissionTitleText, tableOptions)}
+                          </p>
                         </TableCell>
                       )}
                       {visibleColumns.ask && (

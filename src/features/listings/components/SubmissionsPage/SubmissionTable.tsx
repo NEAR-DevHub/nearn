@@ -99,7 +99,17 @@ export const sponsorshipSubmissionStatus = (submission: SubmissionWithUser) => {
 export const submissionTitle = (submission: SubmissionWithUser) => {
   switch (submission.listing?.type) {
     case 'sponsorship':
-      return submission.title || 'N/A';
+      if (submission.title) {
+        return submission.title;
+      }
+      const eligibilityAnswer = submission.eligibilityAnswers?.find(
+        (answer: { question: string; answer: string }) =>
+          answer?.question?.toLowerCase().trim() === 'title',
+      );
+      if (eligibilityAnswer) {
+        return eligibilityAnswer.answer;
+      }
+      return 'N/A';
     case 'bounty':
       if (submission.winnerPosition) {
         let label = nthLabelGenerator(submission.winnerPosition, false);
@@ -578,7 +588,7 @@ export const SubmissionTable = ({
                             {visibleColumns.submissionTitle && (
                               <TableCell className="min-w-[200px] pr-0">
                                 <p className="whitespace-nowrap text-sm font-medium text-slate-700">
-                                  {submissionTitleText}
+                                  {parseHtml(submissionTitleText, tableOptions)}
                                 </p>
                               </TableCell>
                             )}

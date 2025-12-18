@@ -78,10 +78,10 @@ export const Details = ({
             />
           </>
         )}
-        {isSponsorship && (
+        {isSponsorship && !!selectedSubmission?.title && (
           <InfoBox
             label="Submission Title"
-            content={selectedSubmission?.title || ''}
+            content={selectedSubmission.title}
           />
         )}
         {selectedSubmission?.eligibilityAnswers &&
