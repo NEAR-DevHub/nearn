@@ -116,6 +116,7 @@ async function submission(req: NextApiRequestWithUser, res: NextApiResponse) {
     listingId,
     link,
     tweet,
+    title,
     otherInfo,
     eligibilityAnswers,
     ask,
@@ -147,6 +148,7 @@ async function submission(req: NextApiRequestWithUser, res: NextApiResponse) {
       {
         link,
         tweet,
+        title,
         otherInfo,
         eligibilityAnswers,
         ask,

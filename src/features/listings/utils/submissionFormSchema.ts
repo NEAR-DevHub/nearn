@@ -87,6 +87,16 @@ const submissionSchema = (
         });
       }
       if (
+        listing.type === 'sponsorship' &&
+        (!data.title || data.title.trim().length === 0)
+      ) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['title'],
+          message: 'Title is required',
+        });
+      }
+      if (
         (listing.type === 'project' || listing.type === 'sponsorship') &&
         listing.compensationType !== 'fixed'
       ) {
