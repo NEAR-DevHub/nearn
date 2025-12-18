@@ -54,6 +54,7 @@ import { getSubmissionUrl } from '@/utils/bounty-urls';
 import { cn } from '@/utils/cn';
 import { dayjs } from '@/utils/dayjs';
 import { getMilestoneStatus } from '@/utils/milestone-helpers';
+import { nthLabelGenerator } from '@/utils/rank';
 
 import {
   parseHtml,
@@ -93,6 +94,24 @@ export const sponsorshipSubmissionStatus = (submission: SubmissionWithUser) => {
     return 'InProgress';
   if (submission.status !== 'Pending') return submission.status;
   return submission.label;
+};
+
+export const submissionTitle = (submission: SubmissionWithUser) => {
+  switch (submission.listing?.type) {
+    case 'sponsorship':
+      return submission.title || 'N/A';
+    case 'bounty':
+      if (submission.winnerPosition) {
+        let label = nthLabelGenerator(submission.winnerPosition, false);
+        label = label.charAt(0).toUpperCase() + label.slice(1);
+        return `${label} Place`;
+      }
+      return 'N/A';
+    case 'project':
+      return submission.listing.title;
+    default:
+      return '';
+  }
 };
 
 const thClassName =
@@ -293,6 +312,7 @@ export const SubmissionTable = ({
   type ColumnKey =
     | (typeof eligibilityColumnKeys)[number]
     | 'submission'
+    | 'submissionTitle'
     | 'ask'
     | 'status'
     | 'community';
@@ -300,6 +320,7 @@ export const SubmissionTable = ({
   const defaultVisibleColumns = useMemo<Record<ColumnKey, boolean>>(() => {
     const base: Record<ColumnKey, boolean> = {
       submission: true,
+      submissionTitle: true,
       ask: true,
       status: true,
       community: true,
@@ -341,6 +362,7 @@ export const SubmissionTable = ({
 
   const getColumnLabel = (key: ColumnKey) => {
     if (key === 'submission') return 'Submission';
+    if (key === 'submissionTitle') return 'Submission Title';
     if (key === 'ask')
       return bounty.compensationType === 'fixed' ? 'Reward' : 'Ask';
     if (key === 'status') return 'Status';
@@ -365,6 +387,10 @@ export const SubmissionTable = ({
   >(
     () => [
       { key: 'submission' as ColumnKey, label: getColumnLabel('submission') },
+      {
+        key: 'submissionTitle' as ColumnKey,
+        label: getColumnLabel('submissionTitle'),
+      },
       { key: 'ask' as ColumnKey, label: getColumnLabel('ask') },
       { key: 'status' as ColumnKey, label: getColumnLabel('status') },
       ...eligibilityColumnKeys.map((k) => ({
@@ -422,6 +448,16 @@ export const SubmissionTable = ({
                       {getColumnLabel('submission')}
                     </SortableTH>
                   )}
+                  {visibleColumns.submissionTitle && (
+                    <SortableTH
+                      column="submissionTitle"
+                      currentSort={currentSort}
+                      setSort={onSort}
+                      className={cn(thClassName)}
+                    >
+                      {getColumnLabel('submissionTitle')}
+                    </SortableTH>
+                  )}
                   {visibleColumns.ask && (
                     <SortableTH
                       column="ask"
@@ -467,6 +503,10 @@ export const SubmissionTable = ({
                     const submissionStatus =
                       sponsorshipSubmissionStatus(submission);
                     const submissionLink = getSubmissionUrl(submission, bounty);
+                    const submissionTitleText = submissionTitle({
+                      ...submission,
+                      listing: bounty,
+                    });
                     const token = isUsdBased ? submission.token : bounty.token;
                     const tokenObject = tokenList.filter(
                       (e) => e?.tokenSymbol === token,
@@ -528,6 +568,13 @@ export const SubmissionTable = ({
                                     </p>
                                   </div>
                                 </Link>
+                              </TableCell>
+                            )}
+                            {visibleColumns.submissionTitle && (
+                              <TableCell className="min-w-[200px] pr-0">
+                                <p className="whitespace-nowrap text-sm font-medium text-slate-700">
+                                  {submissionTitleText}
+                                </p>
                               </TableCell>
                             )}
                             {visibleColumns.ask && (

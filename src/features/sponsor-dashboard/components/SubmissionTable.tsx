@@ -64,7 +64,10 @@ import { getMilestoneStatus } from '@/utils/milestone-helpers';
 import { truncatePublicKey } from '@/utils/truncatePublicKey';
 
 import { SubmissionDrawer } from '@/features/listings/components/Submission/SubmissionDrawer';
-import { sponsorshipSubmissionStatus } from '@/features/listings/components/SubmissionsPage/SubmissionTable';
+import {
+  sponsorshipSubmissionStatus,
+  submissionTitle,
+} from '@/features/listings/components/SubmissionsPage/SubmissionTable';
 import { getListingIcon } from '@/features/listings/utils/getListingIcon';
 import { getListingTypeLabel } from '@/features/listings/utils/status';
 import { ActivityHistoryMinified } from '@/features/logging/components/ActivityHistoryMinified';
@@ -99,6 +102,7 @@ const thClassName =
 type ColumnKey =
   | 'contributor'
   | 'title'
+  | 'submissionTitle'
   | 'ask'
   | 'status'
   | 'dates'
@@ -108,6 +112,7 @@ type ColumnKey =
 const columnLabels: Record<ColumnKey, string> = {
   contributor: 'Contributor',
   title: 'Listing Name',
+  submissionTitle: 'Submission Title',
   ask: 'Ask',
   status: 'Status',
   dates: 'Dates',
@@ -187,6 +192,7 @@ export const SubmissionTable = ({
   const defaultVisibleColumns: Record<ColumnKey, boolean> = {
     contributor: true,
     title: true,
+    submissionTitle: true,
     ask: true,
     status: true,
     dates: true,
@@ -296,6 +302,16 @@ export const SubmissionTable = ({
                     Listing Name
                   </SortableTH>
                 </>
+              )}
+              {visibleColumns.submissionTitle && (
+                <SortableTH
+                  column="submissionTitle"
+                  currentSort={currentSort}
+                  setSort={onSort}
+                  className={cn(thClassName)}
+                >
+                  Submission Title
+                </SortableTH>
               )}
               {visibleColumns.ask && <SubmissionTh>Ask</SubmissionTh>}
               {visibleColumns.status && (
@@ -419,6 +435,7 @@ export const SubmissionTable = ({
                   ? dayjs(submission?.approveDate).format("DD MMM'YY")
                   : '';
               const listingStatus = sponsorshipSubmissionStatus(submission);
+              const submissionTitleText = submissionTitle(submission);
               const submissionLink = getSubmissionUrl(
                 submission,
                 submission?.listing,
@@ -532,6 +549,11 @@ export const SubmissionTable = ({
                             </Link>
                           </TableCell>
                         </>
+                      )}
+                      {visibleColumns.submissionTitle && (
+                        <TableCell className="h-full max-w-80 whitespace-normal break-words py-2 font-medium text-slate-700">
+                          <p className="h-full w-full">{submissionTitleText}</p>
+                        </TableCell>
                       )}
                       {visibleColumns.ask && (
                         <TableCell
