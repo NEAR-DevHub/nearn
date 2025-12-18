@@ -38,6 +38,7 @@ interface SubmissionWithUser {
   status: SubmissionStatus | 'Deleted';
   link?: string;
   tweet?: string;
+  title?: string;
   otherInfo?: string;
   otherTokenDetails?: string;
   eligibilityAnswers?: any;

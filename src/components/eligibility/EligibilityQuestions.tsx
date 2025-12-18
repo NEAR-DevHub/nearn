@@ -234,6 +234,29 @@ export function EligibilityQuestionsForm({
                 />
               </>
             )}
+            {listingType === 'sponsorship' && (
+              <FormField
+                control={control}
+                name={'title'}
+                render={({ field }) => (
+                  <FormItem className={cn('flex flex-col gap-2')}>
+                    <FormLabel isRequired>Title</FormLabel>
+                    <FormDescription>
+                      Please outline the main idea or name of your submission.
+                    </FormDescription>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        required
+                        placeholder="Add a title"
+                        maxLength={255}
+                      />
+                    </FormControl>
+                    <FormMessage className="pt-1" />
+                  </FormItem>
+                )}
+              />
+            )}
             {questions &&
               questions.map((e, index) => {
                 const fieldName = `eligibilityAnswers.${index}.answer` as const;

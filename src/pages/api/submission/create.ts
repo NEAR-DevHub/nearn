@@ -80,6 +80,7 @@ async function createSubmission(
       listingId,
       link: validatedData.link || '',
       tweet: validatedData.tweet || '',
+      title: validatedData.title || '',
       otherInfo: validatedData.otherInfo || '',
       eligibilityAnswers: validatedData.eligibilityAnswers || [],
       ask: validatedData.ask || null,

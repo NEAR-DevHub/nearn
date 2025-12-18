@@ -78,6 +78,12 @@ export const Details = ({
             />
           </>
         )}
+        {isSponsorship && (
+          <InfoBox
+            label="Submission Title"
+            content={selectedSubmission?.title || ''}
+          />
+        )}
         {selectedSubmission?.eligibilityAnswers &&
           selectedSubmission.eligibilityAnswers.map(
             (answer: any, i: number) => {
