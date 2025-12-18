@@ -26,6 +26,16 @@ const submissionSchema = (
           z.string().trim().regex(URL_REGEX, 'Invalid URL'),
         ])
         .optional(),
+      title: z
+        .union([
+          z.literal(''),
+          z
+            .string()
+            .trim()
+            .min(1, 'Required')
+            .max(255, 'Title must be less than 255 characters'),
+        ])
+        .optional(),
       otherInfo: z.string().optional(),
       otherTokenDetails: z.string().optional(),
       ask: z.union([z.number().int().min(1), z.null()]).optional(),
@@ -74,6 +84,16 @@ const submissionSchema = (
           code: 'custom',
           path: ['link'],
           message: 'Add a valid link to continue',
+        });
+      }
+      if (
+        listing.type === 'sponsorship' &&
+        (!data.title || data.title.trim().length === 0)
+      ) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['title'],
+          message: 'Title is required',
         });
       }
       if (

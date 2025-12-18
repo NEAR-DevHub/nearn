@@ -160,11 +160,13 @@ export const SubmissionDrawer = ({
             ask,
             token,
             otherTokenDetails,
+            title,
           } = response.data;
 
           form.reset({
             link,
             tweet,
+            title,
             otherInfo,
             ask: ask || null,
             otherTokenDetails:
@@ -219,6 +221,7 @@ export const SubmissionDrawer = ({
         otherInfo: data.otherInfo || '',
         otherTokenDetails: data.otherTokenDetails || undefined,
         ask: data.ask || null,
+        title: data.title || '',
         eligibilityAnswers: data.eligibilityAnswers || [],
         publicKey: data.publicKey,
         token: token === 'Any' ? data.token : undefined,

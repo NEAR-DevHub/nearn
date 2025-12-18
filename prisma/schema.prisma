@@ -298,6 +298,7 @@ model Submission {
   updatedAt          DateTime         @updatedAt
   like               Json?
   likeCount          Int              @default(0)
+  title              String?          @db.VarChar(255)
   otherInfo          String?          @db.Text
   ask                Int?
   token              String?

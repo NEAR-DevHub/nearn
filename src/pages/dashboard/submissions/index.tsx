@@ -31,7 +31,10 @@ import { api } from '@/lib/api';
 import { useUser } from '@/store/user';
 import { cn } from '@/utils/cn';
 
-import { sponsorshipSubmissionStatus } from '@/features/listings/components/SubmissionsPage/SubmissionTable';
+import {
+  sponsorshipSubmissionStatus,
+  submissionTitle,
+} from '@/features/listings/components/SubmissionsPage/SubmissionTable';
 import { Banner } from '@/features/sponsor-dashboard/components/Banner';
 import { CreateListingModal } from '@/features/sponsor-dashboard/components/CreateListingModal';
 import {
@@ -165,6 +168,11 @@ export default function SponsorListings() {
             const titleA = a.listing.title || '';
             const titleB = b.listing.title || '';
             return titleA.localeCompare(titleB) * factor;
+
+          case 'submissionTitle':
+            const submissionTitleA = submissionTitle(a) || '';
+            const submissionTitleB = submissionTitle(b) || '';
+            return submissionTitleA.localeCompare(submissionTitleB) * factor;
 
           case 'submittedBy':
             const authorA = a.user.name || '';

@@ -80,6 +80,7 @@ async function createSubmission(
       listingId,
       link: validatedData.link || '',
       tweet: validatedData.tweet || '',
+      title: validatedData.title || '',
       otherInfo: validatedData.otherInfo || '',
       eligibilityAnswers: validatedData.eligibilityAnswers || [],
       ask: validatedData.ask || null,
@@ -115,6 +116,7 @@ async function submission(req: NextApiRequestWithUser, res: NextApiResponse) {
     listingId,
     link,
     tweet,
+    title,
     otherInfo,
     eligibilityAnswers,
     ask,
@@ -146,6 +148,7 @@ async function submission(req: NextApiRequestWithUser, res: NextApiResponse) {
       {
         link,
         tweet,
+        title,
         otherInfo,
         eligibilityAnswers,
         ask,

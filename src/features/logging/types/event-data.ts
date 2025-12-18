@@ -172,6 +172,7 @@ export interface ListingFieldValueMap {
 export type SubmissionEditableFields =
   | 'link'
   | 'tweet'
+  | 'title'
   | 'otherInfo'
   | 'eligibilityAnswers'
   | 'ask'
@@ -189,6 +190,7 @@ export type PlatformAdminEditableSubmissionFields = 'status' | 'paymentDetails';
 export interface SubmissionFieldValueMap {
   link: string | null;
   tweet: string | null;
+  title: string | null;
   otherInfo: string | null;
   eligibilityAnswers: JsonValue | null;
   ask: number | null;
@@ -592,6 +594,7 @@ export function detectSubmissionChanges(
 
   const fields: SubmissionEditableFields[] = [
     'link',
+    'title',
     'tweet',
     'otherInfo',
     'eligibilityAnswers',

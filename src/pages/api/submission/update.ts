@@ -84,6 +84,7 @@ async function updateSubmission(
   const formattedData = {
     link: validatedData.link || '',
     tweet: validatedData.tweet || '',
+    title: validatedData.title || '',
     otherInfo: validatedData.otherInfo || '',
     eligibilityAnswers: validatedData.eligibilityAnswers || [],
     ask: validatedData.ask || 0,
