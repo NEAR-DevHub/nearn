@@ -242,7 +242,8 @@ export function EligibilityQuestionsForm({
                   <FormItem className={cn('flex flex-col gap-2')}>
                     <FormLabel isRequired>Title</FormLabel>
                     <FormDescription>
-                      Please outline the main idea or name of your submission.
+                      Enter your team or submitter name, followed by a short
+                      project title (e.g. &quot;Team Horizon — ZK Vault&quot;).
                     </FormDescription>
                     <FormControl>
                       <Input
