@@ -99,7 +99,7 @@ export const sponsorshipSubmissionStatus = (submission: SubmissionWithUser) => {
 export const submissionTitle = (submission: SubmissionWithUser) => {
   switch (submission.listing?.type) {
     case 'sponsorship':
-      if (submission.title) {
+      if (!!submission.title) {
         return submission.title;
       }
       const eligibilityAnswer = submission.eligibilityAnswers?.find(
