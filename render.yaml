@@ -158,7 +158,7 @@ services:
     autoDeploy: true
   - type: web
     region: frankfurt
-    plan: standard
+    plan: starter
     runtime: image
     name: n8n-service
     image:
