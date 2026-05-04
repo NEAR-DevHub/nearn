@@ -166,7 +166,7 @@ services:
     disk: # Persistent disk configuration
       name: n8n-disk
       mountPath: /home/node
-      sizeGB: 1 # optional
+      sizeGB: 5 # optional
     envVars:
       # Generates a base64-encoded key for
       # encrypting credentials in n8n
