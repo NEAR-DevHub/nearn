@@ -83,7 +83,7 @@ services:
     branch: staging
     runtime: node
     region: frankfurt
-    plan: standard
+    plan: free
     previews:
       generation: manual
       plan: starter
