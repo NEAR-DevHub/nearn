@@ -221,9 +221,6 @@ services:
       - key: CEO_EMAIL
         sync: false
     autoDeploy: true
-  - type: pserv
-    repo: https://github.com/akorchyn/nearn-emails
-    branch: staging
   - type: web
     region: frankfurt
     plan: standard
