@@ -5,7 +5,7 @@ import { Default } from '@/layouts/Default';
 import { Meta } from '@/layouts/Meta';
 import { getURL } from '@/utils/validUrl';
 
-const PUBLISHED_DATE = '29 July 2026';
+const PUBLISHED_DATE = '30 July 2026';
 
 function Term({ children }: { children: ReactNode }) {
   return (
@@ -132,7 +132,7 @@ export default function NfGrantTerms() {
 
           <Section number={2} title="Grant Payment">
             <div className="space-y-4">
-              <Clause number="1.1">
+              <Clause number="2.1">
                 <p>
                   The Grant will be disbursed in accordance with the
                   Foundation&apos;s policies upon the acceptance of a NEARN
@@ -140,7 +140,7 @@ export default function NfGrantTerms() {
                   of an invoice for the relevant amount.
                 </p>
               </Clause>
-              <Clause number="1.2">
+              <Clause number="2.2">
                 <p>
                   You must use the Grant exclusively for the Purposes and in
                   accordance with these Terms. Any deviation from the
@@ -149,7 +149,7 @@ export default function NfGrantTerms() {
                   a breach of these Terms.
                 </p>
               </Clause>
-              <Clause number="1.3">
+              <Clause number="2.3">
                 <p>
                   The Foundation reserves the right to request a detailed report
                   on the use of the Grant funds. You are required to provide
@@ -160,7 +160,7 @@ export default function NfGrantTerms() {
                   the requirement to repay any disbursed funds.
                 </p>
               </Clause>
-              <Clause number="1.4">
+              <Clause number="2.4">
                 <p>
                   The Foundation reserves the right to conduct due diligence in
                   respect of you as it sees fit, which may include &ldquo;Know
@@ -172,7 +172,7 @@ export default function NfGrantTerms() {
                   respect of Due Diligence.
                 </p>
               </Clause>
-              <Clause number="1.5">
+              <Clause number="2.5">
                 <p>
                   Grant payments denominated in USD, with payout being in NEAR
                   Tokens, will be converted to NEAR Tokens based on the spot
@@ -189,7 +189,7 @@ export default function NfGrantTerms() {
                   price of NEAR Tokens.
                 </p>
               </Clause>
-              <Clause number="1.6">
+              <Clause number="2.6">
                 <p>
                   All costs relating to pursuing the Purpose will be borne by
                   you.
@@ -199,7 +199,7 @@ export default function NfGrantTerms() {
           </Section>
 
           <Section number={3} title="Tokens as Grant Payment">
-            <Clause number="2.1">
+            <Clause number="3.1">
               <p>
                 If Tokens are used to pay the Grant, the Recipient acknowledges
                 and warrants that:
@@ -262,26 +262,26 @@ export default function NfGrantTerms() {
           </Section>
 
           <Section number={4} title="Risk Factors">
-            <Clause number="3.1">
+            <Clause number="4.1">
               <p>
                 The Recipient acknowledges the following risk factors associated
                 with the Tokens:
               </p>
               <div className="space-y-3">
-                <Clause number="3.1.1">
+                <Clause number="4.1.1">
                   <p>
                     the Tokens are subject to volatility and fluctuations in
                     cryptocurrency markets;
                   </p>
                 </Clause>
-                <Clause number="3.1.2">
+                <Clause number="4.1.2">
                   <p>
                     regulatory uncertainty, changes or actions could have a
                     negative impact on the value of the Tokens, and may result
                     in the Tokens having no value;
                   </p>
                 </Clause>
-                <Clause number="3.1.3">
+                <Clause number="4.1.3">
                   <p>
                     the Tokens are subject to the risks associated with their
                     Relevant Protocol, which may not be fully developed or
@@ -289,7 +289,7 @@ export default function NfGrantTerms() {
                     attract sufficient interest from users; and
                   </p>
                 </Clause>
-                <Clause number="3.1.4">
+                <Clause number="4.1.4">
                   <p>
                     the Tokens carry no rights, express or implied, other than
                     the right to use the Tokens for their intended purpose as a
@@ -416,7 +416,7 @@ export default function NfGrantTerms() {
 
           <Section number={6} title="Review of Achievement by the Foundation">
             <div className="space-y-4">
-              <Clause number="1.1">
+              <Clause number="6.1">
                 <p>
                   The Foundation may conduct periodic reviews of the
                   achievements by you in relation to the Grant provided under
@@ -426,7 +426,7 @@ export default function NfGrantTerms() {
                   achieving your objectives.
                 </p>
               </Clause>
-              <Clause number="1.2">
+              <Clause number="6.2">
                 <p>
                   The review process shall include, but not be limited to, an
                   evaluation of your compliance with these Terms, the quality
@@ -436,7 +436,7 @@ export default function NfGrantTerms() {
                   on the outcome of these reviews.
                 </p>
               </Clause>
-              <Clause number="1.3">
+              <Clause number="6.3">
                 <p>
                   The Foundation may conduct periodic reviews of the
                   achievements by the Recipient in relation to any Grant
@@ -459,7 +459,7 @@ export default function NfGrantTerms() {
 
           <Section number={7} title="Marketing and Promotion">
             <div className="space-y-4">
-              <Clause number="2.1">
+              <Clause number="7.1">
                 <p>
                   You will not make, issue or encourage and other person or
                   entity to make or issue, any press releases or similar public
@@ -470,7 +470,7 @@ export default function NfGrantTerms() {
                   (which will not be unreasonably withheld).
                 </p>
               </Clause>
-              <Clause number="2.2">
+              <Clause number="7.2">
                 <p>
                   The Foundation may, but is not required to, make public any
                   Grant under these Terms. Upon request by the Foundation, you
@@ -480,7 +480,7 @@ export default function NfGrantTerms() {
                   such publications
                 </p>
               </Clause>
-              <Clause number="2.3">
+              <Clause number="7.3">
                 <p>
                   You agree to use best efforts to enable and procure the
                   Foundation&apos;s participation in co-branding and
@@ -493,7 +493,7 @@ export default function NfGrantTerms() {
 
           <Section number={8} title="Representations and Warranties">
             <div className="space-y-4">
-              <Clause number="3.1">
+              <Clause number="8.1">
                 <p>
                   You represent and warrant that each of the following
                   statements is true and accurate and all of the information you
@@ -615,7 +615,7 @@ export default function NfGrantTerms() {
                   </li>
                 </AlphaList>
               </Clause>
-              <Clause number="3.2">
+              <Clause number="8.2">
                 <p>
                   You shall indemnify and hold harmless the Foundation from any
                   third party claims (including reasonable attorney&apos;s
@@ -623,7 +623,7 @@ export default function NfGrantTerms() {
                   infringement of the above representations and warranties.
                 </p>
               </Clause>
-              <Clause number="3.3">
+              <Clause number="8.3">
                 <p>
                   You are aware and confirm that the Foundation is relying on
                   the above representations (which are material to the
@@ -632,14 +632,14 @@ export default function NfGrantTerms() {
                   provide the Grant to you.
                 </p>
               </Clause>
-              <Clause number="3.4">
+              <Clause number="8.4">
                 <p>
                   The Foundation does not provide any warranty that the Software
                   will be compatible with the NEAR Technology or any related
                   technology now or in the future.
                 </p>
               </Clause>
-              <Clause number="3.5">
+              <Clause number="8.5">
                 <p>
                   The Foundation does not provide any warranty or representation
                   (whether express or implied) of any kind in respect of the
@@ -652,7 +652,7 @@ export default function NfGrantTerms() {
 
           <Section number={9} title="Taxes and Other Duties">
             <div className="space-y-4">
-              <Clause number="4.1">
+              <Clause number="9.1">
                 <p>
                   You are solely responsible for determining what, if any, taxes
                   or other duties apply to the Grant. It is also your
@@ -664,14 +664,14 @@ export default function NfGrantTerms() {
                   or in connection to the Grant.
                 </p>
               </Clause>
-              <Clause number="4.2">
+              <Clause number="9.2">
                 <p>
                   Neither party will have any right, power or authority to
                   create any obligation, expressed or implied, on behalf of the
                   other party in connection with these Terms.
                 </p>
               </Clause>
-              <Clause number="4.3">
+              <Clause number="9.3">
                 <p>
                   The Foundation makes no representation or warranty that you
                   will profit in any way or derive any benefit from these Terms.
@@ -682,7 +682,7 @@ export default function NfGrantTerms() {
 
           <Section number={10} title="Intellectual Property">
             <div className="space-y-4">
-              <Clause number="5.1">
+              <Clause number="10.1">
                 <p>
                   Both Parties shall retain full rights, title and interest in
                   and to any pre-existing Intellectual Property Rights owned by
@@ -691,7 +691,7 @@ export default function NfGrantTerms() {
                   Property Rights during the term of this Agreement.
                 </p>
               </Clause>
-              <Clause number="5.2">
+              <Clause number="10.2">
                 <p>
                   Each Party grants to the other Party a royalty-free,
                   non-exclusive licence to use the first party&apos;s
@@ -699,14 +699,14 @@ export default function NfGrantTerms() {
                   this Agreement.
                 </p>
               </Clause>
-              <Clause number="5.3">
+              <Clause number="10.3">
                 <p>
                   You retain ownership of all Intellectual Property Rights
                   created by you, except as otherwise specified and subject to
                   the licence you grant below.
                 </p>
               </Clause>
-              <Clause number="5.4">
+              <Clause number="10.4">
                 <p>
                   Parties may specify in the NEARN Proposal whether, in respect
                   of the relevant Grant: (i) Intellectual Property Rights
@@ -721,7 +721,7 @@ export default function NfGrantTerms() {
                   the event of any conflict.
                 </p>
               </Clause>
-              <Clause number="5.5">
+              <Clause number="10.5">
                 <p>
                   To the extent Grant IP is not assigned to the Foundation under
                   an Assignment Requirement, you grant (and will procure the
@@ -734,7 +734,7 @@ export default function NfGrantTerms() {
                   termination of these Terms.
                 </p>
               </Clause>
-              <Clause number="5.6">
+              <Clause number="10.6">
                 <p>
                   Where an Open-Source Requirement applies, you will, no later
                   than the date specified in the NEARN Proposal (or, failing
@@ -749,7 +749,7 @@ export default function NfGrantTerms() {
                   licence.
                 </p>
               </Clause>
-              <Clause number="5.7">
+              <Clause number="10.7">
                 <p>
                   Where an Assignment Requirement applies, you hereby assign,
                   and will procure that your personnel and contractors assign,
@@ -762,7 +762,7 @@ export default function NfGrantTerms() {
                   Applicable Laws.
                 </p>
               </Clause>
-              <Clause number="5.8">
+              <Clause number="10.8">
                 <p>
                   You own all existing and future rights, titles and interests
                   in and to the logos, trade names, strap lines, trademarks or
@@ -782,7 +782,7 @@ export default function NfGrantTerms() {
                   media formats, through any media channels or otherwise.
                 </p>
               </Clause>
-              <Clause number="5.9">
+              <Clause number="10.9">
                 <p>
                   Nothing in these Terms will be construed as a representation
                   or agreement that the Foundation will not develop or have
@@ -794,7 +794,7 @@ export default function NfGrantTerms() {
                   Grant.
                 </p>
               </Clause>
-              <Clause number="5.10">
+              <Clause number="10.10">
                 <p>
                   The Foundation owns or has a license to use all existing and
                   future rights, titles and interests in and to the logos, trade
@@ -837,14 +837,14 @@ export default function NfGrantTerms() {
 
           <Section number={11} title="Confidentiality and Data Protection">
             <div className="space-y-4">
-              <Clause number="6.1">
+              <Clause number="11.1">
                 <p>
                   The Parties shall maintain strict confidentiality and not
                   disclose any Confidential Information (<Term>CI</Term>),
                   except as allowed in this Clause 11.
                 </p>
               </Clause>
-              <Clause number="6.2">
+              <Clause number="11.2">
                 <p>
                   The Parties share CI solely to perform this Agreement (
                   <Term>Permitted Purpose</Term>). Neither Party may use CI
@@ -855,7 +855,7 @@ export default function NfGrantTerms() {
                   efforts.
                 </p>
               </Clause>
-              <Clause number="6.3">
+              <Clause number="11.3">
                 <p>
                   Neither Party shall disclose the other&apos;s CI without
                   written consent, except as expressly permitted herein.
@@ -866,7 +866,7 @@ export default function NfGrantTerms() {
                   accordance with this Clause 11.
                 </p>
               </Clause>
-              <Clause number="6.4">
+              <Clause number="11.4">
                 <p>
                   If the Receiving Party must disclose any CI due to a legal
                   order (a <Term>Compelled Disclosure Request</Term>), and if
@@ -876,7 +876,7 @@ export default function NfGrantTerms() {
                   protective order.
                 </p>
               </Clause>
-              <Clause number="6.5">
+              <Clause number="11.5">
                 <p>
                   The confidentiality obligations of this Clause 11 shall extend
                   for two (2) years post-termination. Upon written request, the
@@ -884,7 +884,7 @@ export default function NfGrantTerms() {
                   Disclosing Party&apos;s CI, except as required by law.
                 </p>
               </Clause>
-              <Clause number="6.6">
+              <Clause number="11.6">
                 <p>
                   Each Party agrees that, in performing this Agreement, it will
                   comply with all applicable requirements of any Applicable Data
@@ -893,7 +893,7 @@ export default function NfGrantTerms() {
                   other Party will be appropriately notified.
                 </p>
               </Clause>
-              <Clause number="6.7">
+              <Clause number="11.7">
                 <p>
                   Any personal information submitted by the Recipient in
                   connection with this Agreement will be used for the purposes
@@ -913,7 +913,7 @@ export default function NfGrantTerms() {
                   with its Affiliates and other designated entities.
                 </p>
               </Clause>
-              <Clause number="6.8">
+              <Clause number="11.8">
                 <p>
                   The Recipient acknowledges and agrees that the Foundation may
                   record, exchange, analyse and use relevant information about
@@ -930,7 +930,7 @@ export default function NfGrantTerms() {
           </Section>
 
           <Section number={12} title="Indemnification">
-            <Clause number="7.1">
+            <Clause number="12.1">
               <p>
                 You will indemnify, defend and hold harmless the Foundation (and
                 its directors, officers, employees, Affiliates, subsidiaries and
@@ -991,7 +991,7 @@ export default function NfGrantTerms() {
 
           <Section number={16} title="Governing Law and Jurisdiction">
             <div className="space-y-4">
-              <Clause number="1.1">
+              <Clause number="16.1">
                 <p>
                   All matters relating to these Terms, and any dispute or claim
                   arising therefrom or related thereto (in each case, including
@@ -999,7 +999,7 @@ export default function NfGrantTerms() {
                   construed in accordance with the laws of Switzerland.
                 </p>
               </Clause>
-              <Clause number="1.2">
+              <Clause number="16.2">
                 <p>
                   Any legal suit, action, or proceeding arising out of, or
                   related to these Terms shall be instituted exclusively in the
@@ -1008,7 +1008,7 @@ export default function NfGrantTerms() {
                   your country of residence or any other relevant country.
                 </p>
               </Clause>
-              <Clause number="1.3">
+              <Clause number="16.3">
                 <p>
                   You waive any and all objections to the exercise of
                   jurisdiction over you by such courts and to venue in such
@@ -1029,7 +1029,7 @@ export default function NfGrantTerms() {
 
           <Section number={18} title="Waiver and Severability">
             <div className="space-y-4">
-              <Clause number="1.1">
+              <Clause number="18.1">
                 <p>
                   No waiver by us of any term or condition set out in these
                   Terms shall be deemed a further or continuing waiver of such
@@ -1039,7 +1039,7 @@ export default function NfGrantTerms() {
                   provision.
                 </p>
               </Clause>
-              <Clause number="1.2">
+              <Clause number="18.2">
                 <p>
                   If any provision of these Terms is held by a court or other
                   tribunal of competent jurisdiction to be invalid, illegal or
@@ -1071,7 +1071,7 @@ export default function NfGrantTerms() {
           </Section>
 
           <Section number={21} title="Definitions Used in these Terms">
-            <Clause number="1.1">
+            <Clause number="21.1">
               <p>In these Terms, the following definitions will apply:</p>
             </Clause>
             <dl className="mt-2 border-t border-slate-200">
@@ -1209,7 +1209,7 @@ export default function NfGrantTerms() {
                 </NumberedList>
               </Definition>
               <Definition term="NEARN Payment Proposal">
-                <p>as defined in clause 3.5;</p>
+                <p>as defined in clause 2.5;</p>
               </Definition>
               <Definition term="Effective Date">
                 <p>
