@@ -27,9 +27,10 @@ function Section({
   children: ReactNode;
 }) {
   return (
-    <section className="space-y-4">
-      <h2 className="text-xl font-bold text-slate-900">
-        {number}. {title}
+    <section className="space-y-4 overflow-hidden">
+      <h2 className="text-lg font-bold text-slate-900 sm:text-xl">
+        <span className="mr-1.5 inline-block">{number}.</span>
+        {title}
       </h2>
       {children}
     </section>
@@ -38,17 +39,17 @@ function Section({
 
 function Clause({ number, children }: { number: string; children: ReactNode }) {
   return (
-    <div className="flex gap-4">
-      <span className="w-16 shrink-0 font-medium text-slate-900">
+    <div className="flex gap-2 sm:gap-4">
+      <span className="w-12 shrink-0 text-sm font-medium tabular-nums text-slate-900 sm:w-16 sm:text-base">
         {number}.
       </span>
-      <div className="min-w-0 flex-1 space-y-3">{children}</div>
+      <div className="min-w-0 flex-1 space-y-3 break-words">{children}</div>
     </div>
   );
 }
 
 const listItemGap =
-  'list-outside space-y-3 pl-10 [&>li]:pl-4 [&>li]:marker:text-slate-900';
+  'list-outside space-y-3 pl-5 [&>li]:pl-1 [&>li]:marker:text-slate-900 sm:pl-10 sm:[&>li]:pl-4';
 
 function AlphaList({ children }: { children: ReactNode }) {
   return <ol className={`list-[lower-alpha] ${listItemGap}`}>{children}</ol>;
@@ -76,9 +77,9 @@ function NumberedList({
 
 function Definition({ term, children }: { term: string; children: ReactNode }) {
   return (
-    <div className="grid gap-1 border-b border-slate-100 py-4 last:border-b-0 sm:grid-cols-[220px_1fr] sm:gap-6">
-      <dt className="font-bold text-slate-900">{term}</dt>
-      <dd className="space-y-3">{children}</dd>
+    <div className="grid gap-1 border-b border-slate-100 py-4 last:border-b-0 sm:grid-cols-[200px_1fr] sm:gap-6">
+      <dt className="break-words font-bold text-slate-900">{term}</dt>
+      <dd className="min-w-0 space-y-3 break-words">{children}</dd>
     </div>
   );
 }
@@ -94,20 +95,20 @@ export default function NfGrantTerms() {
         />
       }
     >
-      <article className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
-        <header className="mb-10 border-b border-slate-200 pb-8">
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+      <article className="mx-auto w-full max-w-3xl overflow-x-hidden px-4 py-8 sm:px-6 sm:py-14">
+        <header className="mb-8 border-b border-slate-200 pb-6 sm:mb-10 sm:pb-8">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-4xl">
             NEAR Foundation Grant Program
           </h1>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-            Terms and Conditions
-          </h1>
+          <p className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+            Terms&nbsp;and&nbsp;Conditions
+          </p>
           <p className="mt-4 text-sm text-slate-500">
             Last updated: {PUBLISHED_DATE}
           </p>
         </header>
 
-        <div className="space-y-10 text-base leading-7 text-slate-700 [&_a]:text-brand-green [&_a]:underline">
+        <div className="space-y-8 break-words text-sm leading-7 text-slate-700 sm:space-y-10 sm:text-base [&_a]:break-all [&_a]:text-brand-green [&_a]:underline">
           {/* prettier-ignore */}
           <p>
             These terms and conditions are entered into by and between you (<Term>Recipient</Term> or <Term>you</Term> or <Term>your</Term>) and NEAR Foundation (<Term>Foundation</Term>, <Term>we</Term> or <Term>us</Term>). Please read these terms and conditions (<Term>Terms</Term> or <Term>Agreement</Term>)) carefully before submitting your Proposal to the Relevant Community (as defined below) under the Foundation&apos;s Grant Program (<Term>Grant</Term>). By proceeding with the submission of your Proposal you are accepting to be bound by these Terms. These Terms, together with any documents they expressly incorporate by reference, govern your receipt and use of the Grant.
