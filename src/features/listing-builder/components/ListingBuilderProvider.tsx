@@ -17,7 +17,6 @@ import { Header } from '@/features/navbar/components/Header';
 
 import {
   confirmModalAtom,
-  draftQueueAtom,
   hackathonsAtom,
   isEditingAtom,
   isGodAtom,
@@ -186,13 +185,6 @@ function ListingBuilderProvider({
           [
             isListingInReviewAtom,
             isEditing && listing && dayjs().isAfter(listing.deadline),
-          ],
-          [
-            draftQueueAtom,
-            {
-              isProcessing: false,
-              shouldProcessNext: false,
-            },
           ],
         ]}
       >

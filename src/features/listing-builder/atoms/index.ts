@@ -20,15 +20,6 @@ const descriptionKeyAtom = atom<string | number>(1);
 const skillsKeyAtom = atom<string | number>(1);
 const isListingInReviewAtom = atom<boolean>(false);
 
-interface SaveQueueState {
-  isProcessing: boolean;
-  shouldProcessNext: boolean;
-}
-const draftQueueAtom = atom<SaveQueueState>({
-  isProcessing: false,
-  shouldProcessNext: false,
-});
-
 const confirmModalAtom = atom<'SUCCESS' | 'VERIFICATION' | undefined>(
   undefined,
 );
@@ -62,7 +53,6 @@ const submitListingMutationAtom = atomWithMutation((get) => ({
 export {
   confirmModalAtom,
   descriptionKeyAtom,
-  draftQueueAtom,
   hackathonsAtom,
   hideAutoSaveAtom,
   isDraftSavingAtom,
